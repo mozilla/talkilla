@@ -2,6 +2,7 @@ var express = require('express');
 var server = express();
 
 server.use(express.bodyParser());
+server.use(express.static(__dirname + "/static"));
 
 server.post('/signin', function(req, res) {
   var users = server.get('users');
