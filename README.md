@@ -4,7 +4,7 @@ Talkilla
 Video call exploration
 
 Local Development
-=================
+-----------------
 
 1. Talkilla requires Firefox > 21.
 
@@ -21,7 +21,7 @@ Local Development
 5. Point your web browser to [http://localhost:5000](http://localhost:5000).
 
 Unit Tests
-==========
+----------
 
 To run the unit tests:
 
