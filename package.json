@@ -7,9 +7,14 @@
     "npm":"1.1.x"
   },
   "dependencies": {
-    "express": "3.0.x",
+    "express": "3.0.x"
+  },
+  "devDependencies": {
     "mocha": "1.8.x",
     "chai": "1.5.x",
     "request": "2.16.x"
-   }
+  },
+  "scripts": {
+    "test": "make test"
+  }
 }
