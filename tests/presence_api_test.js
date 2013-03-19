@@ -25,6 +25,15 @@ describe('Server', function() {
         done();
       });
     });
+
+    it('should have no users logged in', function(done) {
+      request.post('http://localhost:3000/signin', {form: {nick: 'foo'}}, function() {
+        request.post('http://localhost:3000/signout', {form: {nick: 'foo'}}, function() {
+          expect(server.get('users')).to.be.empty;
+          done();
+        });
+      });
+    });
   });
 });
 
