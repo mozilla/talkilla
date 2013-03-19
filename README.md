@@ -12,11 +12,11 @@ Local Development
 
 3. Install the required node modules:
 
-    $ npm install
+        $ npm install
 
 4. Start the server:
 
-    $ env PORT=5000 node app.js
+        $ env PORT=5000 node app.js
 
 5. Point your web browser to [http://localhost:5000](http://localhost:5000).
 
@@ -29,4 +29,4 @@ To run the unit tests:
 
 2. Run the tests:
 
-    $ make test
+        $ make test
