@@ -1,8 +1,15 @@
+<!DOCTYPE html>
 <html>
 <head>
-<title>Talkilla Test Page</title>
+  <meta charset="utf-8">
+  <title>Talkilla</title>
 </head>
+
 <body>
-<h1>Talkilla Test Page</h1>
+  <h1>Welcome to Talkilla!</h1>
+  <form onsubmit="alert('Welcome ' + document.getElementById('nick').value + '!'); return true;" action="signin" method="post">
+    <p>Please enter a nickname to use with Talkilla: <input id="nick" name="nick" type="text"></input>
+    <input id="submit" type="submit"></input></p>
+  </form>
 </body>
 </html>
