@@ -1,0 +1,13 @@
+language: node_js
+
+node_js:
+ - "0.8"
+
+notifications:
+  irc:
+    channels:
+      - "irc.mozilla.org#WebRTC-Apps"
+    use_notice: false
+    skip_join: false
+  email:
+    - mbanner@mozilla.com
