@@ -10,4 +10,4 @@ notifications:
     use_notice: false
     skip_join: false
   email:
-    - mbanner@mozilla.com
+    - talkilla-travis-results@mozilla.com
