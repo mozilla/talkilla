@@ -30,3 +30,12 @@ To run the unit tests:
 2. Run the tests:
 
         $ make test
+
+
+License
+-------
+
+All source code here is available under the
+[MPL 2.0](https://mozilla.org/MPL/2.0/) license, unless otherwise
+indicated.
+
