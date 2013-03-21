@@ -3,13 +3,42 @@
 <head>
   <meta charset="utf-8">
   <title>Talkilla</title>
+  <script>
+function login() {
+  var form = document.getElementById("login")
+  var xhr = new XMLHttpRequest();
+  xhr.onload = function() {
+    if (this.status != 200) {
+      form.style.display = "";
+      return;
+    }
+    var data = JSON.parse(this.responseText);
+    document.getElementById("title").textContent = "Welcome " + data.nick + "!";
+    if (!data.users.length) {
+      document.getElementById("invite").style.display = "";
+      return;
+    }
+    var ul = document.getElementById("friends");
+    data.users.forEach(function(user) {
+      var li = document.createElement("li");
+      li.textContent = user;
+      ul.appendChild(li);
+    });
+  }
+  xhr.open("POST", "signin", true);
+  xhr.send(new FormData(form));
+  form.style.display = "none";
+}
+  </script>
 </head>
 
 <body>
-  <h1>Welcome to Talkilla!</h1>
-  <form onsubmit="alert('Welcome ' + document.getElementById('nick').value + '!'); return true;" action="signin" method="post">
-    <p>Please enter a nickname to use with Talkilla: <input id="nick" name="nick" type="text"></input>
-    <input id="submit" type="submit"></input></p>
+  <h1 id="title">Welcome to Talkilla!</h1>
+  <form id="login" onsubmit="login(); return false;" action="signin" method="post">
+    <p>Please enter a nickname to use with Talkilla: <input id="nick" name="nick" type="text">
+    <input id="submit" type="submit"></p>
   </form>
+  <p id="invite" style="display: none">You are the only person logged in, invite your friends.</p>
+  <ul id="friends"></ul>
 </body>
 </html>
