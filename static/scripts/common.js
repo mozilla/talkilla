@@ -1,4 +1,4 @@
 define([], function() {
-    var Common = Common || {};
-    return Common;
+  var Common = Common || {};
+  return Common;
 });

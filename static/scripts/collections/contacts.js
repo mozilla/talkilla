@@ -1,6 +1,6 @@
 define([
-    'backbone',
-    'models/contact'
+  'backbone',
+  'models/contact'
 ], function(Backbone, Contact) {
   return Backbone.Collection.extend({
     url: '/api/contacts.json',
