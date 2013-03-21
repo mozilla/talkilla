@@ -1,3 +1,5 @@
+/* global describe, it, beforeEach, afterEach */
+
 var expect = require('chai').expect;
 var request = require('request');
 var server = require('../server').server;
