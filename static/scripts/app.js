@@ -1,5 +1,7 @@
-/*global Backbone*/
-require(['routers/router'], function(Router) {
-  new Router();
+require([
+  'backbone',
+  'routers/router'
+], function(Backbone, Router) {
+  window.Talkilla = new Router();
   Backbone.history.start();
 });

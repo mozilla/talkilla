@@ -4,16 +4,9 @@
   <meta charset="utf-8">
   <title>Talkilla</title>
 </head>
-
 <body>
   <h1>Welcome to Talkilla!</h1>
-  <form onsubmit="alert('Welcome ' + document.getElementById('nick').value + '!'); return true;" action="signin" method="post">
-    <p>Please enter a nickname to use with Talkilla: <input id="nick" name="nick" type="text">
-    <input id="submit" type="submit"></p>
-  </form>
-  <div id="main">
-    Loading contacts…
-  </div>
+  <div id="main"></div>
   <script data-main="scripts/config" src="scripts/lib/require.js"></script>
 </body>
 </html>

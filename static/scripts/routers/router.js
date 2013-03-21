@@ -1,28 +1,40 @@
+/*global Talkilla*/
 define([
   'backbone',
-  'common',
   'collections/contacts',
-  'views/index'
-], function(Backbone, Common, ContactList, IndexView) {
+  'views/index',
+  'views/contacts'
+], function(Backbone, ContactList, IndexView, ContactView) {
   return Backbone.Router.extend({
+    nick: undefined,
+
     routes: {
-        '': 'root'
+        'contacts': 'contacts',
+        '':         'index'
     },
 
     initialize: function() {
     },
 
-    root: function() {
+    contacts: function() {
+      if (!Talkilla.nick) {
+        return Talkilla.navigate('', {trigger: true, replace: true});
+      }
       var contacts = new ContactList();
       contacts.fetch({
         error: function() {
-            alert('could not load contacts');
+            alert('Could not load contacts');
         },
         success: function(contacts) {
-          this.IndexView = new IndexView({collection: contacts});
-          this.IndexView.render();
+          this.contactsView = new ContactView({collection: contacts});
+          this.contactsView.render();
         }.bind(this)
       });
+    },
+
+    index: function() {
+      this.indexView = new IndexView();
+      this.indexView.render();
     }
   });
 });

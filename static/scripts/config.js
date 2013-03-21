@@ -7,7 +7,7 @@ require.config({
     underscore: 'lib/underscore',
     backbone:   'lib/backbone-1.0.0',
     handlebars: 'lib/handlebars',
-    common:     'common'
+    common:     'common',
   },
   shim: {
     'jquery': {
