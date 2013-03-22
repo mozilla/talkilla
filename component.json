@@ -1,0 +1,10 @@
+{
+  "name": "talkilla",
+  "version": "0.0.1-dev",
+  "dependencies": {
+    "jquery": "1.9.1",
+    "underscore": "1.4.4",
+    "backbone": "1.0.0",
+    "bootstrap.css": "2.1.1"
+  }
+}
