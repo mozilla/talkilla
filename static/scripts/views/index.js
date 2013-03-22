@@ -1,10 +1,11 @@
 /*global Talkilla*/
 define([
   'backbone',
+  'models/auth',
   'handlebars',
   'text!templates/index.html',
   'jquery',
-], function(Backbone, Handlebars, IndexTemplate, $) {
+], function(Backbone, Auth, Handlebars, IndexTemplate, $) {
   return Backbone.View.extend({
     el: '#main',
 
@@ -22,11 +23,21 @@ define([
     signin: function(event) {
       event.preventDefault();
       var nick = $.trim($(event.currentTarget).find('[name="nick"]').val());
-      if (!nick) {
+      if (!nick)
         return alert('please enter a nickname');
-      }
-      Talkilla.nick = nick;
-      Talkilla.navigate('contacts', {trigger: true, replace: true});
+      var auth = new Auth({nick: nick});
+      auth.fetch({
+        error: function() {
+            alert('auth error');
+        },
+        success: function(auth) {
+          if (auth.get('ok')) {
+            Talkilla.nick = nick;
+            return Talkilla.navigate('contacts', {trigger: true, replace: true});
+          }
+          alert('auth failed');
+        }
+      });
     }
   });
 });

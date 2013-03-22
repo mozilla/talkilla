@@ -2,11 +2,11 @@ require.config({
   deps: ['app'],
   baseUrl: 'scripts',
   paths: {
-    text:       'lib/text',
-    jquery:     'lib/jquery-1.9.1',
-    underscore: 'lib/underscore',
-    backbone:   'lib/backbone-1.0.0',
-    handlebars: 'lib/handlebars',
+    text:       'vendor/text',
+    jquery:     'vendor/jquery-1.9.1',
+    underscore: 'vendor/underscore',
+    backbone:   'vendor/backbone-1.0.0',
+    handlebars: 'vendor/handlebars',
     common:     'common',
   },
   shim: {
