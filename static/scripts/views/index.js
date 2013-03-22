@@ -1,11 +1,10 @@
 /*global Talkilla*/
 define([
   'backbone',
-  'models/auth',
   'handlebars',
   'text!templates/index.html',
   'jquery',
-], function(Backbone, Auth, Handlebars, IndexTemplate, $) {
+], function(Backbone, Handlebars, IndexTemplate, $) {
   return Backbone.View.extend({
     el: '#main',
 
@@ -25,17 +24,19 @@ define([
       var nick = $.trim($(event.currentTarget).find('[name="nick"]').val());
       if (!nick)
         return alert('please enter a nickname');
-      var auth = new Auth({nick: nick});
-      auth.fetch({
-        error: function() {
-            alert('auth error');
-        },
+      $.ajax({
+        type: "POST",
+        url: '/signin',
+        data: {nick: nick},
+        dataType: 'json',
         success: function(auth) {
-          if (auth.get('ok')) {
-            Talkilla.nick = nick;
-            return Talkilla.navigate('contacts', {trigger: true, replace: true});
-          }
-          alert('auth failed');
+          if (!auth.nick)
+            return alert('joining failed');
+          Talkilla.nick = auth.nick;
+          return Talkilla.navigate('contacts', {trigger: true, replace: true});
+        },
+        error: function() {
+          alert('joining error');
         }
       });
     }
