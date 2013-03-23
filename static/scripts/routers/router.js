@@ -17,20 +17,12 @@ define([
     },
 
     index: function() {
-      // login form || auth status
-      this.loginView = new LoginView({user: this.user});
+      // login form/status
+      this.loginView = new LoginView({user: Talkilla.user});
       this.loginView.render();
       // users list
-      var users = new UserCollection();
-      users.fetch({
-        error: function() {
-            alert('Could not load connected users list');
-        },
-        success: function(users) {
-          this.userListView = new UserCollectionView({collection: users});
-          this.userListView.render();
-        }.bind(this)
-      });
+      this.userListView = new UserCollectionView();
+      this.userListView.render();
     }
   });
 });

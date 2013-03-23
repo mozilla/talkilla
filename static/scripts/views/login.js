@@ -4,15 +4,13 @@ define([
   'backbone',
   'handlebars',
   'models/user',
-  'collections/users',
-  'views/users',
   'text!templates/login.html',
   'jquery',
-], function(Backbone, Handlebars, User, UserCollection, UserCollectionView, IndexTemplate, $) {
+], function(Backbone, Handlebars, User, LoginTemplate, $) {
   var LoginView = Backbone.View.extend({
     el: '#loginForm',
 
-    template: Handlebars.compile(IndexTemplate),
+    template: Handlebars.compile(LoginTemplate),
 
     user: undefined,
 
@@ -45,17 +43,8 @@ define([
       .done(function(auth) {
         if (!auth.nick)
           return alert('joining failed');
-        // refresh connection status
-        var user = Talkilla.user = new User({
-          nick: auth.nick
-        });
-        Talkilla.loginView = new LoginView({user: user});
-        Talkilla.loginView.render();
-        // refresh users list with auth.users
-        Talkilla.userListView = new UserCollectionView({
-          collection: new UserCollection(auth.users)
-        });
-        Talkilla.userListView.render();
+        Talkilla.user = new User({nick: auth.nick});
+        Talkilla.index();
       })
       .fail(function() {
         alert('joining error');
