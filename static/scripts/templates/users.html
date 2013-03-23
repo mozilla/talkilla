@@ -1,10 +1,12 @@
-<h2>Online users</h2>
+<div class="well">
 {{#if users}}
-  <ul class="users">
+  <ul class="users nav nav-list">
+    <li class="nav-header">Online users</li>
   {{#each users}}
-    <li>{{nick}}</li>
+    <li><a href="#"><i class="icon-user"></i> {{nick}}</a></li>
   {{/each}}
   </ul>
 {{else}}
   <p>Room is empty.</p>
 {{/if}}
+</div>
