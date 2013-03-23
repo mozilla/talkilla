@@ -1,6 +1,10 @@
 <h2>Online users</h2>
-<ul class="users">
-{{#each users}}
-  <li>{{nick}}</li>
-{{/each}}
-</ul>
+{{#if users}}
+  <ul class="users">
+  {{#each users}}
+    <li>{{nick}}</li>
+  {{/each}}
+  </ul>
+{{else}}
+  <p>Room is empty.</p>
+{{/if}}
