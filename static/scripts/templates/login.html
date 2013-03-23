@@ -1,0 +1,15 @@
+{{#if user}}
+  <form action="/signout" method="post">
+    <input type="hidden" name="nick" value="{{user.nick}}">
+    <p>Joined as <strong>{{user.nick}}</strong>
+    | <button type="submit">sign out</button></p>
+  </form>
+{{else}}
+  <form action="signin" method="post" id="signin">
+    <p>
+      <label for="nick">Please enter a nickname to use with Talkilla:</label>
+      <input id="nick" name="nick" type="text">
+      <input id="submit" type="submit">
+    </p>
+  </form>
+{{/if}}
