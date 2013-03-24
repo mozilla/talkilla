@@ -1,18 +1,25 @@
 <!DOCTYPE html>
-<html>
+<html ng-app>
 <head>
   <meta charset="utf-8">
   <title>Talkilla</title>
-  <script type="text/javascript" src="talkilla.js"></script>
 </head>
-
-<body>
+<body ng-controller="AppController">
   <h1 id="title">Welcome to Talkilla!</h1>
-  <form id="login" onsubmit="login(); return false;" action="signin" method="post">
-    <p>Please enter a nickname to use with Talkilla: <input id="nick" name="nick" type="text">
-    <input id="submit" type="submit"></p>
+  <form id="loginForm" ng-submit="login()">
+    <p>
+      Please enter a nickname to use with Talkilla:
+      <input id="nick" name="nick" type="text" ng-model="nick" required>
+      <input id="submit" type="submit">
+    </p>
+    <p id="invite" style="display: none">
+      You are the only person logged in, invite your friends.
+    </p>
   </form>
-  <p id="invite" style="display: none">You are the only person logged in, invite your friends.</p>
-  <ul id="friends"></ul>
+  <ul id="friends">
+    <li ng-repeat="user in users">{{user}}</li>
+  </ul>
+  <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.0.5/angular.js"></script>
+  <script src="talkilla.js"></script>
 </body>
 </html>
