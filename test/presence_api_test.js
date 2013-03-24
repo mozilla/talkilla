@@ -1,3 +1,5 @@
+/* global describe, it, beforeEach, afterEach */
+/* jshint expr:true */
 var expect = require("chai").expect;
 var request = require("request");
 var server = require("../server").server;
@@ -22,7 +24,7 @@ describe("Server", function() {
 
     it("should have foo logged in", function(done) {
       request.post("http://localhost:3000/signin", {form: {nick: "foo"}}, function() {
-        expect(server.get("users")).to.eql(["foo"]);
+        expect(server.get("users")).to.eql([{nick: "foo"}]);
         done();
       });
     });
@@ -41,7 +43,7 @@ describe("Server", function() {
       request.post("http://localhost:3000/signin", {form: {nick: nick1}}, function(err, res, body) {
         var data = JSON.parse(body);
         expect(data.nick).to.eql(nick1);
-        expect(data.users).to.be.empty;
+        expect(data.users).to.eql([{nick: "foo"}]);
         done();
       });
     });
@@ -83,8 +85,9 @@ describe("Server", function() {
       request.post("http://localhost:3000/signin", {form: {nick: nick1}}, function() {
         request.post("http://localhost:3000/signin", {form: {nick: nick2}}, function(err, res, body) {
           var data = JSON.parse(body);
+          console.log(body);
           expect(data.nick).to.eql(nick2);
-          expect(data.users).to.eql([nick1]);
+          expect(data.users).to.eql([{nick: nick1}, {nick: nick2}]);
           done();
         });
       });
