@@ -38,13 +38,13 @@ server.post('/signin', function(req, res) {
 server.post('/signout', function(req, res) {
   var users = server.get('users');
   var pos = users.indexOf(req.body.nick);
-  if (pos == -1)
-    res.send(404, 'User not logged in');
+  if (pos === -1)
+    return res.send(404, 'User not logged in');
 
   users.pop(pos);
   server.set('users', users);
 
-  res.send(200);
+  res.redirect("/");
 });
 
 var _listen = server.listen;

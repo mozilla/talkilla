@@ -3,6 +3,9 @@
 <head>
   <meta charset="utf-8">
   <title>Talkilla</title>
+  <style>
+  .hide {display:none;}
+  </style>
 </head>
 <body ng-controller="AppController">
   <h1 id="title">Welcome to Talkilla!</h1>
@@ -12,10 +15,17 @@
       <input id="nick" name="nick" type="text" ng-model="nick" required>
       <input id="submit" type="submit">
     </p>
-    <p id="invite" style="display: none">
-      You are the only person logged in, invite your friends.
+  </form>
+  <form id="userInfo" method="post" action="/signout" class="hide">
+    <p>
+      Hello, <strong>{{nick}}</strong>
+      <input type="hidden" name="nick" value="{{nick}}">
+      <button type="submit">Sign out</button>
     </p>
   </form>
+  <p id="invite" class="hide">
+    You are the only person logged in, invite your friends.
+  </p>
   <ul id="friends">
     <li ng-repeat="user in users">{{user}}</li>
   </ul>
