@@ -85,7 +85,6 @@ describe("Server", function() {
       request.post("http://localhost:3000/signin", {form: {nick: nick1}}, function() {
         request.post("http://localhost:3000/signin", {form: {nick: nick2}}, function(err, res, body) {
           var data = JSON.parse(body);
-          console.log(body);
           expect(data.nick).to.eql(nick2);
           expect(data.users).to.eql([{nick: nick1}, {nick: nick2}]);
           done();
