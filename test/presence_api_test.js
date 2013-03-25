@@ -31,7 +31,7 @@ describe("Server", function() {
       connection.close();
     });
 
-    it("should have no users logged in", function() {
+    it("should have no users logged in at startup", function() {
       expect(server.get("users")).to.be.empty;
     });
 
