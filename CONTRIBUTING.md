@@ -100,26 +100,26 @@ this guide as a law.
   on one line, brace it too). Brackets should always be on the same
   line as "if" or "else".
 
-    if (condition)            // bad
-      callThisMethod(argument1,
-                     argument2);
+        if (condition)            // bad
+          callThisMethod(argument1,
+                         argument2);
 
-    if (condition) {          // OK
-      callThisMethod(argument1,
-                     argument2);
-    }
+        if (condition) {          // OK
+          callThisMethod(argument1,
+                         argument2);
+        }
 
-    if (foo.bar())         // OK
-      doBar();
-    else
-      runAway();
+        if (foo.bar())         // OK
+          doBar();
+        else
+          runAway();
 
-    if (foo.bar()) {       // OK
-      // Comment here
-      doBar();
-    } else {
-      runAway();
-    }
+        if (foo.bar()) {       // OK
+          // Comment here
+          doBar();
+        } else {
+          runAway();
+        }
 
 ### Control flow
 
