@@ -32,6 +32,12 @@ To run the unit tests:
         $ make test
 
 
+Contribution
+------------
+
+Look for a file named `CONTRIBUTING.md` in this repository. It
+contains our contributing guidelines.
+
 License
 -------
 

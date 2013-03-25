@@ -14,7 +14,7 @@ server.post('/signin', function(req, res) {
 server.post('/signout', function(req, res) {
   var users = server.get('users');
   var pos = users.indexOf(req.body.nick);
-  if (pos == -1)
+  if (pos === -1)
     res.send(404, 'User not logged in');
 
   users.pop(pos);
@@ -27,7 +27,7 @@ var _listen = server.listen;
 server.listen = function() {
   server.set('users', []);
   return _listen.apply(server, arguments);
-}
+};
 
 module.exports.server = server;
 
