@@ -1,5 +1,7 @@
+/* jshint unused: false */
+/* XXX shouldn't need the unused above, ditch once we have Backbone/modules? */
 function login() {
-  var form = document.getElementById("login")
+  var form = document.getElementById("login");
   var xhr = new XMLHttpRequest();
   xhr.onload = function() {
     if (this.status !== 200) {
@@ -18,7 +20,8 @@ function login() {
       li.textContent = user;
       ul.appendChild(li);
     });
-  }
+  };
+  
   xhr.open("POST", "signin", true);
   xhr.send(new FormData(form));
   form.style.display = "none";
