@@ -49,25 +49,25 @@ this guide as a law.
 
 - Use a space between a keyword and parentheses.
 
-    if(condition)             // bad
-    if (condition)            // OK
+        if(condition)             // bad
+        if (condition)            // OK
 
 - Do not put compound statements in one line. Indent the controlled
   statement on the next line, for clarity.
 
-    if (condition) break;     // bad
-    if (condition)            // OK
-      break;
+        if (condition) break;     // bad
+        if (condition)            // OK
+          break;
 
 - Function arguments that overflow the first line of the call
   expression should be aligned to underhang the first argument (to
   start in overflow lines in the column after the opening
   parenthesis).
 
-    fooMethod(a1,         // bad
-        v2);
-    fooMethod(a1,         // OK
-              v2);
+        fooMethod(a1,         // bad
+            v2);
+        fooMethod(a1,         // OK
+                  v2);
 
 - One (or two) blank lines between block definitions. Also consider
   breaking up large code blocks with blank lines to improve
@@ -75,20 +75,20 @@ this guide as a law.
   conditions. Try to indent to line up with a related item on the
   previous line.
 
-    if (reallyReallyLongCondition() && someOtherLongThing()     // bad
-      && somethingShorter()) {
-      ...
-    }
-    if (reallyReallyLongCondition() && someOtherLongThing() &&  // OK
-        somethingShorter()) {
-      ...
-    }
+        if (reallyReallyLongCondition() && someOtherLongThing()     // bad
+          && somethingShorter()) {
+          ...
+        }
+        if (reallyReallyLongCondition() && someOtherLongThing() &&  // OK
+            somethingShorter()) {
+          ...
+        }
 
 
-    var result = prompt(message, initialValue,   // bad
-      caption);
-    var result = prompt(message, initialValue,   // OK
-                        caption);
+        var result = prompt(message, initialValue,   // bad
+          caption);
+        var result = prompt(message, initialValue,   // OK
+                            caption);
 
 - End each file with a newline.
 
@@ -128,51 +128,51 @@ this guide as a law.
   abnormal cases, instead of nesting "if/else" statements and
   indenting the common cases.
 
-    function myFunction(a) {
-      if (a) {              // bad
-        ...
-      }
-    }
+        function myFunction(a) {
+          if (a) {              // bad
+            ...
+          }
+        }
 
-    function myFunction(a) {
-      if (!a)
-        return;             // OK
-      ...
-    }
+        function myFunction(a) {
+          if (!a)
+            return;             // OK
+          ...
+        }
 
 - If an "if" statement controls a "then" clause ending in a return
   statement, do not use "else" after return.
 
-    if (condition) {          // bad
-      doThis();
-      return;
-    } else
-      doThat();
+        if (condition) {          // bad
+          doThis();
+          return;
+        } else
+          doThat();
 
-    if (condition) {          // OK
-      DoThis();
-      return;
-    }
-    DoThat();
+        if (condition) {          // OK
+          DoThis();
+          return;
+        }
+        DoThat();
 
 - Avoid similar arbitrary patterns and non-sequiturs:
 
-    if (condition) {          // bad
-      doThis();
-      doThat();
-    } else {
-      CleanUp();
-      return;
-    }
-    DoTheOther();
+        if (condition) {          // bad
+          doThis();
+          doThat();
+        } else {
+          CleanUp();
+          return;
+        }
+        DoTheOther();
 
-    if (!condition) {         // OK
-      cleanUp();
-      return;
-    }
-    doThis();
-    doThat();
-    doTheOther();
+        if (!condition) {         // OK
+          cleanUp();
+          return;
+        }
+        doThis();
+        doThat();
+        doTheOther();
 
 ### Function and variable names
 
@@ -220,27 +220,27 @@ Examples:
   Array(1, a, 3);.
 - Private members should be prefixed with "_". Example:
 
-    var myObj = {
-      _private: 42,
-      _privFunction: function myObj__privF(aArg) {
-        return aArg + 2;
-      },
-      pubFunction: function myObj_pubF(aArg) {
-        return this._privFunction(aArg) * this._private;
-      }
-    }
+        var myObj = {
+          _private: 42,
+          _privFunction: function myObj__privF(aArg) {
+            return aArg + 2;
+          },
+          pubFunction: function myObj_pubF(aArg) {
+            return this._privFunction(aArg) * this._private;
+          }
+        }
 
 - Getters and setters should use the get/set syntax. Example:
 
-    var myObj = {
-      _myProp: 0,
-      get myProp() {
-        return this._myProp;
-      },
-      set myProp(val) {
-        return this._myProp = val;
-      }
-    }
+        var myObj = {
+          _myProp: 0,
+          get myProp() {
+            return this._myProp;
+          },
+          set myProp(val) {
+            return this._myProp = val;
+          }
+        }
 
 ### === and !== Operators.
 
