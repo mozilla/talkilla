@@ -21,26 +21,30 @@ function findNewNick(aNick) {
   return nickParts[1] + newDigits;
 }
 
+server.get('/users', function(req, res) {
+  res.send(200, JSON.stringify(server.get('users')));
+});
+
 server.post('/signin', function(req, res) {
   var users = server.get('users');
   var nick = req.body.nick;
   while (users.indexOf(nick) !== -1)
     nick = findNewNick(nick);
-  res.send(200, JSON.stringify({nick: nick, users: users}));
   users.push(nick);
   server.set('users', users);
+  res.send(200, JSON.stringify({nick: nick, users: users}));
 });
 
 server.post('/signout', function(req, res) {
   var users = server.get('users');
   var pos = users.indexOf(req.body.nick);
-  if (pos == -1)
-    res.send(404, 'User not logged in');
+  if (pos === -1)
+    return res.send(404, 'User not logged in');
 
   users.pop(pos);
   server.set('users', users);
 
-  res.send(200);
+  res.redirect("/");
 });
 
 var _listen = server.listen;

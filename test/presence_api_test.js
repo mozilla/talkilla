@@ -41,7 +41,7 @@ describe("Server", function() {
       request.post("http://localhost:3000/signin", {form: {nick: nick1}}, function(err, res, body) {
         var data = JSON.parse(body);
         expect(data.nick).to.eql(nick1);
-        expect(data.users).to.be.empty;
+        expect(data.users).to.eql(["foo"]);
         done();
       });
     });
@@ -84,7 +84,7 @@ describe("Server", function() {
         request.post("http://localhost:3000/signin", {form: {nick: nick2}}, function(err, res, body) {
           var data = JSON.parse(body);
           expect(data.nick).to.eql(nick2);
-          expect(data.users).to.eql([nick1]);
+          expect(data.users).to.eql([nick1, nick2]);
           done();
         });
       });
