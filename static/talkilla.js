@@ -1,4 +1,4 @@
-/*global angular*/
+/*global $, angular*/
 function AppController($scope, $http) {
   $scope.nick = 'guest';
 
@@ -11,10 +11,10 @@ function AppController($scope, $http) {
   $scope.login = function() {
     $http.post('/signin', {nick: $scope.nick}).success(function(result) {
       $scope.users = result.users;
-      angular.element(document.querySelector('#loginForm')).toggleClass('hide');
-      angular.element(document.querySelector('#userInfo')).toggleClass('hide');
+      angular.element($('#loginForm')).toggleClass('hide');
+      angular.element($('#userInfo')).toggleClass('hide');
       if (result.users.length === 1) {
-        angular.element(document.querySelector('#invite')).removeClass('hide');
+        angular.element($('#invite')).removeClass('hide');
       }
     }).error(function() {
       alert('unable to sign in');
