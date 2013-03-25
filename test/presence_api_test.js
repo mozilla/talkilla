@@ -53,9 +53,8 @@ describe("Server", function() {
     });
 
     it("should return the user's nick", function(done) {
-      var nick1 = "foo";
-      request.post("http://localhost:3000/signin", {form: {nick: nick1}}, 
-                   function(err, res, body) {
+      var nick1 = 'foo';
+      signin('foo', function(err, res, body) {
         var data = JSON.parse(body);
         expect(data.nick).to.eql(nick1);
         expect(data.users).to.be.empty;
@@ -64,12 +63,10 @@ describe("Server", function() {
     });
 
     it("should fix the user's nick if it already exists", function(done) {
-      var nick1 = "foo";
+      var nick1 = 'foo';
       /* jshint unused: vars */
-      request.post("http://localhost:3000/signin", {form: {nick: nick1}}, 
-                   function(err, res, body) {
-        request.post("http://localhost:3000/signin", {form: {nick: nick1}},
-                   function(err, res, body) {
+      signin(nick1, function(err, res, body) {
+        signin(nick1, function(err, res, body) {
           expect(JSON.parse(body).nick).to.eql(findNewNick(nick1));
           done();
         });
@@ -101,10 +98,8 @@ describe("Server", function() {
     it("should return existing users", function(done) {
       var nick1 = "foo";
       var nick2 = "bar";
-      request.post("http://localhost:3000/signin", {form: {nick: nick1}},
-                   function() {
-          request.post("http://localhost:3000/signin", {form: {nick: nick2}},
-                   function(err, res, body) {
+      signin(nick1, function() {
+          signin(nick2, function(err, res, body) {
             var data = JSON.parse(body);
             expect(data.nick).to.eql(nick2);
             expect(data.users).to.eql([nick1]);
