@@ -65,7 +65,7 @@ describe("Server", function() {
 
     it("should fix the user's nick if it already exists", function(done) {
       var nick1 = "foo";
-      /* jshint unused: false */
+      /* jshint unused: vars */
       request.post("http://localhost:3000/signin", {form: {nick: nick1}}, 
                    function(err, res, body) {
         request.post("http://localhost:3000/signin", {form: {nick: nick1}},
