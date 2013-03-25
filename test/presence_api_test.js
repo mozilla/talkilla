@@ -42,7 +42,8 @@ describe("Server", function() {
       });
     });
 
-    it('should have no users logged in', function(done) {
+    it('should have no users logged in after logging in and out', 
+    function(done) {
       signin('foo', function() {
         signout('foo', function() {
           expect(server.get('users')).to.be.empty;
