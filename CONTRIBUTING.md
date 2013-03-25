@@ -242,3 +242,9 @@ Examples:
       }
     }
 
+### === and !== Operators.
+
+Using `===` and `!==` should be the default. If you need to use `==`
+and `!=` you should add the following comment for jshint in your file:
+`/*jshint eqeqeq:false*/`
+
