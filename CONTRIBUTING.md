@@ -2,7 +2,8 @@ How to contribute
 =================
 
 The best way to make sure your issue is addressed is to submit a
-patch. We accept patches through pull requests, email, issue comment,
+patch. We accept patches through pull requests, email, comment on
+[bugzilla](https://bugzilla.mozilla.org/buglist.cgi?product=Talkilla&component=General&resolution=---),
 etc.
 
 However, before sending a patch, please make sure that the following
