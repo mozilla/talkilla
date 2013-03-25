@@ -13,9 +13,16 @@ applies:
 * Your commit message is descriptive enough.
 * Your patch doesn't have useless merge commits.
 * Your coding style is similar to ours (see below).
-* Tests are encouraged but not mandatory. However a tested
-  contribution will speed up the reviewing process.
 * You understand that we're super grateful for your patch.
+
+Testing policy
+--------------
+
+- Tests are expected for all checkins, but that can be relexed by reviewer
+  - for volunteers (typically reviewer would write tests in that case)
+  - for trivial changes
+  - for changes where the cost/benefit of implementing the tests is too high
+
 
 Coding Style
 ------------
