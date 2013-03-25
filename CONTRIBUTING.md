@@ -44,8 +44,8 @@ this guide as a law.
   between an array name and the square bracket. Also, do no use spaces
   after a bracket. Use a space after a comma to separate arguments.
 
-    fooMethod ( a1, v2 ); // bad
-    fooMethod(a1, v2);    // OK
+        fooMethod ( a1, v2 ); // bad
+        fooMethod(a1, v2);    // OK
 
 - Use a space between a keyword and parentheses.
 
