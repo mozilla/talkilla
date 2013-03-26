@@ -1,11 +1,16 @@
+test: mocha jshint
+
 install:
 	@npm install
-	@bower install
 
-test:
+jshint:
+	@jshint *.js static test
+
+mocha:
 	@./node_modules/mocha/bin/mocha --reporter spec
 
 runserver:
 	@env PORT=5000 node app.js
 
-.PHONY: test install runserver
+.PHONY: test
+

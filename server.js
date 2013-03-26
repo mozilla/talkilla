@@ -41,9 +41,8 @@ server.post('/signin', function(req, res) {
 });
 
 server.post('/signout', function(req, res) {
-  var users = server.get('users');
-  server.set('users', users.filter(function(x){
-    return x.nick !== req.body.nick;
+  server.set('users', server.get('users').filter(function(user) {
+    return user.nick !== req.body.nick;
   }));
   res.send(200, JSON.stringify(true));
 });
@@ -52,7 +51,7 @@ var _listen = server.listen;
 server.listen = function() {
   server.set('users', []);
   return _listen.apply(server, arguments);
-}
+};
 
 module.exports.server = server;
 module.exports.findNewNick = findNewNick;

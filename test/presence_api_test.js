@@ -1,5 +1,6 @@
 /* global describe, it, beforeEach, afterEach */
 /* jshint expr:true */
+
 var expect = require("chai").expect;
 var request = require("request");
 var server = require("../server").server;
@@ -10,6 +11,18 @@ var connection;
 describe("Server", function() {
   describe("presence", function() {
 
+    function signin(nick, callback) {
+      request.post('http://localhost:3000/signin',
+                   {form: {nick: nick}},
+                   callback);
+    }
+
+    function signout(nick, callback) {
+      request.post('http://localhost:3000/signout',
+                   {form: {nick: nick}},
+                   callback);
+    }
+
     beforeEach(function() {
       connection = server.listen(3000);
     });
@@ -18,29 +31,30 @@ describe("Server", function() {
       connection.close();
     });
 
-    it("should have no users logged in", function() {
+    it("should have no users logged in at startup", function() {
       expect(server.get("users")).to.be.empty;
     });
 
-    it("should have foo logged in", function(done) {
-      request.post("http://localhost:3000/signin", {form: {nick: "foo"}}, function() {
+    it('should have foo logged in', function(done) {
+      signin('foo', function() {
         expect(server.get("users")).to.eql([{nick: "foo"}]);
         done();
       });
     });
 
-    it("should have no users logged in", function(done) {
-      request.post("http://localhost:3000/signin", {form: {nick: "foo"}}, function() {
-        request.post("http://localhost:3000/signout", {form: {nick: "foo"}}, function() {
-          expect(server.get("users")).to.be.empty;
+    it('should have no users logged in after logging in and out',
+    function(done) {
+      signin('foo', function() {
+        signout('foo', function() {
+          expect(server.get('users')).to.be.empty;
           done();
         });
       });
     });
 
     it("should return the user's nick", function(done) {
-      var nick1 = "foo";
-      request.post("http://localhost:3000/signin", {form: {nick: nick1}}, function(err, res, body) {
+      var nick1 = 'foo';
+      signin('foo', function(err, res, body) {
         var data = JSON.parse(body);
         expect(data.nick).to.eql(nick1);
         expect(data.users).to.eql([{nick: "foo"}]);
@@ -49,16 +63,18 @@ describe("Server", function() {
     });
 
     it("should fix the user's nick if it already exists", function(done) {
-      var nick1 = "foo";
-      request.post("http://localhost:3000/signin", {form: {nick: nick1}}, function(err, res, body) {
-        request.post("http://localhost:3000/signin", {form: {nick: nick1}}, function(err, res, body) {
+      var nick1 = 'foo';
+      /* jshint unused: vars */
+      signin(nick1, function(err, res, body) {
+        signin(nick1, function(err, res, body) {
           expect(JSON.parse(body).nick).to.eql(findNewNick(nick1));
           done();
-      });
+        });
       });
     });
 
-    it("should preserve existing characters of the nick when finding a new one", function() {
+    it("should preserve existing chars of the nick when finding a new one",
+       function() {
       var testNicks = {
         "foo": "foo1",
         "foo1": "foo2",
@@ -82,14 +98,15 @@ describe("Server", function() {
     it("should return existing users", function(done) {
       var nick1 = "foo";
       var nick2 = "bar";
-      request.post("http://localhost:3000/signin", {form: {nick: nick1}}, function() {
-        request.post("http://localhost:3000/signin", {form: {nick: nick2}}, function(err, res, body) {
-          var data = JSON.parse(body);
-          expect(data.nick).to.eql(nick2);
-          expect(data.users).to.eql([{nick: nick1}, {nick: nick2}]);
-          done();
+
+      signin(nick1, function() {
+          signin(nick2, function(err, res, body) {
+            var data = JSON.parse(body);
+            expect(data.nick).to.eql(nick2);
+            expect(data.users).to.eql([{nick: nick1}, {nick: nick2}]);
+            done();
+          });
         });
-      });
     });
   });
 });

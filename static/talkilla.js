@@ -1,4 +1,5 @@
 /*global jQuery, Backbone*/
+/* jshint unused: false */
 jQuery(function($) {
   var loggedUser, users;
 
@@ -71,7 +72,7 @@ jQuery(function($) {
       this.collection = new UserSet();
       this.collection.fetch({
         error: function() {
-            alert('Could not load connected users list');
+          alert('Could not load connected users list');
         },
         success: function(users) {
           this.render();
@@ -94,7 +95,7 @@ jQuery(function($) {
 
     events: {
       'submit form#signin': 'signin',
-      'submit form#signout': 'signout',
+      'submit form#signout': 'signout'
     },
 
     initialize: function(options) {
@@ -107,7 +108,8 @@ jQuery(function($) {
         this.$el.find('#signout').hide().find('.nick').text('');
       } else {
         this.$el.find('#signin').hide();
-        this.$el.find('#signout').show().find('.nick').text(this.user.get('nick'));
+        this.$el.find('#signout').show().find('.nick')
+                .text(this.user.get('nick'));
       }
       return this;
     },
@@ -118,7 +120,8 @@ jQuery(function($) {
       if (!nick) return alert('please enter a nickname');
       login(nick, function(err, user, users) {
         if (err) return alert(err);
-        app.data = {user: user, users: users};
+        app.data.user = user;
+        app.data.users = users;
         app.index();
       });
     },
@@ -127,7 +130,7 @@ jQuery(function($) {
       event.preventDefault();
       logout(function(err) {
         if (err) return alert(err);
-        app.data = {user: undefined, users: undefined};
+        app.data.user = app.data.users = undefined;
         app.index();
       });
     }
