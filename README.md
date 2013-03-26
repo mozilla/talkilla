@@ -10,13 +10,17 @@ Local Development
 
 2. Make sure you have [node installed](http://nodejs.org/).
 
-3. Install the required node & [bower](http://twitter.github.com/bower/) dependencies:
+3. Install the required node dependencies:
 
-    $ make install
+        $ npm install
+        # or alternatively:
+        $ make install
 
 4. Start the server:
 
-    $ env PORT=5000 node app.js
+        $ env PORT=5000 node app.js
+        # or alternatively:
+        $ make runserver
 
 5. Point your web browser to [http://localhost:5000](http://localhost:5000).
 
@@ -30,7 +34,7 @@ To run the unit tests:
 
 2. Run the tests:
 
-    $ make test
+        $ make test
 
 
 Contribution
