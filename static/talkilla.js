@@ -1,8 +1,6 @@
 /*global jQuery, Backbone*/
 /* jshint unused: false */
 jQuery(function($) {
-  var loggedUser, users;
-
   function login(nick, cb) {
     $.ajax({
       type: "POST",
@@ -23,7 +21,7 @@ jQuery(function($) {
     $.ajax({
       type: "POST",
       url: '/signout',
-      data: {nick: loggedUser && loggedUser.get('nick')},
+      data: {nick: app.data.user && app.data.user.get('nick')},
       dataType: 'json'
     })
     .done(function(result) {
