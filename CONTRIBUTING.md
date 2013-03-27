@@ -25,8 +25,8 @@ Testing policy
 
 Review policy
 -------------
-* Pull requests that are pair-programmed with at least one committer do not 
-  require code review, although contributors are encouraged to request it 
+* Pull requests that are pair-programmed with at least one committer do not
+  require code review, although contributors are encouraged to request it
   if another set of eyes seems important.  Pair-programmed merges should
   include a sentence like `These commits were paired on by n10k and dmose`.
 * Otherwise, pull-requests require code review:
