@@ -12,8 +12,6 @@ var Talkilla = (function($, Backbone) {
       dataType: 'json'
     })
     .done(function(auth) {
-      if (!auth.nick)
-        return cb(new Error('joining failed'));
       return cb(null,
                 new app.User({nick: auth.nick}),
                 new app.UserSet(auth.users));
