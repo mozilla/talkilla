@@ -1,6 +1,9 @@
 /*global jQuery, Backbone*/
 /* jshint unused: false */
-jQuery(function($) {
+var Talkilla = (function($, Backbone) {
+  "use strict";
+  var app = {data: {}};
+
   function login(nick, cb) {
     $.ajax({
       type: "POST",
@@ -11,7 +14,9 @@ jQuery(function($) {
     .done(function(auth) {
       if (!auth.nick)
         return cb(new Error('joining failed'));
-      return cb(null, new User({nick: auth.nick}), new UserSet(auth.users));
+      return cb(null,
+                new app.User({nick: auth.nick}),
+                new app.UserSet(auth.users));
     })
     .fail(function(xhr, textStatus, error) {
       return cb(error);
@@ -33,9 +38,7 @@ jQuery(function($) {
     });
   }
 
-  var AppRouter = Backbone.Router.extend({
-    data: {},
-
+  app.Router = Backbone.Router.extend({
     routes: {
       '': 'index'
     },
@@ -44,34 +47,34 @@ jQuery(function($) {
       // login form
       if (this.loginView)
         this.loginView.undelegateEvents();
-      this.loginView = new LoginView(this.data);
+      this.loginView = new app.LoginView(app.data);
       this.loginView.render();
 
       // users list
       if (this.usersView)
         this.usersView.undelegateEvents();
-      this.usersView = new UsersView(this.data);
+      this.usersView = new app.UsersView(app.data);
       this.usersView.render();
     }
   });
 
-  var User = Backbone.Model.extend({
+  app.User = Backbone.Model.extend({
     defaults: {nick: undefined}
   });
 
-  var UserSet = Backbone.Collection.extend({
+  app.UserSet = Backbone.Collection.extend({
     url: '/users',
-    model: User
+    model: app.User
   });
 
-  var UsersView = Backbone.View.extend({
+  app.UsersView = Backbone.View.extend({
     el: '#users',
 
     initialize: function(options) {
       this.collection = options && options.users;
       if (this.collection)
         return this.render();
-      this.collection = new UserSet();
+      this.collection = new app.UserSet();
       this.collection.fetch({
         error: function() {
           alert('Could not load connected users list');
@@ -92,7 +95,7 @@ jQuery(function($) {
     }
   });
 
-  var LoginView = Backbone.View.extend({
+  app.LoginView = Backbone.View.extend({
     el: '#login',
 
     events: {
@@ -126,7 +129,7 @@ jQuery(function($) {
           return alert(err);
         app.data.user = user;
         app.data.users = users;
-        app.index();
+        app.router.index();
       });
     },
 
@@ -136,11 +139,12 @@ jQuery(function($) {
         if (err)
           return alert(err);
         app.data.user = app.data.users = undefined;
-        app.index();
+        app.router.index();
       });
     }
   });
 
-  var app = new AppRouter();
+  app.router = new app.Router();
   Backbone.history.start();
-});
+  return app;
+})(jQuery, Backbone);
