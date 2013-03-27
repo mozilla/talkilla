@@ -38,27 +38,6 @@ Review policy
     state that you intend to be the reviewer of record in the PR. This helps make it clear
     who has to stamp the PR with `r=your-github-nick` before merging the PR.
 
-Frontend Dependencies
----------------------
-
-The Talkilla project uses these third-party frontend libraries:
-
-- [Twitter Bootstrap](http://twitter.github.com/bootstrap/)
-- [Backbone](http://backbonejs.org/) (and [underscore](http://underscorejs.org/))
-- [jQuery](http://jquery.com/)
-
-To add a new frontend dependency:
-
-- Store it within the `static/vendor` directory and suffix the filename with its
-  complete version number, eg. `jquery-1.9.1.js`.
-- Include the script using a standard `<script>` tag in the HTML file; take care
-  of the loading order.
-
-Code Modularization
--------------------
-
-The Talkilla Backbone application is exposed as a `Talkilla` global object.
-
 Coding Style
 ------------
 
