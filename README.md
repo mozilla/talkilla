@@ -10,15 +10,20 @@ Local Development
 
 2. Make sure you have [node installed](http://nodejs.org/).
 
-3. Install the required node modules:
+3. Install the required node dependencies:
 
         $ npm install
+        # or alternatively:
+        $ make install
 
 4. Start the server:
 
         $ env PORT=5000 node app.js
+        # or alternatively:
+        $ make runserver
 
 5. Point your web browser to [http://localhost:5000](http://localhost:5000).
+
 
 Unit Tests
 ----------

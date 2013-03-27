@@ -1,9 +1,9 @@
 /* global describe, it, beforeEach, afterEach */
 /* jshint expr:true */
 
-var expect = require('chai').expect;
-var request = require('request');
-var server = require('../server').server;
+var expect = require("chai").expect;
+var request = require("request");
+var server = require("../server").server;
 var findNewNick = require("../server").findNewNick;
 
 var connection;
@@ -37,12 +37,12 @@ describe("Server", function() {
 
     it('should have foo logged in', function(done) {
       signin('foo', function() {
-        expect(server.get('users')).to.eql(['foo']);
+        expect(server.get("users")).to.eql([{nick: "foo"}]);
         done();
       });
     });
 
-    it('should have no users logged in after logging in and out', 
+    it('should have no users logged in after logging in and out',
     function(done) {
       signin('foo', function() {
         signout('foo', function() {
@@ -57,7 +57,7 @@ describe("Server", function() {
       signin('foo', function(err, res, body) {
         var data = JSON.parse(body);
         expect(data.nick).to.eql(nick1);
-        expect(data.users).to.be.empty;
+        expect(data.users).to.eql([{nick: "foo"}]);
         done();
       });
     });
@@ -98,11 +98,12 @@ describe("Server", function() {
     it("should return existing users", function(done) {
       var nick1 = "foo";
       var nick2 = "bar";
+
       signin(nick1, function() {
           signin(nick2, function(err, res, body) {
             var data = JSON.parse(body);
             expect(data.nick).to.eql(nick2);
-            expect(data.users).to.eql([nick1]);
+            expect(data.users).to.eql([{nick: nick1}, {nick: nick2}]);
             done();
           });
         });
