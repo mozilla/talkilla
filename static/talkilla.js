@@ -9,7 +9,8 @@ jQuery(function($) {
       dataType: 'json'
     })
     .done(function(auth) {
-      if (!auth.nick) return cb(new Error('joining failed'));
+      if (!auth.nick)
+        return cb(new Error('joining failed'));
       return cb(null, new User({nick: auth.nick}), new UserSet(auth.users));
     })
     .fail(function(xhr, textStatus, error) {
@@ -41,12 +42,14 @@ jQuery(function($) {
 
     index: function() {
       // login form
-      if (this.loginView) this.loginView.undelegateEvents();
+      if (this.loginView)
+        this.loginView.undelegateEvents();
       this.loginView = new LoginView(this.data);
       this.loginView.render();
 
       // users list
-      if (this.usersView) this.usersView.undelegateEvents();
+      if (this.usersView)
+        this.usersView.undelegateEvents();
       this.usersView = new UsersView(this.data);
       this.usersView.render();
     }
@@ -66,7 +69,8 @@ jQuery(function($) {
 
     initialize: function(options) {
       this.collection = options && options.users;
-      if (this.collection) return this.render();
+      if (this.collection)
+        return this.render();
       this.collection = new UserSet();
       this.collection.fetch({
         error: function() {
@@ -115,9 +119,11 @@ jQuery(function($) {
     signin: function(event) {
       event.preventDefault();
       var nick = $.trim($(event.currentTarget).find('[name="nick"]').val());
-      if (!nick) return alert('please enter a nickname');
+      if (!nick)
+        return alert('please enter a nickname');
       login(nick, function(err, user, users) {
-        if (err) return alert(err);
+        if (err)
+          return alert(err);
         app.data.user = user;
         app.data.users = users;
         app.index();
@@ -127,7 +133,8 @@ jQuery(function($) {
     signout: function(event) {
       event.preventDefault();
       logout(function(err) {
-        if (err) return alert(err);
+        if (err)
+          return alert(err);
         app.data.user = app.data.users = undefined;
         app.index();
       });
