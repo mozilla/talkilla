@@ -1,3 +1,3 @@
-var server = require('./server').server;
+var app = require('./presence').app;
 
-server.listen(process.env.PORT || 5000);
+app.listen(process.env.PORT || 5000);
