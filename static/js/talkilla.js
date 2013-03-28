@@ -86,6 +86,10 @@ var Talkilla = (function($, Backbone) {
     render: function() {
       var $list = this.$el.find('ul');
       $list.find('li:not([class=nav-header])').remove();
+      if (app.data.user && this.collection.length === 0)
+        $('#invite').show();
+      else
+        $('#invite').hide();
       this.collection.each(function(user) {
         $list.append($('<li/>').text(user.get('nick')));
       });
