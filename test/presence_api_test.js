@@ -57,7 +57,7 @@ describe("Server", function() {
       signin('foo', function(err, res, body) {
         var data = JSON.parse(body);
         expect(data.nick).to.eql(nick1);
-        expect(data.users).to.eql([{nick: "foo"}]);
+        expect(data.users).to.eql([]);
         done();
       });
     });
@@ -103,7 +103,7 @@ describe("Server", function() {
           signin(nick2, function(err, res, body) {
             var data = JSON.parse(body);
             expect(data.nick).to.eql(nick2);
-            expect(data.users).to.eql([{nick: nick1}, {nick: nick2}]);
+            expect(data.users).to.eql([{nick: nick1}]);
             done();
           });
         });

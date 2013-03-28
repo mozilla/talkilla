@@ -35,9 +35,9 @@ server.post('/signin', function(req, res) {
   }
   while (exists(nick))
     nick = findNewNick(nick);
+  res.send(200, JSON.stringify({nick: nick, users: users}));
   users.push({nick: nick});
   server.set('users', users);
-  res.send(200, JSON.stringify({nick: nick, users: users}));
 });
 
 server.post('/signout', function(req, res) {
