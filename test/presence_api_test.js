@@ -57,7 +57,7 @@ describe("Server", function() {
       signin('foo', function(err, res, body) {
         var data = JSON.parse(body);
         expect(data.nick).to.eql(nick1);
-        expect(data.users).to.eql([]);
+        expect(data.users).to.be.empty;
         done();
       });
     });
