@@ -5,6 +5,11 @@
   <title>Talkilla</title>
   <style>
   .hide {display:none;}
+  video {width:100%; max-height:300px; background: #000}
+  #controls {text-align:right;}
+  #video {position:relative; width:100%;}
+  #remote-video {width:100%; max-height:300px; background:#000; z-index:0;}
+  #local-video {position:absolute; top:0; left:0; width:160px; z-index:1; background:#777;}
   </style>
   <link href="vendor/bootstrap-2.1.1/css/bootstrap.css" rel="stylesheet">
   <link href="vendor/bootstrap-2.1.1/css/bootstrap-responsive.css" rel="stylesheet">
@@ -20,14 +25,27 @@
           <label for="nick">Please enter a nickname to use with Talkilla:</label><br>
           <div class="input-prepend">
             <span class="add-on"><i class="icon-user"></i></span>
-            <input class="input-small" placeholder="nickname" id="nick" name="nick" type="text">
+            <input class="input-small" placeholder="nickname" id="nick" name="nick" type="text" required>
           </div>
           <input class="btn" id="submit" type="submit" value="Join">
         </form>
         <form action="/signout" id="signout" method="post" class="hide">
-          <p>Joined as <strong class="nick"></strong>
-          | <button class="btn" type="submit">sign out</button></p>
+          <p>
+            Joined as <strong class="nick"></strong>
+            <button class="btn" type="submit">sign out</button>
+          </p>
         </form>
+        <div id="call" class="hide">
+          <h2>Call</h2>
+          <div id="video">
+            <video id="remote-video"></video>
+            <video id="local-video"></video>
+            <div id="controls">
+              <a class="btn btn-initiate"><i class="icon-play"></i> Start call</a>
+              <a class="btn btn-hangup disabled"><i class="icon-stop"></i> Hang up</a>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="span3" id="users">
         <p id="invite" class="alert hide">You are the only person logged in, invite your friends.</p>
