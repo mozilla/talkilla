@@ -5,6 +5,7 @@
   <title>Talkilla</title>
   <style>
   .hide {display:none;}
+  video {width:100%; max-height:300px; background: #000}
   </style>
   <link href="vendor/bootstrap-2.1.1/css/bootstrap.css" rel="stylesheet">
   <link href="vendor/bootstrap-2.1.1/css/bootstrap-responsive.css" rel="stylesheet">
@@ -20,7 +21,7 @@
           <label for="nick">Please enter a nickname to use with Talkilla:</label><br>
           <div class="input-prepend">
             <span class="add-on"><i class="icon-user"></i></span>
-            <input class="input-small" placeholder="nickname" id="nick" name="nick" type="text">
+            <input class="input-small" placeholder="nickname" id="nick" name="nick" type="text" required>
           </div>
           <input class="btn" id="submit" type="submit" value="Join">
         </form>
@@ -28,6 +29,10 @@
           <p>Joined as <strong class="nick"></strong>
           | <button class="btn" type="submit">sign out</button></p>
         </form>
+        <div id="call" class="hide">
+          <h2>Call</h2>
+          <div class="video"></div>
+        </div>
       </div>
       <div class="span3" id="users">
         <p id="invite" class="alert hide">You are the only person logged in, invite your friends.</p>
@@ -41,6 +46,7 @@
   <script src="vendor/jquery-1.9.1.js"></script>
   <script src="vendor/underscore-1.4.4.js"></script>
   <script src="vendor/backbone-1.0.0.js"></script>
+  <script src="js/rtc.js"></script>
   <script src="js/talkilla.js"></script>
 </body>
 </html>
