@@ -1,8 +1,9 @@
-/*global jQuery, Backbone, _, RTC*/
+/*global jQuery, Backbone, _*/
 /* jshint unused: false */
-var Talkilla = (function($, Backbone, _, RTC) {
+var Talkilla = (function($, Backbone, _) {
   "use strict";
   var app = {data: {}};
+  _.extend(app, Backbone.Events);
 
   function login(nick, cb) {
     $.ajax({
@@ -54,8 +55,10 @@ var Talkilla = (function($, Backbone, _, RTC) {
       this.usersView = new app.UsersView(app.data);
       this.usersView.render();
       // call view
-      if (this.callView)
+      if (this.callView) {
+        this.callView.clearVideo();
         this.callView.undelegateEvents();
+      }
       this.callView = new app.CallView(app.data);
       this.callView.render();
     },
@@ -189,16 +192,42 @@ var Talkilla = (function($, Backbone, _, RTC) {
     tagName: 'video',
 
     initialize: function(options) {
-      this.stream = options && options.stream;
+      this.settings = options && options.settings || {video: true, audio: true};
+      this.start();
     },
 
     render: function() {
-      this.el.mozSrcObject = this.el.src = this.stream;
+      this.el.mozSrcObject = this.stream; // this.el.src
+      this.play();
       return this;
     },
 
     play: function() {
+      if (!this.el.mozSrcObject)
+        this.start();
       this.el.play();
+    },
+
+    pause: function() {
+      if (!this.el.mozSrcObject)
+        return;
+      this.el.pause();
+    },
+
+    start: function() {
+      navigator.mozGetUserMedia(this.settings, function onSuccess(stream) {
+        this.stream = stream;
+        this.render();
+      }.bind(this), function onError(err) {
+        alert("Impossible to access your webcam/microphone");
+      });
+    },
+
+    stop: function() {
+      if (!this.el.mozSrcObject)
+        return;
+      this.el.mozSrcObject.stop();
+      this.el.mozSrcObject = null;
     }
   });
 
@@ -207,9 +236,36 @@ var Talkilla = (function($, Backbone, _, RTC) {
 
     videoView: undefined,
 
+    events: {
+      'click .btn-pause': 'pause',
+      'click .btn-play': 'play',
+      'click .btn-stop': 'stop'
+    },
+
     initialize: function(options) {
+      this.clearVideo();
       this.user = options && options.user;
       this.callee = options && options.callee;
+    },
+
+    clearVideo: function() {
+      if (!this.videoView)
+        return;
+      this.videoView.stop();
+      this.videoView.undelegateEvents();
+      this.videoView.remove();
+    },
+
+    play: function() {
+      this.videoView.play();
+    },
+
+    pause: function() {
+      this.videoView.pause();
+    },
+
+    stop: function() {
+      this.videoView.stop();
     },
 
     render: function() {
@@ -218,30 +274,14 @@ var Talkilla = (function($, Backbone, _, RTC) {
         return this;
       }
       this.$('h2').text('Calling ' + this.callee.get('nick'));
-      RTC.getUserMedia(
-        {video: true, audio: true},
-
-        function onSuccess(stream) {
-          this.videoView = new app.VideoView({
-            stream: stream
-          });
-          this.videoView.render();
-          this.$('.video').html(this.videoView.el);
-          this.videoView.play();
-          this.$el.show();
-        }.bind(this),
-
-        function onError(err) {
-          alert("Impossible to access your webcam/microphone");
-        });
+      this.videoView = new app.VideoView().render();
+      this.$('.video').html(this.videoView.el);
+      this.$el.show();
       return this;
     }
   });
 
-  if (!RTC.check()) {
-    return alert("Your browser doesn't support getUserMedia, game over.");
-  }
   app.router = new app.Router();
   Backbone.history.start();
   return app;
-})(jQuery, Backbone, _, RTC);
+})(jQuery, Backbone, _);
