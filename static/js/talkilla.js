@@ -1,6 +1,6 @@
-/*global jQuery, Backbone, RTC*/
+/*global jQuery, Backbone, _, RTC*/
 /* jshint unused: false */
-var Talkilla = (function($, Backbone, RTC) {
+var Talkilla = (function($, Backbone, _, RTC) {
   "use strict";
   var app = {data: {}};
 
@@ -83,37 +83,55 @@ var Talkilla = (function($, Backbone, RTC) {
     model: app.User
   });
 
+  app.UserEntryView = Backbone.View.extend({
+    tagName: 'li',
+
+    render: function() {
+      var nick = this.model.get('nick');
+      this.$el.html($('<a/>').attr('href', '#call/' + nick).text(nick));
+      return this;
+    }
+  });
+
   app.UsersView = Backbone.View.extend({
     el: '#users',
 
+    views: [],
+
+    initViews: function() {
+      this.views = [];
+      this.collection.each(function(model) {
+        this.views.push(new app.UserEntryView({model: model}));
+      }.bind(this));
+    },
+
     initialize: function(options) {
       this.collection = options && options.users;
-      if (this.collection)
+      if (this.collection) {
+        this.initViews();
         return this.render();
+      }
       this.collection = new app.UserSet();
       this.collection.fetch({
         error: function() {
           alert('Could not load connected users list');
         },
         success: function(users) {
+          this.initViews();
           this.render();
         }.bind(this)
       });
     },
 
     render: function() {
-      var $list = this.$el.find('ul');
-      $list.find('li:not([class=nav-header])').remove();
+      var userList = _.chain(this.views).map(function(view) {
+        return view.render();
+      }).pluck('el').value();
+      this.$('ul').html(userList);
       if (app.data.user && this.collection.length === 0)
-        $('#invite').show();
+        this.$('#invite').show();
       else
-        $('#invite').hide();
-      this.collection.each(function(user) {
-        $list.append(
-          $('<li/>').append(
-            $('<a/>').attr('href', '#call/' + user.get('nick'))
-                     .text(user.get('nick'))));
-      });
+        this.$('#invite').hide();
       return this;
     }
   });
@@ -167,8 +185,27 @@ var Talkilla = (function($, Backbone, RTC) {
     }
   });
 
+  app.VideoView = Backbone.View.extend({
+    tagName: 'video',
+
+    initialize: function(options) {
+      this.stream = options && options.stream;
+    },
+
+    render: function() {
+      this.el.mozSrcObject = this.el.src = this.stream;
+      return this;
+    },
+
+    play: function() {
+      this.el.play();
+    }
+  });
+
   app.CallView = Backbone.View.extend({
     el: '#call',
+
+    videoView: undefined,
 
     initialize: function(options) {
       this.user = options && options.user;
@@ -185,11 +222,12 @@ var Talkilla = (function($, Backbone, RTC) {
         {video: true, audio: true},
 
         function onSuccess(stream) {
-          // TODO: most of this could be handled by a dedicated view
-          var video = document.createElement('video');
-          video.mozSrcObject = video.src = stream;
-          this.$('.video').html(video);
-          video.play();
+          this.videoView = new app.VideoView({
+            stream: stream
+          });
+          this.videoView.render();
+          this.$('.video').html(this.videoView.el);
+          this.videoView.play();
           this.$el.show();
         }.bind(this),
 
@@ -206,4 +244,4 @@ var Talkilla = (function($, Backbone, RTC) {
   app.router = new app.Router();
   Backbone.history.start();
   return app;
-})(jQuery, Backbone, RTC);
+})(jQuery, Backbone, _, RTC);
