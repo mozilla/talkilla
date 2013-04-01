@@ -54,7 +54,7 @@ var wss;
 function setupWebSocketServer(server) {
   wss = new WebSocketServer({server: server});
   wss.on('connection', function(ws) {
-    // soon we'll do something here!'
+    ws.send(JSON.stringify(app.get('users')), function(error) {});
   });
 
   wss.on('error', function(err) {

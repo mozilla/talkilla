@@ -19,6 +19,7 @@ var webSocket;
 var serverPort = 3000;
 var serverHost = "localhost";
 var serverHttpBase = 'http://' + serverHost + ':' + serverPort;
+var socketURL = 'ws://' + serverHost + ':' + serverPort;
 
 describe("Server", function() {
   describe("presence", function() {
@@ -35,23 +36,20 @@ describe("Server", function() {
                    callback);
     }
 
-    beforeEach(function() {
-      connection = app.start(serverPort);
+    beforeEach(function(done) {
+      connection = app.start(serverPort, done);
     });
 
     afterEach(function() {
       connection.close();
+      if (webSocket) {
+        webSocket.close();
+        webSocket = null;
+      }
     });
 
     it("should have no users logged in at startup", function() {
       expect(app.get("users")).to.be.empty;
-    });
-
-    it('should have foo logged in', function(done) {
-      signin('foo', function() {
-        expect(app.get("users")).to.eql([{nick: "foo"}]);
-        done();
-      });
     });
 
     it('should have no users logged in after logging in and out',
@@ -121,23 +119,31 @@ describe("Server", function() {
         });
     });
 
-    it("should be able to receive and close WebSocket connections",
-      function(done) {
-        var socketURL = 'ws://' + serverHost + ':' + serverPort;
-        webSocket = new WebSocket(socketURL);
+    it("should respond to an open connection with a list of logged in users",
+      function (done) {
+        signin('foo', function() {
+          webSocket = new WebSocket(socketURL);
 
-        webSocket.on('error', function(error) {
-          expect(error).to.equal(null);
-        });
+          webSocket.on('error', function(error) {
+            expect(error).to.equal(null);
+          });
 
-        webSocket.on('close', function() {
-          done();
-        });
-
-        webSocket.on('open', function() {
-          expect(webSocket.readyState).to.equal(WebSocket.OPEN);
-          webSocket.close();
+          webSocket.on('message', function (data, flags) {
+            expect(flags.binary).to.equal(undefined);
+            expect(flags.masked).to.equal(false);
+            expect(JSON.parse(data)).to.deep.equal([{"nick":"foo"}]);
+            done();
+          });
         });
       });
+
+    // XXX test for more than one logged in user
+
+    // XXX test for user logs in after the fact, client notified
+
+    // XXX test for user logs out after the fact, client notified
+
+    // XXX test for user client never unexpectedly notified
+
   });
 });
