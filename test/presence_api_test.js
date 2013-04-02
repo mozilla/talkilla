@@ -6,25 +6,37 @@ var request = require("request");
 var app = require("../presence").app;
 var findNewNick = require("../presence").findNewNick;
 
+/* The "browser" variable predefines for jshint include WebSocket,
+ * causes jshint to blow up here.  We should probably structure things
+ * differently so that the browser predefines aren't turned on
+ * for the node code at some point.  In the meantime, disable warning */
+/* jshint -W079 */
+var WebSocket = require('ws');
+
 var connection;
+var webSocket;
+
+var serverPort = 3000;
+var serverHost = "localhost";
+var serverHttpBase = 'http://' + serverHost + ':' + serverPort;
 
 describe("Server", function() {
   describe("presence", function() {
 
     function signin(nick, callback) {
-      request.post('http://localhost:3000/signin',
+      request.post(serverHttpBase + '/signin',
                    {form: {nick: nick}},
                    callback);
     }
 
     function signout(nick, callback) {
-      request.post('http://localhost:3000/signout',
+      request.post(serverHttpBase + '/signout',
                    {form: {nick: nick}},
                    callback);
     }
 
     beforeEach(function() {
-      connection = app.listen(3000);
+      connection = app.start(serverPort);
     });
 
     afterEach(function() {
@@ -108,5 +120,24 @@ describe("Server", function() {
           });
         });
     });
+
+    it("should be able to receive and close WebSocket connections",
+      function(done) {
+        var socketURL = 'ws://' + serverHost + ':' + serverPort;
+        webSocket = new WebSocket(socketURL);
+
+        webSocket.on('error', function(error) {
+          expect(error).to.equal(null);
+        });
+
+        webSocket.on('close', function() {
+          done();
+        });
+
+        webSocket.on('open', function() {
+          expect(webSocket.readyState).to.equal(WebSocket.OPEN);
+          webSocket.close();
+        });
+      });
   });
 });
