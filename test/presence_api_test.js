@@ -3,8 +3,8 @@
 
 var expect = require("chai").expect;
 var request = require("request");
-var server = require("../server").server;
-var findNewNick = require("../server").findNewNick;
+var app = require("../presence").app;
+var findNewNick = require("../presence").findNewNick;
 
 var connection;
 
@@ -24,7 +24,7 @@ describe("Server", function() {
     }
 
     beforeEach(function() {
-      connection = server.listen(3000);
+      connection = app.listen(3000);
     });
 
     afterEach(function() {
@@ -32,12 +32,12 @@ describe("Server", function() {
     });
 
     it("should have no users logged in at startup", function() {
-      expect(server.get("users")).to.be.empty;
+      expect(app.get("users")).to.be.empty;
     });
 
     it('should have foo logged in', function(done) {
       signin('foo', function() {
-        expect(server.get("users")).to.eql([{nick: "foo"}]);
+        expect(app.get("users")).to.eql([{nick: "foo"}]);
         done();
       });
     });
@@ -46,7 +46,7 @@ describe("Server", function() {
     function(done) {
       signin('foo', function() {
         signout('foo', function() {
-          expect(server.get('users')).to.be.empty;
+          expect(app.get('users')).to.be.empty;
           done();
         });
       });

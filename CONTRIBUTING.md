@@ -32,11 +32,11 @@ Review policy
 * Otherwise, pull-requests require code review:
   * If you want a specific reviewer(s), explicitly state in the PR who you
     think the right reviewer(s) are. The patch shouldn't be merged until
-    each requested reviewer signs off with `r=reviewer-github-nick` in the PR.
+    each requested reviewer signs off with `r@=reviewer-github-nick` in the PR.
   * Otherwise, any committer who feels qualified is free to review. If you're
     the reviewer, and you need responses to questions or changes before signing off,
     state that you intend to be the reviewer of record in the PR. This helps make it clear
-    who has to stamp the PR with `r=your-github-nick` before merging the PR.
+    who has to stamp the PR with `r=@your-github-nick` before merging the PR.
 
 Coding Style
 ------------
