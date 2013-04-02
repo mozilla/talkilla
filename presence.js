@@ -1,8 +1,8 @@
 var express = require('express');
-var server = express();
+var app = express();
 
-server.use(express.bodyParser());
-server.use(express.static(__dirname + "/static"));
+app.use(express.bodyParser());
+app.use(express.static(__dirname + "/static"));
 
 function findNewNick(aNick) {
   var nickParts = /^(.+?)(\d*)$/.exec(aNick);
@@ -21,12 +21,12 @@ function findNewNick(aNick) {
   return nickParts[1] + newDigits;
 }
 
-server.get('/users', function(req, res) {
-  res.send(200, JSON.stringify(server.get('users')));
+app.get('/users', function(req, res) {
+  res.send(200, JSON.stringify(app.get('users')));
 });
 
-server.post('/signin', function(req, res) {
-  var users = server.get('users');
+app.post('/signin', function(req, res) {
+  var users = app.get('users');
   var nick = req.body.nick;
   function exists(nick) {
     return users.some(function(user) {
@@ -37,21 +37,21 @@ server.post('/signin', function(req, res) {
     nick = findNewNick(nick);
   res.send(200, JSON.stringify({nick: nick, users: users}));
   users.push({nick: nick});
-  server.set('users', users);
+  app.set('users', users);
 });
 
-server.post('/signout', function(req, res) {
-  server.set('users', server.get('users').filter(function(user) {
+app.post('/signout', function(req, res) {
+  app.set('users', app.get('users').filter(function(user) {
     return user.nick !== req.body.nick;
   }));
   res.send(200, JSON.stringify(true));
 });
 
-var _listen = server.listen;
-server.listen = function() {
-  server.set('users', []);
-  return _listen.apply(server, arguments);
+var _listen = app.listen;
+app.listen = function() {
+  app.set('users', []);
+  return _listen.apply(app, arguments);
 };
 
-module.exports.server = server;
+module.exports.app = app;
 module.exports.findNewNick = findNewNick;
