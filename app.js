@@ -1,3 +1,3 @@
 var app = require('./presence').app;
 
-app.listen(process.env.PORT || 5000);
+app.start(process.env.PORT || 5000);
