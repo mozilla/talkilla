@@ -5,6 +5,12 @@ var Talkilla = (function($, Backbone, _) {
   var app = {data: {}};
   _.extend(app, Backbone.Events);
 
+  function debug() {
+    try {
+      console.log.apply(console, arguments);
+    } catch (e) {}
+  }
+
   function login(nick, cb) {
     $.ajax({
       type: "POST",
@@ -189,45 +195,62 @@ var Talkilla = (function($, Backbone, _) {
   });
 
   app.VideoView = Backbone.View.extend({
-    tagName: 'video',
+    el: '#video',
+
+    local: undefined,
+
+    remote: undefined,
+
+    settings: {
+      local:  {video: true, audio: true},
+      remote: {video: true, audio: true}
+    },
+
+    streams: {
+      local: null,
+      remote: null
+    },
 
     initialize: function(options) {
-      this.settings = options && options.settings || {video: true, audio: true};
-      this.start();
+      this.settings = options && options.settings || this.settings;
+      this.local = this.$('#local-video').get(0);
+      this.remote = this.$('#remote-video').get(0);
+    },
+
+    initiate: function() {
+      // local video
+      navigator.mozGetUserMedia(
+        this.settings.local,
+
+        function onSuccess(stream) {
+          debug('local video enabled');
+          this.streams.local = stream;
+          this.local.mozSrcObject = stream;
+          this.local.play();
+        }.bind(this),
+
+        function onError(err) {
+          alert("Impossible to access your webcam/microphone");
+        });
+    },
+
+    hangup: function() {
+      if (this.local && this.local.mozSrcObject) {
+        this.local.mozSrcObject.stop();
+        this.local.mozSrcObject = null;
+      }
+      if (this.remote && this.remote.mozSrcObject) {
+        this.remote.mozSrcObject.stop();
+        this.remote.mozSrcObject = null;
+      }
     },
 
     render: function() {
-      this.el.mozSrcObject = this.stream; // this.el.src
-      this.play();
+      if (this.streams.local)
+        this.local.mozSrcObject = this.streams.local;
+      if (this.streams.remote)
+        this.remote.mozSrcObject = this.streams.remote;
       return this;
-    },
-
-    play: function() {
-      if (!this.el.mozSrcObject)
-        this.start();
-      this.el.play();
-    },
-
-    pause: function() {
-      if (!this.el.mozSrcObject)
-        return;
-      this.el.pause();
-    },
-
-    start: function() {
-      navigator.mozGetUserMedia(this.settings, function onSuccess(stream) {
-        this.stream = stream;
-        this.render();
-      }.bind(this), function onError(err) {
-        alert("Impossible to access your webcam/microphone");
-      });
-    },
-
-    stop: function() {
-      if (!this.el.mozSrcObject)
-        return;
-      this.el.mozSrcObject.stop();
-      this.el.mozSrcObject = null;
     }
   });
 
@@ -237,9 +260,8 @@ var Talkilla = (function($, Backbone, _) {
     videoView: undefined,
 
     events: {
-      'click .btn-pause': 'pause',
-      'click .btn-play': 'play',
-      'click .btn-stop': 'stop'
+      'click .btn-initiate': 'initiate',
+      'click .btn-hangup':   'hangup'
     },
 
     initialize: function(options) {
@@ -251,21 +273,21 @@ var Talkilla = (function($, Backbone, _) {
     clearVideo: function() {
       if (!this.videoView)
         return;
-      this.videoView.stop();
+      this.videoView.hangup();
       this.videoView.undelegateEvents();
       this.videoView.remove();
     },
 
-    play: function() {
-      this.videoView.play();
+    initiate: function() {
+      this.videoView.initiate();
+      this.$('.btn-initiate').addClass('disabled');
+      this.$('.btn-hangup').removeClass('disabled');
     },
 
-    pause: function() {
-      this.videoView.pause();
-    },
-
-    stop: function() {
-      this.videoView.stop();
+    hangup: function() {
+      this.videoView.hangup();
+      this.$('.btn-initiate').removeClass('disabled');
+      this.$('.btn-hangup').addClass('disabled');
     },
 
     render: function() {
@@ -275,7 +297,6 @@ var Talkilla = (function($, Backbone, _) {
       }
       this.$('h2').text('Calling ' + this.callee.get('nick'));
       this.videoView = new app.VideoView().render();
-      this.$('.video').html(this.videoView.el);
       this.$el.show();
       return this;
     }
