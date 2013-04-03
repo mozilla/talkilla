@@ -76,7 +76,7 @@ describe("Server", function() {
 
     it("should fix the user's nick if it already exists", function(done) {
       var nick1 = 'foo';
-      /* jshint unused: vars */
+      /* jshint unused: false */
       signin(nick1, function(err, res, body) {
         signin(nick1, function(err, res, body) {
           expect(JSON.parse(body).nick).to.eql(findNewNick(nick1));
