@@ -4,7 +4,7 @@ install:
 	@npm install
 
 jshint:
-	@jshint *.js static test
+	@./node_modules/jshint/bin/jshint *.js static test
 
 mocha:
 	@./node_modules/mocha/bin/mocha --reporter spec
