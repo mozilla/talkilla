@@ -50,6 +50,7 @@ var Talkilla = (function($, Backbone, _) {
     },
 
     updateViews: function() {
+      // TODO: if this keeps growing, refactor as a view pool
       // login form
       if (this.loginView)
         this.loginView.undelegateEvents();
@@ -97,7 +98,9 @@ var Talkilla = (function($, Backbone, _) {
 
     render: function() {
       var nick = this.model.get('nick');
-      this.$el.html($('<a/>').attr('href', '#call/' + nick).text(nick));
+      this.$el.html($('<a/>')
+                      .attr('href', '#call/' + nick)
+                      .append([$('<i>').addClass('icon-user'), nick]));
       return this;
     }
   });
