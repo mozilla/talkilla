@@ -137,13 +137,5 @@ describe("Server", function() {
         });
       });
 
-    // XXX test for more than one logged in user
-
-    // XXX test for user logs in after the fact, client notified
-
-    // XXX test for user logs out after the fact, client notified
-
-    // XXX test for user client never unexpectedly notified
-
   });
 });
