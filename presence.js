@@ -1,5 +1,8 @@
+/* jshint unused:false */
 var express = require('express');
+var http = require('http');
 var app = express();
+var WebSocketServer = require('ws').Server;
 
 app.use(express.bodyParser());
 app.use(express.static(__dirname + "/static"));
@@ -47,10 +50,26 @@ app.post('/signout', function(req, res) {
   res.send(200, JSON.stringify(true));
 });
 
-var _listen = app.listen;
-app.listen = function() {
+var wss;
+function setupWebSocketServer(server) {
+  wss = new WebSocketServer({server: server});
+  wss.on('connection', function(ws) {
+    // soon we'll do something here!'
+  });
+
+  wss.on('error', function(err) {
+    console.log("WebSocketServer error: " + err);
+  });
+
+  wss.on('close', function(ws) {
+  });
+}
+
+app.start = function() {
   app.set('users', []);
-  return _listen.apply(app, arguments);
+  var server = http.createServer(this);
+  setupWebSocketServer(server);
+  return server.listen.apply(server, arguments);
 };
 
 module.exports.app = app;
