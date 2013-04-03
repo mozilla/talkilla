@@ -62,10 +62,8 @@ var Talkilla = (function($, Backbone, _) {
       this.usersView = new app.UsersView(app.data);
       this.usersView.render();
       // call view
-      if (this.callView) {
-        this.callView.clearVideo();
+      if (this.callView)
         this.callView.undelegateEvents();
-      }
       this.callView = new app.CallView(app.data);
       this.callView.render();
     },
@@ -139,7 +137,8 @@ var Talkilla = (function($, Backbone, _) {
       var userList = _.chain(this.views).map(function(view) {
         return view.render();
       }).pluck('el').value();
-      this.$('ul').html(userList);
+      this.$('li:not(.nav-header)').remove();
+      this.$('ul').append(userList);
       if (app.data.user && this.collection.length === 0)
         this.$('#invite').show();
       else
@@ -181,6 +180,7 @@ var Talkilla = (function($, Backbone, _) {
           return alert(err);
         app.data.user = user;
         app.data.users = users;
+        app.trigger('signin', user);
         app.router.index();
       });
     },
@@ -192,44 +192,42 @@ var Talkilla = (function($, Backbone, _) {
           return alert(err);
         delete app.data.callee;
         delete app.data.user;
+        app.trigger('signout');
         app.router.index();
       });
     }
   });
 
-  app.VideoView = Backbone.View.extend({
-    el: '#video',
+  app.CallView = Backbone.View.extend({
+    el: '#call',
 
     local: undefined,
 
-    remote: undefined,
-
-    settings: {
-      local:  {video: true, audio: true},
-      remote: {video: true, audio: true}
-    },
-
-    streams: {
-      local: null,
-      remote: null
+    events: {
+      'click .btn-initiate': 'initiate',
+      'click .btn-hangup':   'hangup'
     },
 
     initialize: function(options) {
-      this.settings = options && options.settings || this.settings;
-      this.local = this.$('#local-video').get(0);
-      this.remote = this.$('#remote-video').get(0);
+      this.hangup();
+      this.user = options && options.user;
+      this.callee = options && options.callee;
+      this.local = $('#local-video').get(0);
     },
 
     initiate: function() {
-      // local video
+      // TODO:
+      // - extract the processus to some external lib?
+      // - handle asynchronicity (events?)
       navigator.mozGetUserMedia(
-        this.settings.local,
+        {video: true, audio: true},
 
         function onSuccess(stream) {
           debug('local video enabled');
-          this.streams.local = stream;
           this.local.mozSrcObject = stream;
           this.local.play();
+          this.$('.btn-initiate').addClass('disabled');
+          this.$('.btn-hangup').removeClass('disabled');
         }.bind(this),
 
         function onError(err) {
@@ -242,53 +240,6 @@ var Talkilla = (function($, Backbone, _) {
         this.local.mozSrcObject.stop();
         this.local.mozSrcObject = null;
       }
-      if (this.remote && this.remote.mozSrcObject) {
-        this.remote.mozSrcObject.stop();
-        this.remote.mozSrcObject = null;
-      }
-    },
-
-    render: function() {
-      if (this.streams.local)
-        this.local.mozSrcObject = this.streams.local;
-      if (this.streams.remote)
-        this.remote.mozSrcObject = this.streams.remote;
-      return this;
-    }
-  });
-
-  app.CallView = Backbone.View.extend({
-    el: '#call',
-
-    videoView: undefined,
-
-    events: {
-      'click .btn-initiate': 'initiate',
-      'click .btn-hangup':   'hangup'
-    },
-
-    initialize: function(options) {
-      this.clearVideo();
-      this.user = options && options.user;
-      this.callee = options && options.callee;
-    },
-
-    clearVideo: function() {
-      if (!this.videoView)
-        return;
-      this.videoView.hangup();
-      this.videoView.undelegateEvents();
-      this.videoView.remove();
-    },
-
-    initiate: function() {
-      this.videoView.initiate();
-      this.$('.btn-initiate').addClass('disabled');
-      this.$('.btn-hangup').removeClass('disabled');
-    },
-
-    hangup: function() {
-      this.videoView.hangup();
       this.$('.btn-initiate').removeClass('disabled');
       this.$('.btn-hangup').addClass('disabled');
     },
@@ -299,13 +250,20 @@ var Talkilla = (function($, Backbone, _) {
         return this;
       }
       this.$('h2').text('Calling ' + this.callee.get('nick'));
-      this.videoView = new app.VideoView().render();
+      this.initiate();
       this.$el.show();
       return this;
     }
   });
 
   app.router = new app.Router();
+
+  // app events
+  app.on('signout', function() {
+    // make sure any call is terminated on user signout
+    this.router.callView.hangup();
+  });
+
   Backbone.history.start();
   return app;
 })(jQuery, Backbone, _);
