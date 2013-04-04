@@ -111,9 +111,8 @@ var Talkilla = (function($, Backbone, _) {
 
     render: function() {
       var nick = this.model.get('nick');
-      this.$el.html($('<a/>')
-                      .attr('href', '#call/' + nick)
-                      .append([$('<i>').addClass('icon-user'), nick]));
+      this.$el.html(
+        '<a href="#call/' + nick + '"><i class="icon-user"/>' + nick + '</a>');
       return this;
     }
   });
