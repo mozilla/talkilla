@@ -1,112 +1,8 @@
-/*global jQuery, Backbone, _*/
-/* jshint unused: false */
-var Talkilla = (function($, Backbone, _) {
+/* global Talkilla, Backbone, _, jQuery*/
+(function(app, Backbone, _, $) {
   "use strict";
-  var app = {debug: false, data: {}};
-  _.extend(app, Backbone.Events);
 
-  function debug() {
-    if (!app.debug)
-      return;
-    try {
-      console.log.apply(console, arguments);
-    } catch (e) {}
-  }
-
-  function notifyUI(message, type) {
-    type = ['info', 'success', 'error'].indexOf(type) ? type : undefined;
-    var $notification = $(
-      '<div class="alert' + (type ? ' alert-' + type : '')+ '">' +
-        '<a class="close" data-dismiss="alert">&times;</a>' +
-        message +
-      '</div>');
-    $('#messages').append($notification);
-  }
-
-  function login(nick, cb) {
-    $.ajax({
-      type: "POST",
-      url: '/signin',
-      data: {nick: nick},
-      dataType: 'json'
-    })
-    .done(function(auth) {
-      return cb(null,
-                new app.User({nick: auth.nick}),
-                new app.UserSet(auth.users));
-    })
-    .fail(function(xhr, textStatus, error) {
-      return cb(error);
-    });
-  }
-
-  function logout(cb) {
-    $.ajax({
-      type: "POST",
-      url: '/signout',
-      data: {nick: app.data.user && app.data.user.get('nick')},
-      dataType: 'json'
-    })
-    .done(function(result) {
-      return cb(null, result);
-    })
-    .fail(function(xhr, textStatus, error) {
-      return cb(error);
-    });
-  }
-
-  app.Router = Backbone.Router.extend({
-    routes: {
-      'call/:with': 'call',
-      '*actions':   'index'
-    },
-
-    updateViews: function() {
-      // TODO: if this keeps growing, refactor as a view pool
-      // login form
-      if (this.loginView)
-        this.loginView.undelegateEvents();
-      this.loginView = new app.LoginView(app.data);
-      this.loginView.render();
-      // users list
-      if (this.usersView)
-        this.usersView.undelegateEvents();
-      this.usersView = new app.UsersView(app.data);
-      this.usersView.render();
-      // call view
-      if (this.callView)
-        this.callView.undelegateEvents();
-      this.callView = new app.CallView(app.data);
-      this.callView.render();
-    },
-
-    index: function() {
-      this.updateViews();
-    },
-
-    call: function(callee) {
-      if (!app.data.user) {
-        notifyUI('Please join for calling someone');
-        return this.navigate('', {trigger: true, replace: true});
-      }
-      app.data.callee = app.data.users.findWhere({nick: callee});
-      if (!app.data.callee) {
-        return notifyUI('User not found', 'error');
-      }
-      this.updateViews();
-    }
-  });
-
-  app.User = Backbone.Model.extend({
-    defaults: {nick: undefined}
-  });
-
-  app.UserSet = Backbone.Collection.extend({
-    url: '/users',
-    model: app.User
-  });
-
-  app.UserEntryView = Backbone.View.extend({
+  app.views.UserEntryView = Backbone.View.extend({
     tagName: 'li',
 
     render: function() {
@@ -117,7 +13,7 @@ var Talkilla = (function($, Backbone, _) {
     }
   });
 
-  app.UsersView = Backbone.View.extend({
+  app.views.UsersView = Backbone.View.extend({
     el: '#users',
 
     views: [],
@@ -125,7 +21,7 @@ var Talkilla = (function($, Backbone, _) {
     initViews: function() {
       this.views = [];
       this.collection.each(function(model) {
-        this.views.push(new app.UserEntryView({model: model}));
+        this.views.push(new app.views.UserEntryView({model: model}));
       }.bind(this));
     },
 
@@ -135,12 +31,12 @@ var Talkilla = (function($, Backbone, _) {
         this.initViews();
         return this.render();
       }
-      this.collection = new app.UserSet();
+      this.collection = new app.models.UserSet();
       this.collection.fetch({
         error: function() {
-          notifyUI('Could not load connected users list', 'error');
+          app.utils.notifyUI('Could not load connected users list', 'error');
         },
-        success: function(users) {
+        success: function() {
           this.initViews();
           this.render();
         }.bind(this)
@@ -161,7 +57,7 @@ var Talkilla = (function($, Backbone, _) {
     }
   });
 
-  app.LoginView = Backbone.View.extend({
+  app.views.LoginView = Backbone.View.extend({
     el: '#login',
 
     events: {
@@ -188,10 +84,10 @@ var Talkilla = (function($, Backbone, _) {
       event.preventDefault();
       var nick = $.trim($(event.currentTarget).find('[name="nick"]').val());
       if (!nick)
-        return notifyUI('please enter a nickname');
-      login(nick, function(err, user, users) {
+        return app.utils.notifyUI('please enter a nickname');
+      app.services.login(nick, function(err, user, users) {
         if (err)
-          return notifyUI(err, 'error');
+          return app.utils.notifyUI(err, 'error');
         app.data.user = user;
         app.data.users = users;
         app.trigger('signin', user);
@@ -202,9 +98,9 @@ var Talkilla = (function($, Backbone, _) {
 
     signout: function(event) {
       event.preventDefault();
-      logout(function(err) {
+      app.services.logout(function(err) {
         if (err)
-          return notifyUI(err, 'error');
+          return app.utils.notifyUI(err, 'error');
         delete app.data.callee;
         delete app.data.user;
         app.trigger('signout');
@@ -214,7 +110,7 @@ var Talkilla = (function($, Backbone, _) {
     }
   });
 
-  app.CallView = Backbone.View.extend({
+  app.views.CallView = Backbone.View.extend({
     el: '#call',
 
     local: undefined,
@@ -239,7 +135,7 @@ var Talkilla = (function($, Backbone, _) {
         {video: true, audio: true},
 
         function onSuccess(stream) {
-          debug('local video enabled');
+          app.log('local video enabled');
           this.local.mozSrcObject = stream;
           this.local.play();
           this.$('.btn-initiate').addClass('disabled');
@@ -247,7 +143,9 @@ var Talkilla = (function($, Backbone, _) {
         }.bind(this),
 
         function onError(err) {
-          notifyUI('Impossible to access your webcam/microphone', 'error');
+          app.log(err);
+          app.utils.notifyUI('Impossible to access your webcam/microphone',
+                             'error');
         });
     },
 
@@ -271,15 +169,4 @@ var Talkilla = (function($, Backbone, _) {
       return this;
     }
   });
-
-  app.router = new app.Router();
-
-  // app events
-  app.on('signout', function() {
-    // make sure any call is terminated on user signout
-    this.router.callView.hangup();
-  });
-
-  Backbone.history.start();
-  return app;
-})(jQuery, Backbone, _);
+})(Talkilla, Backbone, _, jQuery);
