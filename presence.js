@@ -30,17 +30,25 @@ app.get('/users', function(req, res) {
 
 app.post('/signin', function(req, res) {
   var users = app.get('users');
+  var connections = app.get('connections');
   var nick = req.body.nick;
+
   function exists(nick) {
     return users.some(function(user) {
       return user.nick === nick;
     });
   }
+
   while (exists(nick))
     nick = findNewNick(nick);
   res.send(200, JSON.stringify({nick: nick, users: users}));
+
   users.push({nick: nick});
   app.set('users', users);
+
+  connections.map(function(c) {
+    c.send(JSON.stringify(users), function(error) {});
+  });
 });
 
 app.post('/signout', function(req, res) {
@@ -54,7 +62,16 @@ var wss;
 function setupWebSocketServer(server) {
   wss = new WebSocketServer({server: server});
   wss.on('connection', function(ws) {
-    ws.send(JSON.stringify(app.get('users')), function(error) {});
+    var users = app.get('users');
+    var connections = app.get('connections');
+
+    // XXX should also figure out where to close the websockets
+    connections.push(ws);
+    app.set('connections', connections);
+
+    connections.map(function(c) {
+      c.send(JSON.stringify(app.get('users')), function(error) {});
+    });
   });
 
   wss.on('error', function(err) {
@@ -67,6 +84,7 @@ function setupWebSocketServer(server) {
 
 app.start = function() {
   app.set('users', []);
+  app.set('connections', []);
   var server = http.createServer(this);
   setupWebSocketServer(server);
   return server.listen.apply(server, arguments);

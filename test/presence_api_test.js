@@ -74,7 +74,7 @@ describe("Server", function() {
 
     it("should fix the user's nick if it already exists", function(done) {
       var nick1 = 'foo';
-      /* jshint unused: false */
+      /* jshint unused: vars */
       signin(nick1, function(err, res, body) {
         signin(nick1, function(err, res, body) {
           expect(JSON.parse(body).nick).to.eql(findNewNick(nick1));
@@ -119,6 +119,21 @@ describe("Server", function() {
         });
     });
 
+    it("should respond to an open connection with an empty array "+
+       "when no users are logged in", function (done) {
+      /* jshint unused: vars */
+      webSocket = new WebSocket(socketURL);
+
+      webSocket.on('error', function(error) {
+        expect(error).to.equal(null);
+      });
+
+      webSocket.on('message', function (data, flags) {
+        expect(JSON.parse(data)).to.deep.equal([]);
+        done();
+      });
+    });
+
     it("should respond to an open connection with a list of logged in users",
       function (done) {
         signin('foo', function() {
@@ -134,6 +149,48 @@ describe("Server", function() {
             expect(JSON.parse(data)).to.deep.equal([{"nick":"foo"}]);
             done();
           });
+        });
+      });
+
+    it("should send a JSON blob with a new nickname when a new user signs in",
+      function(done) {
+        /* jshint unused: vars */
+        var n = 1;
+        webSocket = new WebSocket(socketURL);
+
+        webSocket.on('error', function(error) {
+          expect(error).to.equal(null);
+        });
+
+        webSocket.on('message', function(data, flags) {
+          if (n === 1)
+            expect(JSON.parse(data)).to.deep.equal([{"nick":"first"}]);
+          if (n === 2) {
+            expect(JSON.parse(data)).to.deep.equal([{"nick":"first"},
+                                                    {"nick":"second"}]);
+            done();
+          }
+
+          n++;
+        });
+
+        webSocket.on('close', function() {
+          // XXX ick, we need some chai plugin here, possibly chai-sinon; need
+          // to investigate event testing best practices a bit.  We're trying
+          // to assert that the close event should never be fired while this
+          // function is being run.
+
+
+          // XXX Note that due to the way afterEach is currently set up,
+          // the assertion below probably fires when the close in afterEach is
+          // called, so we're yet testing what we want to test.  Possibly the
+          // first thing to fix.
+
+          expect(false).to.equal(true);
+        });
+
+        signin('first', function() {
+          signin('second');
         });
       });
 
