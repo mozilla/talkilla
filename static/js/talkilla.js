@@ -13,6 +13,16 @@ var Talkilla = (function($, Backbone, _) {
     } catch (e) {}
   }
 
+  function notifyUI(message, type) {
+    type = ['info', 'success', 'error'].indexOf(type) ? type : undefined;
+    var $notification = $(
+      '<div class="alert' + (type ? ' alert-' + type : '')+ '">' +
+        '<a class="close" data-dismiss="alert">&times;</a>' +
+        message +
+      '</div>');
+    $('#messages').append($notification);
+  }
+
   function login(nick, cb) {
     $.ajax({
       type: "POST",
@@ -76,10 +86,13 @@ var Talkilla = (function($, Backbone, _) {
 
     call: function(callee) {
       if (!app.data.user) {
-        alert('Please join for calling someone');
+        notifyUI('Please join for calling someone');
         return this.navigate('', {trigger: true, replace: true});
       }
       app.data.callee = app.data.users.findWhere({nick: callee});
+      if (!app.data.callee) {
+        return notifyUI('User not found', 'error');
+      }
       this.updateViews();
     }
   });
@@ -126,7 +139,7 @@ var Talkilla = (function($, Backbone, _) {
       this.collection = new app.UserSet();
       this.collection.fetch({
         error: function() {
-          alert('Could not load connected users list');
+          notifyUI('Could not load connected users list', 'error');
         },
         success: function(users) {
           this.initViews();
@@ -176,13 +189,14 @@ var Talkilla = (function($, Backbone, _) {
       event.preventDefault();
       var nick = $.trim($(event.currentTarget).find('[name="nick"]').val());
       if (!nick)
-        return alert('please enter a nickname');
+        return notifyUI('please enter a nickname');
       login(nick, function(err, user, users) {
         if (err)
-          return alert(err);
+          return notifyUI(err, 'error');
         app.data.user = user;
         app.data.users = users;
         app.trigger('signin', user);
+        app.router.navigate('', {trigger: true});
         app.router.index();
       });
     },
@@ -191,10 +205,11 @@ var Talkilla = (function($, Backbone, _) {
       event.preventDefault();
       logout(function(err) {
         if (err)
-          return alert(err);
+          return notifyUI(err, 'error');
         delete app.data.callee;
         delete app.data.user;
         app.trigger('signout');
+        app.router.navigate('', {trigger: true});
         app.router.index();
       });
     }
@@ -233,7 +248,7 @@ var Talkilla = (function($, Backbone, _) {
         }.bind(this),
 
         function onError(err) {
-          alert("Impossible to access your webcam/microphone");
+          notifyUI('Impossible to access your webcam/microphone', 'error');
         });
     },
 
