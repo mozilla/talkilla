@@ -65,7 +65,6 @@ function setupWebSocketServer(server) {
     var users = app.get('users');
     var connections = app.get('connections');
 
-    // XXX should also figure out where to close the websockets
     connections.push(ws);
     app.set('connections', connections);
 
@@ -88,6 +87,13 @@ app.start = function() {
   var server = http.createServer(this);
   setupWebSocketServer(server);
   return server.listen.apply(server, arguments);
+};
+
+app.shutdown = function(connection) {
+  app.get('connections').forEach(function(c) {
+    c.close();
+  });
+  connection.close();
 };
 
 module.exports.app = app;

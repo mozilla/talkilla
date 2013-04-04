@@ -41,7 +41,7 @@ describe("Server", function() {
     });
 
     afterEach(function() {
-      connection.close();
+      app.shutdown(connection);
       if (webSocket) {
         webSocket.close();
         webSocket = null;
