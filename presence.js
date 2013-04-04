@@ -46,7 +46,7 @@ app.post('/signin', function(req, res) {
   users.push({nick: nick});
   app.set('users', users);
 
-  connections.map(function(c) {
+  connections.forEach(function(c) {
     c.send(JSON.stringify(users), function(error) {});
   });
 });
