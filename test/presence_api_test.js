@@ -174,21 +174,6 @@ describe("Server", function() {
           n++;
         });
 
-        webSocket.on('close', function() {
-          // XXX ick, we need some chai plugin here, possibly chai-sinon; need
-          // to investigate event testing best practices a bit.  We're trying
-          // to assert that the close event should never be fired while this
-          // function is being run.
-
-
-          // XXX Note that due to the way afterEach is currently set up,
-          // the assertion below probably fires when the close in afterEach is
-          // called, so we're yet testing what we want to test.  Possibly the
-          // first thing to fix.
-
-          expect(false).to.equal(true);
-        });
-
         signin('first', function() {
           signin('second');
         });
