@@ -2,10 +2,12 @@
 /* jshint unused: false */
 var Talkilla = (function($, Backbone, _) {
   "use strict";
-  var app = {data: {}};
+  var app = {debug: false, data: {}};
   _.extend(app, Backbone.Events);
 
   function debug() {
+    if (!app.debug)
+      return;
     try {
       console.log.apply(console, arguments);
     } catch (e) {}
