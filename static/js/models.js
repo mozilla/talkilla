@@ -1,4 +1,7 @@
 /* global Talkilla, Backbone */
+/**
+ * Talkilla models and collections.
+ */
 (function(app, Backbone) {
   "use strict";
   app.models.User = Backbone.Model.extend({

@@ -1,8 +1,15 @@
 /*global jQuery, Backbone, _*/
 /* jshint unused: false */
+/**
+ * Talkilla application.
+ */
 var Talkilla = (function($, Backbone, _) {
   "use strict";
 
+  /**
+   * Application object
+   * @type {Object}
+   */
   var app = {
     DEBUG: false,
     data: {},
@@ -10,14 +17,6 @@ var Talkilla = (function($, Backbone, _) {
     services: {},
     utils: {},
     views: {},
-
-    log: function() {
-      if (!app.DEBUG)
-        return;
-      try {
-        console.log.apply(console, arguments);
-      } catch (e) {}
-    },
 
     start: function() {
       this.router = new app.Router();
@@ -31,8 +30,13 @@ var Talkilla = (function($, Backbone, _) {
       Backbone.history.start();
     }
   };
+
+  // Add event support to the app
   _.extend(app, Backbone.Events);
 
+  /**
+   * Main app router, responsible for handling app URLs.
+   */
   app.Router = Backbone.Router.extend({
     routes: {
       'call/:with': 'call',

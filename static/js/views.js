@@ -1,7 +1,13 @@
 /* global Talkilla, Backbone, _, jQuery*/
+/**
+ * Talkilla Backbone views.
+ */
 (function(app, Backbone, _, $) {
   "use strict";
 
+  /**
+   * User list entry view.
+   */
   app.views.UserEntryView = Backbone.View.extend({
     tagName: 'li',
 
@@ -13,6 +19,9 @@
     }
   });
 
+  /**
+   * User list view.
+   */
   app.views.UsersView = Backbone.View.extend({
     el: '#users',
 
@@ -57,6 +66,9 @@
     }
   });
 
+  /**
+   * Login/logout forms view.
+   */
   app.views.LoginView = Backbone.View.extend({
     el: '#login',
 
@@ -110,6 +122,9 @@
     }
   });
 
+  /**
+   * Main video conversation view.
+   */
   app.views.CallView = Backbone.View.extend({
     el: '#call',
 
@@ -135,7 +150,7 @@
         {video: true, audio: true},
 
         function onSuccess(stream) {
-          app.log('local video enabled');
+          app.utils.log('local video enabled');
           this.local.mozSrcObject = stream;
           this.local.play();
           this.$('.btn-initiate').addClass('disabled');
@@ -143,7 +158,7 @@
         }.bind(this),
 
         function onError(err) {
-          app.log(err);
+          app.utils.log(err);
           app.utils.notifyUI('Impossible to access your webcam/microphone',
                              'error');
         });
