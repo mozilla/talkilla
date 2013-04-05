@@ -1,8 +1,8 @@
-/* global jQuery, Talkilla, WebSocket */
+/* global Talkilla, Backbone, jQuery, _, WebSocket */
 /**
  * Talkilla services which can hardly be handled by Backbone models.
  */
-(function(app, $, WebSocket) {
+(function(app, Backbone, $, _, WebSocket) {
   "use strict";
 
   /**
@@ -13,17 +13,20 @@
 
   // on ws connection open
   ws.onopen = function() {
-
   };
 
-  // Log errors
+  // Error logging
   ws.onerror = function(error) {
     app.utils.log('WebSocket Error ' + error);
+    app.utils.notifyUI('An error occured while communicating with the server.');
   };
 
-  // Log messages from the server
+  // Message handling
   ws.onmessage = function(event) {
-    app.utils.log('Server: ' + event.data);
+    app.router.view.updateView('users', {
+      collection: new app.models.UserSet(JSON.parse(event.data))
+    });
+    //app.trigger('users-list:update', JSON.parse(event.data));
   };
 
   /**
@@ -70,4 +73,4 @@
       return cb(error);
     });
   };
-})(Talkilla, jQuery, WebSocket);
+})(Talkilla, Backbone, jQuery, _, WebSocket);

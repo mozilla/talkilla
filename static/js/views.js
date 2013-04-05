@@ -23,16 +23,20 @@
 
     initialize: function(options) {
       this.data = options && options.data || this.data;
-      this.update();
+      this.updateAll();
     },
 
-    update: function(data) {
-      this.data = data || {};
+    updateView: function(name, data) {
+      var ViewClass = app.views[this.viewClasses[name]];
+      if (name in this.views)
+        this.views[name].undelegateEvents();
+      this.views[name] = new ViewClass(data || this.data);
+    },
+
+    updateAll: function(data) {
+      this.data = data;
       for (var name in this.viewClasses) {
-        var ViewClass = app.views[this.viewClasses[name]];
-        if (name in this.views)
-          this.views[name].undelegateEvents();
-        this.views[name] = new ViewClass(this.data);
+        this.updateView(name);
       }
       this.render();
     },
@@ -69,13 +73,6 @@
 
     views: [],
 
-    initViews: function() {
-      this.views = [];
-      this.collection.each(function(model) {
-        this.views.push(new app.views.UserEntryView({model: model}));
-      }.bind(this));
-    },
-
     initialize: function(options) {
       this.collection = options && options.users;
       if (this.collection) {
@@ -94,12 +91,28 @@
       });
     },
 
+    initViews: function() {
+      this.views = [];
+      this.collection.chain().reject(function(user) {
+        // filter out current signed in user, if any
+        if (!app.data.user)
+          return false;
+        return user.get('nick') === app.data.user.get('nick');
+      }).each(function(user) {
+        // create a dedicated list entry for each user
+        this.views.push(new app.views.UserEntryView({model: user}));
+      }.bind(this));
+    },
+
     render: function() {
+      // remove user entries
+      this.$('li:not(.nav-header)').remove();
+      // render all subviews
       var userList = _.chain(this.views).map(function(view) {
         return view.render();
       }).pluck('el').value();
-      this.$('li:not(.nav-header)').remove();
       this.$('ul').append(userList);
+      // show/hide invitation notice
       if (app.data.user && this.collection.length === 0)
         this.$('#invite').show();
       else

@@ -48,7 +48,7 @@ var Talkilla = (function($, Backbone, _) {
     },
 
     index: function() {
-      this.view.update(app.data);
+      this.view.updateAll(app.data);
     },
 
     call: function(callee) {
@@ -60,7 +60,7 @@ var Talkilla = (function($, Backbone, _) {
       if (!app.data.callee) {
         return app.utils.notifyUI('User not found', 'error');
       }
-      this.view.update(app.data);
+      this.view.updateAll(app.data);
     }
   });
 
