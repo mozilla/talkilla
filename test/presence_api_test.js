@@ -174,9 +174,7 @@ describe("Server", function() {
         });
 
         signin('first', function() {
-          signin('second', function() {
-            done();
-          });
+          signin('second');
         });
       });
 
@@ -201,9 +199,7 @@ describe("Server", function() {
 
         signin('first', function() {
           signin('second', function() {
-            signout('first', function() {
-              done();
-            });
+            signout('first');
           });
         });
       });
