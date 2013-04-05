@@ -49,4 +49,17 @@
       return cb(error);
     });
   };
+
+  /**
+   * Initiates a call
+   *
+   * @param  {String}   callee The user to call
+   * @param  {Object}   offer  JSON blob of the peer connection data to send to
+   *                           the callee.
+   * @param  {Function} cb     Callback(error)
+   */
+  app.services.initiateCall = function(callee, offer, cb) {
+    // XXX To do as another user story
+    return cb(null, "ok");
+  };
 })(Talkilla, jQuery);
