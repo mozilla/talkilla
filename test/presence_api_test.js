@@ -53,6 +53,7 @@ describe("Server", function() {
     afterEach(function() {
       app.shutdown(connection);
       if (webSocket) {
+        webSocket.terminate();
         webSocket.close();
         webSocket = null;
       }
