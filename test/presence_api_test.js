@@ -21,6 +21,16 @@ var serverHost = "localhost";
 var serverHttpBase = 'http://' + serverHost + ':' + serverPort;
 var socketURL = 'ws://' + serverHost + ':' + serverPort;
 
+function createWebSocket() {
+  var ws = new WebSocket(socketURL);
+
+  ws.on('error', function(error) {
+    expect(error).to.equal(null);
+  });
+
+  return ws;
+}
+
 describe("Server", function() {
   describe("presence", function() {
 
@@ -122,11 +132,7 @@ describe("Server", function() {
     it("should respond to an open connection with an empty array "+
        "when no users are logged in", function (done) {
       /* jshint unused: vars */
-      webSocket = new WebSocket(socketURL);
-
-      webSocket.on('error', function(error) {
-        expect(error).to.equal(null);
-      });
+      webSocket = createWebSocket();
 
       webSocket.on('message', function (data, flags) {
         expect(JSON.parse(data)).to.deep.equal([]);
@@ -137,11 +143,7 @@ describe("Server", function() {
     it("should respond to an open connection with a list of logged in users",
       function (done) {
         signin('foo', function() {
-          webSocket = new WebSocket(socketURL);
-
-          webSocket.on('error', function(error) {
-            expect(error).to.equal(null);
-          });
+          webSocket = createWebSocket();
 
           webSocket.on('message', function (data, flags) {
             expect(flags.binary).to.equal(undefined);
@@ -157,7 +159,7 @@ describe("Server", function() {
         /* jshint unused: vars */
         var messages = [];
 
-        webSocket = new WebSocket(socketURL);
+        webSocket = createWebSocket();
 
         webSocket.on('message', function(data, flags) {
           messages.push(JSON.parse(data));
@@ -178,7 +180,7 @@ describe("Server", function() {
         /* jshint unused: vars */
         var messages = [];
 
-        webSocket = new WebSocket(socketURL);
+        webSocket = createWebSocket();
 
         webSocket.on('message', function(data, flags) {
           messages.push(JSON.parse(data));
