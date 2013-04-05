@@ -143,25 +143,18 @@
     },
 
     initiate: function() {
-      // TODO:
-      // - extract the processus to some external lib?
-      // - handle asynchronicity (events?)
-      navigator.mozGetUserMedia(
-        {video: true, audio: true},
-
-        function onSuccess(stream) {
-          app.utils.log('local video enabled');
-          this.local.mozSrcObject = stream;
-          this.local.play();
-          this.$('.btn-initiate').addClass('disabled');
-          this.$('.btn-hangup').removeClass('disabled');
-        }.bind(this),
-
-        function onError(err) {
-          app.utils.log(err);
-          app.utils.notifyUI('Impossible to access your webcam/microphone',
-                             'error');
-        });
+      app.media.initiateCall(this.callee, this.local,
+                             function onSuccess(pc, localVideo) {
+                                this.local = localVideo;
+                                this.pc = pc;
+                                this.$('.btn-initiate').addClass('disabled');
+                                this.$('.btn-hangup').removeClass('disabled');
+                              }.bind(this),
+                             function onError(err) {
+                                // XXX Better error handling required
+                                app.utils.log(err);
+                                app.utils.notifyUI('Unable to initiate call');
+                              });
     },
 
     hangup: function() {

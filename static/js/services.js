@@ -49,4 +49,15 @@
       return cb(error);
     });
   };
+
+  /**
+   * Signs a user in.
+   *
+   * @param  {String}   nick User's nickname
+   * @param  {Function} cb   Callback(error, User, UserSet)
+   */
+  app.services.initiateCall = function(callee, offer, cb) {
+    // XXX To do as another user story
+    return cb(null, "ok");
+  };
 })(Talkilla, jQuery);
