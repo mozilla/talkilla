@@ -6,6 +6,52 @@
   "use strict";
 
   /**
+   * Global app view.
+   */
+  app.views.AppView = Backbone.View.extend({
+    el: 'body',
+
+    data: {},
+
+    viewClasses: {
+      call:  'CallView',
+      login: 'LoginView',
+      users: 'UsersView'
+    },
+
+    views: {},
+
+    initialize: function(options) {
+      this.data = options && options.data || this.data;
+      // events
+      app.on('signout', function() {
+        this.views.call.hangup();
+      }.bind(this));
+      this.update();
+    },
+
+    update: function(data) {
+      this.data = data || {};
+      for (var name in this.viewClasses) {
+        var ViewClass = app.views[this.viewClasses[name]];
+        if (name in this.views)
+          this.views[name].undelegateEvents();
+        this.views[name] = new ViewClass(this.data);
+      }
+      this.render();
+    },
+
+    render: function() {
+      for (var name in this.views) {
+        var view = this.views[name];
+        if (!view)
+          continue;
+        view.render();
+      }
+    }
+  });
+
+  /**
    * User list entry view.
    */
   app.views.UserEntryView = Backbone.View.extend({
