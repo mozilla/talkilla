@@ -1,7 +1,7 @@
 language: node_js
 
 node_js:
- - "0.8"
+  - "0.8"
 
 notifications:
   irc:
@@ -11,3 +11,29 @@ notifications:
     skip_join: false
   email:
     - talkilla-travis-results@mozilla.com
+
+env:
+  global:
+    - secure: |-
+        H68GNK5CbZW1KL7drf+07FoOD7rITefepiNpVy81mOFnU4viw3SpqDHjwP0z
+        FRJPbOiwUtkOQJX3c8YlzIvdPY9dz6NGuDHksFusSWbhrKijqdf++HzvuBwh
+        gEeHjaOthyOBx0pMLfKo0Hww5+yYb/iScZZJox22H6DQrRkQkoY=
+
+after_success:
+  - if [[ "$TRAVIS_PULL_REQUEST" == "true" ]]; then
+      echo "This is a pull request. No deployment will be done.";
+      exit 0;
+    fi
+  - if [[ "$TRAVIS_BRANCH" != "master" ]]; then
+      echo "Push to a non-master branch. No deployment will be done.";
+      exit 0;
+    fi
+  -  wget -qO- https://toolbelt.heroku.com/install-ubuntu.sh | sh
+  -  git remote add heroku git@heroku.com:talkilla-stage.git
+  -  echo "Host heroku.com" >> ~/.ssh/config
+  -  echo "  StrictHostKeyChecking no" >> ~/.ssh/config
+  -  echo "  CheckHostIP no" >> ~/.ssh/config
+  -  echo "  UserKnownHostsFile=/dev/null" >> ~/.ssh/config
+  -  heroku keys:clear
+  -  yes | heroku keys:add
+  -  yes | git push heroku master
