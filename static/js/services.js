@@ -26,7 +26,6 @@
     app.router.view.updateView('users', {
       collection: new app.models.UserSet(JSON.parse(event.data))
     });
-    //app.trigger('users-list:update', JSON.parse(event.data));
   };
 
   /**
