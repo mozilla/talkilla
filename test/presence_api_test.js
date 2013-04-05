@@ -157,19 +157,24 @@ describe("Server", function() {
     it("should send the list of signed in users when a new user signs in",
       function(done) {
         /* jshint unused: vars */
-        var messages = [];
+        var n = 1;
 
         webSocket = createWebSocket();
 
         webSocket.on('message', function(data, flags) {
-          messages.push(JSON.parse(data));
+          if (n === 1)
+            expect(JSON.parse(data)).to.deep.equal([{"nick":"first"}]);
+          if (n === 2) {
+            expect(JSON.parse(data)).to.deep.equal([{"nick":"first"},
+                                                    {"nick":"second"}]);
+            done();
+          }
+
+          n++;
         });
 
         signin('first', function() {
           signin('second', function() {
-            expect(messages[1]).to.deep.equal([{"nick":"first"}]);
-            expect(messages[2]).to.deep.equal([{"nick":"first"},
-                                               {"nick":"second"}]);
             done();
           });
         });
@@ -178,21 +183,25 @@ describe("Server", function() {
     it("should send the list of signed in users when a user signs out",
       function(done) {
         /* jshint unused: vars */
-        var messages = [];
+        var n = 1;
 
         webSocket = createWebSocket();
 
         webSocket.on('message', function(data, flags) {
-          messages.push(JSON.parse(data));
+          if (n === 2)
+            expect(JSON.parse(data)).to.deep.equal([{"nick":"first"},
+                                                    {"nick":"second"}]);
+          if (n === 3) {
+            expect(JSON.parse(data)).to.deep.equal([{"nick":"second"}]);
+            done();
+          }
+
+          n++;
         });
 
         signin('first', function() {
           signin('second', function() {
             signout('first', function() {
-              expect(messages[1]).to.deep.equal([{"nick":"first"}]);
-              expect(messages[2]).to.deep.equal([{"nick":"first"},
-                                                 {"nick":"second"}]);
-              expect(messages[3]).to.deep.equal([{"nick":"second"}]);
               done();
             });
           });
