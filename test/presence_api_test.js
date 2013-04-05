@@ -157,11 +157,13 @@ describe("Server", function() {
     it("should send the list of signed in users when a new user signs in",
       function(done) {
         /* jshint unused: vars */
-        var n = 1;
+        var n = 0;
 
         webSocket = createWebSocket();
 
         webSocket.on('message', function(data, flags) {
+          if (n === 0)
+            expect(JSON.parse(data)).to.deep.equal([]);
           if (n === 1)
             expect(JSON.parse(data)).to.deep.equal([{"nick":"first"}]);
           if (n === 2) {
@@ -181,11 +183,13 @@ describe("Server", function() {
     it("should send the list of signed in users when a user signs out",
       function(done) {
         /* jshint unused: vars */
-        var n = 1;
+        var n = 0;
 
         webSocket = createWebSocket();
 
         webSocket.on('message', function(data, flags) {
+          if (n === 0)
+            expect(JSON.parse(data)).to.deep.equal([]);
           if (n === 2)
             expect(JSON.parse(data)).to.deep.equal([{"nick":"first"},
                                                     {"nick":"second"}]);
