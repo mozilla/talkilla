@@ -23,10 +23,6 @@
 
     initialize: function(options) {
       this.data = options && options.data || this.data;
-      // events
-      app.on('signout', function() {
-        this.views.call.hangup();
-      }.bind(this));
       this.update();
     },
 
@@ -186,6 +182,11 @@
       this.user = options && options.user;
       this.callee = options && options.callee;
       this.local = $('#local-video').get(0);
+      // app events
+      app.on('signout', function() {
+        // ensure a call is always terminated on user signout
+        this.hangup();
+      }.bind(this));
     },
 
     initiate: function() {
