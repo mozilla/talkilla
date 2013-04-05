@@ -30,7 +30,6 @@ app.get('/users', function(req, res) {
 
 app.post('/signin', function(req, res) {
   var users = app.get('users');
-  var connections = app.get('connections');
   var nick = req.body.nick;
 
   function exists(nick) {
@@ -46,15 +45,21 @@ app.post('/signin', function(req, res) {
   users.push({nick: nick});
   app.set('users', users);
 
-  connections.forEach(function(c) {
+  app.get('connections').forEach(function(c) {
     c.send(JSON.stringify(users), function(error) {});
   });
 });
 
 app.post('/signout', function(req, res) {
-  app.set('users', app.get('users').filter(function(user) {
+  var users = app.get('users').filter(function(user) {
     return user.nick !== req.body.nick;
-  }));
+  });
+  app.set('users', users);
+
+  app.get('connections').forEach(function(c) {
+    c.send(JSON.stringify(users), function(error) {});
+  });
+
   res.send(200, JSON.stringify(true));
 });
 
