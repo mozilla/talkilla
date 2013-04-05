@@ -11,14 +11,21 @@ var Talkilla = (function($, Backbone, _) {
    * @type {Object}
    */
   var app = {
-    DEBUG: false,
+    // default options
+    options: {
+      DEBUG: false,
+      WSURL: 'ws://127.0.0.1:5000'
+    },
+
+    // app modules
     data: {},
     models: {},
     services: {},
     utils: {},
     views: {},
 
-    start: function() {
+    start: function(options) {
+      _.extend(this.options, options || {});
       this.router = new app.Router();
       Backbone.history.start();
     }
