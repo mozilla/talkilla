@@ -13,6 +13,7 @@ var Talkilla = (function($, Backbone, _) {
   var app = {
     DEBUG: false,
     data: {},
+    media: {},
     models: {},
     services: {},
     utils: {},

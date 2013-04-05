@@ -152,7 +152,7 @@ describe("Server", function() {
         });
       });
 
-    it("should send a JSON blob with a new nickname when a new user signs in",
+    it("should send the list of signed in users when a new user signs in",
       function(done) {
         /* jshint unused: vars */
         var n = 1;
@@ -176,6 +176,35 @@ describe("Server", function() {
 
         signin('first', function() {
           signin('second');
+        });
+      });
+
+    it("should send the list of signed in users when a user signs out",
+      function(done) {
+        /* jshint unused: vars */
+        var n = 1;
+        webSocket = new WebSocket(socketURL);
+
+        webSocket.on('error', function(error) {
+          expect(error).to.equal(null);
+        });
+
+        webSocket.on('message', function(data, flags) {
+          if (n === 2)
+            expect(JSON.parse(data)).to.deep.equal([{"nick":"first"},
+                                                    {"nick":"second"}]);
+          if (n === 3) {
+            expect(JSON.parse(data)).to.deep.equal([{"nick":"second"}]);
+            done();
+          }
+
+          n++;
+        });
+
+        signin('first', function() {
+          signin('second', function() {
+            signout('first');
+          });
         });
       });
 
