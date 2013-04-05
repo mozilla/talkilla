@@ -31,6 +31,7 @@
       if (name in this.views)
         this.views[name].undelegateEvents();
       this.views[name] = new ViewClass(data || this.data);
+      this.views[name].render();
     },
 
     updateAll: function(data) {
@@ -38,7 +39,6 @@
       for (var name in this.viewClasses) {
         this.updateView(name);
       }
-      this.render();
     },
 
     render: function() {
@@ -73,25 +73,9 @@
 
     views: [],
 
-    initialize: function(options) {
-      this.collection = options && options.users;
-      if (this.collection) {
-        this.initViews();
-        return this.render();
-      }
-      this.collection = new app.models.UserSet();
-      this.collection.fetch({
-        error: function() {
-          app.utils.notifyUI('Could not load connected users list', 'error');
-        },
-        success: function() {
-          this.initViews();
-          this.render();
-        }.bind(this)
-      });
-    },
-
     initViews: function() {
+      if (!this.collection)
+        return;
       this.views = [];
       this.collection.chain().reject(function(user) {
         // filter out current signed in user, if any
@@ -105,6 +89,7 @@
     },
 
     render: function() {
+      this.initViews();
       // remove user entries
       this.$('li:not(.nav-header)').remove();
       // render all subviews
