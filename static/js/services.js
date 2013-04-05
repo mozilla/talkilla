@@ -1,8 +1,8 @@
-/* global Talkilla, Backbone, jQuery, _, WebSocket */
+/* global Talkilla, jQuery, WebSocket */
 /**
  * Talkilla services which can hardly be handled by Backbone models.
  */
-(function(app, Backbone, $, _, WebSocket) {
+(function(app, $, WebSocket) {
   "use strict";
 
   /**
@@ -72,4 +72,18 @@
       return cb(error);
     });
   };
-})(Talkilla, Backbone, jQuery, _, WebSocket);
+
+  /**
+   * Initiates a call
+   *
+   * @param  {String}   callee The user to call
+   * @param  {Object}   offer  JSON blob of the peer connection data to send to
+   *                           the callee.
+   * @param  {Function} cb     Callback(error)
+   */
+  app.services.initiateCall = function(callee, offer, cb) {
+    // XXX To do as another user story
+    return cb(null, "ok");
+  };
+
+})(Talkilla, jQuery, WebSocket);

@@ -19,6 +19,7 @@ var Talkilla = (function($, Backbone, _) {
 
     // app modules
     data: {},
+    media: {},
     models: {},
     services: {},
     utils: {},
