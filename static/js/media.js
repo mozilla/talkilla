@@ -5,8 +5,9 @@
 (function(app) {
   "use strict";
 
-  app.media.initiateCall = function (callee, localVideo, successCallback,
-                                     errorCallback) {
+  app.media.initiatePeerConnection = function (callee, localVideo,
+                                               successCallback,
+                                               errorCallback) {
     var pc = getPeerConnection();
 
     function onSuccess(localVideo) {

@@ -143,18 +143,19 @@
     },
 
     initiate: function() {
-      app.media.initiateCall(this.callee, this.local,
-                             function onSuccess(pc, localVideo) {
-                                this.local = localVideo;
-                                this.pc = pc;
-                                this.$('.btn-initiate').addClass('disabled');
-                                this.$('.btn-hangup').removeClass('disabled');
-                              }.bind(this),
-                             function onError(err) {
-                                // XXX Better error handling required
-                                app.utils.log(err);
-                                app.utils.notifyUI('Unable to initiate call');
-                              });
+      app.media.initiatePeerConnection(
+        this.callee, this.local,
+        function onSuccess(pc, localVideo) {
+          this.local = localVideo;
+          this.pc = pc;
+          this.$('.btn-initiate').addClass('disabled');
+          this.$('.btn-hangup').removeClass('disabled');
+        }.bind(this),
+        function onError(err) {
+          // XXX Better error handling required
+          app.utils.log(err);
+          app.utils.notifyUI('Unable to initiate call');
+        });
     },
 
     hangup: function() {

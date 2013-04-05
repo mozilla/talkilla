@@ -51,10 +51,12 @@
   };
 
   /**
-   * Signs a user in.
+   * Initiates a call
    *
-   * @param  {String}   nick User's nickname
-   * @param  {Function} cb   Callback(error, User, UserSet)
+   * @param  {String}   callee The user to call
+   * @param  {Object}   offer  JSON blob of the peer connection data to send to
+   *                           the callee.
+   * @param  {Function} cb     Callback(error)
    */
   app.services.initiateCall = function(callee, offer, cb) {
     // XXX To do as another user story
