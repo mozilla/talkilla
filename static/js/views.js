@@ -112,6 +112,8 @@
     },
 
     render: function() {
+      if (!this.collection)
+        return;
       this.initViews();
       // remove user entries
       this.$('li:not(.nav-header)').remove();
@@ -121,7 +123,7 @@
       }).pluck('el').value();
       this.$('ul').append(userList);
       // show/hide invitation notice
-      if (app.data.user && this.collection.length === 0)
+      if (app.data.user && this.collection.length === 1)
         this.$('#invite').show();
       else
         this.$('#invite').hide();
