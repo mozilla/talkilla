@@ -92,6 +92,20 @@
 
     views: [],
 
+    initialize: function() {
+      // refresh the users list on new received data
+      app.services.on('users', function(data) {
+        this.collection = new app.models.UserSet(data);
+        app.data.users = this.collection;
+        this.render();
+      }.bind(this));
+      // purge the list on sign out
+      app.on('signout', function() {
+        this.collection = undefined;
+        this.render();
+      }.bind(this));
+    },
+
     /**
      * Initializes all user entry items with every online user records except
      * the one of currently logged in user, if any.
@@ -112,18 +126,23 @@
     },
 
     render: function() {
-      if (!this.collection)
-        return;
       this.initViews();
       // remove user entries
       this.$('li:not(.nav-header)').remove();
+      if (!this.collection)
+        return this;
       // render all subviews
       var userList = _.chain(this.views).map(function(view) {
         return view.render();
       }).pluck('el').value();
       this.$('ul').append(userList);
-      // show/hide invitation notice
-      if (app.data.user && this.collection.length === 1)
+      // show/hide element regarding auth status
+      if (app.data.user)
+        this.$el.show();
+      else
+        this.$el.hide();
+      // show/hide invite if user is alone
+      if (this.collection.length === 1)
         this.$('#invite').show();
       else
         this.$('#invite').hide();
@@ -167,11 +186,10 @@
       var nick = $.trim($(event.currentTarget).find('[name="nick"]').val());
       if (!nick)
         return app.utils.notifyUI('please enter a nickname');
-      app.services.login(nick, function(err, user, users) {
+      app.services.login(nick, function(err, user) {
         if (err)
           return app.utils.notifyUI(err, 'error');
         app.data.user = user;
-        app.data.users = users;
         app.trigger('signin', user);
         app.router.navigate('', {trigger: true});
         app.router.index();
@@ -190,6 +208,7 @@
           return app.utils.notifyUI(err, 'error');
         delete app.data.callee;
         delete app.data.user;
+        delete app.data.users;
         app.trigger('signout');
         app.router.navigate('', {trigger: true});
         app.router.index();

@@ -36,14 +36,17 @@ app.post('/signin', function(req, res) {
 
   while (exists(nick))
     nick = findNewNick(nick);
-  res.send(200, JSON.stringify({nick: nick, users: users}));
 
   users.push({nick: nick});
   app.set('users', users);
 
-  app.get('connections').forEach(function(c) {
-    c.send(JSON.stringify(users), function(error) {});
+  process.nextTick(function() {
+    app.get('connections').forEach(function(c) {
+      c.send(JSON.stringify({users: users}), function(error) {});
+    });
   });
+
+  res.send(200, JSON.stringify({nick: nick}));
 });
 
 app.post('/signout', function(req, res) {
@@ -52,8 +55,10 @@ app.post('/signout', function(req, res) {
   });
   app.set('users', users);
 
-  app.get('connections').forEach(function(c) {
-    c.send(JSON.stringify(users), function(error) {});
+  process.nextTick(function() {
+    app.get('connections').forEach(function(c) {
+      c.send(JSON.stringify({users: users}), function(error) {});
+    });
   });
 
   res.send(200, JSON.stringify(true));
@@ -63,15 +68,10 @@ var wss;
 function setupWebSocketServer(server) {
   wss = new WebSocketServer({server: server});
   wss.on('connection', function(ws) {
-    var users = app.get('users');
+    // adds this new connection to the pool
     var connections = app.get('connections');
-
     connections.push(ws);
     app.set('connections', connections);
-
-    connections.map(function(c) {
-      c.send(JSON.stringify(app.get('users')), function(error) {});
-    });
   });
 
   wss.on('error', function(err) {
