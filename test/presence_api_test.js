@@ -21,6 +21,16 @@ var serverHost = "localhost";
 var serverHttpBase = 'http://' + serverHost + ':' + serverPort;
 var socketURL = 'ws://' + serverHost + ':' + serverPort;
 
+function createWebSocket() {
+  var ws = new WebSocket(socketURL);
+
+  ws.on('error', function(error) {
+    expect(error).to.equal(null);
+  });
+
+  return ws;
+}
+
 describe("Server", function() {
   describe("presence", function() {
 
@@ -43,6 +53,7 @@ describe("Server", function() {
     afterEach(function() {
       app.shutdown(connection);
       if (webSocket) {
+        webSocket.terminate();
         webSocket.close();
         webSocket = null;
       }
@@ -122,11 +133,7 @@ describe("Server", function() {
     it("should respond to an open connection with an empty array "+
        "when no users are logged in", function (done) {
       /* jshint unused: vars */
-      webSocket = new WebSocket(socketURL);
-
-      webSocket.on('error', function(error) {
-        expect(error).to.equal(null);
-      });
+      webSocket = createWebSocket();
 
       webSocket.on('message', function (data, flags) {
         expect(JSON.parse(data)).to.deep.equal([]);
@@ -137,11 +144,7 @@ describe("Server", function() {
     it("should respond to an open connection with a list of logged in users",
       function (done) {
         signin('foo', function() {
-          webSocket = new WebSocket(socketURL);
-
-          webSocket.on('error', function(error) {
-            expect(error).to.equal(null);
-          });
+          webSocket = createWebSocket();
 
           webSocket.on('message', function (data, flags) {
             expect(flags.binary).to.equal(undefined);
@@ -155,14 +158,13 @@ describe("Server", function() {
     it("should send the list of signed in users when a new user signs in",
       function(done) {
         /* jshint unused: vars */
-        var n = 1;
-        webSocket = new WebSocket(socketURL);
+        var n = 0;
 
-        webSocket.on('error', function(error) {
-          expect(error).to.equal(null);
-        });
+        webSocket = createWebSocket();
 
         webSocket.on('message', function(data, flags) {
+          if (n === 0)
+            expect(JSON.parse(data)).to.deep.equal([]);
           if (n === 1)
             expect(JSON.parse(data)).to.deep.equal([{"nick":"first"}]);
           if (n === 2) {
@@ -182,14 +184,13 @@ describe("Server", function() {
     it("should send the list of signed in users when a user signs out",
       function(done) {
         /* jshint unused: vars */
-        var n = 1;
-        webSocket = new WebSocket(socketURL);
+        var n = 0;
 
-        webSocket.on('error', function(error) {
-          expect(error).to.equal(null);
-        });
+        webSocket = createWebSocket();
 
         webSocket.on('message', function(data, flags) {
+          if (n === 0)
+            expect(JSON.parse(data)).to.deep.equal([]);
           if (n === 2)
             expect(JSON.parse(data)).to.deep.equal([{"nick":"first"},
                                                     {"nick":"second"}]);

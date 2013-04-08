@@ -52,11 +52,11 @@ app.post('/signout', function(req, res) {
   });
   app.set('users', users);
 
+  res.send(200, JSON.stringify(true));
+
   app.get('connections').forEach(function(c) {
     c.send(JSON.stringify(users), function(error) {});
   });
-
-  res.send(200, JSON.stringify(true));
 });
 
 var wss;
