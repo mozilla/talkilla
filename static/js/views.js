@@ -6,6 +6,71 @@
   "use strict";
 
   /**
+   * Global app view.
+   */
+  app.views.AppView = Backbone.View.extend({
+    el: 'body',
+
+    // view data
+    data: {},
+
+    // sub views classes
+    viewClasses: {
+      call:  'CallView',
+      login: 'LoginView',
+      users: 'UsersView'
+    },
+
+    // sub views pool
+    views: {},
+
+    initialize: function(options) {
+      this.data = options && options.data || this.data;
+      this.updateAll();
+    },
+
+    /**
+     * Updates a sub view.
+     *
+     * @param  {String}            name  Sub view name
+     * @param  {Object|undefined}  data  Optional data
+     * @return {app.views.AppView}
+     */
+    updateView: function(name, data) {
+      var ViewClass = app.views[this.viewClasses[name]];
+      if (name in this.views)
+        this.views[name].undelegateEvents();
+      this.views[name] = new ViewClass(data || this.data);
+      this.views[name].render();
+      return this;
+    },
+
+    /**
+     * Updates all sub views.
+     *
+     * @param  {String}  data  Optional data.
+     * @return {app.views.AppView}
+     */
+    updateAll: function(data) {
+      this.data = data || this.data;
+      for (var name in this.viewClasses) {
+        this.updateView(name);
+      }
+      return this;
+    },
+
+    render: function() {
+      for (var name in this.views) {
+        var view = this.views[name];
+        if (!view)
+          continue;
+        view.render();
+      }
+      return this;
+    }
+  });
+
+  /**
    * User list entry view.
    */
   app.views.UserEntryView = Backbone.View.extend({
@@ -27,37 +92,35 @@
 
     views: [],
 
+    /**
+     * Initializes all user entry items with every online user records except
+     * the one of currently logged in user, if any.
+     */
     initViews: function() {
+      if (!this.collection)
+        return;
       this.views = [];
-      this.collection.each(function(model) {
-        this.views.push(new app.views.UserEntryView({model: model}));
+      this.collection.chain().reject(function(user) {
+        // filter out current signed in user, if any
+        if (!app.data.user)
+          return false;
+        return user.get('nick') === app.data.user.get('nick');
+      }).each(function(user) {
+        // create a dedicated list entry for each user
+        this.views.push(new app.views.UserEntryView({model: user}));
       }.bind(this));
     },
 
-    initialize: function(options) {
-      this.collection = options && options.users;
-      if (this.collection) {
-        this.initViews();
-        return this.render();
-      }
-      this.collection = new app.models.UserSet();
-      this.collection.fetch({
-        error: function() {
-          app.utils.notifyUI('Could not load connected users list', 'error');
-        },
-        success: function() {
-          this.initViews();
-          this.render();
-        }.bind(this)
-      });
-    },
-
     render: function() {
+      this.initViews();
+      // remove user entries
+      this.$('li:not(.nav-header)').remove();
+      // render all subviews
       var userList = _.chain(this.views).map(function(view) {
         return view.render();
       }).pluck('el').value();
-      this.$('li:not(.nav-header)').remove();
       this.$('ul').append(userList);
+      // show/hide invitation notice
       if (app.data.user && this.collection.length === 0)
         this.$('#invite').show();
       else
@@ -92,6 +155,11 @@
       return this;
     },
 
+    /**
+     * Signs in a user.
+     *
+     * @param  {FormEvent}  Signin form submit event
+     */
     signin: function(event) {
       event.preventDefault();
       var nick = $.trim($(event.currentTarget).find('[name="nick"]').val());
@@ -108,6 +176,11 @@
       });
     },
 
+    /**
+     * Signs out a user.
+     *
+     * @param  {FormEvent}  Signout form submit event
+     */
     signout: function(event) {
       event.preventDefault();
       app.services.logout(function(err) {
@@ -128,6 +201,7 @@
   app.views.CallView = Backbone.View.extend({
     el: '#call',
 
+    // local video object
     local: undefined,
 
     events: {
@@ -140,8 +214,16 @@
       this.user = options && options.user;
       this.callee = options && options.callee;
       this.local = $('#local-video').get(0);
+      // app events
+      app.on('signout', function() {
+        // ensure a call is always terminated on user signout
+        this.hangup();
+      }.bind(this));
     },
 
+    /**
+     * Initiates the call.
+     */
     initiate: function() {
       app.media.initiatePeerConnection(
         this.callee, this.local,
@@ -158,6 +240,9 @@
         });
     },
 
+    /**
+     * Hangs up the call.
+     */
     hangup: function() {
       if (this.local && this.local.mozSrcObject) {
         this.local.mozSrcObject.stop();

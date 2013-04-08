@@ -80,7 +80,10 @@
   <script src="js/views.js"></script>
   <script>
     $(function() {
-      Talkilla.start();
+      Talkilla.start({
+        DEBUG: true,
+        WSURL: 'ws://127.0.0.1:5000'
+      });
     });
   </script>
 </body>
