@@ -9,7 +9,6 @@
   });
 
   app.models.UserSet = Backbone.Collection.extend({
-    url: '/users',
     model: app.models.User
   });
 })(Talkilla, Backbone);

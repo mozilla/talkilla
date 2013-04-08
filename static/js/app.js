@@ -11,7 +11,13 @@ var Talkilla = (function($, Backbone, _) {
    * @type {Object}
    */
   var app = {
-    DEBUG: false,
+    // default options
+    options: {
+      DEBUG: false,
+      WSURL: 'ws://127.0.0.1:5000'
+    },
+
+    // app modules
     data: {},
     media: {},
     models: {},
@@ -19,15 +25,9 @@ var Talkilla = (function($, Backbone, _) {
     utils: {},
     views: {},
 
-    start: function() {
+    start: function(options) {
+      _.extend(this.options, options || {});
       this.router = new app.Router();
-
-      // app events
-      this.on('signout', function() {
-        // make sure any call is terminated on user signout
-        this.router.callView.hangup();
-      });
-
       Backbone.history.start();
     }
   };
@@ -44,27 +44,12 @@ var Talkilla = (function($, Backbone, _) {
       '*actions':   'index'
     },
 
-    updateViews: function() {
-      // TODO: if this keeps growing, refactor as a view pool
-      // login form
-      if (this.loginView)
-        this.loginView.undelegateEvents();
-      this.loginView = new app.views.LoginView(app.data);
-      this.loginView.render();
-      // users list
-      if (this.usersView)
-        this.usersView.undelegateEvents();
-      this.usersView = new app.views.UsersView(app.data);
-      this.usersView.render();
-      // call view
-      if (this.callView)
-        this.callView.undelegateEvents();
-      this.callView = new app.views.CallView(app.data);
-      this.callView.render();
+    initialize: function() {
+      this.view = new app.views.AppView(app.data);
     },
 
     index: function() {
-      this.updateViews();
+      this.view.updateAll(app.data);
     },
 
     call: function(callee) {
@@ -76,7 +61,7 @@ var Talkilla = (function($, Backbone, _) {
       if (!app.data.callee) {
         return app.utils.notifyUI('User not found', 'error');
       }
-      this.updateViews();
+      this.view.updateAll(app.data);
     }
   });
 

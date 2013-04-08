@@ -9,7 +9,7 @@
    * Logs any passed argument(s) to the browser console if `app.DEBUG` is true.
    */
   app.utils.log = function() {
-    if (!app.DEBUG)
+    if (!app.options.DEBUG)
       return;
     try {
       console.log.apply(console, arguments);

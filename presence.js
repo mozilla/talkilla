@@ -24,10 +24,6 @@ function findNewNick(aNick) {
   return nickParts[1] + newDigits;
 }
 
-app.get('/users', function(req, res) {
-  res.send(200, JSON.stringify(app.get('users')));
-});
-
 app.post('/signin', function(req, res) {
   var users = app.get('users');
   var nick = req.body.nick;
