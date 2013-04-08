@@ -11,14 +11,17 @@
   app.views.AppView = Backbone.View.extend({
     el: 'body',
 
+    // view data
     data: {},
 
+    // sub views classes
     viewClasses: {
       call:  'CallView',
       login: 'LoginView',
       users: 'UsersView'
     },
 
+    // sub views pool
     views: {},
 
     initialize: function(options) {
@@ -26,19 +29,34 @@
       this.updateAll();
     },
 
+    /**
+     * Updates a sub view.
+     *
+     * @param  {String}            name  Sub view name
+     * @param  {Object|undefined}  data  Optional data
+     * @return {app.views.AppView}
+     */
     updateView: function(name, data) {
       var ViewClass = app.views[this.viewClasses[name]];
       if (name in this.views)
         this.views[name].undelegateEvents();
       this.views[name] = new ViewClass(data || this.data);
       this.views[name].render();
+      return this;
     },
 
+    /**
+     * Updates all sub views.
+     *
+     * @param  {String}  data  Optional data.
+     * @return {app.views.AppView}
+     */
     updateAll: function(data) {
-      this.data = data;
+      this.data = data || this.data;
       for (var name in this.viewClasses) {
         this.updateView(name);
       }
+      return this;
     },
 
     render: function() {
@@ -48,6 +66,7 @@
           continue;
         view.render();
       }
+      return this;
     }
   });
 
@@ -73,6 +92,10 @@
 
     views: [],
 
+    /**
+     * Initializes all user entry items with every online user records except
+     * the one of currently logged in user, if any.
+     */
     initViews: function() {
       if (!this.collection)
         return;
@@ -132,6 +155,11 @@
       return this;
     },
 
+    /**
+     * Signs in a user.
+     *
+     * @param  {FormEvent}  Signin form submit event
+     */
     signin: function(event) {
       event.preventDefault();
       var nick = $.trim($(event.currentTarget).find('[name="nick"]').val());
@@ -148,6 +176,11 @@
       });
     },
 
+    /**
+     * Signs out a user.
+     *
+     * @param  {FormEvent}  Signout form submit event
+     */
     signout: function(event) {
       event.preventDefault();
       app.services.logout(function(err) {
@@ -168,6 +201,7 @@
   app.views.CallView = Backbone.View.extend({
     el: '#call',
 
+    // local video object
     local: undefined,
 
     events: {
@@ -187,6 +221,9 @@
       }.bind(this));
     },
 
+    /**
+     * Initiates the call.
+     */
     initiate: function() {
       app.media.initiatePeerConnection(
         this.callee, this.local,
@@ -203,6 +240,9 @@
         });
     },
 
+    /**
+     * Hangs up the call.
+     */
     hangup: function() {
       if (this.local && this.local.mozSrcObject) {
         this.local.mozSrcObject.stop();
