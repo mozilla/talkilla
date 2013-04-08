@@ -11,61 +11,17 @@
   app.views.AppView = Backbone.View.extend({
     el: 'body',
 
-    // view data
-    data: {},
 
-    // sub views classes
-    viewClasses: {
-      call:  'CallView',
-      login: 'LoginView',
-      users: 'UsersView'
-    },
-
-    // sub views pool
-    views: {},
-
-    initialize: function(options) {
-      this.data = options && options.data || this.data;
-      this.updateAll();
-    },
-
-    /**
-     * Updates a sub view.
-     *
-     * @param  {String}            name  Sub view name
-     * @param  {Object|undefined}  data  Optional data
-     * @return {app.views.AppView}
-     */
-    updateView: function(name, data) {
-      var ViewClass = app.views[this.viewClasses[name]];
-      if (name in this.views)
-        this.views[name].undelegateEvents();
-      this.views[name] = new ViewClass(data || this.data);
-      this.views[name].render();
-      return this;
-    },
-
-    /**
-     * Updates all sub views.
-     *
-     * @param  {String}  data  Optional data.
-     * @return {app.views.AppView}
-     */
-    updateAll: function(data) {
-      this.data = data || this.data;
-      for (var name in this.viewClasses) {
-        this.updateView(name);
-      }
-      return this;
+    initialize: function() {
+      this.login = new app.views.LoginView();
+      this.users = new app.views.UsersView();
+      this.call = new app.views.CallView();
     },
 
     render: function() {
-      for (var name in this.views) {
-        var view = this.views[name];
-        if (!view)
-          continue;
-        view.render();
-      }
+      this.login.render();
+      this.users.render();
+      this.call.render();
       return this;
     }
   });
@@ -99,6 +55,7 @@
         app.data.users = this.collection;
         this.render();
       }.bind(this));
+
       // purge the list on sign out
       app.on('signout', function() {
         this.collection = undefined;
@@ -161,17 +118,13 @@
       'submit form#signout': 'signout'
     },
 
-    initialize: function(options) {
-      this.user = options && options.user;
-    },
-
     render: function() {
-      if (!this.user) {
+      if (!app.data.user) {
         this.$('#signin').show();
         this.$('#signout').hide().find('.nick').text('');
       } else {
         this.$('#signin').hide();
-        this.$('#signout').show().find('.nick').text(this.user.get('nick'));
+        this.$('#signout').show().find('.nick').text(app.data.user.get('nick'));
       }
       return this;
     },
@@ -206,9 +159,8 @@
       app.services.logout(function(err) {
         if (err)
           return app.utils.notifyUI(err, 'error');
-        delete app.data.callee;
-        delete app.data.user;
-        delete app.data.users;
+        // reset all app data
+        app.data = {};
         app.trigger('signout');
         app.router.navigate('', {trigger: true});
         app.router.index();
@@ -231,14 +183,15 @@
     },
 
     initialize: function(options) {
-      this.hangup();
-      this.user = options && options.user;
       this.callee = options && options.callee;
+      this.hangup();
       this.local = $('#local-video').get(0);
+
       // app events
       app.on('signout', function() {
         // ensure a call is always terminated on user signout
         this.hangup();
+        this.render();
       }.bind(this));
     },
 
@@ -248,12 +201,14 @@
     initiate: function() {
       app.media.initiatePeerConnection(
         this.callee, this.local,
+
         function onSuccess(pc, localVideo) {
           this.local = localVideo;
           this.pc = pc;
           this.$('.btn-initiate').addClass('disabled');
           this.$('.btn-hangup').removeClass('disabled');
         }.bind(this),
+
         function onError(err) {
           // XXX Better error handling required
           app.utils.log(err);
@@ -274,7 +229,7 @@
     },
 
     render: function() {
-      if (!this.callee) {
+      if (!app.data.user || !this.callee) {
         this.$el.hide();
         return this;
       }
