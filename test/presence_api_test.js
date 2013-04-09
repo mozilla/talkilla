@@ -13,7 +13,6 @@ var findNewNick = require("../presence").findNewNick;
 /* jshint -W079 */
 var WebSocket = require('ws');
 
-var connection;
 var webSocket;
 
 var serverPort = 3000;
@@ -22,6 +21,30 @@ var serverHttpBase = 'http://' + serverHost + ':' + serverPort;
 var socketURL = 'ws://' + serverHost + ':' + serverPort;
 
 describe("Server", function() {
+  describe("startup & shutdown", function() {
+
+    it("should answer requests on a given port after start() completes",
+      function(done) {
+        var retVal = app.start(serverPort, function() {
+          webSocket = new WebSocket(socketURL);
+
+          webSocket.on('error', function(error) {
+            expect(error).to.equal(null);
+          });
+
+          webSocket.on('open', function() {
+            app.shutdown(done);
+          });
+        });
+
+        expect(retVal).to.equal(undefined);
+
+        // XXX test HTTP connection requests also
+      });
+
+    it("should refuse requests after shutdown() completes");
+  });
+
   describe("presence", function() {
 
     function signin(nick, callback) {
@@ -37,11 +60,11 @@ describe("Server", function() {
     }
 
     beforeEach(function(done) {
-      connection = app.start(serverPort, done);
+      app.start(serverPort, done);
     });
 
     afterEach(function() {
-      app.shutdown(connection);
+      app.shutdown();
       if (webSocket) {
         webSocket.close();
         webSocket = null;
