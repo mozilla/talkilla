@@ -67,6 +67,9 @@ describe("Server", function() {
         // XXX test HTTP connection requests also
       });
 
+    // implementing the following test, fixing bugs that it finds (there is
+    // definitely at least one), and fixing the afterEach hook in this file
+    // should get rid of random shutdown-related test failures.
     it("should refuse requests after shutdown() completes");
   });
 
