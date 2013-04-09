@@ -40,10 +40,8 @@ app.post('/signin', function(req, res) {
   users.push({nick: nick});
   app.set('users', users);
 
-  process.nextTick(function() {
-    app.get('connections').forEach(function(c) {
-      c.send(JSON.stringify({users: users}), function(error) {});
-    });
+  app.get('connections').forEach(function(c) {
+    c.send(JSON.stringify({users: users}), function(error) {});
   });
 
   res.send(200, JSON.stringify({nick: nick}));
@@ -55,10 +53,8 @@ app.post('/signout', function(req, res) {
   });
   app.set('users', users);
 
-  process.nextTick(function() {
-    app.get('connections').forEach(function(c) {
-      c.send(JSON.stringify({users: users}), function(error) {});
-    });
+  app.get('connections').forEach(function(c) {
+    c.send(JSON.stringify({users: users}), function(error) {});
   });
 
   res.send(200, JSON.stringify(true));

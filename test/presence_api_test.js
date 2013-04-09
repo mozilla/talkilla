@@ -133,7 +133,9 @@ describe("Server", function() {
           done();
         });
 
-        signin('foo');
+        webSocket.on('open', function () {
+          signin('foo');
+        });
       });
 
     it("should send the list of signed in users when a new user signs in",
@@ -159,8 +161,10 @@ describe("Server", function() {
           n++;
         });
 
-        signin('first', function() {
-          signin('second');
+        webSocket.on('open', function() {
+          signin('first', function() {
+            signin('second');
+          });
         });
       });
 
@@ -187,11 +191,14 @@ describe("Server", function() {
           n++;
         });
 
-        signin('first', function() {
-          signin('second', function() {
-            signout('first');
+        webSocket.on('open', function() {
+          signin('first', function() {
+            signin('second', function() {
+              signout('first');
+            });
           });
         });
+
       });
 
   });
