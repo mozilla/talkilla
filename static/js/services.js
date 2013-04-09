@@ -1,9 +1,12 @@
-/* global Talkilla, jQuery, WebSocket */
+/* global Talkilla, Backbone, jQuery, _, WebSocket */
 /**
  * Talkilla services which can hardly be handled by Backbone models.
  */
-(function(app, $, WebSocket) {
+(function(app, Backbone, $, _, WebSocket) {
   "use strict";
+
+  // add event support to services
+  _.extend(app.services, Backbone.Events);
 
   /**
    * WebSocket client
@@ -11,21 +14,26 @@
    */
   var ws = app.services.ws = new WebSocket(app.options.WSURL);
 
-  // on ws connection open
-  ws.onopen = function() {
-  };
-
-  // Error logging
+  /**
+   * Error logging
+   */
   ws.onerror = function(error) {
     app.utils.log('WebSocket Error ' + error);
     app.utils.notifyUI('An error occured while communicating with the server.');
   };
 
-  // Message handling
+  /**
+   * Message handling; app.services triggers an event for each object key
+   * received and passes the corresponding data as the first arg to the listener
+   * callback
+   *
+   * @param {Object} event Message event
+   */
   ws.onmessage = function(event) {
-    app.router.view.updateView('users', {
-      collection: new app.models.UserSet(JSON.parse(event.data))
-    });
+    var data = JSON.parse(event.data);
+    for (var eventType in data) {
+      app.services.trigger(eventType, data[eventType]);
+    }
   };
 
   /**
@@ -42,9 +50,7 @@
       dataType: 'json'
     })
     .done(function(auth) {
-      return cb(null,
-                new app.models.User({nick: auth.nick}),
-                new app.models.UserSet(auth.users));
+      return cb(null, new app.models.User({nick: auth.nick}));
     })
     .fail(function(xhr, textStatus, error) {
       app.utils.log(error);
@@ -86,4 +92,4 @@
     return cb(null, "ok");
   };
 
-})(Talkilla, jQuery, WebSocket);
+})(Talkilla, Backbone, jQuery, _, WebSocket);
