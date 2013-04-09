@@ -13,7 +13,6 @@ var findNewNick = require("../presence").findNewNick;
 /* jshint -W079 */
 var WebSocket = require('ws');
 
-var connection;
 var webSocket;
 
 var serverPort = 3000;
@@ -22,6 +21,33 @@ var serverHttpBase = 'http://' + serverHost + ':' + serverPort;
 var socketURL = 'ws://' + serverHost + ':' + serverPort;
 
 describe("Server", function() {
+  describe("startup & shutdown", function() {
+
+    it("should answer requests on a given port after start() completes",
+      function(done) {
+        var retVal = app.start(serverPort, function() {
+          webSocket = new WebSocket(socketURL);
+
+          webSocket.on('error', function(error) {
+            expect(error).to.equal(null);
+          });
+
+          webSocket.on('open', function() {
+            app.shutdown(done);
+          });
+        });
+
+        expect(retVal).to.equal(undefined);
+
+        // XXX test HTTP connection requests also
+      });
+
+    // implementing the following test, fixing bugs that it finds (there is
+    // definitely at least one), and fixing the afterEach hook in this file
+    // should get rid of random shutdown-related test failures.
+    it("should refuse requests after shutdown() completes");
+  });
+
   describe("presence", function() {
 
     function signin(nick, callback) {
@@ -37,11 +63,11 @@ describe("Server", function() {
     }
 
     beforeEach(function(done) {
-      connection = app.start(serverPort, done);
+      app.start(serverPort, done);
     });
 
     afterEach(function() {
-      app.shutdown(connection);
+      app.shutdown();
       if (webSocket) {
         webSocket.close();
         webSocket = null;
@@ -118,7 +144,8 @@ describe("Server", function() {
         });
     });
 
-    it("should respond to an open connection with a list of logged in users",
+    it("should send a list with only the user to an open websocket when the " +
+      "first user signs in",
       function (done) {
         webSocket = new WebSocket(socketURL);
 

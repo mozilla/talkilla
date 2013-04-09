@@ -61,8 +61,19 @@ app.post('/signout', function(req, res) {
 });
 
 var wss;
-function setupWebSocketServer(server) {
+function setupWebSocketServer(callback) {
   wss = new WebSocketServer({server: server});
+
+  // XXX the WSS constructor claims to support a callback function,
+  // which would help us avoid a possible race here.  Looking at the current
+  // ws code on github, however, it turns out that that's not used when a
+  // server parameter is passed to the constructor.  In that case, the code
+  // appears to be support a "listening" event, but I haven't been able
+  // to make it work.
+  //
+  // Writing a test that would ensure we reacted well to such a race might be
+  // sufficiently straightforward using mocks (or stubs?).
+
   wss.on('connection', function(ws) {
     // adds this new connection to the pool
     var connections = app.get('connections');
@@ -74,23 +85,26 @@ function setupWebSocketServer(server) {
     console.log("WebSocketServer error: " + err);
   });
 
-  wss.on('close', function(ws) {
-  });
+  wss.on('close', function(ws) {});
+  callback.call();
 }
 
-app.start = function() {
+var server;
+app.start = function(serverPort, callback) {
   app.set('users', []);
   app.set('connections', []);
-  var server = http.createServer(this);
-  setupWebSocketServer(server);
-  return server.listen.apply(server, arguments);
+
+  server = http.createServer(this);
+
+  server.listen.apply(server,
+                      [serverPort, setupWebSocketServer.bind(this, callback)]);
 };
 
-app.shutdown = function(connection) {
+app.shutdown = function(callback) {
   app.get('connections').forEach(function(c) {
     c.close();
   });
-  connection.close();
+  server.close(callback);
 };
 
 module.exports.app = app;
