@@ -118,7 +118,8 @@ describe("Server", function() {
         });
     });
 
-    it("should respond to an open connection with a list of logged in users",
+    it("should send a list with only the user to an open websocket when the " +
+      "first user signs in",
       function (done) {
         webSocket = new WebSocket(socketURL);
 
