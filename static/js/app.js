@@ -45,11 +45,11 @@ var Talkilla = (function($, Backbone, _) {
     },
 
     initialize: function() {
-      this.view = new app.views.AppView(app.data);
+      this.view = new app.views.AppView();
     },
 
     index: function() {
-      this.view.updateAll(app.data);
+      this.view.render();
     },
 
     call: function(callee) {
@@ -57,11 +57,12 @@ var Talkilla = (function($, Backbone, _) {
         app.utils.notifyUI('Please join for calling someone');
         return this.navigate('', {trigger: true, replace: true});
       }
-      app.data.callee = app.data.users.findWhere({nick: callee});
-      if (!app.data.callee) {
+      var calleeModel = app.data.users.findWhere({nick: callee});
+      if (!calleeModel) {
         return app.utils.notifyUI('User not found', 'error');
       }
-      this.view.updateAll(app.data);
+      this.view.call.callee = calleeModel;
+      this.view.call.render();
     }
   });
 
