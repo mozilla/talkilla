@@ -127,7 +127,8 @@ function setupWebSocketServer(callback) {
   });
 
   wss.on('close', function(ws) {});
-  callback();
+  if (callback)
+    callback();
 }
 
 var server;
