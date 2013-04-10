@@ -112,8 +112,9 @@ app.post('/signout', function(req, res) {
 });
 
 var wss;
-function setupWebSocketServer(server) {
+function setupWebSocketServer(callback) {
   wss = new WebSocketServer({server: server});
+
   wss.on('connection', function(ws) {
     // adds this new connection to the pool
     var connections = app.get('connections');
@@ -125,23 +126,25 @@ function setupWebSocketServer(server) {
     console.log("WebSocketServer error: " + err);
   });
 
-  wss.on('close', function(ws) {
-  });
+  wss.on('close', function(ws) {});
+  callback();
 }
 
-app.start = function() {
+var server;
+app.start = function(serverPort, callback) {
   app.set('users', []);
   app.set('connections', []);
-  var server = http.createServer(this);
-  setupWebSocketServer(server);
-  return server.listen.apply(server, arguments);
+
+  server = http.createServer(this);
+
+  server.listen(serverPort, setupWebSocketServer.bind(this, callback));
 };
 
-app.shutdown = function(connection) {
+app.shutdown = function(callback) {
   app.get('connections').forEach(function(c) {
     c.close();
   });
-  connection.close();
+  server.close(callback);
 };
 
 module.exports.app = app;
