@@ -8,32 +8,35 @@
   // add event support to services
   _.extend(app.services, Backbone.Events);
 
-  /**
-   * WebSocket client
-   * @type {WebSocket}
-   */
-  var ws = app.services.ws = new WebSocket(app.options.WSURL);
+  app.services.createWebSocket = function() {
+    /**
+     * WebSocket client
+     * @type {WebSocket}
+     */
+    app.services.ws = new WebSocket(app.options.WSURL);
 
-  /**
-   * Error logging
-   */
-  ws.onerror = function(error) {
-    app.utils.log('WebSocket Error ' + error);
-    app.utils.notifyUI('An error occured while communicating with the server.');
-  };
+    /**
+     * Error logging
+     */
+    app.services.ws.onerror = function(error) {
+      app.utils.log('WebSocket Error ' + error);
+      app.utils.notifyUI('An error occured while communicating with the' +
+                         'server.');
+    };
 
-  /**
-   * Message handling; app.services triggers an event for each object key
-   * received and passes the corresponding data as the first arg to the listener
-   * callback
-   *
-   * @param {Object} event Message event
-   */
-  ws.onmessage = function(event) {
-    var data = JSON.parse(event.data);
-    for (var eventType in data) {
-      app.services.trigger(eventType, data[eventType]);
-    }
+    /**
+     * Message handling; app.services triggers an event for each object key
+     * received and passes the corresponding data as the first arg to the
+     * listener callback
+     *
+     * @param {Object} event Message event
+     */
+    app.services.ws.onmessage = function(event) {
+      var data = JSON.parse(event.data);
+      for (var eventType in data) {
+        app.services.trigger(eventType, data[eventType]);
+      }
+    };
   };
 
   /**
