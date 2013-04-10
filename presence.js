@@ -4,10 +4,13 @@ var express = require('express');
 var http = require('http');
 var path = require('path');
 var app = express();
+/* jshint -W079 */
+var WebSocket = require('ws');
 var WebSocketServer = require('ws').Server;
 
 app.use(express.bodyParser());
 app.use(express.static(__dirname + "/static"));
+var server;
 
 /**
  * Merges two objects
@@ -111,6 +114,110 @@ app.post('/signout', function(req, res) {
   res.send(200, JSON.stringify(true));
 });
 
+function getConnection(id) {
+  return app.get('connections').filter(function(ws) {
+    return ws.id === id && ws.readyState === WebSocket.OPEN;
+  })[0];
+}
+
+/**
+ * Configures a WebSocket connection. Any ws JSON message received is parsed and
+ * emitted as a dedicated event. Emitted events:
+ *
+ * - call_offer: call offer event
+ * - call_accept: call accepted event
+ * - call_deny: call denied event
+ * - id: ws connection authentication event
+ * - incoming_call: incoming call event
+ *
+ * @param  {WebSocket} ws WebSocket client connection
+ * @return {WebSocket}
+ */
+function configureWs(ws) {
+  ws.on('message', function(message) {
+    var events;
+
+    try {
+      events = JSON.parse(message);
+    } catch (e) {
+      console.error('WebSocket message error: ' + e);
+    }
+
+    if (!events || typeof events !== 'object')
+      return;
+
+    for (var type in events) {
+      ws.emit(type, events[type], this);
+    }
+  });
+
+  // authenticates the ws connection against a user id
+  ws.on('id', function(data) {
+    this.id = data;
+
+    this.send(JSON.stringify({
+      users: app.get('users')
+    }));
+  });
+
+  // when a call offer has been sent
+  ws.on('call_offer', function(data) {
+    try {
+      var calleeWs = getConnection(data.callee);
+      calleeWs.send(JSON.stringify({
+        'incoming_call': {
+          caller: this.id,
+          callee: calleeWs.id,
+          offer:  data.offer
+        }
+      }));
+    } catch (e) {console.error(e);}
+  });
+
+  // when a call offer has been accepted
+  ws.on('call_accept', function(data) {
+    try {
+      getConnection(data.caller).send(JSON.stringify({
+        'call_accepted': data
+      }));
+    } catch (e) {console.error(e);}
+  });
+
+  // when a call offer has been denied
+  ws.on('call_deny', function(data) {
+    try {
+      getConnection(data.caller).send(JSON.stringify({
+        'call_denied': data
+      }));
+    } catch (e) {console.error(e);}
+  });
+
+  // when a connection is closed, remove it from the pool as well and update the
+  // list of online users
+  ws.on('close', function() {
+    var connections = app.get('connections'),
+        users = app.get('users'),
+        closing = this.id;
+    // filter the list of online users
+    users = users.filter(function(user) {
+      return user.nick !== closing;
+    });
+    // filter the list of active connections
+    connections = connections.filter(function(ws) {
+      return ws.readyState === WebSocket.OPEN && ws.id !== closing;
+    });
+    // notify all remaining connections with an updated list of online users
+    connections.forEach(function(ws) {
+      ws.send(JSON.stringify({users: users}));
+    });
+    // update collections
+    app.set('connections', connections);
+    app.set('users', users);
+  });
+
+  return ws;
+}
+
 var wss;
 function setupWebSocketServer(callback) {
   wss = new WebSocketServer({server: server});
@@ -118,7 +225,7 @@ function setupWebSocketServer(callback) {
   wss.on('connection', function(ws) {
     // adds this new connection to the pool
     var connections = app.get('connections');
-    connections.push(ws);
+    connections.push(configureWs(ws));
     app.set('connections', connections);
   });
 
@@ -126,11 +233,13 @@ function setupWebSocketServer(callback) {
     console.log("WebSocketServer error: " + err);
   });
 
-  wss.on('close', function(ws) {});
-  callback();
+  wss.on('close', function(ws) {
+  });
+
+  if (callback)
+    callback();
 }
 
-var server;
 app.start = function(serverPort, callback) {
   app.set('users', []);
   app.set('connections', []);

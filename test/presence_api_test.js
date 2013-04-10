@@ -23,6 +23,18 @@ var serverHost = "localhost";
 var serverHttpBase = 'http://' + serverHost + ':' + serverPort;
 var socketURL = 'ws://' + serverHost + ':' + serverPort;
 
+function signin(nick, callback) {
+  request.post(serverHttpBase + '/signin',
+               {form: {nick: nick}},
+               callback);
+}
+
+function signout(nick, callback) {
+  request.post(serverHttpBase + '/signout',
+               {form: {nick: nick}},
+               callback);
+}
+
 describe("Server", function() {
 
   describe("configuration", function() {
@@ -74,18 +86,6 @@ describe("Server", function() {
   });
 
   describe("presence", function() {
-
-    function signin(nick, callback) {
-      request.post(serverHttpBase + '/signin',
-                   {form: {nick: nick}},
-                   callback);
-    }
-
-    function signout(nick, callback) {
-      request.post(serverHttpBase + '/signout',
-                   {form: {nick: nick}},
-                   callback);
-    }
 
     beforeEach(function(done) {
       app.start(serverPort, done);
@@ -251,6 +251,75 @@ describe("Server", function() {
           });
         });
 
+      });
+
+  });
+
+  describe("call offer", function() {
+    var callerWs,
+        calleeWs,
+        wsTimeout = 5,
+        messages = {callee: [], caller: []};
+
+    function signinUser(nick, ws, cb) {
+      signin(nick, function() {
+        ws.send(JSON.stringify({id: nick}), function() {
+          setTimeout(cb, wsTimeout);
+        });
+      });
+    }
+
+    function findMessageByType(source, type) {
+      var message = source.filter(function(message) {
+        return type in message;
+      })[0];
+      if (message)
+        return message[type];
+    }
+
+    beforeEach(function(done) {
+      app.start(serverPort, function() {
+        callerWs = new WebSocket(socketURL);
+        calleeWs = new WebSocket(socketURL);
+        callerWs.on('open', function() {
+          signinUser('first', callerWs, function() {
+            signinUser('second', calleeWs, done);
+          });
+        });
+      });
+    });
+
+    afterEach(function(done) {
+      messages = {callee: [], caller: []};
+      app.shutdown();
+      callerWs.close();
+      calleeWs.close();
+      done();
+    });
+
+    it("should notify a user that another is trying to call them",
+      function(done) {
+        callerWs.on('message', function(data) {
+          messages.caller.push(JSON.parse(data));
+        });
+
+        calleeWs.on('message', function(data) {
+          messages.callee.push(JSON.parse(data));
+        });
+
+        // first initiate a call with second
+        var offerMessage = JSON.stringify({
+          "call_offer": { caller: "first", callee: "second" }
+        });
+
+        callerWs.send(offerMessage, function() {
+          setTimeout(function() {
+            var message = findMessageByType(messages.callee, "incoming_call");
+            expect(message).to.be.an('object');
+            expect(message.caller).to.equal('first');
+            done();
+          }, wsTimeout);
+        });
       });
 
   });

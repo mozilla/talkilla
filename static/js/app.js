@@ -10,7 +10,7 @@ var Talkilla = (function($, Backbone, _) {
    * Application object
    * @type {Object}
    */
-  var app = {
+  var app = window.app = {
     // default options
     options: {},
 
@@ -26,10 +26,6 @@ var Talkilla = (function($, Backbone, _) {
       _.extend(this.options, options || {});
       this.router = new app.Router();
       Backbone.history.start();
-      // XXX This should really be done on sign-in, but is left to a different
-      // user story that will tie the sign in with socket creation and passing
-      // authentication.
-      app.services.createWebSocket();
     }
   };
 
@@ -66,6 +62,21 @@ var Talkilla = (function($, Backbone, _) {
       this.view.call.render();
     }
   });
+
+  // app listeners
+  app.on('signout', function() {
+    app.services.closeWebSocket();
+  });
+
+  // window event listeners
+  window.onbeforeunload = function() {
+    if (!app.data.user)
+      return;
+    app.services.logout(function(err) {
+      if (err)
+        app.utils.notifyUI('An error occured while signing out', 'error');
+    });
+  };
 
   return app;
 })(jQuery, Backbone, _);

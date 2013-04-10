@@ -11,17 +11,116 @@
   app.views.AppView = Backbone.View.extend({
     el: 'body',
 
-
     initialize: function() {
+      this.notifications = new app.views.NotificationsView();
       this.login = new app.views.LoginView();
       this.users = new app.views.UsersView();
       this.call = new app.views.CallView();
     },
 
     render: function() {
+      this.notifications.render();
       this.login.render();
       this.users.render();
       this.call.render();
+      return this;
+    }
+  });
+
+  /**
+   * Single notification view.
+   */
+  app.views.NotificationView = Backbone.View.extend({
+    template: _.template([
+      '<div class="alert alert-<%= type %>">',
+      '  <a class="close" data-dismiss="alert">&times;</a>',
+      '  <%= message %>',
+      '</div>'
+    ].join('')),
+
+    render: function() {
+      this.$el.html(this.template(this.model.toJSON()));
+      return this;
+    }
+  });
+
+  /**
+   * Incoming call notification view.
+   */
+  app.views.IncomingCallNotificationView = Backbone.View.extend({
+    template: _.template([
+      '<div class="alert alert-block alert-success">',
+      '  <h4>Incoming call from <strong><%= caller %></strong></h4>',
+      '  <p>Do you want to take the call?',
+      '    <a class="btn btn-success accept" href="">Accept</a>',
+      '    <a class="btn btn-error deny" href="">Deny</a>',
+      '  </p>',
+      '</div>'
+    ].join('')),
+
+    events: {
+      'click .accept': 'accept',
+      'click .deny': 'deny'
+    },
+
+    accept: function(event) {
+      event.preventDefault();
+      app.services.ws.send(JSON.stringify({
+        'call_accept': this.model.toJSON()
+      }));
+    },
+
+    deny: function(event) {
+      event.preventDefault();
+      app.services.ws.send(JSON.stringify({
+        'call_deny': this.model.toJSON()
+      }));
+    },
+
+    render: function() {
+      this.$el.html(this.template(this.model.toJSON()));
+      return this;
+    }
+  });
+
+  /**
+   * Notifications list view.
+   */
+  app.views.NotificationsView = Backbone.View.extend({
+    el: '#messages',
+
+    initialize: function() {
+      // service events
+      app.services.on('incoming_call', function(data) {
+        var notification = new app.views.IncomingCallNotificationView({
+          model: new app.models.IncomingCall(data)
+        });
+        this.addNotification(notification);
+      }.bind(this));
+
+      // app events
+      app.on('signout', function() {
+        this.clear();
+      }.bind(this));
+    },
+
+    /**
+     * Adds a new notification.
+     * @param {app.views.NotificationView} notification
+     */
+    addNotification: function(notification) {
+      this.notification = notification;
+      this.render();
+      return this;
+    },
+
+    clear: function() {
+      this.$el.html('');
+    },
+
+    render: function() {
+      if (this.notification)
+        this.$el.append(this.notification.render().el);
       return this;
     }
   });
@@ -187,6 +286,17 @@
       this.hangup();
       this.local = $('#local-video').get(0);
 
+      // service events
+      app.services.on('call_accepted', function(data) {
+        // XXX: make the actual video call
+        console.log(data);
+      });
+
+      app.services.on('call_denied', function(data) {
+        // XXX: notify that the call has been denied
+        console.log(data);
+      });
+
       // app events
       app.on('signout', function() {
         // ensure a call is always terminated on user signout
@@ -200,7 +310,9 @@
      */
     initiate: function() {
       app.media.initiatePeerConnection(
-        this.callee, this.local,
+        this.callee,
+
+        this.local,
 
         function onSuccess(pc, localVideo) {
           this.local = localVideo;
@@ -210,9 +322,8 @@
         }.bind(this),
 
         function onError(err) {
-          // XXX Better error handling required
           app.utils.log(err);
-          app.utils.notifyUI('Unable to initiate call');
+          app.utils.notifyUI('Unable to initiate call', 'error');
         });
     },
 
@@ -226,6 +337,7 @@
       }
       this.$('.btn-initiate').removeClass('disabled');
       this.$('.btn-hangup').addClass('disabled');
+      app.trigger('hangup');
     },
 
     render: function() {
