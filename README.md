@@ -25,6 +25,21 @@ Local Development
 5. Point your web browser to [http://localhost:5000](http://localhost:5000).
 
 
+Configuration
+-------------
+
+App configuration is done using JSON files:
+
+- `/config-dev.json` for the `dev` environment
+- `/config-prod.json` for the `prod` environment
+- `/config-local.json` for any settings you may want to override locally
+  (this file is never versionned)
+
+Settings are:
+
+- `DEBUG`: to have log messages printed out to the browser console
+- `WSURL`: the url to the [WebSocket](http://www.websocket.org/) server endpoint
+
 Unit Tests
 ----------
 
