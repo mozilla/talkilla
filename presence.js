@@ -76,7 +76,7 @@ function setupWebSocketServer(callback) {
   });
 
   wss.on('close', function(ws) {});
-  callback.call();
+  callback();
 }
 
 var server;
