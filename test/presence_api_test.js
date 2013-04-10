@@ -37,12 +37,11 @@ describe("Server", function() {
     });
 
     it("should parse a JSON configuration file", function() {
-      var devConfig = getConfigFromFile(path.join(__dirname, '..',
-                                                  'config-dev.json'));
+      var configRoot = path.join('..', 'config');
+      var devConfig = getConfigFromFile(path.join(configRoot, 'dev.json'));
       expect(devConfig).to.have.property('DEBUG');
       expect(devConfig.DEBUG).to.be.ok;
-      var prodConfig = getConfigFromFile(path.join(__dirname, '..',
-                                                   'config-prod.json'));
+      var prodConfig = getConfigFromFile(path.join(configRoot, 'prod.json'));
       expect(prodConfig).to.have.property('DEBUG');
       expect(prodConfig.DEBUG).to.be.not.ok;
     });
