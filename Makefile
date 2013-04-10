@@ -10,7 +10,10 @@ mocha:
 	@./node_modules/mocha/bin/mocha --reporter spec
 
 runserver:
-	@env PORT=5000 node app.js
+	@env NODE_ENV=production PORT=5000 node app.js
+
+runserver_dev:
+	@env NODE_ENV=development PORT=5000 node app.js
 
 .PHONY: test
 
