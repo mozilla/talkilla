@@ -147,8 +147,7 @@ app.start = function(serverPort, callback) {
 
   server = http.createServer(this);
 
-  server.listen.apply(server,
-                      [serverPort, setupWebSocketServer.bind(this, callback)]);
+  server.listen(serverPort, setupWebSocketServer.bind(this, callback));
 };
 
 app.shutdown = function(callback) {
