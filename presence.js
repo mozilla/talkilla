@@ -1,11 +1,57 @@
 /* jshint unused:false */
+var fs = require('fs');
 var express = require('express');
 var http = require('http');
+var path = require('path');
 var app = express();
 var WebSocketServer = require('ws').Server;
 
 app.use(express.bodyParser());
 app.use(express.static(__dirname + "/static"));
+
+/**
+ * Merges two objects
+ *
+ * @param  {String} obj
+ * @param  {String} other
+ * @return {String}
+ */
+function merge(obj, other) {
+  var keys = Object.keys(other);
+  for (var i = 0, len = keys.length; i < len; ++i) {
+    var key = keys[i];
+    obj[key] = other[key];
+  }
+  return obj;
+}
+exports.merge = merge;
+
+/**
+ * Retrieves a configuration object from a JSON file.
+ *
+ * @param  {String} file Path to JSON configuration file
+ * @return {Object}
+ */
+function getConfigFromFile(file) {
+  var configRoot = path.join(__dirname, 'config'),
+      config = JSON.parse(fs.readFileSync(path.join(configRoot, file))),
+      localConfigFile = path.join(configRoot, 'local.json');
+  if (fs.existsSync(localConfigFile)) {
+    config = merge(config, JSON.parse(fs.readFileSync(localConfigFile)));
+  }
+  return config;
+}
+exports.getConfigFromFile = getConfigFromFile;
+
+// development settings
+app.configure('development', function() {
+  app.set('config', getConfigFromFile('dev.json'));
+});
+
+// production settings
+app.configure('production', function() {
+  app.set('config', getConfigFromFile('prod.json'));
+});
 
 function findNewNick(aNick) {
   var nickParts = /^(.+?)(\d*)$/.exec(aNick);
@@ -23,6 +69,11 @@ function findNewNick(aNick) {
 
   return nickParts[1] + newDigits;
 }
+
+app.get('/config.json', function(req, res) {
+  res.header('Content-Type', 'application/json');
+  res.send(200, JSON.stringify(app.get('config')));
+});
 
 app.post('/signin', function(req, res) {
   var users = app.get('users');
