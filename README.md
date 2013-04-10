@@ -28,11 +28,11 @@ Local Development
 Configuration
 -------------
 
-App configuration is done using JSON files:
+App configuration is done using JSON files stored in the `config/` directory:
 
-- `/config-dev.json` for the `dev` environment
-- `/config-prod.json` for the `prod` environment
-- `/config-local.json` for any settings you may want to override locally
+- `dev.json` for the `dev` environment configuration
+- `prod.json` for the `prod` environment configuration
+- `local.json` for any settings you may want to override locally
   (this file is never versionned)
 
 Settings are:

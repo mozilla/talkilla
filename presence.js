@@ -2,6 +2,7 @@
 var fs = require('fs');
 var express = require('express');
 var http = require('http');
+var path = require('path');
 var app = express();
 var WebSocketServer = require('ws').Server;
 
@@ -32,8 +33,9 @@ exports.merge = merge;
  * @return {Object}
  */
 function getConfigFromFile(file) {
-  var config = JSON.parse(fs.readFileSync(file)),
-      localConfigFile = __dirname + '/config-local.json';
+  var configRoot = path.join(__dirname, 'config'),
+      config = JSON.parse(fs.readFileSync(path.join(configRoot, file))),
+      localConfigFile = path.join(configRoot, 'local.json');
   if (fs.existsSync(localConfigFile)) {
     config = merge(config, JSON.parse(fs.readFileSync(localConfigFile)));
   }
@@ -43,12 +45,12 @@ exports.getConfigFromFile = getConfigFromFile;
 
 // development settings
 app.configure('development', function() {
-  app.set('config', getConfigFromFile(__dirname + '/config-dev.json'));
+  app.set('config', getConfigFromFile('dev.json'));
 });
 
 // production settings
 app.configure('production', function() {
-  app.set('config', getConfigFromFile(__dirname + '/config-prod.json'));
+  app.set('config', getConfigFromFile('prod.json'));
 });
 
 function findNewNick(aNick) {
