@@ -12,10 +12,7 @@ var Talkilla = (function($, Backbone, _) {
    */
   var app = {
     // default options
-    options: {
-      DEBUG: false,
-      WSURL: 'ws://127.0.0.1:5000'
-    },
+    options: {},
 
     // app modules
     data: {},
@@ -29,6 +26,10 @@ var Talkilla = (function($, Backbone, _) {
       _.extend(this.options, options || {});
       this.router = new app.Router();
       Backbone.history.start();
+      // XXX This should really be done on sign-in, but is left to a different
+      // user story that will tie the sign in with socket creation and passing
+      // authentication.
+      app.services.createWebSocket();
     }
   };
 
