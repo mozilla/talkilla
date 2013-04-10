@@ -42,12 +42,12 @@ function getConfigFromFile(file) {
 exports.getConfigFromFile = getConfigFromFile;
 
 // development settings
-app.configure('dev', function() {
+app.configure('development', function() {
   app.set('config', getConfigFromFile(__dirname + '/config-dev.json'));
 });
 
 // production settings
-app.configure('prod', function() {
+app.configure('production', function() {
   app.set('config', getConfigFromFile(__dirname + '/config-prod.json'));
 });
 
