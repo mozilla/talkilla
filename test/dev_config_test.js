@@ -1,4 +1,4 @@
-/* global describe, it, beforeEach, afterEach */
+/* global describe, it, afterEach */
 /* jshint expr:true */
 
 var expect = require("chai").expect;
@@ -8,9 +8,20 @@ var path = require("path");
 var merge = require("../presence").merge;
 var getConfigFromFile = require("../presence").getConfigFromFile;
 
+var serverPort = 3000;
+var serverHost = "localhost";
+var serverHttpBase = 'http://' + serverHost + ':' + serverPort;
+
 describe("Server", function() {
 
   describe("configuration", function() {
+
+    afterEach(function(done) {
+      if (app && app.started)
+        app.shutdown(done);
+      else
+        done();
+    });
 
     it("should merge two configuration objects", function() {
       expect(merge({}, {})).to.deep.equal({});
@@ -28,6 +39,20 @@ describe("Server", function() {
       var prodConfig = getConfigFromFile(path.join(configRoot, 'prod.json'));
       expect(prodConfig).to.have.property('DEBUG');
       expect(prodConfig.DEBUG).to.be.not.ok;
+    });
+
+    it("should render a development configuration as JSON", function(done) {
+      app = require("../presence").app;
+      expect(app.get('env')).to.equal('development');
+      app.start(serverPort, function() {
+        request.get(serverHttpBase + '/config.json', function(err, res, body) {
+          expect(err).to.be.a('null');
+          expect(body).to.be.ok;
+          expect(JSON.parse(body)).to.be.an('object');
+          expect(JSON.parse(body).DEBUG).to.equal(true);
+          done();
+        });
+      });
     });
   });
 });

@@ -4,9 +4,7 @@
 var expect = require("chai").expect;
 var request = require("request");
 var app = require("../presence").app;
-var path = require("path");
 var findNewNick = require("../presence").findNewNick;
-var merge = require("../presence").merge;
 
 /* The "browser" variable predefines for jshint include WebSocket,
  * causes jshint to blow up here.  We should probably structure things
@@ -69,12 +67,12 @@ describe("Server", function() {
       app.start(serverPort, done);
     });
 
-    afterEach(function() {
-      app.shutdown();
+    afterEach(function(done) {
       if (webSocket) {
         webSocket.close();
         webSocket = null;
       }
+      app.shutdown(done);
     });
 
     it("should have no users logged in at startup", function() {

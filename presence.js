@@ -133,6 +133,7 @@ function setupWebSocketServer(callback) {
 
 var server;
 app.start = function(serverPort, callback) {
+  this.started = true;
   app.set('users', []);
   app.set('connections', []);
 
@@ -142,10 +143,19 @@ app.start = function(serverPort, callback) {
 };
 
 app.shutdown = function(callback) {
+  if (!this.started) {
+    callback();
+    return;
+  }
+
   app.get('connections').forEach(function(c) {
     c.close();
   });
-  server.close(callback);
+  server.close(function () {
+    this.started = false;
+    if (callback)
+      callback();
+  }.bind(this));
 };
 
 module.exports.app = app;
