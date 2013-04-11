@@ -8,6 +8,7 @@ var WebSocketServer = require('ws').Server;
 
 app.use(express.bodyParser());
 app.use(express.static(__dirname + "/static"));
+var server;
 
 /**
  * Merges two objects
@@ -131,7 +132,6 @@ function setupWebSocketServer(callback) {
     callback();
 }
 
-var server;
 app.start = function(serverPort, callback) {
   app.set('users', []);
   app.set('connections', []);
