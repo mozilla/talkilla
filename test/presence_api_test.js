@@ -48,6 +48,35 @@ describe("Server", function() {
 
   describe("startup & shutdown", function() {
 
+
+    // since neither of these tests can take callbacks, they are going to run
+    // for an indeterminate length of time.  In order to not interfere
+    // with the app fixture that we're using for the rest of our tests, we
+    // need to create separate apps on separate ports
+
+    describe('#start()', function() {
+      it('should return if no callback is passed',
+        function() {
+          var app2 = require('../presence').app;
+          var app2Start = app2.start.bind(app2, serverPort + 1);
+          expect(app2Start()).to.equal(undefined);
+          // don't call shutdown here, since it'll likely race
+          // with start and produce undefined behavior.  What happens
+          // to the port and object after this test is run is undefined.
+        });
+    });
+
+    describe('#shutdown()', function() {
+      it("should return if no callback is passed",
+        function(done) {
+          var app3 = require('../presence').app;
+          app3.start(serverPort + 2, function() {
+            expect(app3.shutdown()).to.equal(undefined);
+            done();
+          });
+        });
+    });
+
     it("should answer requests on a given port after start() completes",
       function(done) {
         var retVal = app.start(serverPort, function() {
