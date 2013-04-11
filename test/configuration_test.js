@@ -1,6 +1,8 @@
 /* global describe, it, afterEach */
 /* jshint expr:true */
 
+process.env.NO_LOCAL_CONFIG = true;
+
 var expect = require("chai").expect;
 var request = require("request");
 var app = require("../presence").app;
