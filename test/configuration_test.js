@@ -9,6 +9,8 @@ var app = require("../presence").app;
 var path = require("path");
 var merge = require("../presence").merge;
 var getConfigFromFile = require("../presence").getConfigFromFile;
+// This is the developer/production environment we are running in. For tests,
+// this is controlled via the main Makefile.
 var nodeEnv = process.env.NODE_ENV;
 
 var serverPort = 3000;
@@ -54,7 +56,7 @@ describe("Server", function() {
         done();
     });
 
-    it("should render a development configuration as JSON", function(done) {
+    it("should render a configuration as JSON", function(done) {
       app = require("../presence").app;
       expect(app.get('env')).to.equal(nodeEnv);
       app.start(serverPort, function() {
