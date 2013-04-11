@@ -1,4 +1,4 @@
-/* global describe, it, afterEach */
+/* global describe, it, beforeEach, afterEach */
 /* jshint expr:true */
 
 process.env.NO_LOCAL_CONFIG = true;
@@ -19,14 +19,7 @@ var serverHttpBase = 'http://' + serverHost + ':' + serverPort;
 
 describe("Server", function() {
 
-  describe("general configuration", function() {
-
-    afterEach(function(done) {
-      if (app && app.started)
-        app.shutdown(done);
-      else
-        done();
-    });
+  describe("general configuration functions", function() {
 
     it("should merge two configuration objects", function() {
       expect(merge({}, {})).to.deep.equal({});
@@ -49,24 +42,23 @@ describe("Server", function() {
 
   describe("Specific Configuration", function() {
 
+    beforeEach(function(done) {
+      app.start(serverPort, done);
+    });
+
     afterEach(function(done) {
-      if (app && app.started)
-        app.shutdown(done);
-      else
-        done();
+      app.shutdown(done);
     });
 
     it("should render a configuration as JSON", function(done) {
       app = require("../presence").app;
       expect(app.get('env')).to.equal(nodeEnv);
-      app.start(serverPort, function() {
-        request.get(serverHttpBase + '/config.json', function(err, res, body) {
-          expect(err).to.be.a('null');
-          expect(body).to.be.ok;
-          expect(JSON.parse(body)).to.be.an('object');
-          expect(JSON.parse(body).DEBUG).to.equal(nodeEnv === 'development');
-          done();
-        });
+      request.get(serverHttpBase + '/config.json', function(err, res, body) {
+        expect(err).to.be.a('null');
+        expect(body).to.be.ok;
+        expect(JSON.parse(body)).to.be.an('object');
+        expect(JSON.parse(body).DEBUG).to.equal(nodeEnv === 'development');
+        done();
       });
     });
   });
