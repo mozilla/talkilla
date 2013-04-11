@@ -233,8 +233,7 @@ function setupWebSocketServer(callback) {
     console.log("WebSocketServer error: " + err);
   });
 
-  wss.on('close', function(ws) {
-  });
+  wss.on('close', function(ws) {});
 
   if (callback)
     callback();
