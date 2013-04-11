@@ -7,6 +7,7 @@ var app = require("../presence").app;
 var path = require("path");
 var merge = require("../presence").merge;
 var getConfigFromFile = require("../presence").getConfigFromFile;
+var nodeEnv = process.env.NODE_ENV;
 
 var serverPort = 3000;
 var serverHost = "localhost";
@@ -14,7 +15,7 @@ var serverHttpBase = 'http://' + serverHost + ':' + serverPort;
 
 describe("Server", function() {
 
-  describe("configuration", function() {
+  describe("general configuration", function() {
 
     afterEach(function(done) {
       if (app && app.started)
@@ -40,16 +41,26 @@ describe("Server", function() {
       expect(prodConfig).to.have.property('DEBUG');
       expect(prodConfig.DEBUG).to.be.not.ok;
     });
+  });
+
+  describe("Specific Configuration", function() {
+
+    afterEach(function(done) {
+      if (app && app.started)
+        app.shutdown(done);
+      else
+        done();
+    });
 
     it("should render a development configuration as JSON", function(done) {
       app = require("../presence").app;
-      expect(app.get('env')).to.equal('development');
+      expect(app.get('env')).to.equal(nodeEnv);
       app.start(serverPort, function() {
         request.get(serverHttpBase + '/config.json', function(err, res, body) {
           expect(err).to.be.a('null');
           expect(body).to.be.ok;
           expect(JSON.parse(body)).to.be.an('object');
-          expect(JSON.parse(body).DEBUG).to.equal(true);
+          expect(JSON.parse(body).DEBUG).to.equal(nodeEnv === 'development');
           done();
         });
       });
