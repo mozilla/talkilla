@@ -281,10 +281,15 @@ describe("Server", function() {
 
     function waitFor(fn, cb, options) {
       var interval = options && options.interval || 5;
+      var timeout = options && options.timeout || 2000;
+      var start = new Date().getTime();
       var check = setInterval(function() {
         if (fn() === true) {
           clearInterval(check);
-          cb();
+          cb(null);
+        } else if (new Date().getTime() - start > timeout) {
+          clearInterval(check);
+          cb(new Error('' + timeout + 'ms wait timeout exhausted'));
         }
       }, interval);
     }
@@ -294,8 +299,12 @@ describe("Server", function() {
         callerWs = new WebSocket(socketURL);
         calleeWs = new WebSocket(socketURL);
         callerWs.on('open', function() {
-          signinUser('first', callerWs, function() {
-            signinUser('second', calleeWs, done);
+          signinUser('first', callerWs, function(err) {
+            expect(err).to.be.a('null');
+            signinUser('second', calleeWs, function(err) {
+              expect(err).to.be.a('null');
+              done();
+            });
           });
         });
       });
@@ -327,7 +336,8 @@ describe("Server", function() {
         callerWs.send(offerMessage, function() {
           waitFor(function() {
             return !!findMessageByType(messages.callee, "incoming_call");
-          }, function() {
+          }, function(err) {
+            expect(err).to.be.a('null');
             var message = findMessageByType(messages.callee, "incoming_call");
             expect(message).to.be.an('object');
             expect(message.caller).to.equal('first');
