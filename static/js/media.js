@@ -10,13 +10,12 @@
                                            errorCallback) {
     var pc = getPeerConnection(remoteVideo);
 
-    if (!offer) {
+    if (!offer)
       initiatePeerConnection(pc, callee, localVideo, remoteVideo,
                              successCallback, errorCallback);
-    } else {
+    else
       joinPeerConnection(pc, callee, offer, localVideo, remoteVideo,
                          successCallback, errorCallback);
-    }
   };
 
   app.media.addAnswerToPeerConnection = function (pc, answer, successCallback,
