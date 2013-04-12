@@ -162,7 +162,7 @@ function configureWs(ws) {
       var users = app.get('users');
       var callee = users[data.callee];
       callee.ws.send(JSON.stringify({'incoming_call': data}));
-    } catch (e) {console.error(e);}
+    } catch (e) {console.error('call_offer', e);}
   });
 
   // when a call offer has been accepted
@@ -170,8 +170,8 @@ function configureWs(ws) {
     try {
       var users = app.get('users');
       var caller = users[data.caller];
-      caller.send(JSON.stringify({'call_accepted': data}));
-    } catch (e) {console.error(e);}
+      caller.ws.send(JSON.stringify({'call_accepted': data}));
+    } catch (e) {console.error('call_accept', e);}
   });
 
   // when a call offer has been denied
@@ -179,8 +179,8 @@ function configureWs(ws) {
     try {
       var users = app.get('users');
       var caller = users[data.caller];
-      caller.send(JSON.stringify({'call_denied': data}));
-    } catch (e) {console.error(e);}
+      caller.ws.send(JSON.stringify({'call_denied': data}));
+    } catch (e) {console.error('call_deny', e);}
   });
 
   // when a connection is closed, remove it from the pool as well and update the
