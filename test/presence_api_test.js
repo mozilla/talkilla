@@ -6,6 +6,7 @@ var request = require("request");
 var app = require("../presence").app;
 var path = require("path");
 var findNewNick = require("../presence").findNewNick;
+var usersToArray = require("../presence").usersToArray;
 var merge = require("../presence").merge;
 var getConfigFromFile = require("../presence").getConfigFromFile;
 var getConnection = require("../presence").getConnection;
@@ -22,7 +23,22 @@ var webSocket;
 var serverPort = 3000;
 var serverHost = "localhost";
 var serverHttpBase = 'http://' + serverHost + ':' + serverPort;
-var socketURL = 'ws://' + serverHost + ':' + serverPort;
+var socketURL = function(nick) {
+  return 'ws://' + serverHost + ':' + serverPort + '/?nick=' + nick;
+};
+
+
+function signin(nick, callback) {
+  request.post(serverHttpBase + '/signin',
+               {form: {nick: nick}},
+               callback);
+}
+
+function signout(nick, callback) {
+  request.post(serverHttpBase + '/signout',
+               {form: {nick: nick}},
+               callback);
+}
 
 function signin(nick, callback) {
   request.post(serverHttpBase + '/signin',
@@ -64,20 +80,20 @@ describe("Server", function() {
     it("should answer requests on a given port after start() completes",
       function(done) {
         var retVal = app.start(serverPort, function() {
-          webSocket = new WebSocket(socketURL);
+          signin('foo', function() {
+            webSocket = new WebSocket(socketURL('foo'));
 
-          webSocket.on('error', function(error) {
-            expect(error).to.equal(null);
-          });
+            webSocket.on('error', function(error) {
+              expect(error).to.equal(null);
+            });
 
-          webSocket.on('open', function() {
-            app.shutdown(done);
+            webSocket.on('open', function() {
+              app.shutdown(done);
+            });
           });
         });
 
         expect(retVal).to.equal(undefined);
-
-        // XXX test HTTP connection requests also
       });
 
     // implementing the following test, fixing bugs that it finds (there is
@@ -98,6 +114,12 @@ describe("Server", function() {
         webSocket.close();
         webSocket = null;
       }
+    });
+
+    it("should transform an map of users into an array", function() {
+      var users = {"foo": {ws: 1}, "bar": {ws: 2}};
+      var expected = [{"nick": "foo"}, {"nick": "bar"}];
+      expect(usersToArray(users)).to.deep.equal(expected);
     });
 
     it("should have no users logged in at startup", function() {
@@ -173,21 +195,19 @@ describe("Server", function() {
     it("should send a list with only the user to an open websocket when the " +
       "first user signs in",
       function (done) {
-        webSocket = new WebSocket(socketURL);
+        signin('foo', function() {
+          webSocket = new WebSocket(socketURL('foo'));
 
-        webSocket.on('error', function(error) {
-          expect(error).to.equal(null);
-        });
+          webSocket.on('error', function(error) {
+            expect(error).to.equal(null);
+          });
 
-        webSocket.on('message', function (data, flags) {
-          expect(flags.binary).to.equal(undefined);
-          expect(flags.masked).to.equal(false);
-          expect(JSON.parse(data).users).to.deep.equal([{nick: "foo"}]);
-          done();
-        });
-
-        webSocket.on('open', function () {
-          signin('foo');
+          webSocket.on('message', function (data, flags) {
+            expect(flags.binary).to.equal(undefined);
+            expect(flags.masked).to.equal(false);
+            expect(JSON.parse(data).users).to.deep.equal([{nick: "foo"}]);
+            done();
+          });
         });
       });
 
@@ -195,65 +215,69 @@ describe("Server", function() {
       function(done) {
         /* jshint unused: vars */
         var n = 1;
-        webSocket = new WebSocket(socketURL);
 
-        webSocket.on('error', function(error) {
-          expect(error).to.equal(null);
-        });
+        signin('first', function() {
+          webSocket = new WebSocket(socketURL('first'));
 
-        webSocket.on('message', function(data, flags) {
-          var parsed = JSON.parse(data);
-          if (n === 1)
-            expect(parsed.users).to.deep.equal([{nick:"first"}]);
-          if (n === 2) {
-            expect(parsed.users).to.deep.equal([{nick:"first"},
-                                                {nick:"second"}]);
-            done();
-          }
-
-          n++;
-        });
-
-        webSocket.on('open', function() {
-          signin('first', function() {
-            signin('second');
+          webSocket.on('error', function(error) {
+            expect(error).to.equal(null);
           });
-        });
-      });
 
-    it("should send the list of signed in users when a user signs out",
-      function(done) {
-        /* jshint unused: vars */
-        var n = 1;
-        webSocket = new WebSocket(socketURL);
+          webSocket.on('message', function(data, flags) {
+            var parsed = JSON.parse(data);
+            if (n === 1)
+              expect(parsed.users).to.deep.equal([{nick:"first"}]);
+            if (n === 2) {
+              expect(parsed.users).to.deep.equal([{nick:"first"},
+                                                  {nick:"second"}]);
+              done();
+            }
 
-        webSocket.on('error', function(error) {
-          expect(error).to.equal(null);
-        });
+            n++;
+          });
 
-        webSocket.on('message', function(data, flags) {
-          var parsed = JSON.parse(data);
-          if (n === 2)
-            expect(parsed.users).to.deep.equal([{nick: "first"},
-                                                {nick: "second"}]);
-          if (n === 3) {
-            expect(parsed.users).to.deep.equal([{nick: "second"}]);
-            done();
-          }
-
-          n++;
-        });
-
-        webSocket.on('open', function() {
-          signin('first', function() {
+          webSocket.on('open', function() {
             signin('second', function() {
-              signout('first');
+              new WebSocket(socketURL('second'));
             });
           });
         });
 
       });
 
+    it("should send the list of signed in users when a user signs out",
+      function(done) {
+        /* jshint unused: vars */
+        var n = 1;
+
+        signin('first', function() {
+          webSocket = new WebSocket(socketURL('first'));
+
+          webSocket.on('error', function(error) {
+            expect(error).to.equal(null);
+          });
+
+          webSocket.on('message', function(data, flags) {
+            var parsed = JSON.parse(data);
+            if (n === 2)
+              expect(parsed.users).to.deep.equal([{nick: "first"},
+                                                  {nick: "second"}]);
+            if (n === 3) {
+              expect(parsed.users).to.deep.equal([{nick: "first"}]);
+              done();
+            }
+
+            n++;
+          });
+
+          webSocket.on('open', function() {
+            signin('second', function() {
+              var ws = new WebSocket(socketURL('second'));
+              ws.on('open', signout.bind(this, 'second'));
+            });
+          });
+        });
+      });
   });
 
   describe("call offer", function() {
