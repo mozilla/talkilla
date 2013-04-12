@@ -8,6 +8,7 @@ var path = require("path");
 var findNewNick = require("../presence").findNewNick;
 var merge = require("../presence").merge;
 var getConfigFromFile = require("../presence").getConfigFromFile;
+var getConnection = require("../presence").getConnection;
 
 /* The "browser" variable predefines for jshint include WebSocket,
  * causes jshint to blow up here.  We should probably structure things
@@ -258,13 +259,14 @@ describe("Server", function() {
   describe("call offer", function() {
     var callerWs,
         calleeWs,
-        wsTimeout = 5,
         messages = {callee: [], caller: []};
 
     function signinUser(nick, ws, cb) {
       signin(nick, function() {
         ws.send(JSON.stringify({id: nick}), function() {
-          setTimeout(cb, wsTimeout);
+          waitFor(function() {
+            return !!getConnection(nick);
+          }, cb);
         });
       });
     }
@@ -275,6 +277,16 @@ describe("Server", function() {
       })[0];
       if (message)
         return message[type];
+    }
+
+    function waitFor(fn, cb, options) {
+      var interval = options && options.interval || 5;
+      var check = setInterval(function() {
+        if (fn() === true) {
+          clearInterval(check);
+          cb();
+        }
+      }, interval);
     }
 
     beforeEach(function(done) {
@@ -313,12 +325,14 @@ describe("Server", function() {
         });
 
         callerWs.send(offerMessage, function() {
-          setTimeout(function() {
+          waitFor(function() {
+            return !!findMessageByType(messages.callee, "incoming_call");
+          }, function() {
             var message = findMessageByType(messages.callee, "incoming_call");
             expect(message).to.be.an('object');
             expect(message.caller).to.equal('first');
             done();
-          }, wsTimeout);
+          });
         });
       });
 

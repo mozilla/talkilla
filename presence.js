@@ -123,6 +123,7 @@ function getConnection(id) {
     return (ws.id === id && ws.readyState === WebSocket.OPEN);
   })[0];
 }
+exports.getConnection = getConnection;
 
 /**
  * Configures a WebSocket connection. Any ws JSON message received is parsed and
