@@ -79,9 +79,11 @@
       app.services.ws.send(JSON.stringify({
         'call_deny': this.model.toJSON()
       }));
+      this.clear();
     },
 
     clear: function() {
+      this.undelegateEvents();
       this.remove();
     },
 
@@ -123,6 +125,8 @@
     },
 
     clear: function() {
+      this.notification.clear();
+      this.notification = undefined;
       this.$el.html('');
     },
 
