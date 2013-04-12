@@ -65,9 +65,13 @@
 
     accept: function(event) {
       event.preventDefault();
-      app.services.ws.send(JSON.stringify({
-        'call_accept': this.model.toJSON()
-      }));
+      // XXX close this view.
+      var callView = app.router.view.call;
+      callView.offer = this.model.get('offer');
+      callView.callee = app.data.users.findWhere({
+        nick: this.model.get('caller')
+      });
+      callView.render();
     },
 
     deny: function(event) {
@@ -273,8 +277,12 @@
   app.views.CallView = Backbone.View.extend({
     el: '#call',
 
-    // local video object
+    // video objects
     local: undefined,
+    remote: undefined,
+
+    // The call's peer connection.
+    pc: undefined,
 
     events: {
       'click .btn-initiate': 'initiate',
@@ -285,12 +293,25 @@
       this.callee = options && options.callee;
       this.hangup();
       this.local = $('#local-video').get(0);
+      this.remote = $('#remote-video').get(0);
 
       // service events
       app.services.on('call_accepted', function(data) {
-        // XXX: make the actual video call
-        console.log(data);
-      });
+        app.utils.log(this.pc);
+        app.media.addAnswerToPeerConnection(
+          this.pc,
+
+          data.answer,
+
+          // Nothing to do on success
+          function () {},
+
+          function onError(err) {
+            app.utils.log(err);
+            app.utils.notifyUI('Unable to initiate call', 'error');
+          }
+        );
+      }.bind(this));
 
       app.services.on('call_denied', function(data) {
         // XXX: notify that the call has been denied
@@ -309,14 +330,21 @@
      * Initiates the call.
      */
     initiate: function() {
-      app.media.initiatePeerConnection(
+      app.media.startPeerConnection(
         this.callee,
+
+        this.offer,
 
         this.local,
 
-        function onSuccess(pc, localVideo) {
+        this.remote,
+
+        function onSuccess(pc, localVideo, remoteVideo) {
           this.local = localVideo;
+          this.remote = remoteVideo;
+          console.log(pc);
           this.pc = pc;
+          console.log(this.pc);
           this.$('.btn-initiate').addClass('disabled');
           this.$('.btn-hangup').removeClass('disabled');
         }.bind(this),
@@ -331,10 +359,8 @@
      * Hangs up the call.
      */
     hangup: function() {
-      if (this.local && this.local.mozSrcObject) {
-        this.local.mozSrcObject.stop();
-        this.local.mozSrcObject = null;
-      }
+      app.media.closePeerConnection(this.pc, this.local, this.remote);
+      this.pc = null;
       this.$('.btn-initiate').removeClass('disabled');
       this.$('.btn-hangup').addClass('disabled');
       app.trigger('hangup');

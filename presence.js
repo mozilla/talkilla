@@ -180,11 +180,13 @@ function configureWs(ws) {
   });
 
   // when a call offer has been accepted
-  ws.on('call_accept', function(data) {
+  ws.on('call_accepted', function(data) {
+    console.log(data);
     try {
       getConnection(data.caller).send(JSON.stringify({
         'call_accepted': data
       }));
+      console.log("sent to " + data.caller);
     } catch (e) {console.error(e);}
   });
 

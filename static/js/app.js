@@ -37,7 +37,7 @@ var Talkilla = (function($, Backbone, _) {
    */
   app.Router = Backbone.Router.extend({
     routes: {
-      'call/:with': 'call',
+      'call/:nick': 'call',
       '*actions':   'index'
     },
 
@@ -49,16 +49,16 @@ var Talkilla = (function($, Backbone, _) {
       this.view.render();
     },
 
-    call: function(callee) {
+    call: function(nick) {
       if (!app.data.user) {
         app.utils.notifyUI('Please join for calling someone');
         return this.navigate('', {trigger: true, replace: true});
       }
-      var calleeModel = app.data.users.findWhere({nick: callee});
-      if (!calleeModel) {
+      var callee = app.data.users.findWhere({nick: nick});
+      if (!callee) {
         return app.utils.notifyUI('User not found', 'error');
       }
-      this.view.call.callee = calleeModel;
+      this.view.call.callee = callee;
       this.view.call.render();
     }
   });
