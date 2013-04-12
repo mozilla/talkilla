@@ -126,13 +126,6 @@ app.post('/signout', function(req, res) {
   res.send(200, JSON.stringify(true));
 });
 
-function getConnection(id) {
-  return app.get('connections').filter(function(ws) {
-    return (ws.id === id && ws.readyState === WebSocket.OPEN);
-  })[0];
-}
-exports.getConnection = getConnection;
-
 /**
  * Configures a WebSocket connection. Any ws JSON message received is parsed and
  * emitted as a dedicated event. Emitted events:
@@ -140,7 +133,6 @@ exports.getConnection = getConnection;
  * - call_offer: call offer event
  * - call_accept: call accepted event
  * - call_deny: call denied event
- * - id: ws connection authentication event
  * - incoming_call: incoming call event
  *
  * @param  {WebSocket} ws WebSocket client connection
@@ -164,68 +156,42 @@ function configureWs(ws) {
     }
   });
 
-  // authenticates the ws connection against a user id
-  ws.on('id', function(data) {
-    this.id = data;
-
-    this.send(JSON.stringify({
-      users: app.get('users')
-    }));
-  });
-
   // when a call offer has been sent
   ws.on('call_offer', function(data) {
     try {
-      var calleeWs = getConnection(data.callee);
-      calleeWs.send(JSON.stringify({
-        'incoming_call': {
-          caller: this.id,
-          callee: calleeWs.id,
-          offer:  data.offer
-        }
-      }));
+      var users = app.get('users');
+      var callee = users[data.callee];
+      callee.ws.send(JSON.stringify({'incoming_call': data}));
     } catch (e) {console.error(e);}
   });
 
   // when a call offer has been accepted
   ws.on('call_accepted', function(data) {
     try {
-      getConnection(data.caller).send(JSON.stringify({
-        'call_accepted': data
-      }));
+      var users = app.get('users');
+      var caller = users[data.caller];
+      caller.send(JSON.stringify({'call_accepted': data}));
     } catch (e) {console.error(e);}
   });
 
   // when a call offer has been denied
   ws.on('call_deny', function(data) {
     try {
-      getConnection(data.caller).send(JSON.stringify({
-        'call_denied': data
-      }));
+      var users = app.get('users');
+      var caller = users[data.caller];
+      caller.send(JSON.stringify({'call_denied': data}));
     } catch (e) {console.error(e);}
   });
 
   // when a connection is closed, remove it from the pool as well and update the
   // list of online users
   ws.on('close', function() {
-    var connections = app.get('connections'),
-        users = app.get('users'),
-        closing = this.id;
-    // filter the list of online users
-    users = users.filter(function(user) {
-      return user.nick !== closing;
-    });
-    // filter the list of active connections
-    connections = connections.filter(function(ws) {
-      return ws.readyState === WebSocket.OPEN && ws.id !== closing;
-    });
-    // notify all remaining connections with an updated list of online users
-    connections.forEach(function(ws) {
-      ws.send(JSON.stringify({users: users}));
-    });
-    // update collections
-    app.set('connections', connections);
-    app.set('users', users);
+    var users = app.get('users');
+    for (var nick in users) {
+      var user = users[nick];
+      if (user.ws === ws)
+        delete user.ws;
+    }
   });
 
   return ws;
@@ -250,11 +216,14 @@ function setupWebSocketServer(callback) {
       // attach the WebSocket to the user
       // XXX: The user could be signed out at this point
       var users = app.get('users');
-      users[nick].ws = ws;
+      users[nick].ws = configureWs(ws);
       app.set('users', users);
 
-      for (var name in users)
-        users[name].ws.send(JSON.stringify({users: usersToArray(users)}));
+      for (var name in users) {
+        var user = users[name];
+        if (user.ws)
+          user.ws.send(JSON.stringify({users: usersToArray(users)}));
+      }
     });
   });
 

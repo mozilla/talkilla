@@ -9,7 +9,6 @@ var findNewNick = require("../presence").findNewNick;
 var usersToArray = require("../presence").usersToArray;
 var merge = require("../presence").merge;
 var getConfigFromFile = require("../presence").getConfigFromFile;
-var getConnection = require("../presence").getConnection;
 
 /* The "browser" variable predefines for jshint include WebSocket,
  * causes jshint to blow up here.  We should probably structure things
@@ -285,51 +284,29 @@ describe("Server", function() {
         calleeWs,
         messages = {callee: [], caller: []};
 
-    function signinUser(nick, ws, cb) {
-      signin(nick, function() {
-        ws.send(JSON.stringify({id: nick}), function() {
-          waitFor(function() {
-            return !!getConnection(nick);
-          }, cb);
-        });
-      });
-    }
-
-    function findMessageByType(source, type) {
-      var message = source.filter(function(message) {
-        return type in message;
-      })[0];
-      if (message)
-        return message[type];
-    }
-
-    function waitFor(fn, cb, options) {
-      var interval = options && options.interval || 5;
-      var timeout = options && options.timeout || 2000;
-      var start = new Date().getTime();
-      var check = setInterval(function() {
-        if (fn() === true) {
-          clearInterval(check);
-          cb(null);
-        } else if (new Date().getTime() - start > timeout) {
-          clearInterval(check);
-          cb(new Error('' + timeout + 'ms wait timeout exhausted'));
-        }
-      }, interval);
-    }
-
     beforeEach(function(done) {
       app.start(serverPort, function() {
-        callerWs = new WebSocket(socketURL);
-        calleeWs = new WebSocket(socketURL);
-        callerWs.on('open', function() {
-          signinUser('first', callerWs, function(err) {
-            expect(err).to.be.a('null');
-            signinUser('second', calleeWs, function(err) {
-              expect(err).to.be.a('null');
-              done();
-            });
-          });
+        var n = 1;
+        function donedone() {
+          if (n === 2)
+            done();
+          n++;
+        }
+
+        function noerror(err) {
+          expect(err).to.be.a('null');
+        }
+
+        signin('first', function() {
+          callerWs = new WebSocket(socketURL('first'));
+          callerWs.on('open', donedone);
+          callerWs.on('error', noerror);
+        });
+
+        signin('second', function() {
+          calleeWs = new WebSocket(socketURL('second'));
+          calleeWs.on('open', donedone);
+          calleeWs.on('error', noerror);
         });
       });
     });
@@ -344,30 +321,19 @@ describe("Server", function() {
 
     it("should notify a user that another is trying to call them",
       function(done) {
-        callerWs.on('message', function(data) {
-          messages.caller.push(JSON.parse(data));
-        });
-
         calleeWs.on('message', function(data) {
-          messages.callee.push(JSON.parse(data));
-        });
+          var message = JSON.parse(data);
 
-        // first initiate a call with second
-        var offerMessage = JSON.stringify({
-          "call_offer": { caller: "first", callee: "second" }
-        });
-
-        callerWs.send(offerMessage, function() {
-          waitFor(function() {
-            return !!findMessageByType(messages.callee, "incoming_call");
-          }, function(err) {
-            expect(err).to.be.a('null');
-            var message = findMessageByType(messages.callee, "incoming_call");
+          if (message.incoming_call) {
             expect(message).to.be.an('object');
-            expect(message.caller).to.equal('first');
+            expect(message.incoming_call.caller).to.equal('first');
             done();
-          });
+          }
         });
+
+        callerWs.send(JSON.stringify({
+          "call_offer": { caller: "first", callee: "second" }
+        }));
       });
 
     it("should notify a user that a call has been accepted",
