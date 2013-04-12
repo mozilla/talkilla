@@ -65,13 +65,13 @@
 
     accept: function(event) {
       event.preventDefault();
-      // XXX close this view.
       var callView = app.router.view.call;
       callView.offer = this.model.get('offer');
       callView.callee = app.data.users.findWhere({
         nick: this.model.get('caller')
       });
       callView.render();
+      this.clear();
     },
 
     deny: function(event) {
@@ -79,6 +79,10 @@
       app.services.ws.send(JSON.stringify({
         'call_deny': this.model.toJSON()
       }));
+    },
+
+    clear: function() {
+      this.remove();
     },
 
     render: function() {
@@ -285,7 +289,6 @@
     pc: undefined,
 
     events: {
-      'click .btn-initiate': 'initiate',
       'click .btn-hangup':   'hangup'
     },
 
@@ -342,7 +345,6 @@
           this.local = localVideo;
           this.remote = remoteVideo;
           this.pc = pc;
-          this.$('.btn-initiate').addClass('disabled');
           this.$('.btn-hangup').removeClass('disabled');
         }.bind(this),
 
@@ -358,7 +360,6 @@
     hangup: function() {
       app.media.closePeerConnection(this.pc, this.local, this.remote);
       this.pc = null;
-      this.$('.btn-initiate').removeClass('disabled');
       this.$('.btn-hangup').addClass('disabled');
       app.trigger('hangup');
     },
