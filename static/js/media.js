@@ -37,7 +37,6 @@
       {video: true, audio: true},
 
       function onSuccess(stream) {
-        app.utils.log('local video enabled');
         localVideo.mozSrcObject = stream;
         localVideo.play();
         pc.addStream(localVideo.mozSrcObject);
