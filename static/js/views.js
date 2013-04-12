@@ -297,7 +297,6 @@
 
       // service events
       app.services.on('call_accepted', function(data) {
-        app.utils.log(this.pc);
         app.media.addAnswerToPeerConnection(
           this.pc,
 
@@ -342,9 +341,7 @@
         function onSuccess(pc, localVideo, remoteVideo) {
           this.local = localVideo;
           this.remote = remoteVideo;
-          console.log(pc);
           this.pc = pc;
-          console.log(this.pc);
           this.$('.btn-initiate').addClass('disabled');
           this.$('.btn-hangup').removeClass('disabled');
         }.bind(this),
