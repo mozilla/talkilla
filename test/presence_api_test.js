@@ -346,5 +346,32 @@ describe("Server", function() {
         });
       });
 
+    it("should notify a user that a call has been accepted",
+      function(done) {
+        callerWs.on('message', function(data) {
+          messages.caller.push(JSON.parse(data));
+        });
+
+        calleeWs.on('message', function(data) {
+          messages.callee.push(JSON.parse(data));
+        });
+
+        // first initiate a call with second
+        var offerMessage = JSON.stringify({
+          "call_accepted": { caller: "first", callee: "second" }
+        });
+
+        calleeWs.send(offerMessage, function() {
+          waitFor(function() {
+            return !!findMessageByType(messages.caller, "call_accepted");
+          }, function() {
+            var message = findMessageByType(messages.caller, "call_accepted");
+            expect(message).to.be.an('object');
+            expect(message.caller).to.equal('first');
+            done();
+          });
+        });
+      });
+
   });
 });
