@@ -125,9 +125,8 @@
    * @param  {app.models.User} callee The user to call
    * @param  {Object}          offer  JSON blob of the peer connection data to
    *                                  send to the callee.
-   * @param  {Function} cb            Callback(error)
    */
-  app.services.initiateCall = function(callee, offer, cb) {
+  app.services.initiateCall = function(callee, offer) {
     // send call offer to the server
     app.services.ws.send(JSON.stringify({
       "call_offer": {
@@ -136,7 +135,23 @@
         offer: offer
       }
     }));
-    return cb(null, "ok");
   };
 
+  /**
+   * Accepts a call.
+   *
+   * @param  {app.models.User} caller The user emitter of the call
+   * @param  {Object}          answer JSON blob of the peer connection data to
+   *                                  send to the caller.
+   */
+  app.services.acceptCall = function(caller, answer) {
+    // send call answer to the server
+    app.services.ws.send(JSON.stringify({
+      "call_accepted": {
+        caller: caller.get('nick'),
+        callee: app.data.user.get('nick'),
+        answer: answer
+      }
+    }));
+  };
 })(Talkilla, Backbone, jQuery, _, WebSocket);
