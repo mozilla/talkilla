@@ -8,6 +8,7 @@ var path = require("path");
 var findNewNick = require("../presence").findNewNick;
 var merge = require("../presence").merge;
 var getConfigFromFile = require("../presence").getConfigFromFile;
+var getConnection = require("../presence").getConnection;
 
 /* The "browser" variable predefines for jshint include WebSocket,
  * causes jshint to blow up here.  We should probably structure things
@@ -22,6 +23,18 @@ var serverPort = 3000;
 var serverHost = "localhost";
 var serverHttpBase = 'http://' + serverHost + ':' + serverPort;
 var socketURL = 'ws://' + serverHost + ':' + serverPort;
+
+function signin(nick, callback) {
+  request.post(serverHttpBase + '/signin',
+               {form: {nick: nick}},
+               callback);
+}
+
+function signout(nick, callback) {
+  request.post(serverHttpBase + '/signout',
+               {form: {nick: nick}},
+               callback);
+}
 
 describe("Server", function() {
 
@@ -74,18 +87,6 @@ describe("Server", function() {
   });
 
   describe("presence", function() {
-
-    function signin(nick, callback) {
-      request.post(serverHttpBase + '/signin',
-                   {form: {nick: nick}},
-                   callback);
-    }
-
-    function signout(nick, callback) {
-      request.post(serverHttpBase + '/signout',
-                   {form: {nick: nick}},
-                   callback);
-    }
 
     beforeEach(function(done) {
       app.start(serverPort, done);
@@ -251,6 +252,98 @@ describe("Server", function() {
           });
         });
 
+      });
+
+  });
+
+  describe("call offer", function() {
+    var callerWs,
+        calleeWs,
+        messages = {callee: [], caller: []};
+
+    function signinUser(nick, ws, cb) {
+      signin(nick, function() {
+        ws.send(JSON.stringify({id: nick}), function() {
+          waitFor(function() {
+            return !!getConnection(nick);
+          }, cb);
+        });
+      });
+    }
+
+    function findMessageByType(source, type) {
+      var message = source.filter(function(message) {
+        return type in message;
+      })[0];
+      if (message)
+        return message[type];
+    }
+
+    function waitFor(fn, cb, options) {
+      var interval = options && options.interval || 5;
+      var timeout = options && options.timeout || 2000;
+      var start = new Date().getTime();
+      var check = setInterval(function() {
+        if (fn() === true) {
+          clearInterval(check);
+          cb(null);
+        } else if (new Date().getTime() - start > timeout) {
+          clearInterval(check);
+          cb(new Error('' + timeout + 'ms wait timeout exhausted'));
+        }
+      }, interval);
+    }
+
+    beforeEach(function(done) {
+      app.start(serverPort, function() {
+        callerWs = new WebSocket(socketURL);
+        calleeWs = new WebSocket(socketURL);
+        callerWs.on('open', function() {
+          signinUser('first', callerWs, function(err) {
+            expect(err).to.be.a('null');
+            signinUser('second', calleeWs, function(err) {
+              expect(err).to.be.a('null');
+              done();
+            });
+          });
+        });
+      });
+    });
+
+    afterEach(function(done) {
+      messages = {callee: [], caller: []};
+      app.shutdown();
+      callerWs.close();
+      calleeWs.close();
+      done();
+    });
+
+    it("should notify a user that another is trying to call them",
+      function(done) {
+        callerWs.on('message', function(data) {
+          messages.caller.push(JSON.parse(data));
+        });
+
+        calleeWs.on('message', function(data) {
+          messages.callee.push(JSON.parse(data));
+        });
+
+        // first initiate a call with second
+        var offerMessage = JSON.stringify({
+          "call_offer": { caller: "first", callee: "second" }
+        });
+
+        callerWs.send(offerMessage, function() {
+          waitFor(function() {
+            return !!findMessageByType(messages.callee, "incoming_call");
+          }, function(err) {
+            expect(err).to.be.a('null');
+            var message = findMessageByType(messages.callee, "incoming_call");
+            expect(message).to.be.an('object');
+            expect(message.caller).to.equal('first');
+            done();
+          });
+        });
       });
 
   });
