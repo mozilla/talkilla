@@ -4,6 +4,10 @@ var express = require('express');
 var http = require('http');
 var path = require('path');
 var app = express();
+/* The "browser" variable predefines for jshint include WebSocket,
+ * causes jshint to blow up here.  We should probably structure things
+ * differently so that the browser predefines aren't turned on
+ * for the node code at some point.  In the meantime, disable warning */
 /* jshint -W079 */
 var WebSocket = require('ws');
 var WebSocketServer = require('ws').Server;
@@ -116,7 +120,7 @@ app.post('/signout', function(req, res) {
 
 function getConnection(id) {
   return app.get('connections').filter(function(ws) {
-    return ws.id === id && ws.readyState === WebSocket.OPEN;
+    return (ws.id === id && ws.readyState === WebSocket.OPEN);
   })[0];
 }
 

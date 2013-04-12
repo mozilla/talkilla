@@ -73,8 +73,7 @@ var Talkilla = (function($, Backbone, _) {
     if (!app.data.user)
       return;
     app.services.logout(function(err) {
-      if (err)
-        app.utils.notifyUI('An error occured while signing out', 'error');
+      app.utils.log('Error occured while signing out:', err);
     });
   };
 
