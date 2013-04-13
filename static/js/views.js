@@ -143,10 +143,12 @@
   app.views.UserEntryView = Backbone.View.extend({
     tagName: 'li',
 
+    template: _.template([
+      '<a href="#call/<%= nick %>"><i class="icon-user"/><%= nick %></a>'
+    ].join('')),
+
     render: function() {
-      var nick = this.model.get('nick');
-      this.$el.html(
-        '<a href="#call/' + nick + '"><i class="icon-user"/>' + nick + '</a>');
+      this.$el.html(this.template(this.model.toJSON()));
       return this;
     }
   });
