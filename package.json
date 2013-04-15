@@ -14,7 +14,8 @@
     "mocha": "1.8.x",
     "chai": "1.5.x",
     "request": "2.16.x",
-    "jshint": "1.1.x"
+    "jshint": "1.1.x",
+    "wd": "0.0.x"
   },
   "scripts": {
     "test": "make test"
