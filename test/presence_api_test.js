@@ -321,6 +321,8 @@ describe("Server", function() {
 
     it("should notify a user that another is trying to call them",
       function(done) {
+        // TODO: Change event names (incoming_call => incomingCall)
+        /*jshint camelcase:false*/
         calleeWs.on('message', function(data) {
           var message = JSON.parse(data);
 
@@ -338,6 +340,8 @@ describe("Server", function() {
 
     it("should notify a user that a call has been accepted",
       function(done) {
+        // TODO: Change event names (call_accepted => callAccepted)
+        /*jshint camelcase:false*/
         callerWs.on('message', function(data) {
           var message = JSON.parse(data);
 
