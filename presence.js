@@ -79,12 +79,9 @@ function findNewNick(aNick) {
 }
 
 function usersToArray(users) {
-  var usersList = [];
-  for (var nick in users) {
-    usersList.push({nick: nick});
-  }
-
-  return usersList;
+  return Object.keys(users).map(function(nick) {
+    return {nick: nick};
+  });
 }
 
 app.get('/config.json', function(req, res) {
@@ -118,10 +115,10 @@ app.post('/signout', function(req, res) {
   delete users[req.body.nick];
   app.set('users', users);
 
-  for (var nick in users) {
+  Object.keys(users).forEach(function(nick) {
     var ws = users[nick].ws;
     ws.send(JSON.stringify({users: usersToArray(users)}), function(error) {});
-  }
+  });
 
   res.send(200, JSON.stringify(true));
 });
@@ -187,11 +184,14 @@ function configureWs(ws) {
   // list of online users
   ws.on('close', function() {
     var users = app.get('users');
-    for (var nick in users) {
+
+    Object.keys(users).forEach(function(nick) {
       var user = users[nick];
       if (user.ws === ws)
         delete user.ws;
-    }
+    });
+
+    app.set('users', users);
   });
 
   return ws;
@@ -219,11 +219,11 @@ function setupWebSocketServer(callback) {
       users[nick].ws = configureWs(ws);
       app.set('users', users);
 
-      for (var name in users) {
-        var user = users[name];
+      Object.keys(users).forEach(function(nick) {
+        var user = users[nick];
         if (user.ws)
           user.ws.send(JSON.stringify({users: usersToArray(users)}));
-      }
+      });
     });
   });
 
@@ -247,11 +247,13 @@ app.start = function(serverPort, callback) {
 
 app.shutdown = function(callback) {
   var users = app.get('users');
-  for (var nick in users) {
+
+  Object.keys(users).forEach(function(nick) {
     var user = users[nick];
     if (user.ws)
       user.ws.close();
-  }
+  });
+
   server.close(callback);
 };
 
