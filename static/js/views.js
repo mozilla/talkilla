@@ -154,8 +154,10 @@
     },
 
     clear: function() {
-      this.notification.clear();
-      this.notification = undefined;
+      if (this.notification) {
+        this.notification.clear();
+        this.notification = undefined;
+      }
       this.$el.html('');
     },
 
