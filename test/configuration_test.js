@@ -29,14 +29,21 @@ describe("Server", function() {
       expect(merge({a: 1}, {a: 2})).to.deep.equal({a: 2});
     });
 
-    it("should parse a JSON configuration file", function() {
-      var configRoot = path.join('..', 'config');
-      var devConfig = getConfigFromFile(path.join(configRoot, 'dev.json'));
-      expect(devConfig).to.have.property('DEBUG');
-      expect(devConfig.DEBUG).to.be.ok;
-      var prodConfig = getConfigFromFile(path.join(configRoot, 'prod.json'));
-      expect(prodConfig).to.have.property('DEBUG');
-      expect(prodConfig.DEBUG).to.be.not.ok;
+    it("getConfigFromFile should parse a JSON configuration file and return " +
+       "an object", function() {
+      // Use the test configurations
+      var testConfigRoot = path.join('..', 'test', 'data');
+      var config = getConfigFromFile(path.join(testConfigRoot, 'test1.json'));
+      expect(config).to.have.property('DEBUG');
+      expect(config.DEBUG).to.be.ok;
+      expect(config).to.have.property('WSURL');
+      expect(config.WSURL).to.be.equal('ws://127.0.0.1:5000/');
+
+      config = getConfigFromFile(path.join(testConfigRoot, 'test2.json'));
+      expect(config).to.have.property('DEBUG');
+      expect(config.DEBUG).to.be.not.ok;
+      expect(config).to.have.property('WSURL');
+      expect(config.WSURL).to.be.equal('wss://talkilla.invalid/');
     });
   });
 
