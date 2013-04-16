@@ -2,6 +2,7 @@
 /* jshint expr:true */
 
 var app = require("../../presence").app;
+var getConfigFromFile = require("../../presence").getConfigFromFile;
 var wdSync = require('wd-sync');
 var expect = require("chai").expect;
 
@@ -9,7 +10,13 @@ var serverPort = 5000;
 var serverHost = "localhost";
 var serverHttpBase = 'http://' + serverHost + ':' + serverPort;
 
-var client = wdSync.remote();
+var clientConfig = getConfigFromFile('test.json').client;
+var client = wdSync.remote(
+  clientConfig && clientConfig.server,
+  clientConfig && clientConfig.port,
+  clientConfig && clientConfig.username,
+  clientConfig && clientConfig.token
+);
 var browser = client.browser;
 var sync = client.sync;
 
