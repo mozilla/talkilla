@@ -25,7 +25,7 @@ var browserConfig = {
 };
 
 /**
- * Patched in order to make chai tests failures being correctly processed in
+ * Patched in order to make mocha test failures being correctly processed in
  * a sync operation.
  *
  * @param  {String}   description
@@ -86,8 +86,8 @@ describe("browser tests", function() {
     browser.elementById('submit').click();
     expect(browser.elementById('signout').isVisible()).to.be.ok;
     browser.elementByCss('#signout button').click();
-    browser.waitForVisibleById('signin');
     expect(browser.elementById('signout').isVisible()).to.be.not.ok;
     done();
   });
+
 });
