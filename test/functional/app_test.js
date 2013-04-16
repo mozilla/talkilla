@@ -49,7 +49,7 @@ function _it(description, cb) {
 describe("browser tests", function() {
 
   beforeEach(function(done) {
-    this.timeout(10000); // firefox startup
+    this.timeout(60000); // firefox startup
     app.start(serverPort, function() {
       sync(function() {
         browser.init(browserConfig);
@@ -77,6 +77,17 @@ describe("browser tests", function() {
     browser.elementById('nick').type('bob');
     browser.elementById('submit').click();
     expect(browser.elementByCss('strong.nick').text()).to.equal('bob');
+    done();
+  });
+
+  _it("should signs a user out", function(done) {
+    browser.get(serverHttpBase);
+    browser.elementById('nick').type('bob');
+    browser.elementById('submit').click();
+    expect(browser.elementById('signout').isVisible()).to.be.ok;
+    browser.elementByCss('#signout button').click();
+    browser.waitForVisibleById('signin');
+    expect(browser.elementById('signout').isVisible()).to.be.not.ok;
     done();
   });
 });
