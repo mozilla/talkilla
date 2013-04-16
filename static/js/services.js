@@ -8,12 +8,36 @@
   // add event support to services
   _.extend(app.services, Backbone.Events);
 
-  app.services.createWebSocket = function() {
+  /**
+   * Creates the "authenticated" WebSocket connection. The WebSocket service is
+   * usually created once the user is authenticated.
+   *
+   * @param  {Object} options
+   */
+  app.services.startWebSocket = function(options) {
+    var id = options && options.id;
+
+    if (!id)
+      throw new Error('Creating a WebSocket needs an id passed');
+
     /**
      * WebSocket client
      * @type {WebSocket}
      */
     app.services.ws = new WebSocket(app.options.WSURL);
+
+    /**
+     * On connection open, immediately send a message for "authenticating" this
+     * connection and attach it to the current logged in user.
+     *
+     * FIXME: relying on the sole user nick for authenticating the ws connection
+     *        is *absolutely unsecure*.
+     */
+    app.services.ws.onopen = function() {
+      app.services.ws.send(JSON.stringify({
+        id: id // XXX a token would be a better fit here
+      }));
+    };
 
     /**
      * Error logging
@@ -40,6 +64,14 @@
   };
 
   /**
+   * Closes the current WebSocket connection, if any
+   */
+  app.services.closeWebSocket = function() {
+    if ('ws' in app.services)
+      app.services.ws.close();
+  };
+
+  /**
    * Signs a user in.
    *
    * @param  {String}   nick User's nickname
@@ -53,10 +85,15 @@
       dataType: 'json'
     })
     .done(function(auth) {
-      return cb(null, new app.models.User({nick: auth.nick}));
+      var user = new app.models.User({nick: auth.nick});
+      // create WebSocket connection
+      app.services.startWebSocket({
+        id: auth.nick
+      });
+      return cb(null, user);
     })
     .fail(function(xhr, textStatus, error) {
-      app.utils.log(error);
+      app.utils.notifyUI('Error while communicating with the server', 'error');
       return cb(error);
     });
   };
@@ -77,22 +114,45 @@
       return cb(null, result);
     })
     .fail(function(xhr, textStatus, error) {
-      app.utils.log(error);
+      app.utils.notifyUI('Error while communicating with the server', 'error');
       return cb(error);
     });
   };
 
   /**
-   * Initiates a call
+   * Initiates a call.
    *
-   * @param  {String}   callee The user to call
-   * @param  {Object}   offer  JSON blob of the peer connection data to send to
-   *                           the callee.
-   * @param  {Function} cb     Callback(error)
+   * @param  {app.models.User} callee The user to call
+   * @param  {Object}          offer  JSON blob of the peer connection data to
+   *                                  send to the callee.
    */
-  app.services.initiateCall = function(callee, offer, cb) {
-    // XXX To do as another user story
-    return cb(null, "ok");
+  app.services.initiateCall = function(callee, offer) {
+    var call = {
+      caller: app.data.user.get('nick'),
+      callee: callee.get('nick'),
+      offer: offer
+    };
+
+    // send call offer to the server
+    app.services.ws.send(JSON.stringify({"call_offer": call}));
+    app.services.trigger('call_offer', call);
   };
 
+  /**
+   * Accepts a call.
+   *
+   * @param  {app.models.User} caller The user emitter of the call
+   * @param  {Object}          answer JSON blob of the peer connection data to
+   *                                  send to the caller.
+   */
+  app.services.acceptCall = function(caller, answer) {
+    // send call answer to the server
+    app.services.ws.send(JSON.stringify({
+      "call_accepted": {
+        caller: caller.get('nick'),
+        callee: app.data.user.get('nick'),
+        answer: answer
+      }
+    }));
+  };
 })(Talkilla, Backbone, jQuery, _, WebSocket);

@@ -10,7 +10,7 @@ var Talkilla = (function($, Backbone, _) {
    * Application object
    * @type {Object}
    */
-  var app = {
+  var app = window.app = {
     // default options
     options: {},
 
@@ -26,10 +26,6 @@ var Talkilla = (function($, Backbone, _) {
       _.extend(this.options, options || {});
       this.router = new app.Router();
       Backbone.history.start();
-      // XXX This should really be done on sign-in, but is left to a different
-      // user story that will tie the sign in with socket creation and passing
-      // authentication.
-      app.services.createWebSocket();
     }
   };
 
@@ -41,7 +37,7 @@ var Talkilla = (function($, Backbone, _) {
    */
   app.Router = Backbone.Router.extend({
     routes: {
-      'call/:with': 'call',
+      'call/:nick': 'call',
       '*actions':   'index'
     },
 
@@ -53,19 +49,33 @@ var Talkilla = (function($, Backbone, _) {
       this.view.render();
     },
 
-    call: function(callee) {
+    call: function(nick) {
       if (!app.data.user) {
         app.utils.notifyUI('Please join for calling someone');
         return this.navigate('', {trigger: true, replace: true});
       }
-      var calleeModel = app.data.users.findWhere({nick: callee});
-      if (!calleeModel) {
+      var callee = app.data.users.findWhere({nick: nick});
+      if (!callee) {
         return app.utils.notifyUI('User not found', 'error');
       }
-      this.view.call.callee = calleeModel;
+      this.view.call.callee = callee;
       this.view.call.render();
     }
   });
+
+  // app listeners
+  app.on('signout', function() {
+    app.services.closeWebSocket();
+  });
+
+  // window event listeners
+  window.onbeforeunload = function() {
+    if (!app.data.user)
+      return;
+    app.services.logout(function(err) {
+      app.utils.log('Error occured while signing out:', err);
+    });
+  };
 
   return app;
 })(jQuery, Backbone, _);
