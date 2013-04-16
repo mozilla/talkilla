@@ -1,7 +1,11 @@
 /* global describe, it, beforeEach, afterEach */
 /* jshint expr:true */
 
-var expect = require("chai").expect;
+var chai = require("chai");
+var expect = chai.expect;
+var sinonChai = require("sinon-chai");
+chai.use(sinonChai);
+
 var request = require("request");
 var app = require("../presence").app;
 var findNewNick = require("../presence").findNewNick;
