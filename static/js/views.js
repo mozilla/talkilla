@@ -93,6 +93,28 @@
     }
   });
 
+
+  /**
+   * Pending call notification view.
+   */
+  app.views.PendingCallNotificationView = Backbone.View.extend({
+    template: _.template([
+      '<div class="alert alert-block alert-success">',
+      '  <h4>Calling <strong><%= callee %>…</strong></h4>',
+      '</div>'
+    ].join('')),
+
+    clear: function() {
+      this.undelegateEvents();
+      this.remove();
+    },
+
+    render: function() {
+      this.$el.html(this.template(this.model.toJSON()));
+      return this;
+    }
+  });
+
   /**
    * Notifications list view.
    */
@@ -104,6 +126,13 @@
       app.services.on('incoming_call', function(data) {
         var notification = new app.views.IncomingCallNotificationView({
           model: new app.models.IncomingCall(data)
+        });
+        this.addNotification(notification);
+      }.bind(this));
+
+      app.services.on('call_offer', function(data) {
+        var notification = new app.views.PendingCallNotificationView({
+          model: new app.models.PendingCall(data)
         });
         this.addNotification(notification);
       }.bind(this));
