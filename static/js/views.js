@@ -118,6 +118,27 @@
   });
 
   /**
+   * Denied call notification view.
+   */
+  app.views.DeniedCallNotificationView = Backbone.View.extend({
+    template: _.template([
+      '<div class="alert alert-block alert-error">',
+      '  <h4><strong><%= callee %></strong> declined the call</h4>',
+      '</div>'
+    ].join('')),
+
+    clear: function() {
+      this.undelegateEvents();
+      this.remove();
+    },
+
+    render: function() {
+      this.$el.html(this.template(this.model.toJSON()));
+      return this;
+    }
+  });
+
+  /**
    * Notifications list view.
    */
   app.views.NotificationsView = Backbone.View.extend({
@@ -135,6 +156,13 @@
       app.services.on('call_offer', function(data) {
         var notification = new app.views.PendingCallNotificationView({
           model: new app.models.PendingCall(data)
+        });
+        this.addNotification(notification);
+      }.bind(this));
+
+      app.services.on('call_denied', function(data) {
+        var notification = new app.views.DeniedCallNotificationView({
+          model: new app.models.DeniedCall(data)
         });
         this.addNotification(notification);
       }.bind(this));
@@ -387,11 +415,6 @@
           }
         );
       }.bind(this));
-
-      app.services.on('call_denied', function(data) {
-        // XXX: notify that the call has been denied
-        console.log(data);
-      });
 
       // app events
       app.on('hangup', function() {
