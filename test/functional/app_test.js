@@ -12,10 +12,10 @@ var serverHttpBase = 'http://' + serverHost + ':' + serverPort;
 
 var clientConfig = getConfigFromFile('test.json').client;
 var client = wdSync.remote(
-  clientConfig && clientConfig.server,
-  clientConfig && clientConfig.port,
-  clientConfig && clientConfig.username,
-  clientConfig && clientConfig.token
+  process.env.TEST_REMOTE_SERVER || clientConfig && clientConfig.server,
+  process.env.TEST_REMOTE_PORT   || clientConfig && clientConfig.port,
+  process.env.TEST_REMOTE_USER   || clientConfig && clientConfig.username,
+  process.env.TEST_REMOTE_TOKEN  || clientConfig && clientConfig.token
 );
 var browser = client.browser;
 var sync = client.sync;
