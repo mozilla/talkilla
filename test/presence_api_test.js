@@ -3,13 +3,15 @@
 
 var chai = require("chai");
 var expect = chai.expect;
+var sinon = require("sinon"); // XXX can sinon-chai re-export this?
 var sinonChai = require("sinon-chai");
 chai.use(sinonChai);
 
 var request = require("request");
-var app = require("../presence").app;
-var findNewNick = require("../presence").findNewNick;
-var _usersToArray = require("../presence")._usersToArray;
+var presence = require("../presence");
+var app = presence.app;
+var findNewNick = presence.findNewNick;
+var _usersToArray = presence._usersToArray;
 
 /* The "browser" variable predefines for jshint include WebSocket,
  * causes jshint to blow up here.  We should probably structure things
@@ -43,6 +45,25 @@ function signout(nick, callback) {
 describe("Server", function() {
 
   describe("startup & shutdown", function() {
+
+    describe("#configureWebSocketServer()", function() {
+      var savedWSS;
+
+      beforeEach(function() {
+        savedWSS = presence._wss;
+        presence._wss = sinon.stub();
+        // XXX spy/mock/stub?
+      });
+
+      afterEach(function() {
+        presence._wss = savedWSS;
+      });
+
+      it('should return undefined if no callback is passed', function() {
+        // XXX with or without callback?
+        expect(presence._configureWebSocketServer()).to.equal(undefined);
+      });
+    });
 
     it("should answer requests on a given port after start() completes",
       function(done) {
