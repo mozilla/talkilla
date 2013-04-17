@@ -6,7 +6,7 @@ var request = require("request");
 var app = require("../presence").app;
 var path = require("path");
 var findNewNick = require("../presence").findNewNick;
-var usersToArray = require("../presence").usersToArray;
+var _usersToArray = require("../presence")._usersToArray;
 var merge = require("../presence").merge;
 var getConfigFromFile = require("../presence").getConfigFromFile;
 
@@ -106,7 +106,7 @@ describe("Server", function() {
     it("should transform a map of users into an array", function() {
       var users = {"foo": {ws: 1}, "bar": {ws: 2}};
       var expected = [{"nick": "foo"}, {"nick": "bar"}];
-      expect(usersToArray(users)).to.deep.equal(expected);
+      expect(_usersToArray(users)).to.deep.equal(expected);
     });
 
     it("should have no users logged in at startup", function() {

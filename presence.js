@@ -78,7 +78,11 @@ function findNewNick(aNick) {
   return nickParts[1] + newDigits;
 }
 
-function usersToArray(users) {
+// Utility function to help us respect the interface expected by the
+// frontend.
+// XXX: In the future, this function should either disappear or grow
+// to provide more information than the nickname.
+function _usersToArray(users) {
   return Object.keys(users).map(function(nick) {
     return {nick: nick};
   });
@@ -91,7 +95,7 @@ app.get('/config.json', function(req, res) {
 
 app.post('/signin', function(req, res) {
   var users = app.get('users');
-  var usersList = usersToArray(users);
+  var usersList = _usersToArray(users);
   var nick = req.body.nick;
 
   function exists(nick) {
@@ -117,7 +121,7 @@ app.post('/signout', function(req, res) {
 
   Object.keys(users).forEach(function(nick) {
     var ws = users[nick].ws;
-    ws.send(JSON.stringify({users: usersToArray(users)}), function(error) {});
+    ws.send(JSON.stringify({users: _usersToArray(users)}), function(error) {});
   });
 
   res.send(200, JSON.stringify(true));
@@ -222,7 +226,7 @@ function setupWebSocketServer(callback) {
       Object.keys(users).forEach(function(nick) {
         var user = users[nick];
         if (user.ws)
-          user.ws.send(JSON.stringify({users: usersToArray(users)}));
+          user.ws.send(JSON.stringify({users: _usersToArray(users)}));
       });
     });
   });
@@ -259,5 +263,5 @@ app.shutdown = function(callback) {
 
 module.exports.app = app;
 module.exports.findNewNick = findNewNick;
-module.exports.usersToArray = usersToArray;
+module.exports._usersToArray = _usersToArray;
 
