@@ -38,6 +38,11 @@
       '</div>'
     ].join('')),
 
+    clear: function() {
+      this.undelegateEvents();
+      this.remove();
+    },
+
     render: function() {
       this.$el.html(this.template(this.model.toJSON()));
       return this;
@@ -100,9 +105,22 @@
   app.views.PendingCallNotificationView = Backbone.View.extend({
     template: _.template([
       '<div class="alert alert-block alert-success">',
-      '  <h4>Calling <strong><%= callee %>…</strong></h4>',
+      '  <p>Calling <strong><%= callee %>…</strong>',
+      '    <a class="btn btn-cancel" href="">Cancel</a></p>',
       '</div>'
     ].join('')),
+
+    events: {
+      'click .btn-cancel': 'cancel'
+    },
+
+    cancel: function(event) {
+      event.preventDefault();
+      app.trigger('hangup');
+      app.utils.notifyUI('Call cancelled', 'info');
+      app.router.navigate('', {trigger: true});
+      this.clear();
+    },
 
     clear: function() {
       this.undelegateEvents();
@@ -138,6 +156,10 @@
       }.bind(this));
 
       // app events
+      app.on('signin', function() {
+        this.clear();
+      }.bind(this));
+
       app.on('signout', function() {
         this.clear();
       }.bind(this));
@@ -175,7 +197,7 @@
     tagName: 'li',
 
     template: _.template([
-      '<a href="#call/<%= nick %>"><i class="icon-user"/><%= nick %></a>'
+      '<a href="#call/<%= nick %>"><%= nick %></a>'
     ].join('')),
 
     render: function() {
@@ -244,9 +266,8 @@
         this.$el.hide();
       // show/hide invite if user is alone
       if (this.collection.length === 1)
-        this.$('#invite').show();
-      else
-        this.$('#invite').hide();
+        app.utils.notifyUI('You are the only person logged in, ' +
+                           'invite your friends.', 'info');
       return this;
     }
   });
@@ -326,7 +347,7 @@
     pc: undefined,
 
     events: {
-      'click .btn-hangup':   'hangup'
+      'click .btn-hangup': 'hangup'
     },
 
     initialize: function(options) {
@@ -358,6 +379,11 @@
       });
 
       // app events
+      app.on('hangup', function() {
+        this.hangup();
+        this.render();
+      }.bind(this));
+
       app.on('signout', function() {
         // ensure a call is always terminated on user signout
         this.hangup();
@@ -397,8 +423,8 @@
     hangup: function() {
       app.media.closePeerConnection(this.pc, this.local, this.remote);
       this.pc = null;
+      this.callee = undefined;
       this.$('.btn-hangup').addClass('disabled');
-      app.trigger('hangup');
     },
 
     render: function() {
@@ -406,7 +432,7 @@
         this.$el.hide();
         return this;
       }
-      this.$('h2').text('Calling ' + this.callee.get('nick'));
+      this.$('.callee').text(this.callee.get('nick'));
       this.initiate();
       this.$el.show();
       return this;
