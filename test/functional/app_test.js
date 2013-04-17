@@ -84,9 +84,9 @@ describe("browser tests", function() {
     browser.get(serverHttpBase);
     browser.elementById('nick').type('bob');
     browser.elementById('submit').click();
-    expect(browser.elementById('signout').isVisible()).to.be.ok;
+    expect(browser.elementById('signout').isVisible()).to.equal(true);
     browser.elementByCss('#signout button').click();
-    expect(browser.elementById('signout').isVisible()).to.be.not.ok;
+    expect(browser.elementById('signout').isVisible()).to.not.equal(true);
     done();
   });
 
