@@ -24,20 +24,7 @@
      * WebSocket client
      * @type {WebSocket}
      */
-    app.services.ws = new WebSocket(app.options.WSURL);
-
-    /**
-     * On connection open, immediately send a message for "authenticating" this
-     * connection and attach it to the current logged in user.
-     *
-     * FIXME: relying on the sole user nick for authenticating the ws connection
-     *        is *absolutely unsecure*.
-     */
-    app.services.ws.onopen = function() {
-      app.services.ws.send(JSON.stringify({
-        id: id // XXX a token would be a better fit here
-      }));
-    };
+    app.services.ws = new WebSocket(app.options.WSURL + '?nick=' + id);
 
     /**
      * Error logging
