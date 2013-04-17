@@ -93,7 +93,7 @@
    */
   app.views.PendingCallNotificationView = app.views.NotificationView.extend({
     template: _.template([
-      '<div class="alert alert-block alert-success">',
+      '<div class="alert alert-block alert-success alert-pending">',
       '  <p>Calling <strong><%= callee %>…</strong>',
       '    <a class="btn btn-cancel" href="">Cancel</a></p>',
       '</div>'
@@ -103,11 +103,16 @@
       'click .btn-cancel': 'cancel'
     },
 
+    initialize: function() {
+      // app events
+      app.on('hangup_done', function() {
+        this.clear();
+      }.bind(this));
+    },
+
     cancel: function(event) {
       event.preventDefault();
       app.trigger('hangup');
-      app.utils.notifyUI('Call cancelled', 'info');
-      app.router.navigate('', {trigger: true});
       this.clear();
     }
   });
@@ -135,6 +140,10 @@
       }.bind(this));
 
       // app events
+      app.on('hangup_done', function() {
+        this.render();
+      }.bind(this));
+
       app.on('signin', function() {
         this.clear();
       }.bind(this));
@@ -179,12 +188,17 @@
   app.views.UserEntryView = Backbone.View.extend({
     tagName: 'li',
 
-    template: _.template([
-      '<a href="#call/<%= nick %>"><%= nick %></a>'
-    ].join('')),
+    template: _.template('<a href="#call/<%= nick %>"><%= nick %></a>'),
+
+    initialize: function(options) {
+      this.model = options && options.model;
+      this.active = options && options.active;
+    },
 
     render: function() {
       this.$el.html(this.template(this.model.toJSON()));
+      if (this.active)
+        this.$('a').addClass('active');
       return this;
     }
   });
@@ -208,6 +222,19 @@
       // purge the list on sign out
       app.on('signout', function() {
         this.collection = undefined;
+        this.callee = undefined;
+        this.render();
+      }.bind(this));
+
+      // highlight callee's username on call
+      app.on('call', function(call) {
+        this.callee = call && call.callee;
+        this.render();
+      }.bind(this));
+
+      // unhighlight all usernames on hang up done
+      app.on('hangup_done', function() {
+        this.callee = undefined;
         this.render();
       }.bind(this));
     },
@@ -219,6 +246,7 @@
     initViews: function() {
       if (!this.collection)
         return;
+      var callee = this.callee;
       this.views = [];
       this.collection.chain().reject(function(user) {
         // filter out current signed in user, if any
@@ -227,7 +255,11 @@
         return user.get('nick') === app.data.user.get('nick');
       }).each(function(user) {
         // create a dedicated list entry for each user
-        this.views.push(new app.views.UserEntryView({model: user}));
+        this.views.push(new app.views.UserEntryView({
+          model:  user,
+          active: !!(callee &&
+                     callee.get('nick') === user.get('nick'))
+        }));
       }.bind(this));
     },
 
@@ -335,7 +367,7 @@
 
     initialize: function(options) {
       this.callee = options && options.callee;
-      this.hangup();
+      app.trigger('hangup');
       this.local = $('#local-video').get(0);
       this.remote = $('#remote-video').get(0);
 
@@ -369,7 +401,7 @@
 
       app.on('signout', function() {
         // ensure a call is always terminated on user signout
-        this.hangup();
+        app.trigger('hangup');
         this.render();
       }.bind(this));
     },
@@ -378,6 +410,7 @@
      * Initiates the call.
      */
     initiate: function() {
+      app.trigger('call', {callee: this.callee});
       app.media.startPeerConnection(
         this.callee,
 
@@ -403,11 +436,14 @@
     /**
      * Hangs up the call.
      */
-    hangup: function() {
+    hangup: function(event) {
+      if (event)
+        event.preventDefault();
       app.media.closePeerConnection(this.pc, this.local, this.remote);
       this.pc = null;
       this.callee = undefined;
-      this.$('.btn-hangup').addClass('disabled');
+      app.router.navigate('', {trigger: true});
+      app.trigger('hangup_done');
     },
 
     render: function() {
