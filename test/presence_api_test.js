@@ -52,7 +52,6 @@ describe("Server", function() {
       beforeEach(function() {
         savedWSS = presence._wss;
         presence._wss = sinon.stub();
-        // XXX spy/mock/stub?
       });
 
       afterEach(function() {
@@ -60,9 +59,20 @@ describe("Server", function() {
       });
 
       it('should return undefined if no callback is passed', function() {
-        // XXX with or without callback?
         expect(presence._configureWebSocketServer()).to.equal(undefined);
       });
+
+      it('should call any callback once & return undefined',
+        function(done) {
+          var callback = sinon.spy(done);
+
+          expect(presence._configureWebSocketServer(callback)).
+            to.equal(undefined);
+
+          expect(callback).to.have.been.called.once;
+          expect(callback).to.always.have.been.calledWithExactly();
+        }
+      );
     });
 
     it("should answer requests on a given port after start() completes",
