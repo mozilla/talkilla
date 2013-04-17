@@ -5,7 +5,7 @@ var expect = require("chai").expect;
 var request = require("request");
 var app = require("../presence").app;
 var findNewNick = require("../presence").findNewNick;
-var getConnection = require("../presence").getConnection;
+var _usersToArray = require("../presence")._usersToArray;
 
 /* The "browser" variable predefines for jshint include WebSocket,
  * causes jshint to blow up here.  We should probably structure things
@@ -19,7 +19,10 @@ var webSocket;
 var serverPort = 3000;
 var serverHost = "localhost";
 var serverHttpBase = 'http://' + serverHost + ':' + serverPort;
-var socketURL = 'ws://' + serverHost + ':' + serverPort;
+var socketURL = function(nick) {
+  return 'ws://' + serverHost + ':' + serverPort + '/?nick=' + nick;
+};
+
 
 function signin(nick, callback) {
   request.post(serverHttpBase + '/signin',
@@ -40,20 +43,20 @@ describe("Server", function() {
     it("should answer requests on a given port after start() completes",
       function(done) {
         var retVal = app.start(serverPort, function() {
-          webSocket = new WebSocket(socketURL);
+          signin('foo', function() {
+            webSocket = new WebSocket(socketURL('foo'));
 
-          webSocket.on('error', function(error) {
-            expect(error).to.equal(null);
-          });
+            webSocket.on('error', function(error) {
+              expect(error).to.equal(null);
+            });
 
-          webSocket.on('open', function() {
-            app.shutdown(done);
+            webSocket.on('open', function() {
+              app.shutdown(done);
+            });
           });
         });
 
         expect(retVal).to.equal(undefined);
-
-        // XXX test HTTP connection requests also
       });
 
     // implementing the following test, fixing bugs that it finds (there is
@@ -74,6 +77,12 @@ describe("Server", function() {
         webSocket = null;
       }
       app.shutdown(done);
+    });
+
+    it("should transform a map of users into an array", function() {
+      var users = {"foo": {ws: 1}, "bar": {ws: 2}};
+      var expected = [{"nick": "foo"}, {"nick": "bar"}];
+      expect(_usersToArray(users)).to.deep.equal(expected);
     });
 
     it("should have no users logged in at startup", function() {
@@ -146,90 +155,95 @@ describe("Server", function() {
         });
     });
 
-    it("should send a list with only the user to an open websocket when the " +
-      "first user signs in",
+    it("should signin a user, open a corresponding websocket and receive a" +
+       "a list with the only signed in user",
       function (done) {
-        webSocket = new WebSocket(socketURL);
+        signin('foo', function() {
+          webSocket = new WebSocket(socketURL('foo'));
 
-        webSocket.on('error', function(error) {
-          expect(error).to.equal(null);
-        });
+          webSocket.on('error', function(error) {
+            expect(error).to.equal(null);
+          });
 
-        webSocket.on('message', function (data, flags) {
-          expect(flags.binary).to.equal(undefined);
-          expect(flags.masked).to.equal(false);
-          expect(JSON.parse(data).users).to.deep.equal([{nick: "foo"}]);
-          done();
-        });
-
-        webSocket.on('open', function () {
-          signin('foo');
-        });
-      });
-
-    it("should send the list of signed in users when a new user signs in",
-      function(done) {
-        /* jshint unused: vars */
-        var n = 1;
-        webSocket = new WebSocket(socketURL);
-
-        webSocket.on('error', function(error) {
-          expect(error).to.equal(null);
-        });
-
-        webSocket.on('message', function(data, flags) {
-          var parsed = JSON.parse(data);
-          if (n === 1)
-            expect(parsed.users).to.deep.equal([{nick:"first"}]);
-          if (n === 2) {
-            expect(parsed.users).to.deep.equal([{nick:"first"},
-                                                {nick:"second"}]);
+          webSocket.on('message', function (data, flags) {
+            expect(flags.binary).to.equal(undefined);
+            expect(flags.masked).to.equal(false);
+            expect(JSON.parse(data).users).to.deep.equal([{nick: "foo"}]);
             done();
-          }
-
-          n++;
-        });
-
-        webSocket.on('open', function() {
-          signin('first', function() {
-            signin('second');
           });
         });
       });
 
-    it("should send the list of signed in users when a user signs out",
+    it("should send an updated list of signed in users when a new user" +
+       "signs in",
       function(done) {
         /* jshint unused: vars */
-        var n = 1;
-        webSocket = new WebSocket(socketURL);
+        var nthMessage = 1;
 
-        webSocket.on('error', function(error) {
-          expect(error).to.equal(null);
-        });
+        signin('first', function() {
+          webSocket = new WebSocket(socketURL('first'));
 
-        webSocket.on('message', function(data, flags) {
-          var parsed = JSON.parse(data);
-          if (n === 2)
-            expect(parsed.users).to.deep.equal([{nick: "first"},
-                                                {nick: "second"}]);
-          if (n === 3) {
-            expect(parsed.users).to.deep.equal([{nick: "second"}]);
-            done();
-          }
+          webSocket.on('error', function(error) {
+            expect(error).to.equal(null);
+          });
 
-          n++;
-        });
+          webSocket.on('message', function(data, flags) {
+            var parsed = JSON.parse(data);
+            if (nthMessage === 1)
+              expect(parsed.users).to.deep.equal([{nick:"first"}]);
+            if (nthMessage === 2) {
+              expect(parsed.users).to.deep.equal([{nick:"first"},
+                                                  {nick:"second"}]);
+              done();
+            }
 
-        webSocket.on('open', function() {
-          signin('first', function() {
+            nthMessage++;
+          });
+
+          webSocket.on('open', function() {
             signin('second', function() {
-              signout('first');
+              new WebSocket(socketURL('second'));
             });
           });
         });
 
       });
 
+    it("should send an updated list of signed in users when a user signs out",
+      function(done) {
+        /* jshint unused: vars */
+        var nthMessage = 1;
+        var ws;
+
+        signin('first', function() {
+          webSocket = new WebSocket(socketURL('first'));
+
+          webSocket.on('error', function(error) {
+            expect(error).to.equal(null);
+          });
+
+          webSocket.on('message', function(data, flags) {
+            var parsed = JSON.parse(data);
+            if (nthMessage === 2)
+              expect(parsed.users).to.deep.equal([{nick: "first"},
+                                                  {nick: "second"}]);
+            if (nthMessage === 3) {
+              expect(parsed.users).to.deep.equal([{nick: "first"}]);
+              ws.close();
+              done();
+            }
+
+            nthMessage++;
+          });
+
+          webSocket.on('open', function() {
+            signin('second', function() {
+              ws = new WebSocket(socketURL('second'));
+              ws.on('open', signout.bind(this, 'second'));
+            });
+          });
+        });
+      });
   });
 
   describe("call offer", function() {
@@ -237,51 +251,32 @@ describe("Server", function() {
         calleeWs,
         messages = {callee: [], caller: []};
 
-    function signinUser(nick, ws, cb) {
-      signin(nick, function() {
-        ws.send(JSON.stringify({id: nick}), function() {
-          waitFor(function() {
-            return !!getConnection(nick);
-          }, cb);
-        });
-      });
-    }
-
-    function findMessageByType(source, type) {
-      var message = source.filter(function(message) {
-        return type in message;
-      })[0];
-      if (message)
-        return message[type];
-    }
-
-    function waitFor(fn, cb, options) {
-      var interval = options && options.interval || 5;
-      var timeout = options && options.timeout || 2000;
-      var start = new Date().getTime();
-      var check = setInterval(function() {
-        if (fn() === true) {
-          clearInterval(check);
-          cb(null);
-        } else if (new Date().getTime() - start > timeout) {
-          clearInterval(check);
-          cb(new Error('' + timeout + 'ms wait timeout exhausted'));
-        }
-      }, interval);
-    }
-
     beforeEach(function(done) {
       app.start(serverPort, function() {
-        callerWs = new WebSocket(socketURL);
-        calleeWs = new WebSocket(socketURL);
-        callerWs.on('open', function() {
-          signinUser('first', callerWs, function(err) {
-            expect(err).to.be.a('null');
-            signinUser('second', calleeWs, function(err) {
-              expect(err).to.be.a('null');
-              done();
-            });
-          });
+        var nbCalls = 1;
+
+        // Triggers `done` when called twice, i.e. when the two
+        // websockets can receive messages
+        function websocketsOpen() {
+          if (nbCalls === 2)
+            done();
+          nbCalls++;
+        }
+
+        function noerror(err) {
+          expect(err).to.be.a('null');
+        }
+
+        signin('first', function() {
+          callerWs = new WebSocket(socketURL('first'));
+          callerWs.on('open', websocketsOpen);
+          callerWs.on('error', noerror);
+        });
+
+        signin('second', function() {
+          calleeWs = new WebSocket(socketURL('second'));
+          calleeWs.on('open', websocketsOpen);
+          calleeWs.on('error', noerror);
         });
       });
     });
@@ -296,58 +291,40 @@ describe("Server", function() {
 
     it("should notify a user that another is trying to call them",
       function(done) {
-        callerWs.on('message', function(data) {
-          messages.caller.push(JSON.parse(data));
-        });
-
+        // TODO: Change event names (incoming_call => incomingCall)
+        /*jshint camelcase:false*/
         calleeWs.on('message', function(data) {
-          messages.callee.push(JSON.parse(data));
-        });
+          var message = JSON.parse(data);
 
-        // first initiate a call with second
-        var offerMessage = JSON.stringify({
-          "call_offer": { caller: "first", callee: "second" }
-        });
-
-        callerWs.send(offerMessage, function() {
-          waitFor(function() {
-            return !!findMessageByType(messages.callee, "incoming_call");
-          }, function(err) {
-            expect(err).to.be.a('null');
-            var message = findMessageByType(messages.callee, "incoming_call");
+          if (message.incoming_call) {
             expect(message).to.be.an('object');
-            expect(message.caller).to.equal('first');
+            expect(message.incoming_call.caller).to.equal('first');
             done();
-          });
+          }
         });
+
+        callerWs.send(JSON.stringify({
+          "call_offer": { caller: "first", callee: "second" }
+        }));
       });
 
     it("should notify a user that a call has been accepted",
       function(done) {
+        // TODO: Change event names (call_accepted => callAccepted)
+        /*jshint camelcase:false*/
         callerWs.on('message', function(data) {
-          messages.caller.push(JSON.parse(data));
-        });
+          var message = JSON.parse(data);
 
-        calleeWs.on('message', function(data) {
-          messages.callee.push(JSON.parse(data));
-        });
-
-        // first initiate a call with second
-        var offerMessage = JSON.stringify({
-          "call_accepted": { caller: "first", callee: "second" }
-        });
-
-        calleeWs.send(offerMessage, function() {
-          waitFor(function() {
-            return !!findMessageByType(messages.caller, "call_accepted");
-          }, function() {
-            var message = findMessageByType(messages.caller, "call_accepted");
+          if (message.call_accepted) {
             expect(message).to.be.an('object');
-            expect(message.caller).to.equal('first');
+            expect(message.call_accepted.caller).to.equal('first');
             done();
-          });
+          }
         });
-      });
 
+        calleeWs.send(JSON.stringify({
+          "call_accepted": { caller: "first", callee: "second" }
+        }));
+      });
   });
 });
