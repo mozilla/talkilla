@@ -39,18 +39,6 @@ function signout(nick, callback) {
                callback);
 }
 
-function signin(nick, callback) {
-  request.post(serverHttpBase + '/signin',
-               {form: {nick: nick}},
-               callback);
-}
-
-function signout(nick, callback) {
-  request.post(serverHttpBase + '/signout',
-               {form: {nick: nick}},
-               callback);
-}
-
 describe("Server", function() {
 
   describe("configuration", function() {
