@@ -205,9 +205,7 @@ function configureWs(ws) {
 }
 
 var wss;
-function setupWebSocketServer(callback) {
-  wss = new WebSocketServer({noServer: true});
-
+function _configureWebSocketServer(callback) {
   server.on('upgrade', function(req, socket, upgradeHead) {
     var users = app.get('users');
     var nick = url.parse(req.url, true).query.nick;
@@ -248,8 +246,8 @@ app.start = function(serverPort, callback) {
   app.set('users', {});
 
   server = http.createServer(this);
-
-  server.listen(serverPort, setupWebSocketServer.bind(this, callback));
+  wss = new WebSocketServer({noServer: true});
+  server.listen(serverPort, _configureWebSocketServer.bind(this, callback));
 };
 
 app.shutdown = function(callback) {
@@ -267,4 +265,5 @@ app.shutdown = function(callback) {
 module.exports.app = app;
 module.exports.findNewNick = findNewNick;
 module.exports._usersToArray = _usersToArray;
+module.exports._configureWebSocketServer = _configureWebSocketServer;
 
