@@ -28,7 +28,7 @@
   });
 
   /**
-   * Single notification view.
+   * Base notification view.
    */
   app.views.NotificationView = Backbone.View.extend({
     template: _.template([
@@ -37,6 +37,11 @@
       '  <%= message %>',
       '</div>'
     ].join('')),
+
+    clear: function() {
+      this.undelegateEvents();
+      this.remove();
+    },
 
     render: function() {
       this.$el.html(this.template(this.model.toJSON()));
@@ -47,7 +52,7 @@
   /**
    * Incoming call notification view.
    */
-  app.views.IncomingCallNotificationView = Backbone.View.extend({
+  app.views.IncomingCallNotificationView = app.views.NotificationView.extend({
     template: _.template([
       '<div class="alert alert-block alert-success">',
       '  <h4>Incoming call from <strong><%= caller %></strong></h4>',
@@ -80,39 +85,18 @@
         'call_deny': this.model.toJSON()
       }));
       this.clear();
-    },
-
-    clear: function() {
-      this.undelegateEvents();
-      this.remove();
-    },
-
-    render: function() {
-      this.$el.html(this.template(this.model.toJSON()));
-      return this;
     }
   });
-
 
   /**
    * Pending call notification view.
    */
-  app.views.PendingCallNotificationView = Backbone.View.extend({
+  app.views.PendingCallNotificationView = app.views.NotificationView.extend({
     template: _.template([
       '<div class="alert alert-block alert-success">',
       '  <h4>Calling <strong><%= callee %>…</strong></h4>',
       '</div>'
-    ].join('')),
-
-    clear: function() {
-      this.undelegateEvents();
-      this.remove();
-    },
-
-    render: function() {
-      this.$el.html(this.template(this.model.toJSON()));
-      return this;
-    }
+    ].join(''))
   });
 
   /**
@@ -153,6 +137,10 @@
       return this;
     },
 
+    /**
+     * Clear current active notification if any and empty the notifications
+     * list.
+     */
     clear: function() {
       if (this.notification) {
         this.notification.clear();
