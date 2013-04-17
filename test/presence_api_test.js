@@ -202,7 +202,7 @@ describe("Server", function() {
        "signs in",
       function(done) {
         /* jshint unused: vars */
-        var n = 1;
+        var nthMessage = 1;
 
         signin('first', function() {
           webSocket = new WebSocket(socketURL('first'));
@@ -213,15 +213,15 @@ describe("Server", function() {
 
           webSocket.on('message', function(data, flags) {
             var parsed = JSON.parse(data);
-            if (n === 1)
+            if (nthMessage === 1)
               expect(parsed.users).to.deep.equal([{nick:"first"}]);
-            if (n === 2) {
+            if (nthMessage === 2) {
               expect(parsed.users).to.deep.equal([{nick:"first"},
                                                   {nick:"second"}]);
               done();
             }
 
-            n++;
+            nthMessage++;
           });
 
           webSocket.on('open', function() {
@@ -236,7 +236,7 @@ describe("Server", function() {
     it("should send an updated list of signed in users when a user signs out",
       function(done) {
         /* jshint unused: vars */
-        var n = 1;
+        var nthMessage = 1;
 
         signin('first', function() {
           webSocket = new WebSocket(socketURL('first'));
@@ -247,15 +247,15 @@ describe("Server", function() {
 
           webSocket.on('message', function(data, flags) {
             var parsed = JSON.parse(data);
-            if (n === 2)
+            if (nthMessage === 2)
               expect(parsed.users).to.deep.equal([{nick: "first"},
                                                   {nick: "second"}]);
-            if (n === 3) {
+            if (nthMessage === 3) {
               expect(parsed.users).to.deep.equal([{nick: "first"}]);
               done();
             }
 
-            n++;
+            nthMessage++;
           });
 
           webSocket.on('open', function() {
@@ -275,11 +275,14 @@ describe("Server", function() {
 
     beforeEach(function(done) {
       app.start(serverPort, function() {
-        var n = 1;
-        function donedone() {
-          if (n === 2)
+        var nbCalls = 1;
+
+        // Triggers `done` when called twice, i.e. when the two
+        // websockets can receive messages
+        function websocketsOpen() {
+          if (nbCalls === 2)
             done();
-          n++;
+          nbCalls++;
         }
 
         function noerror(err) {
@@ -288,13 +291,13 @@ describe("Server", function() {
 
         signin('first', function() {
           callerWs = new WebSocket(socketURL('first'));
-          callerWs.on('open', donedone);
+          callerWs.on('open', websocketsOpen);
           callerWs.on('error', noerror);
         });
 
         signin('second', function() {
           calleeWs = new WebSocket(socketURL('second'));
-          calleeWs.on('open', donedone);
+          calleeWs.on('open', websocketsOpen);
           calleeWs.on('error', noerror);
         });
       });
