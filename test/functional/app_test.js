@@ -2,7 +2,6 @@
 /* jshint expr:true */
 
 var app = require("../../presence").app;
-var getConfigFromFile = require("../../presence").getConfigFromFile;
 var expect = require("chai").expect;
 
 var serverPort = 5000;
