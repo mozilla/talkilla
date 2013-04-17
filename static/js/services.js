@@ -31,7 +31,7 @@
      */
     app.services.ws.onerror = function(error) {
       app.utils.log('WebSocket Error ' + error);
-      app.utils.notifyUI('An error occured while communicating with the' +
+      app.utils.notifyUI('An error occured while communicating with the ' +
                          'server.');
     };
 
