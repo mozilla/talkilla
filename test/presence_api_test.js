@@ -103,7 +103,7 @@ describe("Server", function() {
       }
     });
 
-    it("should transform an map of users into an array", function() {
+    it("should transform a map of users into an array", function() {
       var users = {"foo": {ws: 1}, "bar": {ws: 2}};
       var expected = [{"nick": "foo"}, {"nick": "bar"}];
       expect(usersToArray(users)).to.deep.equal(expected);
@@ -179,8 +179,8 @@ describe("Server", function() {
         });
     });
 
-    it("should send a list with only the user to an open websocket when the " +
-      "first user signs in",
+    it("should signin a user, open a corresponding websocket and receive a" +
+       "a list with the only signed in user",
       function (done) {
         signin('foo', function() {
           webSocket = new WebSocket(socketURL('foo'));
@@ -198,7 +198,8 @@ describe("Server", function() {
         });
       });
 
-    it("should send the list of signed in users when a new user signs in",
+    it("should send an updated list of signed in users when a new user" +
+       "signs in",
       function(done) {
         /* jshint unused: vars */
         var n = 1;
@@ -232,7 +233,7 @@ describe("Server", function() {
 
       });
 
-    it("should send the list of signed in users when a user signs out",
+    it("should send an updated list of signed in users when a user signs out",
       function(done) {
         /* jshint unused: vars */
         var n = 1;
