@@ -1,5 +1,6 @@
 /* jshint unused:false */
 var fs = require('fs');
+var url = require('url');
 var express = require('express');
 var http = require('http');
 var path = require('path');
@@ -80,6 +81,16 @@ function findNewNick(aNick) {
   return nickParts[1] + newDigits;
 }
 
+// Utility function to help us respect the interface expected by the
+// frontend.
+// XXX: In the future, this function should either disappear or grow
+// to provide more information than the nickname.
+function _usersToArray(users) {
+  return Object.keys(users).map(function(nick) {
+    return {nick: nick};
+  });
+}
+
 app.get('/config.json', function(req, res) {
   res.header('Content-Type', 'application/json');
   res.send(200, JSON.stringify(app.get('config')));
@@ -87,10 +98,11 @@ app.get('/config.json', function(req, res) {
 
 app.post('/signin', function(req, res) {
   var users = app.get('users');
+  var usersList = _usersToArray(users);
   var nick = req.body.nick;
 
   function exists(nick) {
-    return users.some(function(user) {
+    return usersList.some(function(user) {
       return user.nick === nick;
     });
   }
@@ -98,35 +110,25 @@ app.post('/signin', function(req, res) {
   while (exists(nick))
     nick = findNewNick(nick);
 
-  users.push({nick: nick});
+  users[nick] = {};
   app.set('users', users);
-
-  app.get('connections').forEach(function(c) {
-    c.send(JSON.stringify({users: users}), function(error) {});
-  });
 
   res.send(200, JSON.stringify({nick: nick}));
 });
 
 app.post('/signout', function(req, res) {
-  var users = app.get('users').filter(function(user) {
-    return user.nick !== req.body.nick;
-  });
+  var users = app.get('users');
+
+  delete users[req.body.nick];
   app.set('users', users);
 
-  app.get('connections').forEach(function(c) {
-    c.send(JSON.stringify({users: users}), function(error) {});
+  Object.keys(users).forEach(function(nick) {
+    var ws = users[nick].ws;
+    ws.send(JSON.stringify({users: _usersToArray(users)}), function(error) {});
   });
 
   res.send(200, JSON.stringify(true));
 });
-
-function getConnection(id) {
-  return app.get('connections').filter(function(ws) {
-    return (ws.id === id && ws.readyState === WebSocket.OPEN);
-  })[0];
-}
-exports.getConnection = getConnection;
 
 /**
  * Configures a WebSocket connection. Any ws JSON message received is parsed and
@@ -135,7 +137,6 @@ exports.getConnection = getConnection;
  * - call_offer: call offer event
  * - call_accept: call accepted event
  * - call_deny: call denied event
- * - id: ws connection authentication event
  * - incoming_call: incoming call event
  *
  * @param  {WebSocket} ws WebSocket client connection
@@ -159,67 +160,44 @@ function configureWs(ws) {
     }
   });
 
-  // authenticates the ws connection against a user id
-  ws.on('id', function(data) {
-    this.id = data;
-
-    this.send(JSON.stringify({
-      users: app.get('users')
-    }));
-  });
-
   // when a call offer has been sent
   ws.on('call_offer', function(data) {
     try {
-      var calleeWs = getConnection(data.callee);
-      calleeWs.send(JSON.stringify({
-        'incoming_call': {
-          caller: this.id,
-          callee: calleeWs.id,
-          offer:  data.offer
-        }
-      }));
-    } catch (e) {console.error(e);}
+      var users = app.get('users');
+      var callee = users[data.callee];
+      callee.ws.send(JSON.stringify({'incoming_call': data}));
+    } catch (e) {console.error('call_offer', e);}
   });
 
   // when a call offer has been accepted
   ws.on('call_accepted', function(data) {
     try {
-      getConnection(data.caller).send(JSON.stringify({
-        'call_accepted': data
-      }));
-    } catch (e) {console.error(e);}
+      var users = app.get('users');
+      var caller = users[data.caller];
+      caller.ws.send(JSON.stringify({'call_accepted': data}));
+    } catch (e) {console.error('call_accept', e);}
   });
 
   // when a call offer has been denied
   ws.on('call_deny', function(data) {
     try {
-      getConnection(data.caller).send(JSON.stringify({
-        'call_denied': data
-      }));
-    } catch (e) {console.error(e);}
+      var users = app.get('users');
+      var caller = users[data.caller];
+      caller.ws.send(JSON.stringify({'call_denied': data}));
+    } catch (e) {console.error('call_deny', e);}
   });
 
   // when a connection is closed, remove it from the pool as well and update the
   // list of online users
   ws.on('close', function() {
-    var connections = app.get('connections'),
-        users = app.get('users'),
-        closing = this.id;
-    // filter the list of online users
-    users = users.filter(function(user) {
-      return user.nick !== closing;
+    var users = app.get('users');
+
+    Object.keys(users).forEach(function(nick) {
+      var user = users[nick];
+      if (user.ws === ws)
+        delete user.ws;
     });
-    // filter the list of active connections
-    connections = connections.filter(function(ws) {
-      return ws.readyState === WebSocket.OPEN && ws.id !== closing;
-    });
-    // notify all remaining connections with an updated list of online users
-    connections.forEach(function(ws) {
-      ws.send(JSON.stringify({users: users}));
-    });
-    // update collections
-    app.set('connections', connections);
+
     app.set('users', users);
   });
 
@@ -228,13 +206,32 @@ function configureWs(ws) {
 
 var wss;
 function setupWebSocketServer(callback) {
-  wss = new WebSocketServer({server: server});
+  wss = new WebSocketServer({noServer: true});
 
-  wss.on('connection', function(ws) {
-    // adds this new connection to the pool
-    var connections = app.get('connections');
-    connections.push(configureWs(ws));
-    app.set('connections', connections);
+  server.on('upgrade', function(req, socket, upgradeHead) {
+    var users = app.get('users');
+    var nick = url.parse(req.url, true).query.nick;
+    var res = new http.ServerResponse(req);
+
+    if (!(nick in users)) {
+      res.assignSocket(socket);
+      res.statusCode = 400;
+      res.end();
+    }
+
+    wss.handleUpgrade(req, socket, upgradeHead, function(ws) {
+      // attach the WebSocket to the user
+      // XXX: The user could be signed out at this point
+      var users = app.get('users');
+      users[nick].ws = configureWs(ws);
+      app.set('users', users);
+
+      Object.keys(users).forEach(function(nick) {
+        var user = users[nick];
+        if (user.ws)
+          user.ws.send(JSON.stringify({users: _usersToArray(users)}));
+      });
+    });
   });
 
   wss.on('error', function(err) {
@@ -248,8 +245,7 @@ function setupWebSocketServer(callback) {
 }
 
 app.start = function(serverPort, callback) {
-  app.set('users', []);
-  app.set('connections', []);
+  app.set('users', {});
 
   server = http.createServer(this);
 
@@ -257,15 +253,18 @@ app.start = function(serverPort, callback) {
 };
 
 app.shutdown = function(callback) {
-  app.get('connections').forEach(function(c) {
-    c.close();
+  var users = app.get('users');
+
+  Object.keys(users).forEach(function(nick) {
+    var user = users[nick];
+    if (user.ws)
+      user.ws.close();
   });
-  server.close(function () {
-    this.started = false;
-    if (callback)
-      callback();
-  }.bind(this));
+
+  server.close(callback);
 };
 
 module.exports.app = app;
 module.exports.findNewNick = findNewNick;
+module.exports._usersToArray = _usersToArray;
+
