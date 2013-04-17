@@ -114,14 +114,15 @@
    *                                  send to the callee.
    */
   app.services.initiateCall = function(callee, offer) {
+    var call = {
+      caller: app.data.user.get('nick'),
+      callee: callee.get('nick'),
+      offer: offer
+    };
+
     // send call offer to the server
-    app.services.ws.send(JSON.stringify({
-      "call_offer": {
-        caller: app.data.user.get('nick'),
-        callee: callee.get('nick'),
-        offer: offer
-      }
-    }));
+    app.services.ws.send(JSON.stringify({"call_offer": call}));
+    app.services.trigger('call_offer', call);
   };
 
   /**

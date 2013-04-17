@@ -42,10 +42,13 @@ exports.merge = merge;
  */
 function getConfigFromFile(file) {
   var configRoot = path.join(__dirname, 'config'),
-      config = JSON.parse(fs.readFileSync(path.join(configRoot, file))),
-      localConfigFile = path.join(configRoot, 'local.json');
-  if (fs.existsSync(localConfigFile)) {
-    config = merge(config, JSON.parse(fs.readFileSync(localConfigFile)));
+      config = JSON.parse(fs.readFileSync(path.join(configRoot, file)));
+
+  if (!process.env.NO_LOCAL_CONFIG) {
+    var localConfigFile = path.join(configRoot, 'local.json');
+    if (fs.existsSync(localConfigFile)) {
+      config = merge(config, JSON.parse(fs.readFileSync(localConfigFile)));
+    }
   }
   return config;
 }
@@ -258,7 +261,11 @@ app.shutdown = function(callback) {
       user.ws.close();
   });
 
-  server.close(callback);
+  server.close(function () {
+    this.started = false;
+    if (callback)
+      callback();
+  }.bind(this));
 };
 
 module.exports.app = app;
