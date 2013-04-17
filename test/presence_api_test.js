@@ -6,9 +6,6 @@ var request = require("request");
 var app = require("../presence").app;
 var findNewNick = require("../presence").findNewNick;
 var _usersToArray = require("../presence")._usersToArray;
-var merge = require("../presence").merge;
-var getConfigFromFile = require("../presence").getConfigFromFile;
-var getConnection = require("../presence").getConnection;
 
 /* The "browser" variable predefines for jshint include WebSocket,
  * causes jshint to blow up here.  We should probably structure things
@@ -216,6 +213,7 @@ describe("Server", function() {
       function(done) {
         /* jshint unused: vars */
         var nthMessage = 1;
+        var ws;
 
         signin('first', function() {
           webSocket = new WebSocket(socketURL('first'));
@@ -231,6 +229,7 @@ describe("Server", function() {
                                                   {nick: "second"}]);
             if (nthMessage === 3) {
               expect(parsed.users).to.deep.equal([{nick: "first"}]);
+              ws.close();
               done();
             }
 
@@ -239,7 +238,7 @@ describe("Server", function() {
 
           webSocket.on('open', function() {
             signin('second', function() {
-              var ws = new WebSocket(socketURL('second'));
+              ws = new WebSocket(socketURL('second'));
               ws.on('open', signout.bind(this, 'second'));
             });
           });

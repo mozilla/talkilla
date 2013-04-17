@@ -261,11 +261,7 @@ app.shutdown = function(callback) {
       user.ws.close();
   });
 
-  server.close(function () {
-    this.started = false;
-    if (callback)
-      callback();
-  }.bind(this));
+  server.close(callback);
 };
 
 module.exports.app = app;
