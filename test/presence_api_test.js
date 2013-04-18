@@ -244,6 +244,35 @@ describe("Server", function() {
           });
         });
       });
+
+    it("should signs out a user when his websocket drops out", function(done) {
+      var nthMessage = 1;
+
+      signin('user', function() {
+        webSocket = new WebSocket(socketURL('user'));
+
+        webSocket.on('error', function(error) {
+          expect(error).to.equal(null);
+        });
+
+        webSocket.on('open', function() {
+          signin('another', function() {
+            var ws = new WebSocket(socketURL('another'));
+            ws.on('open', webSocket.close.bind(webSocket));
+            ws.on('message', function(data) {
+              var parsed = JSON.parse(data);
+              if (nthMessage === 2) {
+                expect(parsed.users).to.deep.equal([{nick: "another"}]);
+                ws.close();
+                done();
+              }
+              nthMessage ++;
+            });
+          });
+        });
+      });
+    });
+
   });
 
   describe("call offer", function() {
