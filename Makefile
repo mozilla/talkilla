@@ -1,4 +1,4 @@
-test: mocha jshint
+test: mocha jshint selenium
 
 install:
 	@npm install

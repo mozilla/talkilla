@@ -1,7 +1,9 @@
 /* global describe, it, before, after */
 /* jshint expr:true */
 
+var util = require('util');
 var app = require("../../presence").app;
+var getConfigFromFile = require("../../presence").getConfigFromFile;
 var expect = require("chai").expect;
 
 var serverPort = 5000;
@@ -10,8 +12,13 @@ var serverHttpBase = 'http://' + serverHost + ':' + serverPort;
 
 var webdriver = require('selenium-webdriver'),
     By = webdriver.By;
-
 var driver;
+
+var config = getConfigFromFile('test.json');
+var seleniumConfig = config && config.selenium;
+var testServerUrl = util.format('http://%s:%d/wd/hub',
+  process.env.SAUCE_HOST || seleniumConfig.host || 'localhost',
+  process.env.SAUCE_PORT || seleniumConfig.port || 4444);
 
 describe("browser tests", function() {
   this.timeout(60000);
@@ -19,8 +26,16 @@ describe("browser tests", function() {
   before(function(done) {
     app.start(serverPort, function() {
       driver = new webdriver.Builder().
-        usingServer('http://localhost:4444/wd/hub').
-        withCapabilities({'browserName': 'firefox'}).
+        usingServer(testServerUrl).
+        withCapabilities({
+          name: "Talkilla browser tests",
+          browserName: 'firefox',
+          build: process.env.TRAVIS_BUILD_NUMBER,
+          javascriptEnabled: true,
+          platform: 'ANY',
+          username: process.env.SAUCE_USERNAME || seleniumConfig.username,
+          accessKey: process.env.SAUCE_ACCESS_KEY || seleniumConfig.accessKey
+        }).
         build();
       done();
     });

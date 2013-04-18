@@ -1,0 +1,6 @@
+{
+  "selenium": {
+    "host": "localhost",
+    "port": 4444
+  }
+}
