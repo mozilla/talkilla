@@ -12,6 +12,9 @@ mocha:
 	@env NODE_ENV=development ./node_modules/mocha/bin/mocha --reporter spec
 	@env NODE_ENV=production ./node_modules/mocha/bin/mocha --reporter spec
 
+selenium:
+	@env NODE_ENV=development ./node_modules/mocha/bin/mocha --reporter spec test/functional
+
 runserver:
 	@env NODE_ENV=production PORT=5000 node app.js
 
