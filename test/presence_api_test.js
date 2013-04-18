@@ -1,6 +1,11 @@
 /* global describe, it, beforeEach, afterEach */
 /* jshint expr:true */
 
+/* The intent is for this to only add unit tests to this file going forward.
+ *
+ * XXX Before long, we're going to want to create a home for backend functional
+ * tests, and move many of the tests that current live in this file there.
+ */
 var chai = require("chai");
 var expect = chai.expect;
 var sinon = require("sinon"); // XXX can sinon-chai re-export this?
@@ -19,6 +24,7 @@ var _usersToArray = presence._usersToArray;
  * for the node code at some point.  In the meantime, disable warning */
 /* jshint -W079 */
 var WebSocket = require('ws');
+var WebSocketServer = require('ws').Server;
 
 var webSocket;
 
@@ -46,33 +52,103 @@ describe("Server", function() {
 
   describe("startup & shutdown", function() {
 
-    describe("#configureWebSocketServer()", function() {
-      var savedWSS;
+    describe("#_createWebSocketServer()", function() {
+      it('should populate the exported _wss symbol with a new WebSocketServer',
+        function() {
+          var oldWss = presence._wss;
+
+          presence._createWebSocketServer();
+
+          expect(presence._wss).to.be.an.instanceOf(WebSocketServer);
+          expect(presence._wss).to.not.equal(oldWss);
+
+          presence._destroyWebSocketServer();
+        });
+    });
+
+    describe("#_destroyWebSocketServer()", function() {
+      var sandbox;
+
+      beforeEach(function () {
+        sandbox = sinon.sandbox.create();
+        presence._createWebSocketServer();
+      });
+
+      afterEach(function () {
+        sandbox.restore();
+      });
+
+      it('should remove all listeners from the web socket server',
+        function() {
+          sandbox.stub(presence._wss);
+
+          presence._destroyWebSocketServer();
+          expect(presence._wss.removeAllListeners).to.have.been.called.once;
+          expect(presence._wss.removeAllListeners).to.have.been.
+            calledWithExactly();
+        });
+
+      it('should close the server', function() {
+        sandbox.stub(presence._wss);
+
+        presence._destroyWebSocketServer();
+        expect(presence._wss.close).to.have.been.called.once;
+      });
+    });
+
+    describe("#_configureWebSocketServer()", function() {
+      var sandbox;
+      var httpServer = require('http').createServer();
 
       beforeEach(function() {
-        savedWSS = presence._wss;
-        presence._wss = sinon.stub();
+        presence._createWebSocketServer();
+
+        sandbox = sinon.sandbox.create();
+        sandbox.stub(httpServer);
       });
 
       afterEach(function() {
-        presence._wss = savedWSS;
+        sandbox.restore();
+        presence._destroyWebSocketServer();
       });
 
-      it('should return undefined if no callback is passed', function() {
-        expect(presence._configureWebSocketServer()).to.equal(undefined);
+      it('should not throw if a callback is not passed', function() {
+        expect(presence._configureWebSocketServer(httpServer)).to.not.Throw;
       });
 
-      it('should call any callback once & return undefined',
+      it('should call a passed callback once with no arguments',
         function(done) {
           var callback = sinon.spy(done);
 
-          expect(presence._configureWebSocketServer(callback)).
-            to.equal(undefined);
+          presence._configureWebSocketServer(httpServer, callback);
 
           expect(callback).to.have.been.called.once;
           expect(callback).to.always.have.been.calledWithExactly();
         }
       );
+
+      it('should add error and close handlers to the websocket server',
+        function(done) {
+          expect(presence._wss.listeners('error').length).to.equal(0);
+          expect(presence._wss.listeners('close').length).to.equal(0);
+
+          presence._configureWebSocketServer(httpServer,
+            function() {
+              expect(presence._wss.listeners('error').length).to.equal(1);
+              expect(presence._wss.listeners('close').length).to.equal(1);
+              done();
+            });
+        });
+
+      it('should add an upgrade handler to the http server',
+        function(done) {
+
+          presence._configureWebSocketServer(httpServer,
+            function() {
+              expect(httpServer.on).to.have.been.calledWith('upgrade');
+              done();
+            });
+        });
     });
 
     it("should answer requests on a given port after start() completes",
@@ -94,9 +170,6 @@ describe("Server", function() {
         expect(retVal).to.equal(undefined);
       });
 
-    // implementing the following test, fixing bugs that it finds (there is
-    // definitely at least one), and fixing the afterEach hook in this file
-    // should get rid of random shutdown-related test failures.
     it("should refuse requests after shutdown() completes");
   });
 
