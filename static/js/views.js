@@ -120,23 +120,13 @@
   /**
    * Denied call notification view.
    */
-  app.views.DeniedCallNotificationView = Backbone.View.extend({
+  app.views.DeniedCallNotificationView = app.views.NotificationView.extend({
     template: _.template([
       '<div class="alert alert-block alert-error">',
       '  <a class="close" data-dismiss="alert">&times;</a>',
       '  <h4><strong><%= callee %></strong> declined the call</h4>',
       '</div>'
-    ].join('')),
-
-    clear: function() {
-      this.undelegateEvents();
-      this.remove();
-    },
-
-    render: function() {
-      this.$el.html(this.template(this.model.toJSON()));
-      return this;
-    }
+    ].join(''))
   });
 
   /**
