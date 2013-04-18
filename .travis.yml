@@ -14,7 +14,7 @@ notifications:
 
 env:
   global:
-    SAUCE_ENABLED: 1
+    - SAUCE_ENABLED=1
     - secure: "G5kSFWk9p2HzDyyuP5PxdsDZC9c1f2BidipyjznLW6EYq+io51Luas5wslqJ\nTdIl3+n8q+k0646bXQY+meErpYZ/fZzALn7s0wlotXdbeKcMSi6d5hsPVFoe\n/m/3v05z00mRDMBk3ABqIT4ESSLZ3YFdJkRLE9KuKZ7OODU3JWQ="
     - secure: "e8AssMhXQcFF4b3tie0guhbOOmbdN8VVPW2spOyhFPcb5H0+m8VBFCM/pUMD\nBjwCe7BCUBDN1bziRO32m2sTRsLESyCCETWk6ErZtQYxRncALQfZ4vkPojs5\nkb4zn2sIy86QLccd60zM9iGFqeeoy0Y+ckAxCEG8ETgTYHJjy8M="
 
