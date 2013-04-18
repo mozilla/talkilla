@@ -52,6 +52,23 @@ To run the unit tests:
         $ make test
 
 
+Browser Tests
+-------------
+
+To run the functional tests, you'll need to install [Selenium Server](http://docs.seleniumhq.org/).
+Eg. for OSX using `brew`:
+
+    $ brew install selenium-server-standalone
+
+Start a Selenium server instance:
+
+    $ java -jar /usr/local/opt/selenium-server-standalone/selenium-server-standalone-2.31.0.jar -p 4444
+
+Then run the tests:
+
+    $ mocha test/functional
+
+
 Contribution
 ------------
 
