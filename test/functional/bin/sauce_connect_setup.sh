@@ -34,7 +34,7 @@ fi
 # Run Connect
 java -jar Sauce-Connect.jar --readyfile $READY_FILE \
                             $SAUCE_USERNAME \
-                            $SAUCE_ACCESS_KEY
+                            $SAUCE_ACCESS_KEY &
 
 # Wait for Connect to be ready before exiting
 while [ ! -f $READY_FILE ]; do

@@ -16,6 +16,7 @@ selenium:
 	@env NODE_ENV=development ./node_modules/mocha/bin/mocha --reporter spec test/functional
 
 setup_sauce_connect:
+	# Used by the travis-ci configuration file
 	bash test/functional/bin/sauce_connect_setup.sh
 
 runserver:
