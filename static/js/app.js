@@ -26,6 +26,11 @@ var Talkilla = (function($, Backbone, _) {
       _.extend(this.options, options || {});
       this.router = new app.Router();
       Backbone.history.start();
+
+      // app listeners
+      this.on('signout', function() {
+        this.services.closeWebSocket();
+      });
     }
   };
 
@@ -61,11 +66,6 @@ var Talkilla = (function($, Backbone, _) {
       this.view.call.callee = callee;
       this.view.call.render();
     }
-  });
-
-  // app listeners
-  app.on('signout', function() {
-    app.services.closeWebSocket();
   });
 
   // window event listeners
