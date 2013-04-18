@@ -19,7 +19,6 @@
     },
 
     render: function() {
-      this.notifications.render();
       this.login.render();
       this.users.render();
       this.call.render();
@@ -94,6 +93,7 @@
   app.views.PendingCallNotificationView = app.views.NotificationView.extend({
     template: _.template([
       '<div class="alert alert-block alert-success alert-pending">',
+      '  <a class="close" data-dismiss="alert">&times;</a>',
       '  <p>Calling <strong><%= callee %>…</strong>',
       '    <a class="btn btn-cancel" href="">Cancel</a></p>',
       '</div>'
@@ -118,10 +118,24 @@
   });
 
   /**
+   * Denied call notification view.
+   */
+  app.views.DeniedCallNotificationView = app.views.NotificationView.extend({
+    template: _.template([
+      '<div class="alert alert-block alert-error">',
+      '  <a class="close" data-dismiss="alert">&times;</a>',
+      '  <h4><strong><%= callee %></strong> declined the call</h4>',
+      '</div>'
+    ].join(''))
+  });
+
+  /**
    * Notifications list view.
    */
   app.views.NotificationsView = Backbone.View.extend({
     el: '#messages',
+
+    notifications: [],
 
     initialize: function() {
       // service events
@@ -135,6 +149,13 @@
       app.services.on('call_offer', function(data) {
         var notification = new app.views.PendingCallNotificationView({
           model: new app.models.PendingCall(data)
+        });
+        this.addNotification(notification);
+      }.bind(this));
+
+      app.services.on('call_denied', function(data) {
+        var notification = new app.views.DeniedCallNotificationView({
+          model: new app.models.DeniedCall(data)
         });
         this.addNotification(notification);
       }.bind(this));
@@ -158,8 +179,24 @@
      * @param {app.views.NotificationView} notification
      */
     addNotification: function(notification) {
-      this.notification = notification;
-      this.render();
+      var DeniedCallNotificationView = app.views.DeniedCallNotificationView;
+      var PendingCallNotificationView = app.views.PendingCallNotificationView;
+      var el = notification.render().el;
+
+      this.notifications.push(notification);
+      this.$el.append(el);
+
+      // A denied call notification replace a pending call notification
+      if (notification instanceof DeniedCallNotificationView)
+        this.notifications = this.notifications.filter(function(notif) {
+          var isPending = (notif instanceof PendingCallNotificationView);
+
+          if (isPending)
+            notif.clear();
+
+          return !isPending;
+        });
+
       return this;
     },
 
@@ -173,12 +210,6 @@
         this.notification = undefined;
       }
       this.$el.html('');
-    },
-
-    render: function() {
-      if (this.notification)
-        this.$el.append(this.notification.render().el);
-      return this;
     }
   });
 
@@ -387,11 +418,6 @@
           }
         );
       }.bind(this));
-
-      app.services.on('call_denied', function(data) {
-        // XXX: notify that the call has been denied
-        console.log(data);
-      });
 
       // app events
       app.on('hangup', function() {
