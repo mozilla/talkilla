@@ -194,8 +194,12 @@ function configureWs(ws) {
 
     Object.keys(users).forEach(function(nick) {
       var user = users[nick];
+
       if (user.ws === ws)
-        delete user.ws;
+        delete users[nick];
+
+      user.ws.send(JSON.stringify({users: _usersToArray(users)}),
+                   function(error) {});
     });
 
     app.set('users', users);
