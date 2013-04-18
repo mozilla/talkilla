@@ -15,6 +15,10 @@
     defaults: {callee: undefined, caller: undefined}
   });
 
+  app.models.DeniedCall = Backbone.Model.extend({
+    defaults: {callee: undefined, caller: undefined}
+  });
+
   app.models.Notification = Backbone.Model.extend({
     defaults: {type:    "default",
                message: "empty message"}
