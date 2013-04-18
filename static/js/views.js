@@ -19,7 +19,6 @@
     },
 
     render: function() {
-      this.notifications.render();
       this.login.render();
       this.users.render();
       this.call.render();
@@ -94,6 +93,7 @@
   app.views.PendingCallNotificationView = app.views.NotificationView.extend({
     template: _.template([
       '<div class="alert alert-block alert-success alert-pending">',
+      '  <a class="close" data-dismiss="alert">&times;</a>',
       '  <p>Calling <strong><%= callee %>…</strong>',
       '    <a class="btn btn-cancel" href="">Cancel</a></p>',
       '</div>'
@@ -123,6 +123,7 @@
   app.views.DeniedCallNotificationView = Backbone.View.extend({
     template: _.template([
       '<div class="alert alert-block alert-error">',
+      '  <a class="close" data-dismiss="alert">&times;</a>',
       '  <h4><strong><%= callee %></strong> declined the call</h4>',
       '</div>'
     ].join('')),
@@ -143,6 +144,8 @@
    */
   app.views.NotificationsView = Backbone.View.extend({
     el: '#messages',
+
+    notifications: [],
 
     initialize: function() {
       // service events
@@ -186,8 +189,24 @@
      * @param {app.views.NotificationView} notification
      */
     addNotification: function(notification) {
-      this.notification = notification;
-      this.render();
+      var DeniedCallNotificationView = app.views.DeniedCallNotificationView;
+      var PendingCallNotificationView = app.views.PendingCallNotificationView;
+      var el = notification.render().el;
+
+      this.notifications.push(notification);
+      this.$el.append(el);
+
+      // A denied call notification replace a pending call notification
+      if (notification instanceof DeniedCallNotificationView)
+        this.notifications = this.notifications.filter(function(notif) {
+          var isPending = (notif instanceof PendingCallNotificationView);
+
+          if (isPending)
+            notif.clear();
+
+          return !isPending;
+        });
+
       return this;
     },
 
@@ -201,12 +220,6 @@
         this.notification = undefined;
       }
       this.$el.html('');
-    },
-
-    render: function() {
-      if (this.notification)
-        this.$el.append(this.notification.render().el);
-      return this;
     }
   });
 
