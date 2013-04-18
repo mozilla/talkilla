@@ -204,9 +204,17 @@ function configureWs(ws) {
   return ws;
 }
 
-var wss;
-function _configureWebSocketServer(callback) {
-  server.on('upgrade', function(req, socket, upgradeHead) {
+function _createWebSocketServer() {
+  module.exports._wss = new WebSocketServer({noServer: true});
+}
+
+function _destroyWebSocketServer() {
+  module.exports._wss.removeAllListeners();
+  module.exports._wss.close();
+}
+
+function _configureWebSocketServer(httpServer, callback) {
+  httpServer.on('upgrade', function(req, socket, upgradeHead) {
     var users = app.get('users');
     var nick = url.parse(req.url, true).query.nick;
     var res = new http.ServerResponse(req);
@@ -217,7 +225,7 @@ function _configureWebSocketServer(callback) {
       res.end();
     }
 
-    wss.handleUpgrade(req, socket, upgradeHead, function(ws) {
+    module.exports._wss.handleUpgrade(req, socket, upgradeHead, function(ws) {
       // attach the WebSocket to the user
       // XXX: The user could be signed out at this point
       var users = app.get('users');
@@ -232,11 +240,11 @@ function _configureWebSocketServer(callback) {
     });
   });
 
-  wss.on('error', function(err) {
+  module.exports._wss.on('error', function(err) {
     console.log("WebSocketServer error: " + err);
   });
 
-  wss.on('close', function(ws) {});
+  module.exports._wss.on('close', function(ws) {});
 
   if (callback)
     callback();
@@ -246,8 +254,9 @@ app.start = function(serverPort, callback) {
   app.set('users', {});
 
   server = http.createServer(this);
-  wss = new WebSocketServer({noServer: true});
-  server.listen(serverPort, _configureWebSocketServer.bind(this, callback));
+  _createWebSocketServer();
+  server.listen(serverPort,
+    _configureWebSocketServer.bind(this, server, callback));
 };
 
 app.shutdown = function(callback) {
@@ -266,4 +275,6 @@ module.exports.app = app;
 module.exports.findNewNick = findNewNick;
 module.exports._usersToArray = _usersToArray;
 module.exports._configureWebSocketServer = _configureWebSocketServer;
+module.exports._createWebSocketServer = _createWebSocketServer;
+module.exports._destroyWebSocketServer = _destroyWebSocketServer;
 
