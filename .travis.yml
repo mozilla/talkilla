@@ -1,7 +1,7 @@
 language: node_js
 
 node_js:
- - "0.8"
+  - "0.8"
 
 notifications:
   irc:
@@ -14,20 +14,9 @@ notifications:
 
 env:
   global:
-  - secure: |-
-      d+Qc7ioIq2x33ughpXn5RbOq7hyROb/iJdwLSs94D/YHesuzBgUFTN7DoHbr
-      CXh3rwmmZiRwAie8u65FEgWNepgpwo7Y6AvJZN5lBGQzh+zYZdp4WstXnaT4
-      KmUgvxrPcV1wjsdMn2GqUM1P3ukr8Gdw2K/xFjo/vllTBzEgs9s=
-  - secure: |-
-      SeydTYvtrmWj2JtJ7kX7mVuaidi4nt8VEaow7JFPVacfhR4tMAfmIktafFt7
-      FIpoGhBWofj52lgOhRt5kiCTr0EUTVsF8fJsH8EpE+rDWzfGODB5dyAHZAbm
-      StKzEomfaLAzz7QXHBfDflhy5HTnGH0mV1RVgCqG2EEpImIUl24=
-  - secure: |-
-      GZT4NBVk0OW+U+9TNIrNT/9JwSA/e5jVqdgDYtd0o19JglR92iUCVljhDcUo
-      PXuEI4I3XR8dfpjX/fr64xMSVNVXA09uGwwNF7/qsi0Xjogwj3OlEFOKtPha
-      e6tF+QthHBqhDWRcWmR3nF9o2wou3zop0RmDPQYa/srdajEcKYQ=
-  - secure: |-
-      OjdcIXJLsJZhJ1kyku0a4eQ6wydINKZTe9mSXYTyJ2s2MhYrFKiZIl+3jBh/
-      y0ORd7zNt8s7hS78yMzHE0YLQKZbR58nyWBQEJaKLEh0Rz8H9Tx/sx68+TAJ
-      NJY0VxmwPYt0yXEOAaicGhQ7e6sa15a14haqN1RMf3emXY0zvII=
+    SAUCE_ENABLED: 1
+    - secure: "G5kSFWk9p2HzDyyuP5PxdsDZC9c1f2BidipyjznLW6EYq+io51Luas5wslqJ\nTdIl3+n8q+k0646bXQY+meErpYZ/fZzALn7s0wlotXdbeKcMSi6d5hsPVFoe\n/m/3v05z00mRDMBk3ABqIT4ESSLZ3YFdJkRLE9KuKZ7OODU3JWQ="
+    - secure: "e8AssMhXQcFF4b3tie0guhbOOmbdN8VVPW2spOyhFPcb5H0+m8VBFCM/pUMD\nBjwCe7BCUBDN1bziRO32m2sTRsLESyCCETWk6ErZtQYxRncALQfZ4vkPojs5\nkb4zn2sIy86QLccd60zM9iGFqeeoy0Y+ckAxCEG8ETgTYHJjy8M="
 
+before_script:
+  - make setup_sauce_connect

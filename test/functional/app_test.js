@@ -1,24 +1,30 @@
 /* global describe, it, before, after */
 /* jshint expr:true */
 
-var util = require('util');
 var app = require("../../presence").app;
-var getConfigFromFile = require("../../presence").getConfigFromFile;
 var expect = require("chai").expect;
 
 var serverPort = 5000;
 var serverHost = "localhost";
 var serverHttpBase = 'http://' + serverHost + ':' + serverPort;
 
-var webdriver = require('selenium-webdriver'),
-    By = webdriver.By;
+var webdriver = require('selenium-webdriver');
+var By = webdriver.By;
+var testServerUrl = 'http://localhost:4444/wd/hub';
+var capabilities = {
+  name: "Talkilla Browser Tests",
+  browserName: 'firefox'
+};
 var driver;
 
-var config = getConfigFromFile('test.json');
-var seleniumConfig = config && config.selenium;
-var testServerUrl = util.format('http://%s:%d/wd/hub',
-  process.env.SAUCE_HOST || seleniumConfig.host || 'localhost',
-  process.env.SAUCE_PORT || seleniumConfig.port || 4444);
+if (process.env.SAUCE_ENABLED) {
+  // use the Sauce Connect proxy server
+  testServerUrl = 'http://localhost:4445/wd/hub';
+  capabilities.name = "Travis build #" + process.env.TRAVIS_BUILD_NUMBER;
+  capabilities.build = process.env.TRAVIS_BUILD_NUMBER;
+  capabilities.username = process.env.SAUCE_USERNAME;
+  capabilities.accessKey = process.env.SAUCE_ACCESS_KEY;
+}
 
 describe("browser tests", function() {
   this.timeout(60000);
@@ -27,15 +33,7 @@ describe("browser tests", function() {
     app.start(serverPort, function() {
       driver = new webdriver.Builder().
         usingServer(testServerUrl).
-        withCapabilities({
-          name: "Talkilla browser tests",
-          browserName: 'firefox',
-          build: process.env.TRAVIS_BUILD_NUMBER,
-          javascriptEnabled: true,
-          platform: 'ANY',
-          username: process.env.SAUCE_USERNAME || seleniumConfig.username,
-          accessKey: process.env.SAUCE_ACCESS_KEY || seleniumConfig.accessKey
-        }).
+        withCapabilities(capabilities).
         build();
       done();
     });
