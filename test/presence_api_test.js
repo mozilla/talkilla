@@ -98,13 +98,13 @@ describe("Server", function() {
 
     describe("#_configureWebSocketServer()", function() {
       var sandbox;
-      var httpServer = require('http').createServer();
+      var stubHttpServer = require('http').createServer();
 
       beforeEach(function() {
         presence._createWebSocketServer();
 
         sandbox = sinon.sandbox.create();
-        sandbox.stub(httpServer);
+        sandbox.stub(stubHttpServer);
       });
 
       afterEach(function() {
@@ -113,14 +113,14 @@ describe("Server", function() {
       });
 
       it('should not throw if a callback is not passed', function() {
-        expect(presence._configureWebSocketServer(httpServer)).to.not.Throw;
+        expect(presence._configureWebSocketServer(stubHttpServer)).to.not.Throw;
       });
 
       it('should call a passed callback once with no arguments',
         function(done) {
           var callback = sinon.spy(done);
 
-          presence._configureWebSocketServer(httpServer, callback);
+          presence._configureWebSocketServer(stubHttpServer, callback);
 
           expect(callback).to.have.been.called.once;
           expect(callback).to.always.have.been.calledWithExactly();
@@ -132,7 +132,7 @@ describe("Server", function() {
           expect(presence._wss.listeners('error').length).to.equal(0);
           expect(presence._wss.listeners('close').length).to.equal(0);
 
-          presence._configureWebSocketServer(httpServer,
+          presence._configureWebSocketServer(stubHttpServer,
             function() {
               expect(presence._wss.listeners('error').length).to.equal(1);
               expect(presence._wss.listeners('close').length).to.equal(1);
@@ -143,9 +143,9 @@ describe("Server", function() {
       it('should add an upgrade handler to the http server',
         function(done) {
 
-          presence._configureWebSocketServer(httpServer,
+          presence._configureWebSocketServer(stubHttpServer,
             function() {
-              expect(httpServer.on).to.have.been.calledWith('upgrade');
+              expect(stubHttpServer.on).to.have.been.calledWith('upgrade');
               done();
             });
         });
