@@ -15,8 +15,8 @@ notifications:
 env:
   global:
     - SAUCE_ENABLED=1
-    - secure: "JobDvJ5iYOjwYFdomAi4CuTKMC3D21BZnp8wWIz5XafLy8Lx2RJenEXhMq9x\nrOh3wCcMV26AA3KjNMz6106k4+KdR4s5JlvylmovoVpBZedQhRgeuLcieMd7\nCvQ2D64njKdUNt5CDZnrDFuWtxGvS722jelY0gmA3Gjcd3xZlZI="
-    - secure: "BBZq4ZifcLng/QKPlw3OHXiQc7cgcB5ahntNlRKSICw2/hXKL8DTCUIgFK5K\nCUGfOdhPEQPRtcwRFEaZi3qBbSFkxGKMDw60ly+1wnQBW7sodTKtumwZIkYD\nTIpqPTr3Mu7i0h1DqtLbKgZ8zShZuesUdGJFJeiS4uFNMK1W4q8="
+    - secure: "Hi1OodK5gucG1fH0NRe59rj3NYUFu/dmpyzvVGCSXXdAdW9e+EseoSDuCxnA\n7xuENPZaYKUQayQbYQXHjkwMbcyXd3cOhUxqpAUa+ubmvO2kM95XbhOHYNPJ\nSD5lfyWGoz0Dw/Jh1vcJR1LFO74pvsYouSETIl++tApPocnjBG0="
+    - secure: "KhmOajGeM6/cackVeztMN3kBmlsA0l4O5fqPNPWxxMzYmjMJegJjNYgTd92I\nmn/ZDRezbjUG6JmypPiD7jZI6D/4tM9t7drW9zdOzTkV1uQEWHZjqBL+Bbl3\nGXhtMYvrV4K5SmLEemc4LhZTrFWtBDhh2aXi5VXi92/4KYEcyxs="
 
 before_script:
   - echo $SAUCE_USERNAME
