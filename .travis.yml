@@ -14,13 +14,13 @@ env:
   global:
   - SAUCE_ENABLED=1
   - secure: |-
-      gikxCFHRpk6N85lf9R2nLXamIGRH01OrxcFM65E7UxynIFlqG5gzusJmyjTK
-      fAKghdroffFu1PSYMOjtLhqsumYCSfv30Ftv8ONQVvRGP21y5/Y06EgL/UBQ
-      wmPTyYWIYwXYLQzjrff8bPSk7ZTg/o860TXpI70+z/RCHj02moM=
+      eTwvwjGYatrFaO81oZxVyY/Crr9Sog8Nb++sXI4G/D4SsKNifnoeNIOflD19
+      5JTGSpNa55D3py8dMuzuQXHbHSPs3eJTtBuWYesg6i6xW9N4+dlBGWUypMgf
+      rNncOyELUQ4cIsgrHjaOp8C4iBuh0CX8n0QIKIbjADKlEcFAzXI=
   - secure: |-
-      OILMMmcja6BlhBS6s55dUii17T6A1RA7Lbj3ADs8E+YoX1CJzmdOO7AGfph5
-      pa7qUN7wOzgVYKuHt6GEP65rxJ1oJMzF/bLjd+kM62PlErO4kbtL2UCX3gJ8
-      tYp4GacCAS68SxQXzeAZJHeyXDETq8TDYlGolY/oSI5gGDQ0ICg=
+      1vHmq1N+yltF84xuJfjfBbjaXevC2Bwzfs6IPaHYcp9sMmlwKUdfixF3HkFh
+      Y6eoeLSMjm79OrM5AoI7K6l1iYXdgErTH1Uff4g4HbME5FPYq09RZwaF+PRM
+      hEnzUJrNt8l1VGBh9JL3RqBXhDHWKnvlI0Nf+FxgSUlPGvvx3Uc=
 before_script:
 - echo $SAUCE_USERNAME
 - make setup_sauce_connect
