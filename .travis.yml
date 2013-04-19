@@ -24,4 +24,5 @@ env:
       wa/ZXl+0KmhHCX3KEGxaOkPbCViMLpkGQwAV4z1i3jrHZX7/HQk=
 
 before_script:
+  - echo $SAUCE_USERNAME
   - make setup_sauce_connect
