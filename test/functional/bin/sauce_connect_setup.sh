@@ -25,12 +25,6 @@ fi
 : ${SAUCE_USERNAME:?"SAUCE_USERNAME is required"}
 : ${SAUCE_ACCESS_KEY:?"SAUCE_ACCESS_KEY is required"}
 
-
-# Tunnel Identifier
-if [ ! $TRAVIS_JOB_NUMBER ]; then
-    TRAVIS_JOB_NUMBER="local"
-fi
-
 # Run Connect
 java -jar Sauce-Connect.jar --readyfile $READY_FILE \
                             $SAUCE_USERNAME \
