@@ -97,9 +97,20 @@ describe("Server", function() {
     });
 
     describe("#_configureWebSocketServer()", function() {
+      function fakeUpgradeHandler() {}
       var sandbox;
       var stubHttpServer = require('http').createServer();
-      function fakeUpgradeHandler() {}
+      // XXX as of Sinon 1.6.x, Object.defineProperty getters and
+      // setters aren't supported, and stubbing inadvertently trips
+      // on them.  In this case, it causes a deprecation warning in a function
+      // we don't use, because NodejS uses Object.defineProperty to
+      // trigger deprecation warnings.  I've reopened a discussion in
+      // <https://github.com/cjohansen/Sinon.JS/issues/256> to try and convince
+      // the author to add support.
+      //
+      // In the meantime, working around the problem by deleting the deprecated
+      // property before Sinon installs its stubs.
+      delete stubHttpServer.connections;
 
       beforeEach(function() {
         presence._createWebSocketServer();
