@@ -13,15 +13,16 @@ notifications:
     - talkilla-travis-results@mozilla.com
 
 env:
-  - SAUCE_ENABLED=1
-  - secure: |-
-      OEqWeguuUum6pQy4DrIdazTjBXZGrLNwWvf5H90iKhIzqadU5+I89N4pqMZX
-      9wd8RJCKo+JN87IOSL4L/yi1w0vK7o41E0cidgn0uq328d2QjZ634VDc8QU/
-      CSbTnGLu7ieNKJ5NiTfaqy1Qz52IqfP2K+YuymWLnAb44KzAiqk=
-  - secure: |-
-      A+X8o42WZuT0P23Iw1m48JKnIqMccwvslA7IiHtQ5ot78BTnsXBTOgqDI/hs
-      1ospgF0nqbDNu4ru+iqJp+rzwoWb4hcFfdswGZmwoO7aDBFf+wOr8IwhJfuG
-      wa/ZXl+0KmhHCX3KEGxaOkPbCViMLpkGQwAV4z1i3jrHZX7/HQk=
+  global:
+    - SAUCE_ENABLED=1
+    - secure: |-
+        OEqWeguuUum6pQy4DrIdazTjBXZGrLNwWvf5H90iKhIzqadU5+I89N4pqMZX
+        9wd8RJCKo+JN87IOSL4L/yi1w0vK7o41E0cidgn0uq328d2QjZ634VDc8QU/
+        CSbTnGLu7ieNKJ5NiTfaqy1Qz52IqfP2K+YuymWLnAb44KzAiqk=
+    - secure: |-
+        A+X8o42WZuT0P23Iw1m48JKnIqMccwvslA7IiHtQ5ot78BTnsXBTOgqDI/hs
+        1ospgF0nqbDNu4ru+iqJp+rzwoWb4hcFfdswGZmwoO7aDBFf+wOr8IwhJfuG
+        wa/ZXl+0KmhHCX3KEGxaOkPbCViMLpkGQwAV4z1i3jrHZX7/HQk=
 
 before_script:
   - echo $SAUCE_USERNAME
