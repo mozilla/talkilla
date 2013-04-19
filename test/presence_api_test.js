@@ -99,7 +99,7 @@ describe("Server", function() {
     describe("#_configureWebSocketServer()", function() {
       var sandbox;
       var stubHttpServer = require('http').createServer();
-      function fakeUpgradeHandler() {};
+      function fakeUpgradeHandler() {}
 
       beforeEach(function() {
         presence._createWebSocketServer();
