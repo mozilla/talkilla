@@ -1,23 +1,26 @@
+---
 language: node_js
-
 node_js:
-  - '0.8'
-
+- '0.8'
 notifications:
   irc:
     channels:
-      - "irc.mozilla.org#WebRTC-Apps"
+    - "irc.mozilla.org#WebRTC-Apps"
     use_notice: false
     skip_join: false
   email:
-    - talkilla-travis-results@mozilla.com
-
+  - talkilla-travis-results@mozilla.com
 env:
   global:
-    - SAUCE_ENABLED=1
-    - secure: "Hi1OodK5gucG1fH0NRe59rj3NYUFu/dmpyzvVGCSXXdAdW9e+EseoSDuCxnA\n7xuENPZaYKUQayQbYQXHjkwMbcyXd3cOhUxqpAUa+ubmvO2kM95XbhOHYNPJ\nSD5lfyWGoz0Dw/Jh1vcJR1LFO74pvsYouSETIl++tApPocnjBG0="
-    - secure: "KhmOajGeM6/cackVeztMN3kBmlsA0l4O5fqPNPWxxMzYmjMJegJjNYgTd92I\nmn/ZDRezbjUG6JmypPiD7jZI6D/4tM9t7drW9zdOzTkV1uQEWHZjqBL+Bbl3\nGXhtMYvrV4K5SmLEemc4LhZTrFWtBDhh2aXi5VXi92/4KYEcyxs="
-
+  - SAUCE_ENABLED=1
+  - secure: |-
+      f/+OzUEqCiQEBMPAlMtCYBZyIApfB/ZYAqC9NfefXGVkhtAhO0DM/X0Pv+js
+      UxANd7Lj1zgmSZeQbgLCN2ZwxwzvhfxFgrOPrEWVeU25MaEVvByv6b8e+k5D
+      E973oFsW/GXomDL/Z91HgXA50JWrvuxQUMTYZGASx0KIwkm3ojc=
+  - secure: |-
+      L28UrsUzPTddrK+oqO/vJRiUQWXqAycNLFZBNoaQCMMFZEhZ7OpH8bW9yRH3
+      gfvEGDcomC+hMThEkQDnkUfNflSv4wzT0+BVIpNvZpdJg2NWZW0RkxizSsqy
+      zqSGFg1zKfP6ihh+0HQ0fzQQrD55RGtW/8Im6XClspynaobS/nM=
 before_script:
-  - echo $SAUCE_USERNAME
-  - make setup_sauce_connect
+- echo $SAUCE_USERNAME
+- make setup_sauce_connect
