@@ -5,7 +5,7 @@ node_js:
 notifications:
   irc:
     channels:
-    - "irc.mozilla.org#WebRTC-Apps"
+    - irc.mozilla.org#WebRTC-Apps
     use_notice: false
     skip_join: false
   email:
@@ -14,13 +14,9 @@ env:
   global:
   - SAUCE_ENABLED=1
   - secure: |-
-      f/+OzUEqCiQEBMPAlMtCYBZyIApfB/ZYAqC9NfefXGVkhtAhO0DM/X0Pv+js
-      UxANd7Lj1zgmSZeQbgLCN2ZwxwzvhfxFgrOPrEWVeU25MaEVvByv6b8e+k5D
-      E973oFsW/GXomDL/Z91HgXA50JWrvuxQUMTYZGASx0KIwkm3ojc=
-  - secure: |-
-      L28UrsUzPTddrK+oqO/vJRiUQWXqAycNLFZBNoaQCMMFZEhZ7OpH8bW9yRH3
-      gfvEGDcomC+hMThEkQDnkUfNflSv4wzT0+BVIpNvZpdJg2NWZW0RkxizSsqy
-      zqSGFg1zKfP6ihh+0HQ0fzQQrD55RGtW/8Im6XClspynaobS/nM=
+      dFKzfkg4PbWe6LpHpzG7qLygrzV90b7clkohxfch4IQo4F29hjPf7cx3SbiQ
+      BJZLblk1IG8zqdp2RaDi8w9qwc9sqLIQETTVbSgiQLXDxy6j9/BDDiS8yHN5
+      YSmmYBlcCf+2mPq/1HWnYzm08UYh7LZRq4kT1RvcRTaLqB61VD4=
 before_script:
 - echo $SAUCE_USERNAME
 - make setup_sauce_connect
