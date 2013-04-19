@@ -14,13 +14,9 @@ env:
   global:
   - SAUCE_ENABLED=1
   - secure: |-
-      IZeWIED2kQ8uYKTnqAchaz38iZRdGz/2uhViSYdN0pJ++AUQKayZOApaFxh+
-      KxJO3yhRYvagvRbdWFzfQtWnc60yHdnaASx81L3Pd4eUXzp8gmGtdy/BErqp
-      wGt2dnlYKP/qp/vfV8m59T/0VjEWyFi4lAfjc/JATs9bOJOaP8o=
-  - secure: |-
-      bwBSEBXy8abH27be5u2WgzBga2yfCVo7U5NsXLvZtVV0uuid6nWV9hfRAcmS
-      V1zwiuyI+FnpaEFHaEChA5IJXXQQ6wG3BujMAyTgfvBPHob0xzvDzVsBbF3K
-      guxDaq330r+nXSzL2BoJJZYaK+1QA1eNqK+jqEaomaQ9cet7APY=
+      ereD3o9KoVDdWL8Kh8HEbI7PA8bwi2spyc8SF3K2OqEhpq67Fay4p6uutBBx
+      4Qvk3Elw2mJwc5U+KYoKeO6GzVs3gcTBtxwuMVHM3o+snMnP5fDw1TQcMSNY
+      igTqjf1332Qj6J6+NJjGxrChbY4mkwELQqnXpxrrsnVWf47kqwc=
 before_script:
-- echo "username: $SAUCE_USERNAME"
+- echo $SAUCE_USERNAME
 - make setup_sauce_connect
