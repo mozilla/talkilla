@@ -99,6 +99,7 @@ describe("Server", function() {
     describe("#_configureWebSocketServer()", function() {
       var sandbox;
       var stubHttpServer = require('http').createServer();
+      function fakeUpgradeHandler() {};
 
       beforeEach(function() {
         presence._createWebSocketServer();
@@ -113,14 +114,16 @@ describe("Server", function() {
       });
 
       it('should not throw if a callback is not passed', function() {
-        expect(presence._configureWebSocketServer(stubHttpServer)).to.not.Throw;
+        expect(presence._configureWebSocketServer(stubHttpServer,
+          fakeUpgradeHandler)).to.not.Throw;
       });
 
       it('should call a passed callback once with no arguments',
         function(done) {
           var callback = sinon.spy(done);
 
-          presence._configureWebSocketServer(stubHttpServer, callback);
+          presence._configureWebSocketServer(stubHttpServer,
+            fakeUpgradeHandler, callback);
 
           expect(callback).to.have.been.called.once;
           expect(callback).to.always.have.been.calledWithExactly();
@@ -132,7 +135,7 @@ describe("Server", function() {
           expect(presence._wss.listeners('error').length).to.equal(0);
           expect(presence._wss.listeners('close').length).to.equal(0);
 
-          presence._configureWebSocketServer(stubHttpServer,
+          presence._configureWebSocketServer(stubHttpServer, fakeUpgradeHandler,
             function() {
               expect(presence._wss.listeners('error').length).to.equal(1);
               expect(presence._wss.listeners('close').length).to.equal(1);
@@ -143,9 +146,10 @@ describe("Server", function() {
       it('should add an upgrade handler to the http server',
         function(done) {
 
-          presence._configureWebSocketServer(stubHttpServer,
+          presence._configureWebSocketServer(stubHttpServer, fakeUpgradeHandler,
             function() {
-              expect(stubHttpServer.on).to.have.been.calledWith('upgrade');
+              expect(stubHttpServer.on).to.have.been.
+                calledWithExactly('upgrade', fakeUpgradeHandler);
               done();
             });
         });

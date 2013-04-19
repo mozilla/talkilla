@@ -208,6 +208,32 @@ function configureWs(ws) {
   return ws;
 }
 
+function httpUpgradeHandler(req, socket, upgradeHead) {
+  var users = app.get('users');
+  var nick = url.parse(req.url, true).query.nick;
+  var res = new http.ServerResponse(req);
+
+  if (!(nick in users)) {
+    res.assignSocket(socket);
+    res.statusCode = 400;
+    res.end();
+  }
+
+  module.exports._wss.handleUpgrade(req, socket, upgradeHead, function(ws) {
+    // attach the WebSocket to the user
+    // XXX: The user could be signed out at this point
+    var users = app.get('users');
+    users[nick].ws = configureWs(ws);
+    app.set('users', users);
+
+    Object.keys(users).forEach(function(nick) {
+      var user = users[nick];
+      if (user.ws)
+        user.ws.send(JSON.stringify({users: _usersToArray(users)}));
+    });
+  });
+}
+
 function _createWebSocketServer() {
   module.exports._wss = new WebSocketServer({noServer: true});
 }
@@ -217,32 +243,8 @@ function _destroyWebSocketServer() {
   module.exports._wss.close();
 }
 
-function _configureWebSocketServer(httpServer, callback) {
-  httpServer.on('upgrade', function(req, socket, upgradeHead) {
-    var users = app.get('users');
-    var nick = url.parse(req.url, true).query.nick;
-    var res = new http.ServerResponse(req);
-
-    if (!(nick in users)) {
-      res.assignSocket(socket);
-      res.statusCode = 400;
-      res.end();
-    }
-
-    module.exports._wss.handleUpgrade(req, socket, upgradeHead, function(ws) {
-      // attach the WebSocket to the user
-      // XXX: The user could be signed out at this point
-      var users = app.get('users');
-      users[nick].ws = configureWs(ws);
-      app.set('users', users);
-
-      Object.keys(users).forEach(function(nick) {
-        var user = users[nick];
-        if (user.ws)
-          user.ws.send(JSON.stringify({users: _usersToArray(users)}));
-      });
-    });
-  });
+function _configureWebSocketServer(httpServer, httpUpgradeHandler, callback) {
+  httpServer.on('upgrade', httpUpgradeHandler);
 
   module.exports._wss.on('error', function(err) {
     console.log("WebSocketServer error: " + err);
@@ -260,7 +262,7 @@ app.start = function(serverPort, callback) {
   server = http.createServer(this);
   _createWebSocketServer();
   server.listen(serverPort,
-    _configureWebSocketServer.bind(this, server, callback));
+    _configureWebSocketServer.bind(this, server, httpUpgradeHandler, callback));
 };
 
 app.shutdown = function(callback) {
