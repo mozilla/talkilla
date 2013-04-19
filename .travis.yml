@@ -14,8 +14,8 @@ env:
   global:
   - SAUCE_ENABLED=1
   - secure: |-
-      XO3NJm5kyoXuFRB3VMN6mZbJFa8YxFcNERTeZN4CIMGI7RNUakFxBlIbFIBV
-      hrYKmQNFtkJkjQXlg9b+Ib2jQJegr5ATYHYY1U2rUDX0PHjQ8LnNv3toeBRR
-      qrx0mJ7Mm6k84BjvdHnj103wHX6jCf73eGgj8wl+2dLljbH9knQ=
+      gUR1t54iBeOGiMeIdsqmmGOrTwuWzehdvT4nMsYt6rk9+BiglT4TtsyYBb1f
+      vrJpSBLklJPqCEB6nNBjN9AOOCH73IBHXNvlTcFEgV7psBdkk4nTorRNJ1R9
+      rCFYq1bcYpXjJXTA0bU4NhgXhK13hQoX3+KVXLfCAzmEIgkCXaU=
 before_script:
 - make setup_sauce_connect
