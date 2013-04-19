@@ -18,9 +18,4 @@ env:
       hrYKmQNFtkJkjQXlg9b+Ib2jQJegr5ATYHYY1U2rUDX0PHjQ8LnNv3toeBRR
       qrx0mJ7Mm6k84BjvdHnj103wHX6jCf73eGgj8wl+2dLljbH9knQ=
 before_script:
-- echo start
-- echo $SAUCE_ENABLED
-- echo $SECURE_ENV_TEST
-- echo stop
-- printenv
 - make setup_sauce_connect

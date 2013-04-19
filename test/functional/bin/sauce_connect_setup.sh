@@ -11,6 +11,12 @@ CONNECT_DIR="/tmp/sauce-connect-$RANDOM"
 CONNECT_DOWNLOAD="Sauce_Connect.zip"
 READY_FILE="connect-ready-$RANDOM"
 
+echo start
+echo $SAUCE_ENABLED
+echo $SECURE_ENV_TEST
+echo stop
+printenv
+
 # Get Connect
 if [ ! -f Sauce-Connect.jar ]
 then
