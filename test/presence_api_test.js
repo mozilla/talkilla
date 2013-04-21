@@ -2,7 +2,7 @@
 /* jshint expr:true */
 
 /* The intent is for this to only add unit tests to this file going forward.
- *st
+ *
  * XXX Before long, we're going to want to create a home for backend functional
  * tests, and move many of the tests that current live in this file there.
  */
