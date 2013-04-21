@@ -1,11 +1,20 @@
 /* global describe, it, beforeEach, afterEach */
 /* jshint expr:true */
 
-var expect = require("chai").expect;
+/* The intent is for this to only add unit tests to this file going forward.
+ *
+ * XXX Before long, we're going to want to create a home for backend functional
+ * tests, and move many of the tests that current live in this file there.
+ */
+var chai = require("chai");
+var expect = chai.expect;
+var sinon = require("sinon");
+
 var request = require("request");
-var app = require("../presence").app;
-var findNewNick = require("../presence").findNewNick;
-var _usersToArray = require("../presence")._usersToArray;
+var presence = require("../presence");
+var app = presence.app;
+var findNewNick = presence.findNewNick;
+var _usersToArray = presence._usersToArray;
 
 /* The "browser" variable predefines for jshint include WebSocket,
  * causes jshint to blow up here.  We should probably structure things
@@ -13,6 +22,7 @@ var _usersToArray = require("../presence")._usersToArray;
  * for the node code at some point.  In the meantime, disable warning */
 /* jshint -W079 */
 var WebSocket = require('ws');
+var WebSocketServer = require('ws').Server;
 
 var webSocket;
 
@@ -40,6 +50,120 @@ describe("Server", function() {
 
   describe("startup & shutdown", function() {
 
+    describe("#_createWebSocketServer()", function() {
+      it('should populate the exported _wss symbol with a new WebSocketServer',
+        function() {
+          var oldWss = presence._wss;
+
+          presence._createWebSocketServer();
+
+          expect(presence._wss).to.be.an.instanceOf(WebSocketServer);
+          expect(presence._wss).to.not.equal(oldWss);
+
+          presence._destroyWebSocketServer();
+        });
+    });
+
+    describe("#_destroyWebSocketServer()", function() {
+      var sandbox;
+
+      beforeEach(function () {
+        sandbox = sinon.sandbox.create();
+        presence._createWebSocketServer();
+      });
+
+      afterEach(function () {
+        sandbox.restore();
+      });
+
+      it('should remove all listeners from the web socket server',
+        function() {
+          sandbox.stub(presence._wss, "removeAllListeners");
+
+          presence._destroyWebSocketServer();
+          sinon.assert.calledOnce(presence._wss.removeAllListeners);
+          sinon.assert.calledWithExactly(presence._wss.removeAllListeners);
+        });
+
+      it('should close the server', function() {
+        sandbox.stub(presence._wss, "close");
+
+        presence._destroyWebSocketServer();
+        sinon.assert.calledOnce(presence._wss.close);
+        sinon.assert.calledWithExactly(presence._wss.close);
+      });
+    });
+
+    describe("#_configureWebSocketServer()", function() {
+      function fakeUpgradeHandler() {}
+      var sandbox;
+      var stubHttpServer = require('http').createServer();
+      // XXX as of Sinon 1.6.x, Object.defineProperty getters and
+      // setters aren't supported, and stubbing inadvertently trips
+      // on them.  In this case, it causes a deprecation warning in a function
+      // we don't use, because NodejS uses Object.defineProperty to
+      // trigger deprecation warnings.  I've reopened a discussion in
+      // <https://github.com/cjohansen/Sinon.JS/issues/256> to try and convince
+      // the author to add support.
+      //
+      // In the meantime, working around the problem by deleting the deprecated
+      // property before Sinon installs its stubs.
+      //delete stubHttpServer.connections;
+
+      beforeEach(function() {
+        presence._createWebSocketServer();
+
+        sandbox = sinon.sandbox.create();
+        sandbox.stub(stubHttpServer, "on");
+      });
+
+      afterEach(function() {
+        sandbox.restore();
+        presence._destroyWebSocketServer();
+      });
+
+      it('should not throw if a callback is not passed', function() {
+        expect(presence._configureWebSocketServer(stubHttpServer,
+          fakeUpgradeHandler)).to.not.Throw;
+      });
+
+      it('should call a passed callback once with no arguments',
+        function(done) {
+          var callback = sinon.spy(done);
+
+          presence._configureWebSocketServer(stubHttpServer,
+            fakeUpgradeHandler, callback);
+
+          sinon.assert.calledOnce(callback);
+          sinon.assert.calledWithExactly(callback);
+        }
+      );
+
+      it('should add error and close handlers to the websocket server',
+        function(done) {
+          expect(presence._wss.listeners('error').length).to.equal(0);
+          expect(presence._wss.listeners('close').length).to.equal(0);
+
+          presence._configureWebSocketServer(stubHttpServer, fakeUpgradeHandler,
+            function() {
+              expect(presence._wss.listeners('error').length).to.equal(1);
+              expect(presence._wss.listeners('close').length).to.equal(1);
+              done();
+            });
+        });
+
+      it('should add an upgrade handler to the http server',
+        function(done) {
+
+          presence._configureWebSocketServer(stubHttpServer, fakeUpgradeHandler,
+            function() {
+              sinon.assert.calledWithExactly(stubHttpServer.on, 'upgrade',
+                fakeUpgradeHandler);
+              done();
+            });
+        });
+    });
+
     it("should answer requests on a given port after start() completes",
       function(done) {
         var retVal = app.start(serverPort, function() {
@@ -59,9 +183,6 @@ describe("Server", function() {
         expect(retVal).to.equal(undefined);
       });
 
-    // implementing the following test, fixing bugs that it finds (there is
-    // definitely at least one), and fixing the afterEach hook in this file
-    // should get rid of random shutdown-related test failures.
     it("should refuse requests after shutdown() completes");
   });
 
