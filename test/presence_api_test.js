@@ -2,15 +2,13 @@
 /* jshint expr:true */
 
 /* The intent is for this to only add unit tests to this file going forward.
- *
+ *st
  * XXX Before long, we're going to want to create a home for backend functional
  * tests, and move many of the tests that current live in this file there.
  */
 var chai = require("chai");
 var expect = chai.expect;
-var sinon = require("sinon"); // XXX can sinon-chai re-export this?
-var sinonChai = require("sinon-chai");
-chai.use(sinonChai);
+var sinon = require("sinon");
 
 var request = require("request");
 var presence = require("../presence");
@@ -80,19 +78,19 @@ describe("Server", function() {
 
       it('should remove all listeners from the web socket server',
         function() {
-          sandbox.stub(presence._wss);
+          sandbox.stub(presence._wss, "removeAllListeners");
 
           presence._destroyWebSocketServer();
-          expect(presence._wss.removeAllListeners).to.have.been.called.once;
-          expect(presence._wss.removeAllListeners).to.have.been.
-            calledWithExactly();
+          sinon.assert.calledOnce(presence._wss.removeAllListeners);
+          sinon.assert.calledWithExactly(presence._wss.removeAllListeners);
         });
 
       it('should close the server', function() {
-        sandbox.stub(presence._wss);
+        sandbox.stub(presence._wss, "close");
 
         presence._destroyWebSocketServer();
-        expect(presence._wss.close).to.have.been.called.once;
+        sinon.assert.calledOnce(presence._wss.close);
+        sinon.assert.calledWithExactly(presence._wss.close);
       });
     });
 
@@ -110,13 +108,13 @@ describe("Server", function() {
       //
       // In the meantime, working around the problem by deleting the deprecated
       // property before Sinon installs its stubs.
-      delete stubHttpServer.connections;
+      //delete stubHttpServer.connections;
 
       beforeEach(function() {
         presence._createWebSocketServer();
 
         sandbox = sinon.sandbox.create();
-        sandbox.stub(stubHttpServer);
+        sandbox.stub(stubHttpServer, "on");
       });
 
       afterEach(function() {
@@ -136,8 +134,8 @@ describe("Server", function() {
           presence._configureWebSocketServer(stubHttpServer,
             fakeUpgradeHandler, callback);
 
-          expect(callback).to.have.been.called.once;
-          expect(callback).to.always.have.been.calledWithExactly();
+          sinon.assert.calledOnce(callback);
+          sinon.assert.calledWithExactly(callback);
         }
       );
 
@@ -159,8 +157,8 @@ describe("Server", function() {
 
           presence._configureWebSocketServer(stubHttpServer, fakeUpgradeHandler,
             function() {
-              expect(stubHttpServer.on).to.have.been.
-                calledWithExactly('upgrade', fakeUpgradeHandler);
+              sinon.assert.calledWithExactly(stubHttpServer.on, 'upgrade',
+                fakeUpgradeHandler);
               done();
             });
         });
