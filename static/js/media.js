@@ -8,19 +8,29 @@
   app.media.startPeerConnection = function(callee, offer, localVideo,
                                            remoteVideo, successCallback,
                                            errorCallback) {
-    var pc = getPeerConnection(remoteVideo);
+    // First of all, see if the user wants to let us use their media
+    getMedia(
+      localVideo,
 
-    if (!offer)
-      initiatePeerConnection(pc, callee, localVideo, remoteVideo,
+      function (localVideo, localStream) {
+        // They do, so setup the peer connection
+        var pc = getPeerConnection(localStream, remoteVideo);
+
+        if (!offer)
+          initiatePeerConnection(pc, callee, localVideo, remoteVideo,
+                                 successCallback, errorCallback);
+        else
+          joinPeerConnection(pc, callee, offer, localVideo, remoteVideo,
                              successCallback, errorCallback);
-    else
-      joinPeerConnection(pc, callee, offer, localVideo, remoteVideo,
-                         successCallback, errorCallback);
+      },
+
+      errorCallback);
   };
 
   app.media.addAnswerToPeerConnection = function (pc, answer, successCallback,
                                                   errorCallback) {
-    pc.setRemoteDescription(answer, successCallback, errorCallback);
+    pc.setRemoteDescription(new RTCSessionDescription(answer),
+                            successCallback, errorCallback);
   };
 
   app.media.closePeerConnection = function (pc, localVideo, remoteVideo) {
@@ -40,10 +50,24 @@
 
   function initiatePeerConnection(pc, callee, localVideo, remoteVideo,
                                   successCallback, errorCallback) {
-    function onSuccess(localVideo) {
-      pc.createOffer(function (offer) {
-        pc.setLocalDescription(offer, function () {
-          app.services.initiateCall(callee, offer);
+    pc.createOffer(function (offer) {
+      pc.setLocalDescription(offer, function () {
+        app.services.initiateCall(callee, offer);
+        successCallback(pc, localVideo, remoteVideo);
+      }, function (err) {
+        errorCallback(err);
+      });
+    }, function (err) {
+      errorCallback(err);
+    });
+  }
+
+  function joinPeerConnection(pc, caller, offer, localVideo, remoteVideo,
+                              successCallback, errorCallback) {
+    pc.setRemoteDescription(new RTCSessionDescription(offer), function () {
+      pc.createAnswer(function(answer) {
+        pc.setLocalDescription(answer, function() {
+          app.services.acceptCall(caller, answer);
           successCallback(pc, localVideo, remoteVideo);
         }, function (err) {
           errorCallback(err);
@@ -51,34 +75,12 @@
       }, function (err) {
         errorCallback(err);
       });
-    }
-
-    getMedia(pc, localVideo, onSuccess, errorCallback);
+    }, function (err) {
+      errorCallback(err);
+    });
   }
 
-  function joinPeerConnection(pc, caller, offer, localVideo, remoteVideo,
-                              successCallback, errorCallback) {
-    function onSuccess(localVideo) {
-      pc.setRemoteDescription(offer, function () {
-        pc.createAnswer(function(answer) {
-          pc.setLocalDescription(answer, function() {
-            app.services.acceptCall(caller, answer);
-            successCallback(pc, localVideo, remoteVideo);
-          }, function (err) {
-            errorCallback(err);
-          });
-        }, function (err) {
-          errorCallback(err);
-        });
-      }, function (err) {
-        errorCallback(err);
-      });
-    }
-
-    getMedia(pc, localVideo, onSuccess, errorCallback);
-  }
-
-  function getMedia(pc, localVideo, successCallback, errorCallback) {
+  function getMedia(localVideo, successCallback, errorCallback) {
     // TODO:
     // - handle asynchronicity (events?)
     navigator.mozGetUserMedia(
@@ -87,8 +89,9 @@
       function onSuccess(stream) {
         localVideo.mozSrcObject = stream;
         localVideo.play();
-        pc.addStream(localVideo.mozSrcObject);
-        successCallback(localVideo);
+        // Until Chrome implements srcObject, we can't use the
+        // localVideo to obtain the stream back.
+        successCallback(localVideo, stream);
       },
 
       function onError(err) {
@@ -97,18 +100,19 @@
     );
   }
 
-  function getPeerConnection(remoteVideo) {
-    // XXX For now, use the application default ICE servers
-    var pc = new window.mozRTCPeerConnection();
+  function getPeerConnection(localStream, remoteVideo) {
+    var pc = new mozRTCPeerConnection();
 
-    pc.onaddstream = function (obj) {
-      var type = obj.type;
+    pc.addStream(localStream);
+
+    pc.onaddstream = function (event) {
+      var type = event.type;
       if (type === "video") {
-        remoteVideo.mozSrcObject = obj.stream;
+        remoteVideo.mozSrcObject = event.stream;
         remoteVideo.play();
       } else {
-        app.utils.log("sender onaddstream of unknown type, obj = " +
-                      obj.toSource());
+        app.utils.log("sender onaddstream of unknown type, event = " +
+                      event.toSource());
       }
     };
 
