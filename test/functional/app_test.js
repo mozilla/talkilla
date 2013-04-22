@@ -8,10 +8,23 @@ var serverPort = 5000;
 var serverHost = "localhost";
 var serverHttpBase = 'http://' + serverHost + ':' + serverPort;
 
-var webdriver = require('selenium-webdriver'),
-    By = webdriver.By;
-
+var webdriver = require('selenium-webdriver');
+var By = webdriver.By;
+var testServerUrl = 'http://localhost:4444/wd/hub';
+var capabilities = {
+  name: "Talkilla Browser Tests",
+  browserName: 'firefox'
+};
 var driver;
+
+if (process.env.SAUCE_ENABLED) {
+  // use the Sauce Connect proxy server
+  testServerUrl = 'http://localhost:4445/wd/hub';
+  capabilities.name = "Travis build #" + process.env.TRAVIS_BUILD_NUMBER;
+  capabilities.build = process.env.TRAVIS_BUILD_NUMBER;
+  capabilities.username = process.env.SAUCE_USERNAME;
+  capabilities.accessKey = process.env.SAUCE_ACCESS_KEY;
+}
 
 describe("browser tests", function() {
   this.timeout(60000);
@@ -19,8 +32,8 @@ describe("browser tests", function() {
   before(function(done) {
     app.start(serverPort, function() {
       driver = new webdriver.Builder().
-        usingServer('http://localhost:4444/wd/hub').
-        withCapabilities({'browserName': 'firefox'}).
+        usingServer(testServerUrl).
+        withCapabilities(capabilities).
         build();
       done();
     });

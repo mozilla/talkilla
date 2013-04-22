@@ -1,13 +1,21 @@
+---
 language: node_js
-
 node_js:
- - "0.8"
-
+- '0.8'
 notifications:
   irc:
     channels:
-      - "irc.mozilla.org#WebRTC-Apps"
+    - irc.mozilla.org#WebRTC-Apps
     use_notice: false
     skip_join: false
   email:
-    - talkilla-travis-results@mozilla.com
+  - talkilla-travis-results@mozilla.com
+env:
+  global:
+  - SAUCE_ENABLED=1
+  - secure: |-
+      AgkUxIF2/y+F6pGYgQHEnAWKwcV+Re91Zx0jyJVO/oLq1TiDo+H0+X8BQIGU
+      ekiXmwCSDbtbV9daSvZFtZf9sIvMDNtaF7bt79ffpaga1a9SK0CtkMKFegcC
+      gnP0zLSFJol0fDL1RSgfHzUmfHbjYjKNJLeoh5fpTWRjZaT6BYo=
+before_script:
+- make setup_sauce_connect

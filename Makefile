@@ -1,4 +1,4 @@
-test: mocha jshint
+test: mocha jshint selenium
 
 install:
 	@npm install
@@ -11,6 +11,13 @@ mocha:
   # for any issues with the different configurations.
 	@env NODE_ENV=development ./node_modules/mocha/bin/mocha --reporter spec
 	@env NODE_ENV=production ./node_modules/mocha/bin/mocha --reporter spec
+
+selenium:
+	@env NODE_ENV=development ./node_modules/mocha/bin/mocha --reporter spec test/functional
+
+setup_sauce_connect:
+	# Used by the travis-ci configuration file
+	bash test/functional/bin/sauce_connect_setup.sh
 
 runserver:
 	@env NODE_ENV=production PORT=5000 node app.js
