@@ -10,31 +10,21 @@
    *
    * @param  {String}   callee      The id of the person to call
    * @param  {Object}   offer       Optional. sdp of the incoming call
-   * @param  {Object}   localVideo  The localVideo element to receive
-                                    the video
-   * @param  {Object}   remoteVideo The remoteVideo element to
-                                    display the video
-   * @param  {Function} successCb   Callback(peerConnection,
-   *                                         localVideo, remoteVideo)
+   * @param  {Function} successCb   Callback(peerConnection)
    * @param  {Function} errorCb     Callback(error)
    */
-  app.media.startPeerConnection = function(callee, offer, localVideo,
-                                           remoteVideo, successCb,
+  app.media.startPeerConnection = function(callee, offer, successCb,
                                            errorCb) {
     // First of all, see if the user wants to let us use their media
     getMedia(
-      localVideo,
-
-      function (localVideo, localStream) {
+      function (localStream) {
         // They do, so setup the peer connection
-        var pc = getPeerConnection(localStream, remoteVideo);
+        var pc = getPeerConnection(localStream);
 
         if (!offer)
-          initiatePeerConnection(pc, callee, localVideo, remoteVideo,
-                                 successCb, errorCb);
+          initiatePeerConnection(pc, callee, successCb, errorCb);
         else
-          joinPeerConnection(pc, callee, offer, localVideo, remoteVideo,
-                             successCb, errorCb);
+          joinPeerConnection(pc, callee, offer, successCb, errorCb);
       },
 
       errorCb);
@@ -77,12 +67,11 @@
       pc.close();
   };
 
-  function initiatePeerConnection(pc, callee, localVideo, remoteVideo,
-                                  successCb, errorCb) {
+  function initiatePeerConnection(pc, callee, successCb, errorCb) {
     pc.createOffer(function (offer) {
       pc.setLocalDescription(offer, function () {
         app.services.initiateCall(callee, offer);
-        successCb(pc, localVideo, remoteVideo);
+        successCb(pc);
       }, function (err) {
         errorCb(err);
       });
@@ -91,13 +80,12 @@
     });
   }
 
-  function joinPeerConnection(pc, caller, offer, localVideo, remoteVideo,
-                              successCb, errorCb) {
+  function joinPeerConnection(pc, caller, offer, successCb, errorCb) {
     pc.setRemoteDescription(new RTCSessionDescription(offer), function () {
       pc.createAnswer(function(answer) {
         pc.setLocalDescription(answer, function() {
           app.services.acceptCall(caller, answer);
-          successCb(pc, localVideo, remoteVideo);
+          successCb(pc);
         }, function (err) {
           errorCb(err);
         });
@@ -109,18 +97,15 @@
     });
   }
 
-  function getMedia(localVideo, successCb, errorCb) {
+  function getMedia(successCb, errorCb) {
     // TODO:
     // - handle asynchronicity (events?)
     navigator.mozGetUserMedia(
       {video: true, audio: true},
 
       function onSuccess(stream) {
-        localVideo.mozSrcObject = stream;
-        localVideo.play();
-        // Until Chrome implements srcObject, we can't use the
-        // localVideo to obtain the stream back.
-        successCb(localVideo, stream);
+        app.trigger("add_local_stream", stream);
+        successCb(stream);
       },
 
       function onError(err) {
@@ -129,7 +114,7 @@
     );
   }
 
-  function getPeerConnection(localStream, remoteVideo) {
+  function getPeerConnection(localStream) {
     var pc = new mozRTCPeerConnection();
 
     pc.addStream(localStream);
@@ -137,8 +122,7 @@
     pc.onaddstream = function (event) {
       var type = event.type;
       if (type === "video") {
-        remoteVideo.mozSrcObject = event.stream;
-        remoteVideo.play();
+        app.trigger("add_remote_stream", stream);
       } else {
         app.utils.log("sender onaddstream of unknown type, event = " +
                       event.toSource());
