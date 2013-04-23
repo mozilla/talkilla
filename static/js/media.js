@@ -49,20 +49,8 @@
    * a peer connection.
    *
    * @param {Object} pc          The peer connection to close
-   * @param {Object} localVideo  The localVideo element for the pc
-   * @param {Object} remoteVideo The remoteVideo element for the pc
    */
-  app.media.closePeerConnection = function (pc, localVideo, remoteVideo) {
-    if (localVideo && localVideo.mozSrcObject) {
-      if (pc)
-        pc.removeStream(localVideo.mozSrcObject);
-      localVideo.mozSrcObject.stop();
-      localVideo.mozSrcObject = null;
-    }
-    if (remoteVideo && remoteVideo.mozSrcObject) {
-      remoteVideo.pause();
-      remoteVideo.mozSrcObject = null;
-    }
+  app.media.closePeerConnection = function (pc) {
     if (pc)
       pc.close();
   };

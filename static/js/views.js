@@ -469,7 +469,17 @@
     hangup: function(event) {
       if (event)
         event.preventDefault();
-      app.media.closePeerConnection(this.pc, this.local, this.remote);
+
+      // Stop the media elements running
+      if (this.local.mozSrcObject) {
+        this.local.mozSrcObject.stop();
+        this.local.mozSrcObject = null;
+      }
+      this.remote.pause();
+      this.remote.mozSrcObject = null;
+
+      // Now close the peer connection
+      app.media.closePeerConnection(this.pc);
       this.pc = null;
       this.callee = undefined;
       app.router.navigate('', {trigger: true});
