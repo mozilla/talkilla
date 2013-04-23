@@ -1,4 +1,4 @@
-/* global Talkilla */
+/* global Talkilla, mozRTCSessionDescription, mozRTCPeerConnection */
 /**
  * Media setup and handling for Talkilla
  */
@@ -40,7 +40,7 @@
    */
   app.media.addAnswerToPeerConnection = function (pc, answer, successCb,
                                                   errorCb) {
-    pc.setRemoteDescription(new RTCSessionDescription(answer),
+    pc.setRemoteDescription(new mozRTCSessionDescription(answer),
                             successCb, errorCb);
   };
 
@@ -81,7 +81,7 @@
   }
 
   function joinPeerConnection(pc, caller, offer, successCb, errorCb) {
-    pc.setRemoteDescription(new RTCSessionDescription(offer), function () {
+    pc.setRemoteDescription(new mozRTCSessionDescription(offer), function () {
       pc.createAnswer(function(answer) {
         pc.setLocalDescription(answer, function() {
           app.services.acceptCall(caller, answer);
@@ -121,12 +121,11 @@
 
     pc.onaddstream = function (event) {
       var type = event.type;
-      if (type === "video") {
-        app.trigger("add_remote_stream", stream);
-      } else {
+      if (type === "video")
+        app.trigger("add_remote_stream", event.stream);
+      else
         app.utils.log("sender onaddstream of unknown type, event = " +
                       event.toSource());
-      }
     };
 
     return pc;
