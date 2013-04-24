@@ -11,6 +11,7 @@
     "ws": "0.4.x"
   },
   "devDependencies": {
+    "awsbox": "*",
     "mocha": "1.8.x",
     "chai": "1.5.x",
     "request": "2.16.x",
