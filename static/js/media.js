@@ -6,7 +6,7 @@
   "use strict";
 
   /**
-   * Sets up meida and then starts a peer connection for a communication.
+   * Sets up media and then starts a peer connection for a communication.
    *
    * @param  {String}   callee      The id of the person to call
    * @param  {Object}   offer       Optional. sdp of the incoming call
