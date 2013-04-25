@@ -3,6 +3,6 @@ var expect = chai.expect;
 
 describe("App", function() {
   it("Instance", function() {
-    expect(app).to.be.ok;
+    expect(!!app).to.equal(true);
   });
 });
