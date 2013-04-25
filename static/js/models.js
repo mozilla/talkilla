@@ -5,6 +5,23 @@
 (function(app, Backbone) {
   "use strict";
 
+  app.models.Call = Backbone.Model.extend({
+    initialize: function() {
+      this.state = StateMachine.create({
+        initial: 'ready',
+        events: [
+          {name: 'start',  from: 'ready',   to: 'pending'},
+          {name: 'accept', from: 'pending', to: 'ongoing'},
+          {name: 'hangup', from: '*',       to: 'terminated'}
+        ]
+      });
+
+      this.start = this.state.start.bind(this.state);
+      this.accept = this.state.accept.bind(this.state);
+      this.hangup = this.state.hangup.bind(this.state);
+    }
+  });
+
   app.models.IncomingCall = Backbone.Model.extend({
     defaults: {callee: undefined,
                caller: undefined,
@@ -31,4 +48,4 @@
   app.models.UserSet = Backbone.Collection.extend({
     model: app.models.User
   });
-})(Talkilla, Backbone);
+})(Talkilla, Backbone, StateMachine);
