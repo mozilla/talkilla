@@ -62,4 +62,10 @@ describe("Call", function() {
       });
 
   });
+
+  describe('#_onHangup', function (){
+      it('should call app.media.closePeerConnection', function() {
+
+      });
+  });
 });
