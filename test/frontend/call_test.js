@@ -65,7 +65,25 @@ describe("Call", function() {
 
   describe('#_onHangup', function (){
       it('should call app.media.closePeerConnection', function() {
+          var media = {closePeerConnection: sinon.spy()};
+          call._onHangup(media);
+          sinon.assert.calledOnce(media.closePeerConnection);
+      });
 
+      it("should set the peer connection to null", function() {
+          var media = {closePeerConnection: function() {}};
+          call._onHangup(media);
+          expect(call._pc).to.equal(null);
+      });
+
+      it("should set the callee to null", function() {
+          var media = {closePeerConnection: function() {}};
+          call._onHangup(media);
+          expect(call.callee).to.equal(null);
+      });
+
+      it("should cause app to trigger a hangup_done event", function() {
+        
       });
   });
 });

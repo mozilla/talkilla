@@ -19,6 +19,12 @@
       this.start = this.state.start.bind(this.state);
       this.accept = this.state.accept.bind(this.state);
       this.hangup = this.state.hangup.bind(this.state);
+    },
+
+    _onHangup: function(media) {
+      media.closePeerConnection();
+      this._pc = null;
+      this.callee = null;
     }
   });
 
