@@ -6,7 +6,7 @@ node_js:
 notifications:
   irc:
     channels:
-      - "irc.mozilla.org#WebRTC-Apps"
+      - "irc.mozilla.org#talkilla"
     use_notice: false
     skip_join: false
   email:
