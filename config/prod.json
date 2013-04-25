@@ -1,4 +1,4 @@
 {
   "DEBUG": false,
-  "WSURL": "ws://talkilla-stage.herokuapp.com/"
+  "WSURL": "ws://talkilla-stage.mozillalabs.com/"
 }
