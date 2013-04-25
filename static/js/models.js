@@ -1,4 +1,4 @@
-/* global Talkilla, Backbone */
+/* global Talkilla, Backbone, StateMachine */
 /**
  * Talkilla models and collections.
  */
