@@ -108,12 +108,7 @@
     pc.addStream(localStream);
 
     pc.onaddstream = function (event) {
-      var type = event.type;
-      if (type === "video")
-        app.trigger("add_remote_stream", event.stream);
-      else
-        app.utils.log("sender onaddstream of unknown type, event = " +
-                      event.toSource());
+      app.trigger("add_remote_stream", event.stream);
     };
 
     return pc;
