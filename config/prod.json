@@ -1,4 +1,4 @@
 {
   "DEBUG": false,
-  "WSURL": "ws://talkilla-stage.mozillalabs.com/"
+  "WSURL": "ws://talkilla.mozillalabs.com/"
 }
