@@ -465,11 +465,7 @@
     hangup: function(event) {
       if (event)
         event.preventDefault();
-      app.media.closePeerConnection(this.pc, this.local, this.remote);
-      this.pc = null;
-      this.callee = undefined;
       app.router.navigate('', {trigger: true});
-      app.trigger('hangup_done');
     },
 
     render: function() {

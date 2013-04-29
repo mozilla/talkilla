@@ -1,4 +1,4 @@
-/* global app, chai, describe, it, beforeEach */
+/* global app, chai, describe, it, beforeEach, afterEach, sinon */
 var expect = chai.expect;
 
 describe("Call", function() {
@@ -15,6 +15,14 @@ describe("Call", function() {
   it("it should have an initial state", function() {
     expect(call.state.current).to.equal('ready');
   });
+
+  // XXX test that getting some event from view sets _localStream
+
+  // XXX test that getting some event from ???? sets remoteStream
+
+  // XXX test that something sets _pc for incoming calls
+
+  // XXX test that something sets _pc for outcoming calls
 
   describe("#start", function() {
 
@@ -79,8 +87,8 @@ describe("Call", function() {
       var media = {closePeerConnection: sinon.spy()};
       call._onHangup(media);
       sinon.assert.calledOnce(media.closePeerConnection);
-      sinon.assert.calledWith(media.closePeerConnection, XXXpc,
-        XXXlocalStream, XXXremoteStream)
+      sinon.assert.calledWithExactly(media.closePeerConnection, call._pc,
+        call._localStream, call._remoteStream);
     });
 
     it("should set the peer connection to null", function() {
