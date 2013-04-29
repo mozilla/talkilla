@@ -18,7 +18,7 @@ describe("Call", function() {
 
   // XXX test that getting some event from view sets _localStream
 
-  // XXX test that getting some event from ???? sets remoteStream
+  // XXX test that getting some event from services(?) sets _remoteStream
 
   // XXX test that something sets _pc for incoming calls
 
@@ -103,6 +103,24 @@ describe("Call", function() {
       expect(call.callee).to.equal(null);
     });
 
+    it("should set _localStream to null", function() {
+      call._localStream = undefined;
+      var media = {closePeerConnection: function() {}};
+
+      call._onHangup(media);
+
+      expect(call._localStream).to.equal(null);
+    });
+
+    it("should set _remoteStream to null", function() {
+      call._remoteStream = undefined;
+      var media = {closePeerConnection: function() {}};
+
+      call._onHangup(media);
+
+      expect(call._remoteStream).to.equal(null);
+    });
+
     it("should cause app to trigger a hangup_done event", function() {
       sandbox.stub(app, "trigger");
       var media = {closePeerConnection: function() {}};
@@ -110,5 +128,6 @@ describe("Call", function() {
       sinon.assert.calledOnce(app.trigger);
       sinon.assert.calledWithExactly(app.trigger, "hangup_done");
     });
+
   });
 });

@@ -29,6 +29,8 @@
       media.closePeerConnection(this._pc, this._localStream,
         this._remoteStream);
       this._pc = null;
+      this._remoteStream = null;
+      this._localStream = null;
       this.callee = null;
       app.trigger('hangup_done');
     }
