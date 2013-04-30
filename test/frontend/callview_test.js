@@ -44,7 +44,7 @@ describe("CallView", function() {
       sandbox.restore();
     });
 
-    it("should call hangup when the click event is fired on the hangup button",
+    it("should call hangup() when a click event is fired on the hangup button",
       function() {
         var el = $('<div><button class="btn-hangup"/></div>');
         $("#fixtures").append(el);
