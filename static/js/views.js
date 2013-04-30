@@ -397,6 +397,7 @@
     },
 
     initialize: function(options) {
+      this.call = options.call;
       this.callee = options && options.callee;
       app.trigger('hangup');
       this.local = $('#local-video').get(0);
@@ -420,7 +421,7 @@
       }.bind(this));
 
       // app events
-      app.on('hangup', function() {
+      app.on('hangup', function () {
         this.hangup();
         this.render();
       }.bind(this));
