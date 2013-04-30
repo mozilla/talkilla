@@ -2,7 +2,6 @@
 var expect = chai.expect;
 
 describe("CallView", function() {
-  var call;
   var callView;
   var sandbox;
 
