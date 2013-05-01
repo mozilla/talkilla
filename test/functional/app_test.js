@@ -1,7 +1,8 @@
 /* global describe, it, before, after */
 /* jshint expr:true */
 
-var app = require("../../presence").app;
+var presence = require("../../presence"),
+    app = presence.app;
 var expect = require("chai").expect;
 
 var serverPort = 5000;
@@ -60,6 +61,23 @@ describe("browser tests", function() {
     driver.findElement(By.id("signout")).isDisplayed().then(function(res) {
       expect(res).to.equal(false);
       done();
+    });
+  });
+
+  it("should handle an interuppted websocket connection", function(done) {
+    driver.get(serverHttpBase);
+    driver.findElement(By.name("nick")).sendKeys("bob");
+    driver.findElement(By.id("submit")).click();
+    driver.findElement(By.css("strong.nick")).getText().then(function(nick) {
+      expect(nick).to.equal('bob');
+    }).then(function() {
+      presence._destroyWebSocketServer();
+    }).then(function() {
+      driver.findElement(By.css("div.alert-warning")).getText()
+            .then(function(alert) {
+        expect(alert).to.contain('lost communication');
+        done();
+      });
     });
   });
 });
