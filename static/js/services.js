@@ -36,6 +36,21 @@
     };
 
     /**
+     * Socket closing
+     */
+    app.services.ws.onclose = function(reason) {
+      // XXX At some stage, we should be nicer than resetting everything
+      // i.e. we should try and get it back again. For now, we'll just
+      // notify the user so that they are aware.
+      // 1000 is CLOSE_NORMAL
+      if (reason.code !== 1000) {
+        app.utils.resetApp();
+        app.utils.notifyUI('Sorry, the browser lost communication with ' +
+                           'the server.');
+      }
+    };
+
+    /**
      * Message handling; app.services triggers an event for each object key
      * received and passes the corresponding data as the first arg to the
      * listener callback
