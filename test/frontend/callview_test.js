@@ -5,7 +5,6 @@ describe("CallView", function() {
   var callView;
   var sandbox;
 
-
   describe("#initialize", function() {
 
     beforeEach(function() {
@@ -20,16 +19,17 @@ describe("CallView", function() {
     });
 
     it("should attach a given call model to the view", function() {
-      var call = sandbox.spy();
-      callView = new app.views.CallView({call: call});
-      expect(callView.call).to.equal(call);
+      var callModel = sandbox.spy();
+
+      callView = new app.views.CallView({model: callModel});
+      expect(callView.model).to.equal(callModel);
     });
 
     it("should raise an error if we don't pass a call model", function() {
       function init() {
         new app.views.CallView();
       }
-      expect(init).to.Throw();
+      expect(init).to.Throw(Error);
     });
 
   });

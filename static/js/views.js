@@ -15,7 +15,7 @@
       this.notifications = new app.views.NotificationsView();
       this.login = new app.views.LoginView();
       this.users = new app.views.UsersView();
-      this.call = new app.views.CallView();
+      this.call = new app.views.CallView({model: new app.models.Call()});
     },
 
     render: function() {
@@ -397,8 +397,12 @@
     },
 
     initialize: function(options) {
-      this.call = options.call;
       this.callee = options && options.callee;
+
+      if (!(options && ('model' in options))) {
+        throw new Error('No model passed to CallView.initialize()');
+      }
+
       app.trigger('hangup');
       this.local = $('#local-video').get(0);
       this.remote = $('#remote-video').get(0);
