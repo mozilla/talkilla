@@ -241,6 +241,7 @@
     el: '#users',
 
     views: [],
+    activeNotification: null,
 
     initialize: function() {
       // refresh the users list on new received data
@@ -311,9 +312,17 @@
       else
         this.$el.hide();
       // show/hide invite if user is alone
-      if (this.collection.length === 1)
-        app.utils.notifyUI('You are the only person logged in, ' +
-                           'invite your friends.', 'info');
+      if (this.collection.length === 1) {
+        if (!this.activeNotification)
+          this.activeNotification =
+            app.utils.notifyUI('You are the only person logged in, ' +
+                                'invite your friends.', 'info');
+      }
+      else {
+        if (this.activeNotification)
+          this.activeNotification.clear();
+        this.activeNotification = null;
+      }
       return this;
     }
   });
@@ -435,6 +444,16 @@
         app.trigger('hangup');
         this.render();
       }.bind(this));
+
+      app.on('add_local_stream', function(stream) {
+        this.local.mozSrcObject = stream;
+        this.local.play();
+      }.bind(this));
+
+      app.on('add_remote_stream', function(stream) {
+        this.remote.mozSrcObject = stream;
+        this.remote.play();
+      }.bind(this));
     },
 
     /**
@@ -447,13 +466,7 @@
 
         this.offer,
 
-        this.local,
-
-        this.remote,
-
-        function onSuccess(pc, localVideo, remoteVideo) {
-          this.local = localVideo;
-          this.remote = remoteVideo;
+        function onSuccess(pc) {
           this.pc = pc;
           this.$('.btn-hangup').removeClass('disabled');
         }.bind(this),
@@ -470,6 +483,17 @@
     hangup: function(event) {
       if (event)
         event.preventDefault();
+
+      // Stop the media elements running
+      if (this.local.mozSrcObject) {
+        this.local.mozSrcObject.stop();
+        this.local.mozSrcObject = null;
+      }
+      this.remote.pause();
+      this.remote.mozSrcObject = null;
+
+      // XXX trigger "hangup" event on model here
+
       app.router.navigate('', {trigger: true});
     },
 

@@ -59,4 +59,8 @@ describe("CallView", function() {
       });
   });
 
+  describe("#hangup", function() {
+    it('should trigger a hangup event on the model');
+  });
+
 });
