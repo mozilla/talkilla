@@ -46,7 +46,8 @@ describe("browser tests", function() {
     driver.findElement(By.css("strong.nick")).getText().then(function(nick) {
       expect(nick).to.equal('bob');
     });
-    driver.findElement(By.css("div.alert-info")).getText().then(function(alert) {
+    driver.findElement(By.css("div.alert-info")).getText()
+          .then(function(alert) {
       expect(alert).to.contain('only person');
       done();
     });
