@@ -20,7 +20,11 @@ start() {
     java -jar $SELENIUM_JAR_FILENAME &>/dev/null &
     PID=$!
     echo $PID > $SELENIUM_PID_FILE
-    sleep 8
+    CODE="000"
+    while [ $CODE != "200" ]; do
+        CODE=$(curl -sL -w "%{http_code}" http://localhost:4444/wd/hub -o /dev/null)
+        sleep 0.1
+    done
     echo "Selenium server started"
 }
 
