@@ -241,6 +241,7 @@
     el: '#users',
 
     views: [],
+    activeNotification: null,
 
     initialize: function() {
       // refresh the users list on new received data
@@ -311,9 +312,17 @@
       else
         this.$el.hide();
       // show/hide invite if user is alone
-      if (this.collection.length === 1)
-        app.utils.notifyUI('You are the only person logged in, ' +
-                           'invite your friends.', 'info');
+      if (this.collection.length === 1) {
+        if (!this.activeNotification)
+          this.activeNotification =
+            app.utils.notifyUI('You are the only person logged in, ' +
+                                'invite your friends.', 'info');
+      }
+      else {
+        if (this.activeNotification)
+          this.activeNotification.clear();
+        this.activeNotification = null;
+      }
       return this;
     }
   });
@@ -370,11 +379,7 @@
       app.services.logout(function(err) {
         if (err)
           return app.utils.notifyUI(err, 'error');
-        // reset all app data
-        app.data = {};
-        app.trigger('signout');
-        app.router.navigate('', {trigger: true});
-        app.router.index();
+        app.resetApp();
       });
     }
   });

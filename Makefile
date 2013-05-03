@@ -1,4 +1,4 @@
-test: mocha jshint
+test: mocha jshint selenium
 
 install:
 	@npm install
@@ -17,6 +17,11 @@ runserver:
 
 runserver_dev:
 	@env NODE_ENV=development PORT=5000 node app.js
+
+selenium:
+	bin/selenium.sh start
+	@env NODE_ENV=development ./node_modules/mocha/bin/mocha test/functional/ --reporter spec
+	bin/selenium.sh stop
 
 .PHONY: test
 
