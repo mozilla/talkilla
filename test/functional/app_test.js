@@ -46,6 +46,10 @@ describe("browser tests", function() {
     driver.findElement(By.id("submit")).click();
     driver.findElement(By.css("strong.nick")).getText().then(function(nick) {
       expect(nick).to.equal('bob');
+    });
+    driver.findElement(By.css("div.alert-info")).getText()
+          .then(function(alert) {
+      expect(alert).to.contain('only person');
       done();
     });
   });
@@ -58,6 +62,9 @@ describe("browser tests", function() {
       expect(res).to.equal(true);
     });
     driver.findElement(By.css('#signout button')).click();
+    driver.findElements(By.css("div.alert-info")).then(function(res) {
+      expect(res).to.deep.equal([]);
+    });
     driver.findElement(By.id("signout")).isDisplayed().then(function(res) {
       expect(res).to.equal(false);
       done();

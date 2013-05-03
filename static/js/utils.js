@@ -43,5 +43,6 @@
       })
     });
     app.router.view.notifications.addNotification(notification);
+    return notification;
   };
 })(Talkilla);
