@@ -68,6 +68,17 @@ var Talkilla = (function($, Backbone, _) {
     }
   });
 
+  /**
+   * Resets the app to the signed out state.
+   */
+  app.resetApp = function() {
+    // reset all app data
+    app.data = {};
+    app.trigger('signout');
+    app.router.navigate('', {trigger: true});
+    app.router.index();
+  };
+
   // window event listeners
   window.onbeforeunload = function() {
     if (!app.data.user)
