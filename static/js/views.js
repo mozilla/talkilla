@@ -379,7 +379,7 @@
       app.services.logout(function(err) {
         if (err)
           return app.utils.notifyUI(err, 'error');
-        app.utils.resetApp();
+        app.resetApp();
       });
     }
   });

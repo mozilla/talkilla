@@ -44,7 +44,7 @@
       // notify the user so that they are aware.
       // 1000 is CLOSE_NORMAL
       if (reason.code !== 1000) {
-        app.utils.resetApp();
+        app.resetApp();
         app.utils.notifyUI('Sorry, the browser lost communication with ' +
                            'the server.');
       }

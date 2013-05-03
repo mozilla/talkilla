@@ -6,17 +6,6 @@
   "use strict";
 
   /**
-   * Resets the app to the signed out state.
-   */
-  app.utils.resetApp = function() {
-    // reset all app data
-    app.data = {};
-    app.trigger('signout');
-    app.router.navigate('', {trigger: true});
-    app.router.index();
-  };
-
-  /**
    * Logs any passed argument(s) to the browser console if `app.DEBUG` is true.
    */
   app.utils.log = function() {
