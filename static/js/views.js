@@ -379,11 +379,7 @@
       app.services.logout(function(err) {
         if (err)
           return app.utils.notifyUI(err, 'error');
-        // reset all app data
-        app.data = {};
-        app.trigger('signout');
-        app.router.navigate('', {trigger: true});
-        app.router.index();
+        app.resetApp();
       });
     }
   });
