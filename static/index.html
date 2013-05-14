@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Talkilla</title>
+  <link href="vendor/bootstrap-2.1.1/css/bootstrap.css" rel="stylesheet">
+  <link href="vendor/bootstrap-2.1.1/css/bootstrap-responsive.css" rel="stylesheet">
+  <link rel="stylesheet" media="all" href="css/style.css">
+</head>
+<body>
+  <div class="span9 main">
+    <h1 class="title">Welcome to Talkilla!</h1>
+    <div id="browser-firefox" hidden>
+      To get started on Talkilla, click the button to add it to Firefox:
+      <button onclick="browserDetection.activateSocial(this)">Activate Talkilla</button>
+    </div>
+    <div id="browser-unknown">
+      <p>We're sorry, but your browser does not have the necessary support for Talkilla. Talkilla currently only supports Firefox 23 or higher - we plan to support all WebRTC browsers in the future.</p>
+      <p><a href="https://www.mozilla.org/en-US/firefox/aurora/">Please download Firefox 23 from here</a> to try Talkilla.</p>
+  </div>
+  <script src="vendor/jquery-1.9.1.js"></script>
+  <script src="js/browserDetection.js"></script>
+  <script>
+    $(function() {
+      browserDetection.initialize();
+    });
+  </script>
+</body>
+</html>
