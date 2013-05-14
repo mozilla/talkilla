@@ -19,6 +19,20 @@
       this.start = this.state.start.bind(this.state);
       this.accept = this.state.accept.bind(this.state);
       this.hangup = this.state.hangup.bind(this.state);
+    },
+
+    _pc: null,
+    _localStream: null,
+    _remoteStream: null,
+
+    _onHangup: function(media) {
+      media.closePeerConnection(this._pc, this._localStream,
+        this._remoteStream);
+      this._pc = null;
+      this._remoteStream = null;
+      this._localStream = null;
+      this.callee = null;
+      app.trigger('hangup_done');
     }
   });
 

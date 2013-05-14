@@ -15,7 +15,7 @@
       this.notifications = new app.views.NotificationsView();
       this.login = new app.views.LoginView();
       this.users = new app.views.UsersView();
-      this.call = new app.views.CallView();
+      this.call = new app.views.CallView({model: new app.models.Call()});
     },
 
     render: function() {
@@ -403,6 +403,11 @@
 
     initialize: function(options) {
       this.callee = options && options.callee;
+
+      if (!(options && ('model' in options))) {
+        throw new Error('No model passed to CallView.initialize()');
+      }
+
       app.trigger('hangup');
       this.local = $('#local-video').get(0);
       this.remote = $('#remote-video').get(0);
@@ -425,7 +430,7 @@
       }.bind(this));
 
       // app events
-      app.on('hangup', function() {
+      app.on('hangup', function () {
         this.hangup();
         this.render();
       }.bind(this));
@@ -483,12 +488,9 @@
       this.remote.pause();
       this.remote.mozSrcObject = null;
 
-      // Now close the peer connection
-      app.media.closePeerConnection(this.pc);
-      this.pc = null;
-      this.callee = undefined;
+      // XXX trigger "hangup" event on model here
+
       app.router.navigate('', {trigger: true});
-      app.trigger('hangup_done');
     },
 
     render: function() {
