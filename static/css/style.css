@@ -11,7 +11,6 @@
  * Sidebar
  */
 .sidebar {
-  border-right: 1px solid #ccc;
   background: #FAF8F4;
 }
   .sidebar header {
@@ -26,7 +25,6 @@
       color: #818A8F;
     }
   .sidebar .users {
-    min-height: 10000px;
     overflow: auto;
   }
     .sidebar .users li a {
@@ -85,4 +83,11 @@
  */
 .alert .btn-cancel {
   float: right;
+}
+
+@media (max-width: 767px) {
+  body {
+    padding-right: 0;
+    padding-left: 0;
+  }
 }
