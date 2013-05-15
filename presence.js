@@ -58,6 +58,7 @@ exports.getConfigFromFile = getConfigFromFile;
 // development settings
 app.configure('development', function() {
   app.set('config', getConfigFromFile('dev.json'));
+  app.use('/test', express.static(__dirname + '/test'));
 });
 
 // production settings

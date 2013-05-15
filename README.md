@@ -68,6 +68,16 @@ Then run the tests:
 
     $ mocha test/functional
 
+Front-end Tests
+---------------
+
+To run the front-end unit tests:
+
+1. First make sure you are running the server in development mode:
+
+    $ make runserver_dev
+
+2. Visit http://localhost:5000/test/frontend/index.html
 
 Contribution
 ------------
