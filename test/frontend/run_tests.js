@@ -36,11 +36,15 @@ describe("frontend tests", function() {
     app.shutdown(done);
   });
 
-  it("should open the test page", function(done) {
+  it("should run the tests without failures", function(done) {
     driver.get(serverHttpBase);
     driver.getTitle().then(function(title) {
       expect(title).to.equal("Talkilla unit tests");
-      done();
+      driver.findElement(By.css('.failures > em')).getText()
+        .then(function(text){
+          expect(text).to.equal(String(0));
+          done();
+        });
     });
 
   });
