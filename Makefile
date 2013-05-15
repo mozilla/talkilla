@@ -19,9 +19,6 @@ runserver_dev:
 	@env NODE_ENV=development PORT=5000 node app.js
 
 selenium:
-	bin/selenium.sh start
-	@env NO_LOCAL_CONFIG=true NODE_ENV=development ./node_modules/mocha/bin/mocha test/functional/ --reporter spec
-	bin/selenium.sh stop
+	@env NO_LOCAL_CONFIG=true NODE_ENV=development bin/run_selenium_test.sh test/functional/
 
 .PHONY: test
-
