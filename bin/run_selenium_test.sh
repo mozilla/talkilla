@@ -5,7 +5,7 @@ DIR=`dirname $0`
 set -x
 
 $DIR/selenium.sh start
-./node_modules/mocha/bin/mocha $1 --reporter spec
+./node_modules/mocha/bin/mocha $@ --reporter spec
 RESULT=$?
 $DIR/selenium.sh stop
 
