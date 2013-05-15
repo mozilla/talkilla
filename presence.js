@@ -47,6 +47,7 @@ function getConfigFromFile(file) {
   if (!process.env.NO_LOCAL_CONFIG) {
     var localConfigFile = path.join(configRoot, 'local.json');
     if (fs.existsSync(localConfigFile)) {
+      console.log("Warning: using local.json");
       config = merge(config, JSON.parse(fs.readFileSync(localConfigFile)));
     }
   }
