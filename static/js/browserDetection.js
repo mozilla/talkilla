@@ -4,7 +4,7 @@
 var browserDetection = (function ($) {
   "use strict";
 
-  var app = window.app = {
+  var app = {
     loc: location.href,
     baseUrl: location.href.substring(0, location.href.lastIndexOf('/'))
   };
@@ -26,8 +26,8 @@ var browserDetection = (function ($) {
     return ua.contains('firefox') && rv > 23;
   };
 
-  app.activateSocial = function(node) {
-    var data = {
+  app.activateSocial = function(node, data) {
+    data = data || {
       // currently required
       "name": "Talkilla",
       "iconURL": this.baseUrl + "/talkilla16.png",
