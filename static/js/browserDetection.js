@@ -5,8 +5,6 @@ var browserDetection = (function ($) {
   "use strict";
 
   var app = {
-    loc: location.href,
-    baseUrl: location.href.substring(0, location.href.lastIndexOf('/'))
   };
 
   app.initialize = function() {
@@ -14,6 +12,8 @@ var browserDetection = (function ($) {
       $('#browser-firefox').show();
       $('#browser-unknown').hide();
     }
+
+    $('.title').text($('.title').text() + this._getHostSpecificText());
   };
 
   app.isSupportedFirefox = function() {
@@ -27,15 +27,17 @@ var browserDetection = (function ($) {
   };
 
   app.activateSocial = function(node, data) {
+    var baseUrl = location.href.substring(0, location.href.lastIndexOf('/'));
+
     data = data || {
       // currently required
-      "name": "Talkilla",
-      "iconURL": this.baseUrl + "/talkilla16.png",
-      "icon32URL": this.baseUrl + "/talkilla32.png",
-      "icon64URL": this.baseUrl + "/talkilla64.png",
+      "name": "Talkilla" + this._getHostSpecificText(),
+      "iconURL": baseUrl + "/talkilla16.png",
+      "icon32URL": baseUrl + "/talkilla32.png",
+      "icon64URL": baseUrl + "/talkilla64.png",
 
       // at least one of these must be defined
-      "sidebarURL": this.baseUrl + "/sidebar.html",
+      "sidebarURL": baseUrl + "/sidebar.html",
 
       // should be available for display purposes
       "description": "Talkilla Services",
@@ -46,6 +48,29 @@ var browserDetection = (function ($) {
     var event = new CustomEvent("ActivateSocialFeature");
     node.setAttribute("data-service", JSON.stringify(data));
     node.dispatchEvent(event);
+  };
+
+  /**
+   * This function looks to see if we're the main Talkilla site (currently
+   * expected to be talkilla.mozillalabs.com) and if we're not, it will return
+   * text that can be used to extend a string to specific where the site is.
+   *
+   * If the hostname is dotted, the function will return the first sub-domain
+   * listed, otherwise it will return the whole hostname.
+   */
+  app._getHostSpecificText = function() {
+    var hostname =
+      location.hostname.substring(0, location.hostname.indexOf('.'));
+    var result = location.hostname;
+    if (hostname) {
+      // If we're talkilla, no adaption necessary, just get out of here.
+      if (hostname === 'talkilla')
+        return "";
+
+      if (!parseInt(hostname, 10))
+        result = hostname;
+    }
+    return " (" + result + ")";
   };
 
   return app;
