@@ -261,6 +261,14 @@ function _configureWebSocketServer(httpServer, httpUpgradeHandler, callback) {
 app.start = function(serverPort, callback) {
   app.set('users', {});
 
+  var config = app.get('config');
+
+  if (!("WSURL" in config)) {
+    config.WSURL = "ws://localhost:" + serverPort;
+  }
+
+  app.set('config', config);
+
   server = http.createServer(this);
   _createWebSocketServer();
   server.listen(serverPort,

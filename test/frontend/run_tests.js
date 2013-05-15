@@ -5,7 +5,7 @@ var presence = require("../../presence"),
     app = presence.app;
 var expect = require("chai").expect;
 
-var serverPort = 5000;
+var serverPort = 3000;
 var serverHost = "localhost";
 // XXX For now, the sidebar page isn't really in the social sidebar,
 // so just add it.
