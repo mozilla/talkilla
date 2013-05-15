@@ -58,6 +58,7 @@ exports.getConfigFromFile = getConfigFromFile;
 // development settings
 app.configure('development', function() {
   app.set('config', getConfigFromFile('dev.json'));
+  app.use('/test', express.static(__dirname + '/test'));
 });
 
 // production settings
@@ -259,6 +260,14 @@ function _configureWebSocketServer(httpServer, httpUpgradeHandler, callback) {
 
 app.start = function(serverPort, callback) {
   app.set('users', {});
+
+  var config = app.get('config');
+
+  if (!("WSURL" in config)) {
+    config.WSURL = "ws://localhost:" + serverPort;
+  }
+
+  app.set('config', config);
 
   server = http.createServer(this);
   _createWebSocketServer();
