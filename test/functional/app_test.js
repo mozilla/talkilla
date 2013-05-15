@@ -45,7 +45,7 @@ describe("browser tests", function() {
   it("should open the homepage", function(done) {
     driver.get(serverHttpBase);
     driver.getTitle().then(function(title) {
-      expect(title).to.equal("Talkilla");
+      expect(title).to.equal("Talkilla Sidebar");
       done();
     });
   });

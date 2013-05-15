@@ -481,12 +481,14 @@
         event.preventDefault();
 
       // Stop the media elements running
-      if (this.local.mozSrcObject) {
+      if (this.local && this.local.mozSrcObject) {
         this.local.mozSrcObject.stop();
         this.local.mozSrcObject = null;
       }
-      this.remote.pause();
-      this.remote.mozSrcObject = null;
+      if (this.remote) {
+        this.remote.pause();
+        this.remote.mozSrcObject = null;
+      }
 
       // XXX trigger "hangup" event on model here
 
