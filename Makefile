@@ -20,7 +20,7 @@ runserver_dev:
 
 selenium:
 	bin/selenium.sh start
-	@env NODE_ENV=development ./node_modules/mocha/bin/mocha test/functional/ --reporter spec
+	@env NO_LOCAL_CONFIG=true NODE_ENV=development ./node_modules/mocha/bin/mocha test/functional/ --reporter spec
 	bin/selenium.sh stop
 
 .PHONY: test
