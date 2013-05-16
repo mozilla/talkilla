@@ -1,12 +1,5 @@
 /* jshint unused:false */
 
-function error(port, message) {
-  port.postMessage({
-    topic: 'talkilla.error',
-    data: message
-  });
-}
-
 function sendAjax(url, data, cb) {
   var xhr = new XMLHttpRequest();
   xhr.onload = function(event) {
@@ -21,45 +14,46 @@ function sendAjax(url, data, cb) {
 }
 
 var handlers = {
-  'talkilla.login': function(port, msg) {
+  'talkilla.login': function(msg) {
     if (!msg.data || !msg.data.username) {
-      port.postMessage({
-        topic: "talkilla.login-failure",
-        data: "no username specified"
-      });
+      this.postEvent("talkilla.login-failure",
+                     "no username specified");
       return;
     }
     else {
-      port.postMessage({
-        topic: "talkilla.login-pending",
-        data: null
-      });
+      this.postEvent("talkilla.login-pending", null);
 
       sendAjax('/signin', {nick: msg.data.username},
         function(err, responseText) {
           if (err)
-            return port.postMessage({
-              topic: 'talkilla.login-failure',
-              data: err
-            });
-          return port.postMessage({
-            topic: 'talkilla.login-success',
-            data: {username: JSON.parse(responseText).nick}
-          });
-        });
+            return this.postEvent('talkilla.login-failure', err);
+          return this.postEvent('talkilla.login-success',
+                                {username: JSON.parse(responseText).nick});
+        }.bind(this));
     }
   }
 };
 
-
-function onconnect(event) {
-  var port = event.ports[0];
-
-  port.onmessage = function(event) {
+function Port(port) {
+  this.port = port;
+  port.onmessage = this.onmessage.bind(this);
+}
+Port.prototype = {
+  onmessage: function(event) {
     var msg = event.data;
     if (msg && msg.topic && msg.topic in handlers)
-      handlers[msg.topic](port, msg);
+      handlers[msg.topic].call(this, msg);
     else
-      error(port, 'Topic is missing or unknown');
-  };
+      this.error('Topic is missing or unknown');
+  },
+  postEvent: function(topic, data) {
+    this.port.postMessage({topic: topic, data: data});
+  },
+  error: function(message) {
+    this.postEvent("talkilla.error", message);
+  }
+};
+
+function onconnect(event) {
+  new Port(event.ports[0]);
 }
