@@ -3,10 +3,13 @@
 function sendAjax(url, data, cb) {
   var xhr = new XMLHttpRequest();
   xhr.onload = function(event) {
-    cb(null, event.target.responseText);
+    // sinon.js can call us with a null event a second time, so just ignore it.
+    if (event && xhr.readyState === 4)
+      cb(null, xhr.responseText);
   };
   xhr.onerror = function(event) {
-    cb(event.target.status ? event.target.statusText : "We are offline");
+    if (event && event.target)
+      cb(event.target.status ? event.target.statusText : "We are offline");
   };
   xhr.open('POST', url, true);
   xhr.setRequestHeader("Content-Type", "application/json");
