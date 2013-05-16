@@ -1,5 +1,7 @@
 /* jshint unused:false */
 
+var appData = {};
+
 function sendAjax(url, data, cb) {
   var xhr = new XMLHttpRequest();
 
@@ -36,8 +38,29 @@ var handlers = {
         function(err, responseText) {
           if (err)
             return this.postEvent('talkilla.login-failure', err);
+
+          appData.username = JSON.parse(responseText).nick;
           return this.postEvent('talkilla.login-success',
-                                {username: JSON.parse(responseText).nick});
+                                {username: appData.username});
+        }.bind(this));
+    }
+  },
+  'talkilla.logout': function(msg) {
+    if (!('username' in appData)) {
+      this.postEvent("talkilla.logout-failure",
+                     "no username specified");
+      return;
+    }
+    else {
+      this.postEvent("talkilla.logout-pending", null);
+
+      sendAjax('/signout', {nick: appData.username},
+        function(err, responseText) {
+          if (err)
+            return this.postEvent('talkilla.logout-failure', err);
+
+          appData.username = null;
+          return this.postEvent('talkilla.logout-success');
         }.bind(this));
     }
   }
