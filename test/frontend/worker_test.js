@@ -7,5 +7,26 @@ if ('mozSocial' in navigator) {
     it("should be available", function() {
       expect(navigator.mozSocial.getWorker()).to.exist;
     });
+
+    var port = navigator.mozSocial.getWorker().port;
+
+    describe("#login", function() {
+      it("should respond with a failure message if i pass in bogus data",
+        function(done) {
+          port.onmessage = function(event) {
+            var topic = event.data.topic;
+            var data = event.data.data;
+            expect(topic).to.equal("talkilla.login-failure");
+            expect(data).to.be.not.empty;
+            done();
+          };
+
+          port.postMessage({topic: "talkilla.login", data: null});
+        });
+
+    });
+
+
   });
 }
+
