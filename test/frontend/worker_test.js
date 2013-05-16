@@ -24,6 +24,18 @@ if ('mozSocial' in navigator) {
           port.postMessage({topic: "talkilla.login", data: null});
         });
 
+      it("should respond with a pending message if I pass in valid data",
+        function(done) {
+          port.onmessage = function(event) {
+            var topic = event.data.topic;
+            var data = event.data.data;
+            expect(topic).to.equal("talkilla.login-pending");
+            expect(data).to.equal(null);
+            done();
+          };
+
+          port.postMessage({topic: "talkilla.login", data: {username: "jb"} });
+        });
     });
 
 
