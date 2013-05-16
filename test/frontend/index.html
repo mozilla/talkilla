@@ -26,6 +26,7 @@
   <script src="appview_test.js"></script>
   <script src="call_test.js"></script>
   <script src="callview_test.js"></script>
+  <script src="worker_test.js"></script>
   <script>
     mocha.run();
     jQuery(function($) {
@@ -34,7 +35,8 @@
         browserDetection.activateSocial(event.currentTarget, {
           name: "Talkilla Sidebar Tests",
           iconURL: document.location + "toto.png",
-          sidebarURL: document.location + "index.html"
+          sidebarURL: document.location + "index.html",
+          workerURL: document.location + "../../js/worker.js"
         });
       });
     });

@@ -38,6 +38,7 @@ var browserDetection = (function ($) {
 
       // at least one of these must be defined
       "sidebarURL": baseUrl + "/sidebar.html",
+      "workerURL": baseUrl + "/js/worker.js",
 
       // should be available for display purposes
       "description": "Talkilla Services",
