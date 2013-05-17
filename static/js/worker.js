@@ -29,17 +29,16 @@ var handlers = {
                      "no username specified");
       return;
     }
-    else {
-      this.postEvent("talkilla.login-pending", null);
 
-      sendAjax('/signin', {nick: msg.data.username},
-        function(err, responseText) {
-          if (err)
-            return this.postEvent('talkilla.login-failure', err);
-          return this.postEvent('talkilla.login-success',
-                                {username: JSON.parse(responseText).nick});
-        }.bind(this));
-    }
+    this.postEvent("talkilla.login-pending", null);
+
+    sendAjax('/signin', {nick: msg.data.username},
+      function(err, responseText) {
+        if (err)
+          return this.postEvent('talkilla.login-failure', err);
+        return this.postEvent('talkilla.login-success',
+                              {username: JSON.parse(responseText).nick});
+      }.bind(this));
   }
 };
 

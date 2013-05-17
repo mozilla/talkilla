@@ -76,8 +76,8 @@ describe('Worker', function() {
         });
         expect(requests.length).to.equal(1);
 
-        requests[0].respond(401, { 'Content-Type': 'application/json' },
-                            '{"nick":"jb"}' );
+        requests[0].respond(401, { 'Content-Type': 'text/plain' },
+                            'Not Authorised' );
 
         sinon.assert.calledTwice(handlers.postEvent);
         sinon.assert.calledWith(handlers.postEvent, "talkilla.login-failure");
