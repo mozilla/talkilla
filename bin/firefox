@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+cat `pwd`/test/prefs.js >> $XRE_PROFILE_PATH/user.js
+if [[ `uname` == "Darwin" ]]; then
+  /Applications/FirefoxNightly.app/Contents/MacOS/firefox-bin $@
+else
+  /usr/bin/firefox-nightly $@
+fi
