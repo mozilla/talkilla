@@ -31,19 +31,18 @@ var handlers = {
                      "no username specified");
       return;
     }
-    else {
-      this.postEvent("talkilla.login-pending", null);
 
-      sendAjax('/signin', {nick: msg.data.username},
-        function(err, responseText) {
-          if (err)
-            return this.postEvent('talkilla.login-failure', err);
+    this.postEvent("talkilla.login-pending", null);
 
-          appData.username = JSON.parse(responseText).nick;
-          return this.postEvent('talkilla.login-success',
-                                {username: appData.username});
-        }.bind(this));
-    }
+    sendAjax('/signin', {nick: msg.data.username},
+      function(err, responseText) {
+        if (err)
+          return this.postEvent('talkilla.login-failure', err);
+
+        appData.username = JSON.parse(responseText).nick;
+        return this.postEvent('talkilla.login-success',
+                              {username: appData.username});
+      }.bind(this));
   },
   'talkilla.logout': function(msg) {
     if (!('username' in appData)) {
@@ -51,18 +50,19 @@ var handlers = {
                      "no username specified");
       return;
     }
-    else {
-      this.postEvent("talkilla.logout-pending", null);
 
-      sendAjax('/signout', {nick: appData.username},
-        function(err, responseText) {
-          if (err)
-            return this.postEvent('talkilla.logout-failure', err);
+    this.postEvent("talkilla.logout-pending", null);
 
-          appData.username = null;
-          return this.postEvent('talkilla.logout-success');
-        }.bind(this));
-    }
+    // XXX We shouldn't really send the username here, but we'll redo this when
+    // we implement persistent connections.
+    sendAjax('/signout', {nick: appData.username},
+      function(err, responseText) {
+        if (err)
+          return this.postEvent('talkilla.logout-failure', err);
+
+        appData.username = null;
+        return this.postEvent('talkilla.logout-success');
+      }.bind(this));
   }
 };
 
