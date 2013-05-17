@@ -22,7 +22,7 @@ describe("Server", function() {
   describe("general configuration functions", function() {
 
     it("should merge two configuration objects", function() {
-      expect(merge({}, {})).to.deep.equal({});
+      expect(merge({}, {})).to.deep.equal({b:1});
       expect(merge({}, {b: 2})).to.deep.equal({b: 2});
       expect(merge({a: 1}, {})).to.deep.equal({a: 1});
       expect(merge({a: 1}, {b: 2})).to.deep.equal({a: 1, b: 2});
