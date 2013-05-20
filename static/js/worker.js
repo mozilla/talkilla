@@ -46,7 +46,7 @@ function Port(port) {
   this.port = port;
   this.id = port._portid;
   // configures this port
-  this.port.onmessage = this.onmessage.bind(this);
+  port.onmessage = this.onmessage.bind(this);
 }
 
 Port.prototype = {
@@ -68,7 +68,7 @@ Port.prototype = {
       handlers[msg.topic].call(this, msg);
     else
       this.error('Topic is missing or unknown');
-  }.bind(this),
+  },
 
   /**
    * Posts a message event.
