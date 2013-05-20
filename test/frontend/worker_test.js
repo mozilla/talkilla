@@ -1,5 +1,5 @@
 /* global afterEach, beforeEach, chai, describe, handlers, it, sinon,
-          Port, PortCollection */
+          Port, PortCollection, ports:true */
 /* jshint expr:true */
 var expect = chai.expect;
 
@@ -58,6 +58,16 @@ describe('Worker', function() {
       expect(Object.keys(coll.ports)).to.have.length.of(1);
     });
 
+    it("should be able to remove a port from the collection", function() {
+      var coll = new PortCollection();
+      var port1 = new Port({_portid: 1});
+      coll.add(port1);
+      coll.add(new Port({_portid: 2}));
+      expect(Object.keys(coll.ports)).to.have.length.of(2);
+      coll.remove(port1);
+      expect(Object.keys(coll.ports)).to.have.length.of(1);
+    });
+
     it("should find a port and post a message to it", function() {
       var coll = new PortCollection();
       var spy1 = sinon.spy();
@@ -91,6 +101,16 @@ describe('Worker', function() {
                               data: 'error'})).to.be.ok;
       expect(spy2.calledWith({topic: 'talkilla.error',
                               data: 'error'})).to.be.ok;
+    });
+  });
+
+  describe('Handlers', function() {
+    it("should remove a closed port from the current collection", function() {
+      ports = new PortCollection();
+      var port = new Port({_portid: 42});
+      ports.add(port);
+      handlers['social.port-closing'].bind(port)();
+      expect(Object.keys(ports.ports)).to.have.length.of(0);
     });
   });
 
