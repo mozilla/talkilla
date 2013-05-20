@@ -1,5 +1,7 @@
 /* jshint unused:false */
 
+var ports;
+
 function sendAjax(url, data, cb) {
   var xhr = new XMLHttpRequest();
 
@@ -42,26 +44,49 @@ var handlers = {
   }
 };
 
-function Port(port) {
-  this.port = port;
-  port.onmessage = this.onmessage.bind(this);
+function PortCollection() {
+  this.ports = [];
 }
-Port.prototype = {
-  onmessage: function(event) {
-    var msg = event.data;
-    if (msg && msg.topic && msg.topic in handlers)
-      handlers[msg.topic].call(this, msg);
-    else
-      this.error('Topic is missing or unknown');
+
+PortCollection.prototype = {
+  /**
+   * Configures and add a port to the stack.
+   * @param  {Port} port
+   */
+  add: function(port) {
+    // configures this port
+    port.onmessage = function(event) {
+      var msg = event.data;
+      if (msg && msg.topic && msg.topic in handlers)
+        handlers[msg.topic].call(this, msg);
+      else
+        this.error('Topic is missing or unknown');
+    }.bind(this);
+
+    // add it to the stack
+    this.ports.push(port);
   },
+
+  /**
+   * Broadcasts a message to all ports.
+   * @param  {String} topic
+   * @param  {Mixed}  data
+   */
   postEvent: function(topic, data) {
-    this.port.postMessage({topic: topic, data: data});
+    this.ports.forEach(function(port) {
+      port.postMessage({topic: topic, data: data});
+    });
   },
+
+  /**
+   * Broadcasts an error message to all ports.
+   * @param  {String} message
+   */
   error: function(message) {
     this.postEvent("talkilla.error", message);
   }
 };
 
 function onconnect(event) {
-  new Port(event.ports[0]);
+  ports = new PortCollection(event.ports[0]);
 }

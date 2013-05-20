@@ -1,8 +1,48 @@
-/* global afterEach, beforeEach, chai, describe, handlers, it, sinon */
+/* global afterEach, beforeEach, chai, describe, handlers, it, sinon,
+          PortCollection */
 /* jshint expr:true */
 var expect = chai.expect;
 
 describe('Worker', function() {
+  describe('PortCollection', function() {
+    it("should have empty port stack by default", function() {
+      expect(new PortCollection().ports).to.deep.equal([]);
+    });
+
+    it("should add a configured port to the stack", function() {
+      var coll = new PortCollection();
+      expect(coll.ports).to.have.length.of(0);
+      coll.add({});
+      expect(coll.ports).to.have.length.of(1);
+      expect(coll.ports[0]).to.be.a('object');
+      expect(coll.ports[0]).to.include.keys('onmessage');
+    });
+
+    it("should broadcast a message to all ports", function() {
+      var coll = new PortCollection();
+      var spy1 = sinon.spy();
+      var spy2 = sinon.spy();
+      coll.add({postMessage: spy1});
+      coll.add({postMessage: spy2});
+      coll.postEvent('foo', 'bar');
+      expect(spy1.calledWith({topic: 'foo', data: 'bar'})).to.be.ok;
+      expect(spy2.calledWith({topic: 'foo', data: 'bar'})).to.be.ok;
+    });
+
+    it("should broadcast an error to all ports", function() {
+      var coll = new PortCollection();
+      var spy1 = sinon.spy();
+      var spy2 = sinon.spy();
+      coll.add({postMessage: spy1});
+      coll.add({postMessage: spy2});
+      coll.error('error');
+      expect(spy1.calledWith({topic: 'talkilla.error',
+                              data: 'error'})).to.be.ok;
+      expect(spy2.calledWith({topic: 'talkilla.error',
+                              data: 'error'})).to.be.ok;
+    });
+  });
+
   describe("#login", function() {
     var xhr, requests, sandbox;
 
@@ -85,4 +125,3 @@ describe('Worker', function() {
       });
   });
 });
-
