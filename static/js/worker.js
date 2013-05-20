@@ -1,6 +1,17 @@
 /* jshint unused:false */
 
+var _presenceSocket;
 var ports;
+
+var _config = {};
+// XXX should TDD a loadConfig function to populate this
+
+function createPresenceSocket(nickname) {
+  "use strict";
+
+  _presenceSocket = new WebSocket(_config.WSURL + "?nick=" + nickname);
+
+}
 
 function sendAjax(url, data, cb) {
   var xhr = new XMLHttpRequest();

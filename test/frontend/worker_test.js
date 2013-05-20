@@ -1,9 +1,46 @@
-/* global afterEach, beforeEach, chai, describe, handlers, it, sinon,
-          Port, PortCollection, ports:true */
+/* global afterEach, beforeEach, chai, createPresenceSocket, describe,
+   handlers, it, sinon, Port, PortCollection, _config, _presenceSocket,
+   ports:true */
 /* jshint expr:true */
 var expect = chai.expect;
 
 describe('Worker', function() {
+
+  // XXX should populate the _config object from using AJAX load
+  //describe("#loadconfig");
+
+  describe('#createPresenceSocket', function() {
+    "use strict";
+
+    var sandbox;
+    var wsurl = "ws://example.com/";
+
+    beforeEach(function() {
+      sandbox = sinon.sandbox.create();
+      _config.WSURL = wsurl;
+      sandbox.stub(window, "WebSocket");
+    });
+
+    afterEach(function() {
+      sandbox.restore();
+    });
+
+    it("should create a socket with a URL from the nick and _config.WSURL",
+      function() {
+      expect(_presenceSocket).to.equal(undefined);
+
+      var nickname = "bill";
+      createPresenceSocket(nickname);
+
+      expect(_presenceSocket).to.be.an.instanceOf(WebSocket);
+
+      sinon.assert.calledOnce(WebSocket);
+      sinon.assert.calledWithExactly(WebSocket, wsurl + "?nick=" + nickname);
+      // XXX test onclose, onerrror, etc.
+    });
+
+  });
+
   describe('Port', function() {
     it("should accept and configure a port", function() {
       var port = new Port({_portid: 1});
@@ -162,6 +199,18 @@ describe('Worker', function() {
         expect(requests[0].requestBody).to.be.equal('{"nick":"jb"}');
       });
 
+    it.skip("should create the presence socket if I pass valid login data",
+      function() {
+        sandbox.stub(window, "createPresenceSocket"); // XXX
+        handlers['talkilla.login']({
+          topic: "talkilla.login",
+          data: {username: "jb"}
+        });
+
+        sinon.assert.calledOnce(createPresenceSocket);
+        sinon.assert.calledWithExactly("jb");
+      });
+
     it("should post a success message if the server accepted login",
       function() {
         handlers.postEvent = sinon.spy();
@@ -172,7 +221,7 @@ describe('Worker', function() {
         expect(requests.length).to.equal(1);
 
         requests[0].respond(200, { 'Content-Type': 'application/json' },
-                            '{"nick":"jb"}' );
+          '{"nick":"jb"}' );
 
         sinon.assert.calledTwice(handlers.postEvent);
         sinon.assert.calledWith(handlers.postEvent, "talkilla.login-success");
@@ -195,4 +244,14 @@ describe('Worker', function() {
 
       });
   });
+
+  describe("#logout", function() {
+    "use strict";
+    it('should tear down the websocket');
+  });
+
+  // XXX need to check that websocket torn down if connection lost,
+  // but that test doesn't really belong here.  Not sure where it wants
+  // to live
+
 });
