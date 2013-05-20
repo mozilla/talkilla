@@ -46,13 +46,7 @@ function Port(port) {
   this.port = port;
   this.id = port._portid;
   // configures this port
-  this.port.onmessage = function(event) {
-    var msg = event.data;
-    if (msg && msg.topic && msg.topic in handlers)
-      handlers[msg.topic].call(this, msg);
-    else
-      this.error('Topic is missing or unknown');
-  }.bind(this);
+  this.port.onmessage = this.onmessage.bind(this);
 }
 
 Port.prototype = {
@@ -63,6 +57,18 @@ Port.prototype = {
   error: function(error) {
     this.postEvent("talkilla.error", error);
   },
+
+  /**
+   * Port message listener.
+   * @param  {Event} event
+   */
+  onmessage: function(event) {
+    var msg = event.data;
+    if (msg && msg.topic && msg.topic in handlers)
+      handlers[msg.topic].call(this, msg);
+    else
+      this.error('Topic is missing or unknown');
+  }.bind(this),
 
   /**
    * Posts a message event.
