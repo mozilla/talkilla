@@ -44,8 +44,8 @@ var handlers = {
   }
 };
 
-function PortCollection() {
-  this.ports = [];
+function PortCollection(ports) {
+  this.ports = ports || [];
 }
 
 PortCollection.prototype = {
@@ -54,6 +54,8 @@ PortCollection.prototype = {
    * @param  {Port} port
    */
   add: function(port) {
+    if (this.findPort(port._portid))
+      return;
     // configures this port
     port.onmessage = function(event) {
       var msg = event.data;
@@ -68,14 +70,35 @@ PortCollection.prototype = {
   },
 
   /**
+   * Retrieves a port from the collection by its id.
+   * @param  {String} id
+   * @return {Port}
+   */
+  findPort: function(id) {
+    return this.ports.filter(function(port) {
+      return port._portid === id;
+    })[0];
+  },
+
+  /**
    * Broadcasts a message to all ports.
    * @param  {String} topic
    * @param  {Mixed}  data
    */
-  postEvent: function(topic, data) {
+  broadcastEvent: function(topic, data) {
     this.ports.forEach(function(port) {
       port.postMessage({topic: topic, data: data});
     });
+  },
+
+  /**
+   * Broadcasts a message to a given port.
+   * @param  {String} id
+   * @param  {String} topic
+   * @param  {Mixed}  data
+   */
+  postEvent: function(id, topic, data) {
+    this.findPort(id).postMessage({topic: topic, data: data});
   },
 
   /**
@@ -83,10 +106,10 @@ PortCollection.prototype = {
    * @param  {String} message
    */
   error: function(message) {
-    this.postEvent("talkilla.error", message);
+    this.broadcastEvent("talkilla.error", message);
   }
 };
 
 function onconnect(event) {
-  ports = new PortCollection(event.ports[0]);
+  ports = new PortCollection(event.ports);
 }

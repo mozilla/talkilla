@@ -18,13 +18,32 @@ describe('Worker', function() {
       expect(coll.ports[0]).to.include.keys('onmessage');
     });
 
+    it("should not add the same port twice", function() {
+      var coll = new PortCollection();
+      var port = {_portid: 1};
+      coll.add(port);
+      coll.add(port);
+      expect(coll.ports).to.have.length.of(1);
+    });
+
+    it("should post a message to a single port", function() {
+      var coll = new PortCollection();
+      var spy1 = sinon.spy();
+      var spy2 = sinon.spy();
+      coll.add({_portid: 1, postMessage: spy1});
+      coll.add({_portid: 2, postMessage: spy2});
+      coll.postEvent(2, 'foo', 'bar');
+      expect(spy1.called).to.equal(false);
+      expect(spy2.calledWith({topic: 'foo', data: 'bar'})).to.be.ok;
+    });
+
     it("should broadcast a message to all ports", function() {
       var coll = new PortCollection();
       var spy1 = sinon.spy();
       var spy2 = sinon.spy();
-      coll.add({postMessage: spy1});
-      coll.add({postMessage: spy2});
-      coll.postEvent('foo', 'bar');
+      coll.add({_portid: 1, postMessage: spy1});
+      coll.add({_portid: 2, postMessage: spy2});
+      coll.broadcastEvent('foo', 'bar');
       expect(spy1.calledWith({topic: 'foo', data: 'bar'})).to.be.ok;
       expect(spy2.calledWith({topic: 'foo', data: 'bar'})).to.be.ok;
     });
@@ -33,8 +52,8 @@ describe('Worker', function() {
       var coll = new PortCollection();
       var spy1 = sinon.spy();
       var spy2 = sinon.spy();
-      coll.add({postMessage: spy1});
-      coll.add({postMessage: spy2});
+      coll.add({_portid: 1, postMessage: spy1});
+      coll.add({_portid: 2, postMessage: spy2});
       coll.error('error');
       expect(spy1.calledWith({topic: 'talkilla.error',
                               data: 'error'})).to.be.ok;
