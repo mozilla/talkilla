@@ -1,5 +1,7 @@
 /* jshint unused:false */
 
+var ports;
+
 function sendAjax(url, data, cb) {
   var xhr = new XMLHttpRequest();
 
@@ -23,6 +25,12 @@ function sendAjax(url, data, cb) {
 }
 
 var handlers = {
+  // SocialAPI events
+  'social.port-closing': function() {
+    ports.remove(this);
+  },
+
+  // Talkilla events
   'talkilla.login': function(msg) {
     if (!msg.data || !msg.data.username) {
       this.postEvent("talkilla.login-failure",
@@ -96,6 +104,15 @@ PortCollection.prototype = {
   },
 
   /**
+   * Removes a port from this collection.
+   * @param  {Port} port
+   */
+  remove: function(port) {
+    if (port && port.id)
+      delete this.ports[port.id];
+  },
+
+  /**
    * Retrieves a port from the collection by its id.
    * @param  {String} id
    * @return {Port}
@@ -126,7 +143,7 @@ PortCollection.prototype = {
   }
 };
 
-var ports = new PortCollection();
+ports = new PortCollection();
 
 function onconnect(event) {
   ports.add(new Port(event.ports[0]));
