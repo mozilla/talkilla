@@ -44,9 +44,24 @@ var handlers = {
 
 function Port(port) {
   this.port = port;
+  this.id = port._portid;
+  // configures this port
   port.onmessage = this.onmessage.bind(this);
 }
+
 Port.prototype = {
+  /**
+   * Posts an error event.
+   * @param  {String} error
+   */
+  error: function(error) {
+    this.postEvent("talkilla.error", error);
+  },
+
+  /**
+   * Port message listener.
+   * @param  {Event} event
+   */
   onmessage: function(event) {
     var msg = event.data;
     if (msg && msg.topic && msg.topic in handlers)
@@ -54,14 +69,65 @@ Port.prototype = {
     else
       this.error('Topic is missing or unknown');
   },
+
+  /**
+   * Posts a message event.
+   * @param  {String} topic
+   * @param  {Mixed}  data
+   */
   postEvent: function(topic, data) {
     this.port.postMessage({topic: topic, data: data});
-  },
-  error: function(message) {
-    this.postEvent("talkilla.error", message);
   }
 };
 
+function PortCollection() {
+  this.ports = {};
+}
+
+PortCollection.prototype = {
+  /**
+   * Configures and add a port to the stack.
+   * @param  {Port} port
+   */
+  add: function(port) {
+    if (port.id in this.ports)
+      return;
+    this.ports[port.id] = port;
+  },
+
+  /**
+   * Retrieves a port from the collection by its id.
+   * @param  {String} id
+   * @return {Port}
+   */
+  find: function(id) {
+    return this.ports[id];
+  },
+
+  /**
+   * Broadcasts a message to all ports.
+   * @param  {String} topic
+   * @param  {Mixed}  data
+   */
+  broadcastEvent: function(topic, data) {
+    for (var id in this.ports) {
+      this.ports[id].postEvent(topic, data);
+    }
+  },
+
+  /**
+   * Broadcasts an error message to all ports.
+   * @param  {String} message
+   */
+  broadcastError: function(message) {
+    for (var id in this.ports) {
+      this.ports[id].error(message);
+    }
+  }
+};
+
+var ports = new PortCollection();
+
 function onconnect(event) {
-  new Port(event.ports[0]);
+  ports.add(new Port(event.ports[0]));
 }
