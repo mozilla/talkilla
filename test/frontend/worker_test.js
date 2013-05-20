@@ -18,6 +18,15 @@ describe('Worker', function() {
       expect(coll.ports[0]).to.include.keys('onmessage');
     });
 
+    it("should find a port by its identifier", function() {
+      var coll = new PortCollection();
+      coll.add({_portid: 1});
+      coll.add({_portid: 42});
+      expect(coll.findPort(1)._portid).to.equal(1);
+      expect(coll.findPort(42)._portid).to.equal(42);
+      expect(coll.findPort(99)).to.be.a('undefined');
+    });
+
     it("should not add the same port twice", function() {
       var coll = new PortCollection();
       var port = {_portid: 1};
