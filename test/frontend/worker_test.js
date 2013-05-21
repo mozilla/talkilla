@@ -1,7 +1,7 @@
 /* global afterEach, beforeEach, chai, createPresenceSocket, describe,
    handlers, it, sinon, Port, PortCollection, _config:true, _presenceSocket,
    loadconfig, ports:true, _presenceSocketOnMessage, _presenceSocketOnError,
-   _presenceSocketOnClose, _presenceSocketOnOpen */
+   _presenceSocketOnClose, _presenceSocketOnOpen, _signinCallback */
 /* jshint expr:true */
 var expect = chai.expect;
 
@@ -268,6 +268,19 @@ describe('Worker', function() {
     });
   });
 
+  describe("#_signinCallback", function() {
+    var testableCallback = _signinCallback.bind({postEvent: function() {}});
+
+    it("should initiate the presence connection if signin succeded",
+      function() {
+        testableCallback(null, JSON.stringify({nick: "bill"}));
+
+        // XXX write the actual expectation here. possibly just a stubbed
+        // createPresenceSocket that we ensure was called appropriately.
+        throw "XXX Implement me";
+      });
+  });
+
   describe("#login", function() {
     var xhr, requests, sandbox;
 
@@ -314,18 +327,6 @@ describe('Worker', function() {
         expect(requests[0].url).to.equal('/signin');
         expect(requests[0].requestBody).to.be.not.empty;
         expect(requests[0].requestBody).to.be.equal('{"nick":"jb"}');
-      });
-
-    it.skip("should create the presence socket if I pass valid login data",
-      function() {
-        sandbox.stub(window, "createPresenceSocket"); // XXX
-        handlers['talkilla.login']({
-          topic: "talkilla.login",
-          data: {username: "jb"}
-        });
-
-        sinon.assert.calledOnce(createPresenceSocket);
-        sinon.assert.calledWithExactly("jb");
       });
 
     it("should post a success message if the server accepted login",

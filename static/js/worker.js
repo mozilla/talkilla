@@ -71,6 +71,14 @@ function loadconfig() {
   });
 }
 
+function _signinCallback(err, responseText) {
+  if (err)
+    return this.postEvent('talkilla.login-failure', err);
+  return this.postEvent('talkilla.login-success', {
+    username: JSON.parse(responseText).nick
+  });
+}
+
 var handlers = {
   // SocialAPI events
   'social.port-closing': function() {
@@ -86,13 +94,7 @@ var handlers = {
     this.postEvent("talkilla.login-pending", null);
 
     sendAjax('/signin', 'POST', {nick: msg.data.username},
-      function(err, responseText) {
-        if (err)
-          return this.postEvent('talkilla.login-failure', err);
-        return this.postEvent('talkilla.login-success', {
-          username: JSON.parse(responseText).nick
-        });
-      }.bind(this));
+      _signinCallback.bind(this));
   }
 };
 
