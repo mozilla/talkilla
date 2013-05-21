@@ -86,6 +86,7 @@ describe("browser tests", function() {
   it("should sign users out", function(done) {
     // Sign in user 1
     driver.switchTo().frame("//#social-sidebar-browser");
+    driver.navigate().refresh();
     driver.findElement(By.name("nick")).sendKeys("bob");
     driver.findElement(By.id("submit")).click();
     driver.findElement(By.id("signout")).isDisplayed().then(function(res) {
@@ -94,6 +95,7 @@ describe("browser tests", function() {
 
     // Sign in user 2
     driver2.switchTo().frame("//#social-sidebar-browser");
+    driver2.navigate().refresh();
     driver2.findElement(By.name("nick")).sendKeys("larry");
     driver2.findElement(By.id("submit")).click();
     driver2.findElement(By.css("strong.nick")).getText().then(function(nick) {
@@ -128,6 +130,7 @@ describe("browser tests", function() {
 
   it("should handle an interuppted websocket connection", function(done) {
     driver.switchTo().frame("//#social-sidebar-browser");
+    driver.navigate().refresh();
     driver.findElement(By.name("nick")).sendKeys("bob");
     driver.findElement(By.id("submit")).click();
     driver.findElement(By.css("strong.nick")).getText().then(function(nick) {
