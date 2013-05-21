@@ -24,11 +24,13 @@ describe('Worker', function() {
     });
 
     it("should populate the _config object from using AJAX load", function() {
-      var cb = sinon.spy();
       loadconfig();
       expect(requests).to.have.length.of(1);
       expect(requests[0].url).to.equal('/config.json');
-      expect(_config).to.deep.equal({WSURL: 'ws://fake', DEBUG: false});
+      requests[0].respond(200, {
+        'Content-Type': 'application/json'
+      }, '{"WSURL": "ws://fake", "DEBUG": true}');
+      expect(_config).to.deep.equal({WSURL: 'ws://fake', DEBUG: true});
     });
   });
 
