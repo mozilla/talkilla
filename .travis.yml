@@ -22,4 +22,4 @@ after_success:
       exit 0;
     fi
   - echo "Requesting deployment"
-  - wget -q -O - http://54.235.119.32/check
+  - curl --data '' http://talkilla-deployer.mozillalabs.com/check
