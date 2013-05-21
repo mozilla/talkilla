@@ -69,6 +69,29 @@ describe('Worker', function() {
 
   });
 
+  describe('#presenceSocketOnMessage', function() {
+    var spy1, spy2;
+
+    beforeEach(function() {
+      spy1 = sinon.spy();
+      spy2 = sinon.spy();
+      ports.add(new Port({_portid: 1, postMessage: spy1}));
+      ports.add(new Port({_portid: 42, postMessage: spy2}));
+    });
+
+    it("should call postMessage with a JSON version of the message we received",
+      function() {
+        var event = {
+          data: JSON.stringify({
+            topic: "bar"
+          })
+        };
+        presenceSocketOnMessage(event);
+        sinon.assert.calledOnce(spy1);
+        sinon.assert.calledWithExactly(spy1, {data: "bar", topic: "topic"});
+      });
+  });
+
   describe('Port', function() {
     it("should accept and configure a port", function() {
       var port = new Port({_portid: 1});

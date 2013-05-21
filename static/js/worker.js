@@ -10,6 +10,13 @@ function createPresenceSocket(nickname) {
   _presenceSocket = new WebSocket(_config.WSURL + "?nick=" + nickname);
 }
 
+function presenceSocketOnMessage(event) {
+  var data = JSON.parse(event.data);
+  for (var eventType in data) {
+    ports.broadcastEvent(eventType, data[eventType]);
+  }
+}
+
 function sendAjax(url, method, data, cb) {
   var xhr = new XMLHttpRequest();
 
