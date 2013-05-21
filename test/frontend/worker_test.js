@@ -5,6 +5,7 @@
 var expect = chai.expect;
 
 describe('Worker', function() {
+  "use strict";
 
   describe("#loadconfig", function() {
     var xhr, requests, sandbox;
@@ -35,8 +36,6 @@ describe('Worker', function() {
   });
 
   describe('#createPresenceSocket', function() {
-    "use strict";
-
     var sandbox;
     var wsurl = "ws://example.com/";
 
@@ -271,7 +270,6 @@ describe('Worker', function() {
   });
 
   describe("#logout", function() {
-    "use strict";
     it('should tear down the websocket');
   });
 
