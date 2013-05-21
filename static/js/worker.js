@@ -17,14 +17,20 @@ function _presenceSocketOnError(event) {
   ports.broadcastEvent("talkilla.websocket-error", event);
 }
 
+function _presenceSocketOnClose(event) {
+  "use strict";
+
+  ports.broadcastEvent("talkilla.websocket-close", event);
+}
+
 function createPresenceSocket(nickname) {
   "use strict";
 
   _presenceSocket = new WebSocket(_config.WSURL + "?nick=" + nickname);
   _presenceSocket.onmessage = presenceSocketOnMessage;
   _presenceSocket.onerror = _presenceSocketOnError;
+  _presenceSocket.onclose = _presenceSocketOnClose;
 }
-
 
 function sendAjax(url, method, data, cb) {
   var xhr = new XMLHttpRequest();

@@ -1,6 +1,7 @@
 /* global afterEach, beforeEach, chai, createPresenceSocket, describe,
    handlers, it, sinon, Port, PortCollection, _config:true, _presenceSocket,
-   loadconfig, ports:true, presenceSocketOnMessage, _presenceSocketOnError */
+   loadconfig, ports:true, presenceSocketOnMessage, _presenceSocketOnError,
+   _presenceSocketOnClose */
 /* jshint expr:true */
 var expect = chai.expect;
 
@@ -66,7 +67,7 @@ describe('Worker', function() {
       sinon.assert.calledWithExactly(WebSocket, wsurl + "?nick=" + nickname);
       expect(_presenceSocket.onmessage).to.equal(presenceSocketOnMessage);
       expect(_presenceSocket.onerror).to.equal(_presenceSocketOnError);
-      // XXX test onerrror
+      expect(_presenceSocket.onclose).to.equal(_presenceSocketOnClose);
     });
 
   });
@@ -74,6 +75,8 @@ describe('Worker', function() {
   describe('presence socket callbacks', function () {
     var spy1;
     var port;
+    //XXX change shoulds & impls to refer to all ports
+    //XXX we're actually testing ports.broadcastEvent, should mock out?
 
     beforeEach(function() {
       spy1 = sinon.spy();
@@ -102,15 +105,28 @@ describe('Worker', function() {
     describe('#_presenceSocketOnError', function() {
       it('should call postMessage with a talkilla.websocket-error message',
         function() {
-          var event = {};
+          var event = {foo: "bar"};
           _presenceSocketOnError(event);
 
           sinon.assert.calledOnce(spy1);
           sinon.assert.calledWithExactly(spy1,
             {data: event, topic: "talkilla.websocket-error"});
-
         });
     });
+
+    describe("#_presenceSocketOnClose", function() {
+      it('should post a talkilla.websocket-close message',
+        function() {
+          var event = {foo: "bar"};
+          _presenceSocketOnClose(event);
+
+          sinon.assert.calledOnce(spy1);
+          sinon.assert.calledWithExactly(spy1,
+            {data: event, topic: "talkilla.websocket-close"});
+        }
+      );
+    });
+
   });
 
   describe('Port', function() {
