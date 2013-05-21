@@ -8,23 +8,27 @@ describe('Worker', function() {
   "use strict";
 
   describe("#loadconfig", function() {
-    var xhr, requests, sandbox;
+    var oldConfig, xhr, requests, sandbox;
 
     beforeEach(function() {
+      oldConfig = _config;
       sandbox = sinon.sandbox.create();
       // XXX For some reason, sandbox.useFakeXMLHttpRequest doesn't want to work
       // nicely so we have to manually xhr.restore for now.
       xhr = sinon.useFakeXMLHttpRequest();
+      _config = {};
       requests = [];
       xhr.onCreate = function (req) { requests.push(req); };
     });
 
     afterEach(function() {
+      _config = oldConfig;
       xhr.restore();
       sandbox.restore();
     });
 
     it("should populate the _config object from using AJAX load", function() {
+      expect(_config).to.deep.equal({});
       loadconfig();
       expect(requests).to.have.length.of(1);
       expect(requests[0].url).to.equal('/config.json');
