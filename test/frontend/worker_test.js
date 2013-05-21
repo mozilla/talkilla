@@ -1,5 +1,5 @@
 /* global afterEach, beforeEach, chai, createPresenceSocket, describe,
-   handlers, it, sinon, Port, PortCollection, _config, _presenceSocket,
+   handlers, it, sinon, Port, PortCollection, _config:true, _presenceSocket,
    loadconfig, ports:true */
 /* jshint expr:true */
 var expect = chai.expect;
