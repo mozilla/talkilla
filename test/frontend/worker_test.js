@@ -1,13 +1,36 @@
 /* global afterEach, beforeEach, chai, createPresenceSocket, describe,
    handlers, it, sinon, Port, PortCollection, _config, _presenceSocket,
-   ports:true */
+   loadconfig, ports:true */
 /* jshint expr:true */
 var expect = chai.expect;
 
 describe('Worker', function() {
 
-  // XXX should populate the _config object from using AJAX load
-  //describe("#loadconfig");
+  describe("#loadconfig", function() {
+    var xhr, requests, sandbox;
+
+    beforeEach(function() {
+      sandbox = sinon.sandbox.create();
+      // XXX For some reason, sandbox.useFakeXMLHttpRequest doesn't want to work
+      // nicely so we have to manually xhr.restore for now.
+      xhr = sinon.useFakeXMLHttpRequest();
+      requests = [];
+      xhr.onCreate = function (req) { requests.push(req); };
+    });
+
+    afterEach(function() {
+      xhr.restore();
+      sandbox.restore();
+    });
+
+    it("should populate the _config object from using AJAX load", function() {
+      var cb = sinon.spy();
+      loadconfig();
+      expect(requests).to.have.length.of(1);
+      expect(requests[0].url).to.equal('/config.json');
+      expect(_config).to.deep.equal({WSURL: 'ws://fake', DEBUG: false});
+    });
+  });
 
   describe('#createPresenceSocket', function() {
     "use strict";

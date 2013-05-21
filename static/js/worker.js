@@ -1,38 +1,43 @@
 /* jshint unused:false */
 
+var _config = {DEBUG: false};
 var _presenceSocket;
 var ports;
-
-var _config = {};
-// XXX should TDD a loadConfig function to populate this
 
 function createPresenceSocket(nickname) {
   "use strict";
 
   _presenceSocket = new WebSocket(_config.WSURL + "?nick=" + nickname);
-
 }
 
-function sendAjax(url, data, cb) {
+function sendAjax(url, method, data, cb) {
   var xhr = new XMLHttpRequest();
 
   xhr.onload = function(event) {
     // sinon.js can call us with a null event a second time, so just ignore it.
-    if (event) {
-      if (xhr.readyState === 4 && xhr.status === 200)
-        cb(null, xhr.responseText);
-      else
-        cb(xhr.statusText);
-    }
+    if (!event)
+      return;
+    if (xhr.readyState === 4 && xhr.status === 200)
+      return cb(null, xhr.responseText);
+    cb(xhr.statusText);
   };
 
   xhr.onerror = function(event) {
     if (event && event.target)
       cb(event.target.status ? event.target.statusText : "We are offline");
   };
-  xhr.open('POST', url, true);
+
+  xhr.open(method || 'GET', url, true);
   xhr.setRequestHeader("Content-Type", "application/json");
   xhr.send(JSON.stringify(data));
+}
+
+function loadconfig() {
+  sendAjax('/config.json', 'GET', {}, function(err, data) {
+    if (err)
+      return ports.broadcastError(err);
+    _config = JSON.parse(data);
+  });
 }
 
 var handlers = {
@@ -44,19 +49,18 @@ var handlers = {
   // Talkilla events
   'talkilla.login': function(msg) {
     if (!msg.data || !msg.data.username) {
-      this.postEvent("talkilla.login-failure",
-                     "no username specified");
-      return;
+      return this.postEvent("talkilla.login-failure", "no username specified");
     }
 
     this.postEvent("talkilla.login-pending", null);
 
-    sendAjax('/signin', {nick: msg.data.username},
+    sendAjax('/signin', 'POST', {nick: msg.data.username},
       function(err, responseText) {
         if (err)
           return this.postEvent('talkilla.login-failure', err);
-        return this.postEvent('talkilla.login-success',
-                              {username: JSON.parse(responseText).nick});
+        return this.postEvent('talkilla.login-success', {
+          username: JSON.parse(responseText).nick
+        });
       }.bind(this));
   }
 };
@@ -159,3 +163,5 @@ ports = new PortCollection();
 function onconnect(event) {
   ports.add(new Port(event.ports[0]));
 }
+
+loadconfig();
