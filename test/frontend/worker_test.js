@@ -75,8 +75,10 @@ describe('Worker', function() {
   describe('presence socket callbacks', function () {
     var spy1;
     var port;
-    //XXX change shoulds & impls to refer to all ports
-    //XXX we're actually testing ports.broadcastEvent, should mock out?
+    // XXX change shoulds & impls to refer to all ports, rather than a single
+    // port, since that's what's being implemented and what we actually want.
+    // This probably implies changes to the tests themselves, since that's
+    // not what we're currently testing for.
 
     beforeEach(function() {
       spy1 = sinon.spy();
@@ -125,6 +127,9 @@ describe('Worker', function() {
             {data: event, topic: "talkilla.websocket-close"});
         }
       );
+
+      // XXX should we define behavior that is more than simple proxying
+      // of the CloseEvent?  E.g. should we null out _presenceSocket?
     });
 
   });
@@ -336,9 +341,4 @@ describe('Worker', function() {
   describe("#logout", function() {
     it('should tear down the websocket');
   });
-
-  // XXX need to check that websocket torn down if connection lost,
-  // but that test doesn't really belong here.  Not sure where it wants
-  // to live
-
 });
