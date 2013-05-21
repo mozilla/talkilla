@@ -1,6 +1,6 @@
 /* global afterEach, beforeEach, chai, createPresenceSocket, describe,
    handlers, it, sinon, Port, PortCollection, _config:true, _presenceSocket,
-   loadconfig, ports:true, presenceSocketOnMessage */
+   loadconfig, ports:true, presenceSocketOnMessage, _presenceSocketOnError */
 /* jshint expr:true */
 var expect = chai.expect;
 
@@ -53,7 +53,7 @@ describe('Worker', function() {
       sandbox.restore();
     });
 
-    it("should create a socket with a URL from the nick and _config.WSURL",
+    it("should configure socket with a URL from the nick and _config.WSURL",
       function() {
       expect(_presenceSocket).to.equal(undefined);
 
@@ -64,32 +64,53 @@ describe('Worker', function() {
 
       sinon.assert.calledOnce(WebSocket);
       sinon.assert.calledWithExactly(WebSocket, wsurl + "?nick=" + nickname);
-      // XXX test onclose, onerrror, etc.
+      expect(_presenceSocket.onmessage).to.equal(presenceSocketOnMessage);
+      expect(_presenceSocket.onerror).to.equal(_presenceSocketOnError);
+      // XXX test onerrror
     });
 
   });
 
-  describe('#presenceSocketOnMessage', function() {
-    var spy1, spy2;
+  describe('presence socket callbacks', function () {
+    var spy1;
+    var port;
 
     beforeEach(function() {
       spy1 = sinon.spy();
-      spy2 = sinon.spy();
-      ports.add(new Port({_portid: 1, postMessage: spy1}));
-      ports.add(new Port({_portid: 42, postMessage: spy2}));
+      port = new Port({_portid: 1, postMessage: spy1});
+      ports.add(port);
     });
 
-    it("should call postMessage with a JSON version of the message we received",
-      function() {
-        var event = {
-          data: JSON.stringify({
-            topic: "bar"
-          })
-        };
-        presenceSocketOnMessage(event);
-        sinon.assert.calledOnce(spy1);
-        sinon.assert.calledWithExactly(spy1, {data: "bar", topic: "topic"});
-      });
+    afterEach(function() {
+      ports.remove(port);
+    });
+
+    describe('#presenceSocketOnMessage', function() {
+      it("should call postMessage with a JSON version of the received message",
+        function() {
+          var event = {
+            data: JSON.stringify({
+              topic: "bar"
+            })
+          };
+          presenceSocketOnMessage(event);
+          sinon.assert.calledOnce(spy1);
+          sinon.assert.calledWithExactly(spy1, {data: "bar", topic: "topic"});
+        });
+    });
+
+    describe('#_presenceSocketOnError', function() {
+      it('should call postMessage with a talkilla.websocket-error message',
+        function() {
+          var event = {};
+          _presenceSocketOnError(event);
+
+          sinon.assert.calledOnce(spy1);
+          sinon.assert.calledWithExactly(spy1,
+            {data: event, topic: "talkilla.websocket-error"});
+
+        });
+    });
   });
 
   describe('Port', function() {

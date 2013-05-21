@@ -4,18 +4,27 @@ var _config = {DEBUG: false};
 var _presenceSocket;
 var ports;
 
-function createPresenceSocket(nickname) {
-  "use strict";
-
-  _presenceSocket = new WebSocket(_config.WSURL + "?nick=" + nickname);
-}
-
 function presenceSocketOnMessage(event) {
   var data = JSON.parse(event.data);
   for (var eventType in data) {
     ports.broadcastEvent(eventType, data[eventType]);
   }
 }
+
+function _presenceSocketOnError(event) {
+  "use strict";
+
+  ports.broadcastEvent("talkilla.websocket-error", event);
+}
+
+function createPresenceSocket(nickname) {
+  "use strict";
+
+  _presenceSocket = new WebSocket(_config.WSURL + "?nick=" + nickname);
+  _presenceSocket.onmessage = presenceSocketOnMessage;
+  _presenceSocket.onerror = _presenceSocketOnError;
+}
+
 
 function sendAjax(url, method, data, cb) {
   var xhr = new XMLHttpRequest();
