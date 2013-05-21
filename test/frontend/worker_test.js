@@ -1,7 +1,7 @@
 /* global afterEach, beforeEach, chai, createPresenceSocket, describe,
    handlers, it, sinon, Port, PortCollection, _config:true, _presenceSocket,
    loadconfig, ports:true, _presenceSocketOnMessage, _presenceSocketOnError,
-   _presenceSocketOnClose */
+   _presenceSocketOnClose, _presenceSocketOnOpen */
 /* jshint expr:true */
 var expect = chai.expect;
 
@@ -85,6 +85,7 @@ describe('Worker', function() {
           sinon.assert.calledOnce(WebSocket);
           sinon.assert.calledWithExactly(WebSocket,
             wsurl + "?nick=" + nickname);
+          expect(_presenceSocket.onopen).to.equal(_presenceSocketOnOpen);
           expect(_presenceSocket.onmessage).to.equal(_presenceSocketOnMessage);
           expect(_presenceSocket.onerror).to.equal(_presenceSocketOnError);
           expect(_presenceSocket.onclose).to.equal(_presenceSocketOnClose);
@@ -99,6 +100,17 @@ describe('Worker', function() {
         });
     });
 
+    describe('#_presenceSocketOnOpen', function() {
+      it('should post a talkilla.presence-open message',
+        function() {
+          var event = {foo: "bar"};
+          _presenceSocketOnOpen(event);
+
+          sinon.assert.calledOnce(spy1);
+          sinon.assert.calledWithExactly(spy1,
+            {data: event, topic: "talkilla.presence-open"});
+        });
+    });
 
     describe('#_presenceSocketOnMessage', function() {
       it("should call postMessage with a JSON version of the received message",

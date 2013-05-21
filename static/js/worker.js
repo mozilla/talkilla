@@ -11,6 +11,12 @@ function _presenceSocketOnMessage(event) {
   }
 }
 
+function _presenceSocketOnOpen(event) {
+  "use strict";
+
+  ports.broadcastEvent("talkilla.presence-open", event);
+}
+
 function _presenceSocketOnError(event) {
   "use strict";
 
@@ -27,6 +33,7 @@ function createPresenceSocket(nickname) {
   "use strict";
 
   _presenceSocket = new WebSocket(_config.WSURL + "?nick=" + nickname);
+  _presenceSocket.onopen = _presenceSocketOnOpen;
   _presenceSocket.onmessage = _presenceSocketOnMessage;
   _presenceSocket.onerror = _presenceSocketOnError;
   _presenceSocket.onclose = _presenceSocketOnClose;
