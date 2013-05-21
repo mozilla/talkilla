@@ -16,6 +16,8 @@ before_install:
   - "export DISPLAY=:99.0"
   - "sh -e /etc/init.d/xvfb start"
 
+# The /check url below will check to see if the repository is updated and deploy
+# if necessary.
 after_success:
   - if [[ "$TRAVIS_PULL_REQUEST" == "true" ]]; then
       echo "This is a pull request, not requesting deployment";
