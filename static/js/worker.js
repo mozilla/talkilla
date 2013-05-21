@@ -4,7 +4,7 @@ var _config = {DEBUG: false};
 var _presenceSocket;
 var ports;
 
-function presenceSocketOnMessage(event) {
+function _presenceSocketOnMessage(event) {
   var data = JSON.parse(event.data);
   for (var eventType in data) {
     ports.broadcastEvent(eventType, data[eventType]);
@@ -27,7 +27,7 @@ function createPresenceSocket(nickname) {
   "use strict";
 
   _presenceSocket = new WebSocket(_config.WSURL + "?nick=" + nickname);
-  _presenceSocket.onmessage = presenceSocketOnMessage;
+  _presenceSocket.onmessage = _presenceSocketOnMessage;
   _presenceSocket.onerror = _presenceSocketOnError;
   _presenceSocket.onclose = _presenceSocketOnClose;
 }
