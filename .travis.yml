@@ -19,7 +19,7 @@ before_install:
 # The /check url below will check to see if the repository is updated and deploy
 # if necessary.
 after_success:
-  - if [[ "$TRAVIS_PULL_REQUEST" == "true" ]]; then
+  - if [[ "$TRAVIS_PULL_REQUEST" != "false" ]]; then
       echo "This is a pull request, not requesting deployment";
       exit 0;
     fi
