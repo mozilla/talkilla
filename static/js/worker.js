@@ -30,6 +30,8 @@ function createPresenceSocket(nickname) {
   _presenceSocket.onmessage = _presenceSocketOnMessage;
   _presenceSocket.onerror = _presenceSocketOnError;
   _presenceSocket.onclose = _presenceSocketOnClose;
+
+  ports.broadcastEvent("talkilla.presence-pending", {});
 }
 
 function sendAjax(url, method, data, cb) {

@@ -40,39 +40,8 @@ describe('Worker', function() {
     });
   });
 
-  describe('#createPresenceSocket', function() {
-    var sandbox;
-    var wsurl = "ws://example.com/";
 
-    beforeEach(function() {
-      sandbox = sinon.sandbox.create();
-      _config.WSURL = wsurl;
-      sandbox.stub(window, "WebSocket");
-    });
-
-    afterEach(function() {
-      sandbox.restore();
-    });
-
-    it("should configure socket with a URL from the nick and _config.WSURL",
-      function() {
-      expect(_presenceSocket).to.equal(undefined);
-
-      var nickname = "bill";
-      createPresenceSocket(nickname);
-
-      expect(_presenceSocket).to.be.an.instanceOf(WebSocket);
-
-      sinon.assert.calledOnce(WebSocket);
-      sinon.assert.calledWithExactly(WebSocket, wsurl + "?nick=" + nickname);
-      expect(_presenceSocket.onmessage).to.equal(_presenceSocketOnMessage);
-      expect(_presenceSocket.onerror).to.equal(_presenceSocketOnError);
-      expect(_presenceSocket.onclose).to.equal(_presenceSocketOnClose);
-    });
-
-  });
-
-  describe('presence socket callbacks', function () {
+  describe('presence socket stuff', function () {
     var spy1;
     var port;
     // XXX change shoulds & impls to refer to all ports, rather than a single
@@ -89,6 +58,47 @@ describe('Worker', function() {
     afterEach(function() {
       ports.remove(port);
     });
+
+    describe('#createPresenceSocket', function() {
+      var sandbox;
+      var wsurl = "ws://example.com/";
+
+      beforeEach(function() {
+        sandbox = sinon.sandbox.create();
+        _config.WSURL = wsurl;
+        sandbox.stub(window, "WebSocket");
+      });
+
+      afterEach(function() {
+        sandbox.restore();
+      });
+
+      it("should configure a socket with a URL from the nick and _config.WSURL",
+        function() {
+          expect(_presenceSocket).to.equal(undefined);
+
+          var nickname = "bill";
+          createPresenceSocket(nickname);
+
+          expect(_presenceSocket).to.be.an.instanceOf(WebSocket);
+
+          sinon.assert.calledOnce(WebSocket);
+          sinon.assert.calledWithExactly(WebSocket,
+            wsurl + "?nick=" + nickname);
+          expect(_presenceSocket.onmessage).to.equal(_presenceSocketOnMessage);
+          expect(_presenceSocket.onerror).to.equal(_presenceSocketOnError);
+          expect(_presenceSocket.onclose).to.equal(_presenceSocketOnClose);
+        });
+
+      it("should post a talkilla.presence-pending message",
+        function() {
+          createPresenceSocket("larry");
+          sinon.assert.calledOnce(spy1);
+          sinon.assert.calledWithExactly(spy1,
+            {data: {}, topic: "talkilla.presence-pending"});
+        });
+    });
+
 
     describe('#_presenceSocketOnMessage', function() {
       it("should call postMessage with a JSON version of the received message",
@@ -130,6 +140,8 @@ describe('Worker', function() {
 
       // XXX should we define behavior that is more than simple proxying
       // of the CloseEvent?  E.g. should we null out _presenceSocket?
+      // Some first thoughts from Standard8 & dmose at
+      // <https://webrtc-apps.etherpad.mozilla.org/35>
     });
 
   });
