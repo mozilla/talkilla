@@ -269,13 +269,14 @@ describe('Worker', function() {
   });
 
   describe("#_signinCallback", function() {
-    var sandbox, socketStub, wsurl = 'ws://fake';
+    var sandbox, socketStub, wsurl = 'ws://fake', testableCallback;
 
     beforeEach(function() {
       sandbox = sinon.sandbox.create();
       sandbox.stub(window, "WebSocket");
       socketStub = sinon.stub(window, "createPresenceSocket");
       _config.WSURL = wsurl;
+      testableCallback = _signinCallback.bind({postEvent: function(){}});
     });
 
     afterEach(function() {
@@ -286,7 +287,6 @@ describe('Worker', function() {
     it("should initiate the presence connection if signin succeded",
       function() {
         var nickname = "bill";
-        var testableCallback = _signinCallback.bind({postEvent: function(){}});
         testableCallback(null, JSON.stringify({nick: nickname}));
         sinon.assert.calledOnce(socketStub);
         sinon.assert.calledWithExactly(socketStub, wsurl);
@@ -295,7 +295,6 @@ describe('Worker', function() {
     it("should not initiate the presence connection if signin failed",
       function() {
         var nickname;
-        var testableCallback = _signinCallback.bind({postEvent: function(){}});
         testableCallback(null, JSON.stringify({nick: nickname}));
         sinon.assert.notCalled(socketStub);
       });
