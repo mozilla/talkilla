@@ -1,7 +1,8 @@
 /* global afterEach, beforeEach, chai, createPresenceSocket, describe,
    handlers, it, sinon, Port, PortCollection, _config:true, _presenceSocket,
    loadconfig, ports:true, _presenceSocketOnMessage, _presenceSocketOnError,
-   _presenceSocketOnClose, _presenceSocketOnOpen, _signinCallback */
+   _presenceSocketOnClose, _presenceSocketOnOpen, _signinCallback,
+   PresenceSocket */
 /* jshint expr:true */
 var expect = chai.expect;
 
@@ -80,15 +81,14 @@ describe('Worker', function() {
           var nickname = "bill";
           createPresenceSocket(nickname);
 
-          expect(_presenceSocket).to.be.an.instanceOf(WebSocket);
+          expect(_presenceSocket).to.be.an.instanceOf(PresenceSocket);
 
           sinon.assert.calledOnce(WebSocket);
           sinon.assert.calledWithExactly(WebSocket,
             wsurl + "?nick=" + nickname);
-          expect(_presenceSocket.onopen).to.equal(_presenceSocketOnOpen);
-          expect(_presenceSocket.onmessage).to.equal(_presenceSocketOnMessage);
-          expect(_presenceSocket.onerror).to.equal(_presenceSocketOnError);
-          expect(_presenceSocket.onclose).to.equal(_presenceSocketOnClose);
+
+          expect(_presenceSocket.ws).to.include.keys(
+            ['onopen', 'onmessage', 'onerror', 'onclose'])
         });
 
       it("should post a talkilla.presence-pending message",
