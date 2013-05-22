@@ -139,14 +139,14 @@ describe('Worker', function() {
     });
 
     describe("#_presenceSocketOnClose", function() {
-      it('should post a talkilla.websocket-close message',
+      it('should post a talkilla.presence-unavailable message',
         function() {
           var event = {foo: "bar"};
           _presenceSocketOnClose(event);
 
           sinon.assert.calledOnce(spy1);
           sinon.assert.calledWithExactly(spy1,
-            {data: event, topic: "talkilla.websocket-close"});
+            {data: event, topic: "talkilla.presence-unavailable"});
         }
       );
 

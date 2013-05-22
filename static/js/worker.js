@@ -26,7 +26,8 @@ function _presenceSocketOnError(event) {
 function _presenceSocketOnClose(event) {
   "use strict";
 
-  ports.broadcastEvent("talkilla.websocket-close", event);
+  // XXX: this will need future work to handle retrying presence connections
+  ports.broadcastEvent("talkilla.presence-unavailable", event);
 }
 
 function createPresenceSocket(nickname) {
