@@ -1,7 +1,7 @@
 #!/bin/bash
 
 SELENIUM_JAR_FILENAME="selenium-server-standalone-2.32.0.jar"
-SELENIUM_JAR_URL="http://selenium.googlecode.com/files/$SELENIUM_JAR_FILENAME"
+SELENIUM_JAR_URL="http://people.mozilla.com/~mbanner2/talkilla/$SELENIUM_JAR_FILENAME"
 SELENIUM_PID_FILE="/tmp/selenium-server-pid"
 
 install() {
