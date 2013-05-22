@@ -6,12 +6,6 @@ var presence = require("../../presence"),
 var expect = require("chai").expect;
 
 var serverPort = 3000;
-var serverHost = "localhost";
-// XXX For now, the sidebar page isn't really in the social sidebar,
-// so just add it.
-var serverHttpBase = 'http://' + serverHost + ':' + serverPort +
-                     '/sidebar.html';
-
 var webdriver = require('selenium-webdriver'),
     By = webdriver.By;
 

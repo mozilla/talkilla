@@ -1,2 +1,3 @@
 static/vendor
 test/frontend/vendor
+test/functional/prefs.js
