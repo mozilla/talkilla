@@ -9,10 +9,10 @@ function PresenceSocket(ws, ports) {
   this.ports = ports;
 
   // register event handlers
-  ws.onopen = this.onopen;
-  ws.onmessage = this.onmessage;
-  ws.onerror = this.onerror;
-  ws.onclose = this.onclose;
+  ws.onopen = this.onopen.bind(this);
+  ws.onmessage = this.onmessage.bind(this);
+  ws.onerror = this.onerror.bind(this);
+  ws.onclose = this.onclose.bind(this);
 
   // dispatch presence-pending event
   ports.broadcastEvent("talkilla.presence-pending", {});
