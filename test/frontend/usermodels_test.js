@@ -1,4 +1,4 @@
-/* global chai, describe, it, app, Port, PortCollection*/
+/* global chai, describe, it, app, beforeEach, afterEach, sinon */
 var expect = chai.expect;
 
 describe("app.models.User", function() {
@@ -15,25 +15,47 @@ describe("app.models.User", function() {
 describe("app.models.UserSet", function() {
   "use strict";
 
+  var userSet, sandbox;
+
+  beforeEach(function() {
+    sandbox = sinon.sandbox.create();
+    sandbox.stub(window, "addEventListener");
+    userSet = new app.models.UserSet();
+  });
+
+  afterEach(function() {
+    sandbox.restore();
+    userSet = null;
+  });
+
   it("should be empty upon creation",
     function() {
-      var userSet = new app.models.UserSet();
       expect(userSet.length).to.equal(0);
     });
 
-  it("should listen for a 'users' message and replace its content said info",
-    function() {
-      var arrayOfUsers = [{"nick": "larry"}, {"nick": "curly"}];
-      var userSet = new app.models.UserSet();
-      var ports = new PortCollection();
-      ports.add(new Port({_portid: 21, postMessage: function() {}}));
+  describe("#initialize", function() {
+    // XXX test that we're attaching _onPortMessage to the right spot
+    it("should add a 'onmessage' handler to the socialPort");
+  });
 
-      ports.broadcastEvent('users', arrayOfUsers);
+  // XXX where do i test for and implement detachment of the handler?
 
-      expect(userSet.length).to.equal(2);
-      expect(userSet.toJSON()).to.equal(arrayOfUsers);
+  describe("#onPortMessage", function() {
 
-      // expect the message to have been received
-    });
+    it("should replace the contents of this set with that of a 'user' message",
+      function() {
+        expect(userSet.length).to.equal(0);
+
+        var arrayOfUsers = [{"nick": "larry"}, {"nick": "curly"}];
+        var serverMsg = {'users': arrayOfUsers};
+        userSet._onPortMessage({data: serverMsg});
+
+        expect(userSet.toJSON()).to.deep.equal(arrayOfUsers);
+
+        userSet._onPortMessage({data: {users: []}});
+        expect(userSet.length).to.equal(0);
+      }
+    );
+  });
 
 });
