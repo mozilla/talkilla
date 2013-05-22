@@ -1,13 +1,14 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 cat `pwd`/test/functional/.prefs.js >> $XRE_PROFILE_PATH/user.js
-if [[ `uname` == "Darwin" ]]; then
+if [ `uname` == "Darwin" ]; then
   /Applications/FirefoxNightly.app/Contents/MacOS/firefox-bin $@
-elif [[ -e /usr/bin/firefox-nightly ]]; then
+elif [ -e /usr/bin/firefox-nightly ]; then
   /usr/bin/firefox-nightly $@
 else
   if [ ! -e firefox-24.0a1.en-US.linux-x86_64.tar.bz2 ]; then
     wget http://ftp.mozilla.org/pub/mozilla.org/firefox/nightly/latest-mozilla-central/firefox-24.0a1.en-US.linux-x86_64.tar.bz2
     tar -xjf firefox-24.0a1.en-US.linux-x86_64.tar.bz2
   fi
-  ./firefox/firefox
+
+  ./firefox/firefox $@
 fi
