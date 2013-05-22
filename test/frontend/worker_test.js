@@ -1,9 +1,163 @@
-/* global afterEach, beforeEach, chai, describe, handlers, it, sinon,
-          Port, PortCollection, ports:true */
+/* global afterEach, beforeEach, chai, createPresenceSocket, describe,
+   handlers, it, sinon, Port, PortCollection, _config:true, _presenceSocket,
+   loadconfig, ports:true, _presenceSocketOnMessage, _presenceSocketOnError,
+   _presenceSocketOnClose, _presenceSocketOnOpen, _signinCallback */
 /* jshint expr:true */
 var expect = chai.expect;
 
 describe('Worker', function() {
+  "use strict";
+
+  describe("#loadconfig", function() {
+    var oldConfig, xhr, requests, sandbox;
+
+    beforeEach(function() {
+      oldConfig = _config;
+      sandbox = sinon.sandbox.create();
+      // XXX For some reason, sandbox.useFakeXMLHttpRequest doesn't want to work
+      // nicely so we have to manually xhr.restore for now.
+      xhr = sinon.useFakeXMLHttpRequest();
+      _config = {};
+      requests = [];
+      xhr.onCreate = function (req) { requests.push(req); };
+    });
+
+    afterEach(function() {
+      _config = oldConfig;
+      xhr.restore();
+      sandbox.restore();
+    });
+
+    it("should populate the _config object from using AJAX load", function() {
+      expect(_config).to.deep.equal({});
+      loadconfig();
+      expect(requests).to.have.length.of(1);
+      expect(requests[0].url).to.equal('/config.json');
+      requests[0].respond(200, {
+        'Content-Type': 'application/json'
+      }, '{"WSURL": "ws://fake", "DEBUG": true}');
+      expect(_config).to.deep.equal({WSURL: 'ws://fake', DEBUG: true});
+    });
+  });
+
+
+  describe('presence socket stuff', function () {
+    var spy1;
+    var port;
+    // XXX change shoulds & impls to refer to all ports, rather than a single
+    // port, since that's what's being implemented and what we actually want.
+    // This probably implies changes to the tests themselves, since that's
+    // not what we're currently testing for.
+
+    beforeEach(function() {
+      spy1 = sinon.spy();
+      port = new Port({_portid: 1, postMessage: spy1});
+      ports.add(port);
+    });
+
+    afterEach(function() {
+      ports.remove(port);
+    });
+
+    describe('#createPresenceSocket', function() {
+      var sandbox;
+      var wsurl = "ws://example.com/";
+
+      beforeEach(function() {
+        sandbox = sinon.sandbox.create();
+        _config.WSURL = wsurl;
+        sandbox.stub(window, "WebSocket");
+      });
+
+      afterEach(function() {
+        sandbox.restore();
+      });
+
+      it("should configure a socket with a URL from the nick and _config.WSURL",
+        function() {
+          expect(_presenceSocket).to.equal(undefined);
+
+          var nickname = "bill";
+          createPresenceSocket(nickname);
+
+          expect(_presenceSocket).to.be.an.instanceOf(WebSocket);
+
+          sinon.assert.calledOnce(WebSocket);
+          sinon.assert.calledWithExactly(WebSocket,
+            wsurl + "?nick=" + nickname);
+          expect(_presenceSocket.onopen).to.equal(_presenceSocketOnOpen);
+          expect(_presenceSocket.onmessage).to.equal(_presenceSocketOnMessage);
+          expect(_presenceSocket.onerror).to.equal(_presenceSocketOnError);
+          expect(_presenceSocket.onclose).to.equal(_presenceSocketOnClose);
+        });
+
+      it("should post a talkilla.presence-pending message",
+        function() {
+          createPresenceSocket("larry");
+          sinon.assert.calledOnce(spy1);
+          sinon.assert.calledWithExactly(spy1,
+            {data: {}, topic: "talkilla.presence-pending"});
+        });
+    });
+
+    describe('#_presenceSocketOnOpen', function() {
+      it('should post a talkilla.presence-open message',
+        function() {
+          var event = {foo: "bar"};
+          _presenceSocketOnOpen(event);
+
+          sinon.assert.calledOnce(spy1);
+          sinon.assert.calledWithExactly(spy1,
+            {data: event, topic: "talkilla.presence-open"});
+        });
+    });
+
+    describe('#_presenceSocketOnMessage', function() {
+      it("should call postMessage with a JSON version of the received message",
+        function() {
+          var event = {
+            data: JSON.stringify({
+              topic: "bar"
+            })
+          };
+          _presenceSocketOnMessage(event);
+          sinon.assert.calledOnce(spy1);
+          sinon.assert.calledWithExactly(spy1, {data: "bar", topic: "topic"});
+        });
+    });
+
+    describe('#_presenceSocketOnError', function() {
+      it('should call postMessage with a talkilla.websocket-error message',
+        function() {
+          var event = {foo: "bar"};
+          _presenceSocketOnError(event);
+
+          sinon.assert.calledOnce(spy1);
+          sinon.assert.calledWithExactly(spy1,
+            {data: event, topic: "talkilla.websocket-error"});
+        });
+    });
+
+    describe("#_presenceSocketOnClose", function() {
+      it('should post a talkilla.presence-unavailable message',
+        function() {
+          var event = {foo: "bar"};
+          _presenceSocketOnClose(event);
+
+          sinon.assert.calledOnce(spy1);
+          sinon.assert.calledWithExactly(spy1,
+            {data: event, topic: "talkilla.presence-unavailable"});
+        }
+      );
+
+      // XXX should we define behavior that is more than simple proxying
+      // of the CloseEvent?  E.g. should we null out _presenceSocket?
+      // Some first thoughts from Standard8 & dmose at
+      // <https://webrtc-apps.etherpad.mozilla.org/35>
+    });
+
+  });
+
   describe('Port', function() {
     it("should accept and configure a port", function() {
       var port = new Port({_portid: 1});
@@ -114,11 +268,44 @@ describe('Worker', function() {
     });
   });
 
-  describe("#login", function() {
-    var xhr, requests, sandbox;
+  describe("#_signinCallback", function() {
+    var sandbox, socketStub, wsurl = 'ws://fake', testableCallback;
 
     beforeEach(function() {
       sandbox = sinon.sandbox.create();
+      sandbox.stub(window, "WebSocket");
+      socketStub = sinon.stub(window, "createPresenceSocket");
+      _config.WSURL = wsurl;
+      testableCallback = _signinCallback.bind({postEvent: function(){}});
+    });
+
+    afterEach(function() {
+      sandbox.restore();
+      socketStub.restore();
+    });
+
+    it("should initiate the presence connection if signin succeded",
+      function() {
+        var nickname = "bill";
+        testableCallback(null, JSON.stringify({nick: nickname}));
+        sinon.assert.calledOnce(socketStub);
+        sinon.assert.calledWithExactly(socketStub, wsurl);
+      });
+
+    it("should not initiate the presence connection if signin failed",
+      function() {
+        var nickname;
+        testableCallback(null, JSON.stringify({nick: nickname}));
+        sinon.assert.notCalled(socketStub);
+      });
+  });
+
+  describe("#login", function() {
+    var xhr, socketStub, requests, sandbox;
+
+    beforeEach(function() {
+      sandbox = sinon.sandbox.create();
+      socketStub = sinon.stub(window, "createPresenceSocket");
       // XXX For some reason, sandbox.useFakeXMLHttpRequest doesn't want to work
       // nicely so we have to manually xhr.restore for now.
       xhr = sinon.useFakeXMLHttpRequest();
@@ -129,6 +316,7 @@ describe('Worker', function() {
     afterEach(function() {
       xhr.restore();
       sandbox.restore();
+      socketStub.restore();
     });
 
     it("should call postEvent with a failure message if i pass in bad data",
@@ -172,7 +360,7 @@ describe('Worker', function() {
         expect(requests.length).to.equal(1);
 
         requests[0].respond(200, { 'Content-Type': 'application/json' },
-                            '{"nick":"jb"}' );
+          '{"nick":"jb"}' );
 
         sinon.assert.calledTwice(handlers.postEvent);
         sinon.assert.calledWith(handlers.postEvent, "talkilla.login-success");
@@ -192,7 +380,10 @@ describe('Worker', function() {
 
         sinon.assert.calledTwice(handlers.postEvent);
         sinon.assert.calledWith(handlers.postEvent, "talkilla.login-failure");
-
       });
+  });
+
+  describe("#logout", function() {
+    it('should tear down the websocket');
   });
 });
