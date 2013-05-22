@@ -74,9 +74,13 @@ function loadconfig() {
 function _signinCallback(err, responseText) {
   if (err)
     return this.postEvent('talkilla.login-failure', err);
-  return this.postEvent('talkilla.login-success', {
-    username: JSON.parse(responseText).nick
-  });
+  var username = JSON.parse(responseText).nick;
+  if (username) {
+    this.postEvent('talkilla.login-success', {
+      username: username
+    });
+    createPresenceSocket(_config.WSURL);
+  }
 }
 
 var handlers = {

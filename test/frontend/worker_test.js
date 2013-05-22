@@ -269,23 +269,44 @@ describe('Worker', function() {
   });
 
   describe("#_signinCallback", function() {
-    var testableCallback = _signinCallback.bind({postEvent: function() {}});
+    var sandbox, socketStub, wsurl = 'ws://fake';
+
+    beforeEach(function() {
+      sandbox = sinon.sandbox.create();
+      sandbox.stub(window, "WebSocket");
+      socketStub = sinon.stub(window, "createPresenceSocket");
+      _config.WSURL = wsurl;
+    });
+
+    afterEach(function() {
+      sandbox.restore();
+      socketStub.restore();
+    });
 
     it("should initiate the presence connection if signin succeded",
       function() {
-        testableCallback(null, JSON.stringify({nick: "bill"}));
+        var nickname = "bill";
+        var testableCallback = _signinCallback.bind({postEvent: function(){}});
+        testableCallback(null, JSON.stringify({nick: nickname}));
+        sinon.assert.calledOnce(socketStub);
+        sinon.assert.calledWithExactly(socketStub, wsurl);
+      });
 
-        // XXX write the actual expectation here. possibly just a stubbed
-        // createPresenceSocket that we ensure was called appropriately.
-        throw "XXX Implement me";
+    it("should not initiate the presence connection if signin failed",
+      function() {
+        var nickname;
+        var testableCallback = _signinCallback.bind({postEvent: function(){}});
+        testableCallback(null, JSON.stringify({nick: nickname}));
+        sinon.assert.notCalled(socketStub);
       });
   });
 
   describe("#login", function() {
-    var xhr, requests, sandbox;
+    var xhr, socketStub, requests, sandbox;
 
     beforeEach(function() {
       sandbox = sinon.sandbox.create();
+      socketStub = sinon.stub(window, "createPresenceSocket");
       // XXX For some reason, sandbox.useFakeXMLHttpRequest doesn't want to work
       // nicely so we have to manually xhr.restore for now.
       xhr = sinon.useFakeXMLHttpRequest();
@@ -296,6 +317,7 @@ describe('Worker', function() {
     afterEach(function() {
       xhr.restore();
       sandbox.restore();
+      socketStub.restore();
     });
 
     it("should call postEvent with a failure message if i pass in bad data",
@@ -359,7 +381,6 @@ describe('Worker', function() {
 
         sinon.assert.calledTwice(handlers.postEvent);
         sinon.assert.calledWith(handlers.postEvent, "talkilla.login-failure");
-
       });
   });
 
