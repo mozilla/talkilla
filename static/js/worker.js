@@ -100,6 +100,11 @@ var handlers = {
 
     sendAjax('/signin', 'POST', {nick: msg.data.username},
       _signinCallback.bind(this));
+  },
+
+  // maps the ws `users` event to port's `talkilla.users` one
+  'users': function(msg) {
+    this.postEvent('talkilla.users', msg.data);
   }
 };
 

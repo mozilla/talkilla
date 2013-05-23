@@ -18,7 +18,6 @@ describe("app.models.UserSet", function() {
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
-    sandbox.stub(window, "addEventListener");
     userSet = new app.models.UserSet();
   });
 
@@ -38,21 +37,21 @@ describe("app.models.UserSet", function() {
 
   // XXX where do i test for and implement detachment of the handler?
 
-  describe("#onPortMessage", function() {
+  // describe("#onPortMessage", function() {
 
-    it("should replace the contents of this set with that of a 'user' message",
-      function() {
-        expect(userSet.length).to.equal(0);
+  //   it("should replace the contents of this set with that of a 'user' message",
+  //     function() {
+  //       expect(userSet.length).to.equal(0);
 
-        var arrayOfUsers = [{"nick": "larry"}, {"nick": "curly"}];
-        var serverMsg = {'users': arrayOfUsers};
-        userSet._onPortMessage({data: serverMsg});
+  //       var arrayOfUsers = [{"nick": "larry"}, {"nick": "curly"}];
+  //       var serverMsg = {'users': arrayOfUsers};
+  //       userSet._onPortMessage({data: serverMsg});
 
-        expect(userSet.toJSON()).to.deep.equal(arrayOfUsers);
+  //       expect(userSet.toJSON()).to.deep.equal(arrayOfUsers);
 
-        userSet._onPortMessage({data: {users: []}});
-        expect(userSet.length).to.equal(0);
-      });
-    });
+  //       userSet._onPortMessage({data: {users: []}});
+  //       expect(userSet.length).to.equal(0);
+  //     });
+  //   });
 
 });
