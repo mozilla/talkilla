@@ -1,5 +1,4 @@
-/* global chai, describe, it, app, beforeEach, afterEach, sinon,
-   initMozSocial */
+/* global chai, describe, it, app, beforeEach, afterEach, sinon */
 var expect = chai.expect;
 
 describe("app.models.User", function() {
@@ -15,15 +14,17 @@ describe("app.models.User", function() {
 describe("app.models.UserSet", function() {
   "use strict";
 
-  var sandbox, port;
+  var sandbox, port, savedListener, savedMozSocial;
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
 
     // XXX: please fasten your seatbelt (we're sorry)
+    savedListener = app.services._portListener;
     app.services._portListener = undefined;
     port = {};
 
+    savedMozSocial = navigator.mozSocial;
     navigator.mozSocial = {
       getWorker: function() {
         return {
@@ -34,6 +35,8 @@ describe("app.models.UserSet", function() {
   });
 
   afterEach(function() {
+    app.services._portListener = savedMozSocial;
+    navigator.mozSocial = navigator.mozSocial;
     sandbox.restore();
   });
 
