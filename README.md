@@ -6,7 +6,7 @@ Video call exploration
 Local Development
 -----------------
 
-1. Talkilla requires Firefox > 21.
+1. Talkilla currently requires Firefox > 23.
 
 2. Make sure you have [node installed](http://nodejs.org/).
 
@@ -22,7 +22,9 @@ Local Development
         # or alternatively:
         $ make runserver
 
-5. Point your web browser to [http://localhost:5000](http://localhost:5000).
+5. In Firefox, set `media.navigator.permission.disabled` to `true`
+
+6. Point your web browser to [http://localhost:5000](http://localhost:5000).
 
 
 Configuration
@@ -47,7 +49,7 @@ To run the unit tests:
 
 1. Make sure you've installed node and the required modules as per the local development section.
 
-2. On Mac, you need to have /Applications/FirefoxNightly.app installed (aka Firefox 24), and not have a /Applications/Firefox.app
+2. On Mac, you need to have /Applications/FirefoxNightly.app installed (aka Firefox 24)
 
 3. On Linux, you need to have /usr/bin/firefox-nightly present, or a Firefox will be downloaded for you.
 
