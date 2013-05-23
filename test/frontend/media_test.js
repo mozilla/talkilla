@@ -254,8 +254,8 @@ describe("Media", function() {
     it("should call the error callback if there is a problem adding the " +
        "sdp to the peer connection", function() {
 
-      fakeMozRTCPeerConnection.setRemoteDescription
-        = sandbox.stub().callsArgWith(2, "error");
+      fakeMozRTCPeerConnection.setRemoteDescription =
+        sandbox.stub().callsArgWith(2, "error");
 
       app.media.addAnswerToPeerConnection(fakeMozRTCPeerConnection, "sdp",
                                           success, error);
