@@ -60,6 +60,15 @@
   });
 
   app.models.UserSet = Backbone.Collection.extend({
-    model: app.models.User
+    model: app.models.User,
+
+    initialize: function(models, options) {
+      this.models = models || [];
+      this.options = options;
+      // register the talkilla.users event
+      app.services.getPortListener().on('talkilla.users', function(users) {
+        this.reset(users);
+      }.bind(this));
+    }
   });
 })(Talkilla, Backbone, StateMachine);

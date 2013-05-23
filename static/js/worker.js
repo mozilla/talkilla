@@ -6,9 +6,8 @@ var ports;
 
 function _presenceSocketOnMessage(event) {
   var data = JSON.parse(event.data);
-  for (var eventType in data) {
-    ports.broadcastEvent(eventType, data[eventType]);
-  }
+  for (var eventType in data)
+    ports.broadcastEvent("talkilla." + eventType, data[eventType]);
 }
 
 function _presenceSocketOnOpen(event) {

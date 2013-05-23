@@ -74,6 +74,63 @@
   };
 
   /**
+   * Social API worker port listener; exposed as a global to be reinitialized in
+   * a testing environment.
+   * @type {PortListener|undefined}
+   */
+  app.services._portListener = undefined;
+
+  /**
+   * Retrieves or initializes a PortListener object.
+   * @return {PortListener}
+   */
+  app.services.getPortListener = function() {
+    if (this._portListener)
+      return this._portListener;
+    var port = navigator.mozSocial.getWorker().port;
+    this._portListener = new this.PortListener(port);
+    return this._portListener;
+  };
+
+  /**
+   * MozSocial Port listener.
+   * @param  {AbstractPort} port
+   */
+  app.services.PortListener = function(port) {
+    this.port = port;
+    this.listeners = {};
+    this.port.onmessage = this.onmessage.bind(this);
+  };
+
+  app.services.PortListener.prototype = {
+    /**
+     * Adds a topic listener.
+     * @param  {String}   topic
+     * @param  {Function} listener
+     */
+    on: function(topic, listener) {
+      if (!(topic in this.listeners))
+        this.listeners[topic] = [];
+      this.listeners[topic].push(listener);
+    },
+
+    /**
+     * Port message event listener, will call every registered listener for the
+     * received topic.
+     * @param  {Event} event
+     */
+    onmessage: function(event) {
+      var topic = event.topic;
+      var data = event.data;
+      if (topic in this.listeners) {
+        this.listeners[topic].forEach(function(listener) {
+          listener(data);
+        }, this);
+      }
+    }
+  };
+
+  /**
    * Signs a user in.
    *
    * @param  {String}   nick User's nickname

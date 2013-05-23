@@ -244,16 +244,17 @@
     activeNotification: null,
 
     initialize: function() {
+      app.data.users = this.collection = new app.models.UserSet();
+
       // refresh the users list on new received data
       app.services.on('users', function(data) {
-        this.collection = new app.models.UserSet(data);
-        app.data.users = this.collection;
+        this.collection.set(data);
         this.render();
       }.bind(this));
 
       // purge the list on sign out
       app.on('signout', function() {
-        this.collection = undefined;
+        this.collection.reset();
         this.callee = undefined;
         this.render();
       }.bind(this));
