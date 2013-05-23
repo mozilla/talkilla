@@ -1,35 +1,37 @@
 /* global app, chai, describe, it, beforeEach, afterEach, sinon,
-   mozRTCPeerConnection:true */
+   mozRTCPeerConnection:true, mozRTCSessionDescription:true */
 var expect = chai.expect;
 
 describe("Media", function() {
-  var sandbox;
+  var sandbox, success, error, callType, fakeMozRTCPeerConnection;
+
+  function setupMainStubs() {
+    // Create basic items that we'll use to form the stubs and spies
+    // for each test.
+
+    fakeMozRTCPeerConnection = {
+      addStream: sandbox.spy(),
+      close: sandbox.spy(),
+      createOffer: sandbox.stub().callsArgWith(0, {}),
+      createAnswer: sandbox.stub().callsArgWith(0, {}),
+      createDataChannel: sandbox.stub().returns({}),
+      setLocalDescription: sandbox.stub().callsArgWith(1, {}),
+      setRemoteDescription: sandbox.stub().callsArgWith(1, {})
+    };
+
+    success = sandbox.spy();
+    error = sandbox.spy();
+
+    navigator.mozGetUserMedia = sandbox.stub().callsArgWith(1, {});
+    mozRTCPeerConnection = sandbox.stub().returns(fakeMozRTCPeerConnection);
+    mozRTCSessionDescription = sandbox.stub().returns({});
+
+    app.services.initiateCall = sandbox.spy();
+    app.services.acceptCall = sandbox.spy();
+    app.trigger = sandbox.spy();
+  }
 
   describe("#startCall", function() {
-    var success, error, callType, fakeMozRTCPeerConnection;
-
-    function setupMainStubs() {
-      // Create basic items that we'll use to form the stubs and spies
-      // for each test.
-
-      fakeMozRTCPeerConnection = {
-        addStream: sandbox.spy(),
-        createOffer: sandbox.stub().callsArgWith(0, {}),
-        createAnswer: sandbox.stub().callsArgWith(0, {}),
-        setLocalDescription: sandbox.stub().callsArgWith(1, {}),
-        setRemoteDescription: sandbox.stub().callsArgWith(1, {})
-      };
-
-      success = sandbox.spy();
-      error = sandbox.spy();
-
-      navigator.mozGetUserMedia = sandbox.stub().callsArgWith(1, {});
-      mozRTCPeerConnection = sandbox.stub().returns(fakeMozRTCPeerConnection);
-
-      app.services.initiateCall = sandbox.spy();
-      app.trigger = sandbox.spy();
-    }
-
     describe("mediaChannels", function () {
       beforeEach(function() {
         sandbox = sinon.sandbox.create();
@@ -71,7 +73,7 @@ describe("Media", function() {
           expect(arg).to.have.property('audio', false);
         });
 
-      it("should call getUserMedia with both audio and video true if both" +
+      it("should call getUserMedia with both audio and video true if both " +
          "were requested",
         function() {
           app.media.startCall("dan", null, callType, success, error);
@@ -92,11 +94,12 @@ describe("Media", function() {
         sinon.assert.notCalled(success);
       });
 
-      it("should post a local stream if media use was requested and granted",
+      it("should trigger add_local_stream if media use was granted",
         function() {
           app.media.startCall("dan", null, callType, success, error);
 
           sinon.assert.calledOnce(app.trigger);
+          app.trigger.calledWith("add_local_stream");
         });
 
       it("should get a peer connection if the media use was granted",
@@ -106,7 +109,7 @@ describe("Media", function() {
           sinon.assert.calledOnce(mozRTCPeerConnection);
         });
 
-      it("should add the stream to the peer connection if media use was" +
+      it("should add the stream to the peer connection if media use was " +
         "granted",
         function() {
           app.media.startCall("dan", null, callType, success, error);
@@ -123,8 +126,6 @@ describe("Media", function() {
 
       it("should call the success callback if media use was granted",
         function() {
-          callType.audio = true;
-
           app.media.startCall("dan", null, callType, success, error);
 
           sinon.assert.calledOnce(success);
@@ -157,6 +158,85 @@ describe("Media", function() {
 
           sinon.assert.notCalled(navigator.mozGetUserMedia);
         });
+
+      it("should get a peer connection for data calls", function() {
+        app.media.startCall("dan", null, callType, success, error);
+
+        sinon.assert.called(mozRTCPeerConnection);
+      });
+
+      it("should not add a local stream for data calls", function() {
+        app.media.startCall("dan", null, callType, success, error);
+
+        sinon.assert.notCalled(fakeMozRTCPeerConnection.addStream);
+      });
+
+      it("should call createDataChannel for data calls", function() {
+        app.media.startCall("dan", null, callType, success, error);
+
+        sinon.assert.called(fakeMozRTCPeerConnection.createDataChannel);
+      });
+
+      it("should trigger add_data_channel for data calls", function() {
+        app.media.startCall("dan", null, callType, success, error);
+        fakeMozRTCPeerConnection.ondatachannel({chan: {} });
+
+        sinon.assert.calledOnce(app.trigger);
+        app.trigger.calledWith("add_data_channel");
+      });
+    });
+  });
+
+  describe("#addAnswerToPeerConnection", function() {
+    beforeEach(function() {
+      sandbox = sinon.sandbox.create();
+
+      setupMainStubs();
+    });
+
+    afterEach(function() {
+      sandbox.restore();
+    });
+
+    it("should add a sdp answer to the peer connection", function() {
+      app.media.addAnswerToPeerConnection(fakeMozRTCPeerConnection, "sdp",
+                                          success, error);
+
+      sinon.assert.calledOnce(fakeMozRTCPeerConnection.setRemoteDescription);
+      sinon.assert.calledOnce(success);
+      sinon.assert.notCalled(error);
+    });
+
+    it("should call the error callback if there is a problem adding the " +
+       "sdp to the peer connection", function() {
+
+      fakeMozRTCPeerConnection.setRemoteDescription
+        = sandbox.stub().callsArgWith(2, "error");
+
+      app.media.addAnswerToPeerConnection(fakeMozRTCPeerConnection, "sdp",
+                                          success, error);
+
+      sinon.assert.calledOnce(fakeMozRTCPeerConnection.setRemoteDescription);
+      sinon.assert.notCalled(success);
+      sinon.assert.calledOnce(error);
+    });
+  });
+
+  describe("#closePeerConnection", function() {
+    beforeEach(function() {
+      sandbox = sinon.sandbox.create();
+
+      setupMainStubs();
+    });
+
+    afterEach(function() {
+      sandbox.restore();
+    });
+
+    it("should close the peer connection", function () {
+      app.media.closePeerConnection(fakeMozRTCPeerConnection);
+
+      sinon.assert.calledOnce(fakeMozRTCPeerConnection.close);
     });
   });
 });

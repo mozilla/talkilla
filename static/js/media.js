@@ -9,6 +9,11 @@
    * This sets up the media, peer connections for a call, and then passes
    * the resulting request to the transport for signalling to the other side.
    *
+   * This method may trigger at the time or later:
+   *  add_local_stream with the local stream of audio and/or video
+   *  add_remote_stream with the remote stream of audio and/or video
+   *  add_data_channel with the joined data channel pair
+   *
    * @param  {String}   callee      The id of the person to call
    * @param  {String}   offer       Optional. sdp of the incoming call
    * @param  {Object}   callType    An object containing video, audio and data
@@ -23,7 +28,7 @@
     getMedia(callType,
       function (localStream) {
         // They do, so setup the peer connection
-        var pc = getPeerConnection(localStream);
+        var pc = getPeerConnection(callType, localStream);
 
         if (!offer)
           initiatePeerConnection(pc, callee, successCb, errorCb);
@@ -91,26 +96,36 @@
 
   function getMedia(callType, successCb, errorCb) {
     // We only need to call get user media for audio and video calls.
-    if (callType.audio || callType.video) {
-      navigator.mozGetUserMedia(
-        callType,
+    if (!callType.audio && !callType.video)
+      return successCb();
 
-        function onSuccess(stream) {
-          app.trigger("add_local_stream", stream);
-          successCb(stream);
-        },
+    navigator.mozGetUserMedia(
+      callType,
 
-        function onError(err) {
-          errorCb(err);
-        }
-      );
-    }
+      function onSuccess(stream) {
+        app.trigger("add_local_stream", stream);
+        successCb(stream);
+      },
+
+      function onError(err) {
+        errorCb(err);
+      }
+    );
   }
 
-  function getPeerConnection(localStream) {
+  function getPeerConnection(callType, localStream) {
     var pc = new mozRTCPeerConnection();
 
-    pc.addStream(localStream);
+    if (localStream)
+      pc.addStream(localStream);
+
+    if (callType.data) {
+      var chan = pc.createDataChannel("Talkilla");
+
+      pc.ondatachannel = function(aEvent) {
+        app.trigger("add_data_channel", chan, aEvent.chan);
+      };
+    }
 
     pc.onaddstream = function (event) {
       app.trigger("add_remote_stream", event.stream);
