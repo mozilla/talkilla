@@ -290,7 +290,7 @@ describe('Worker', function() {
         var nickname = "bill";
         testableCallback(null, JSON.stringify({nick: nickname}));
         sinon.assert.calledOnce(socketStub);
-        sinon.assert.calledWithExactly(socketStub, wsurl);
+        sinon.assert.calledWithExactly(socketStub, nickname);
       });
 
     it("should not initiate the presence connection if signin failed",

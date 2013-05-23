@@ -79,7 +79,7 @@ function _signinCallback(err, responseText) {
     this.postEvent('talkilla.login-success', {
       username: username
     });
-    createPresenceSocket(_config.WSURL);
+    createPresenceSocket(username);
   }
 }
 
