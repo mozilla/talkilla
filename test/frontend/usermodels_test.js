@@ -4,11 +4,10 @@ var expect = chai.expect;
 describe("app.models.User", function() {
   "use strict";
 
-  it("should be initialized with a sensible defaults object",
-    function() {
-      var user = new app.models.User();
-      expect(user.defaults).to.deep.equal({nick: undefined});
-    });
+  it("should be initialized with a sensible defaults object", function() {
+    var user = new app.models.User();
+    expect(user.defaults).to.deep.equal({nick: undefined});
+  });
 
 });
 
@@ -28,10 +27,9 @@ describe("app.models.UserSet", function() {
     userSet = null;
   });
 
-  it("should be empty upon creation",
-    function() {
-      expect(userSet.length).to.equal(0);
-    });
+  it("should be empty upon creation", function() {
+    expect(userSet.length).to.equal(0);
+  });
 
   describe("#initialize", function() {
     // XXX test that we're attaching _onPortMessage to the right spot
@@ -54,8 +52,7 @@ describe("app.models.UserSet", function() {
 
         userSet._onPortMessage({data: {users: []}});
         expect(userSet.length).to.equal(0);
-      }
-    );
-  });
+      });
+    });
 
 });
