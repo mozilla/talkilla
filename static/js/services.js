@@ -74,6 +74,15 @@
   };
 
   /**
+   * Posts a message event to the worker
+   * @param  {String} topic
+   * @param  {Mixed}  data
+   */
+  app.services.postMessage = function(topic, data) {
+    navigator.mozSocial.getWorker().port.postMessage(topic, data);
+  };
+
+  /**
    * Social API worker port listener; exposed as a global to be reinitialized in
    * a testing environment.
    * @type {PortListener|undefined}
@@ -144,12 +153,12 @@
       dataType: 'json'
     })
     .done(function(auth) {
-      var user = new app.models.User({nick: auth.nick});
+      app.data.user.set({nick: auth.nick, presence: "connected"});
       // create WebSocket connection
       app.services.startWebSocket({
         id: auth.nick
       });
-      return cb(null, user);
+      return cb(null, app.data.user);
     })
     .fail(function(xhr, textStatus, error) {
       app.utils.notifyUI('Error while communicating with the server', 'error');
@@ -170,6 +179,7 @@
       dataType: 'json'
     })
     .done(function(result) {
+      app.data.user.clear();
       return cb(null, result);
     })
     .fail(function(xhr, textStatus, error) {

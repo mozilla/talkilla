@@ -56,7 +56,7 @@
   });
 
   app.models.User = Backbone.Model.extend({
-    defaults: {nick: undefined}
+    defaults: {nick: undefined, presence: undefined}
   });
 
   app.models.UserSet = Backbone.Collection.extend({

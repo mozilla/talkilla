@@ -283,7 +283,7 @@
       this.views = [];
       this.collection.chain().reject(function(user) {
         // filter out current signed in user, if any
-        if (!app.data.user)
+        if (!app.data.user.get('nick'))
           return false;
         return user.get('nick') === app.data.user.get('nick');
       }).each(function(user) {
@@ -308,7 +308,7 @@
       }).pluck('el').value();
       this.$('ul').append(userList);
       // show/hide element regarding auth status
-      if (app.data.user)
+      if (app.data.user.get('nick'))
         this.$el.show();
       else
         this.$el.hide();
@@ -339,8 +339,22 @@
       'submit form#signout': 'signout'
     },
 
+    initialize: function() {
+      app.data.user = new app.models.User();
+      app.data.user.on('change', function(model, options) {
+        if (model.get('nick')) {
+          app.trigger('signin', model);
+          app.router.navigate('', {trigger: true});
+          app.router.index();
+          return;
+        }
+
+        app.resetApp();
+      });
+    },
+
     render: function() {
-      if (!app.data.user) {
+      if (!app.data.user.get("nick")) {
         this.$('#signin').show();
         this.$('#signout').hide().find('.nick').text('');
       } else {
@@ -363,10 +377,6 @@
       app.services.login(nick, function(err, user) {
         if (err)
           return app.utils.notifyUI(err, 'error');
-        app.data.user = user;
-        app.trigger('signin', user);
-        app.router.navigate('', {trigger: true});
-        app.router.index();
       });
     },
 
@@ -380,7 +390,6 @@
       app.services.logout(function(err) {
         if (err)
           return app.utils.notifyUI(err, 'error');
-        app.resetApp();
       });
     }
   });
