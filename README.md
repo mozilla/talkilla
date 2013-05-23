@@ -47,31 +47,19 @@ To run the unit tests:
 
 1. Make sure you've installed node and the required modules as per the local development section.
 
-2. Run the tests:
+2. On Mac, you need to have /Applications/FirefoxNightly.app installed (aka Firefox 24), and not have a /Applications/Firefox.app
+
+3. On Linux, you need to have /usr/bin/firefox-nightly present, or a Firefox will be downloaded for you.
+
+4. Run the tests:
 
         $ make test
 
 
-Browser Tests
--------------
-
-To run the functional tests, you'll need to install [Selenium Server](http://docs.seleniumhq.org/).
-Eg. for OSX using `brew`:
-
-    $ brew install selenium-server-standalone
-
-Start a Selenium server instance:
-
-    $ java -jar /usr/local/opt/selenium-server-standalone/selenium-server-standalone-2.31.0.jar -p 4444
-
-Then run the tests:
-
-    $ mocha test/functional
-
 Front-end Tests
 ---------------
 
-To run the front-end unit tests:
+To run the front-end unit tests standalone:
 
 1. First make sure you are running the server in development mode:
 

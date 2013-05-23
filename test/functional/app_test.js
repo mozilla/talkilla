@@ -6,12 +6,6 @@ var presence = require("../../presence"),
 var expect = require("chai").expect;
 
 var serverPort = 3000;
-var serverHost = "localhost";
-// XXX For now, the sidebar page isn't really in the social sidebar,
-// so just add it.
-var serverHttpBase = 'http://' + serverHost + ':' + serverPort +
-                     '/sidebar.html';
-
 var webdriver = require('selenium-webdriver'),
     By = webdriver.By;
 
@@ -43,7 +37,7 @@ describe("browser tests", function() {
   });
 
   it("should open the homepage", function(done) {
-    driver.get(serverHttpBase);
+    driver.switchTo().frame("//#social-sidebar-browser");
     driver.getTitle().then(function(title) {
       expect(title).to.equal("Talkilla Sidebar");
       done();
@@ -52,7 +46,7 @@ describe("browser tests", function() {
 
   it("should sign users in", function(done) {
     // Sign in user 1
-    driver.get(serverHttpBase);
+    driver.switchTo().frame("//#social-sidebar-browser");
     driver.findElement(By.name("nick")).sendKeys("bob");
     driver.findElement(By.id("submit")).click();
     driver.findElement(By.css("strong.nick")).getText().then(function(nick) {
@@ -66,7 +60,7 @@ describe("browser tests", function() {
     });
 
     // Sign in user 2
-    driver2.get(serverHttpBase);
+    driver2.switchTo().frame("//#social-sidebar-browser");
     driver2.findElement(By.name("nick")).sendKeys("larry");
     driver2.findElement(By.id("submit")).click();
     driver2.findElement(By.css("strong.nick")).getText().then(function(nick) {
@@ -85,7 +79,8 @@ describe("browser tests", function() {
 
   it("should sign users out", function(done) {
     // Sign in user 1
-    driver.get(serverHttpBase);
+    driver.switchTo().frame("//#social-sidebar-browser");
+    driver.navigate().refresh();
     driver.findElement(By.name("nick")).sendKeys("bob");
     driver.findElement(By.id("submit")).click();
     driver.findElement(By.id("signout")).isDisplayed().then(function(res) {
@@ -93,7 +88,8 @@ describe("browser tests", function() {
     });
 
     // Sign in user 2
-    driver2.get(serverHttpBase);
+    driver2.switchTo().frame("//#social-sidebar-browser");
+    driver2.navigate().refresh();
     driver2.findElement(By.name("nick")).sendKeys("larry");
     driver2.findElement(By.id("submit")).click();
     driver2.findElement(By.css("strong.nick")).getText().then(function(nick) {
@@ -127,7 +123,8 @@ describe("browser tests", function() {
   });
 
   it("should handle an interuppted websocket connection", function(done) {
-    driver.get(serverHttpBase);
+    driver.switchTo().frame("//#social-sidebar-browser");
+    driver.navigate().refresh();
     driver.findElement(By.name("nick")).sendKeys("bob");
     driver.findElement(By.id("submit")).click();
     driver.findElement(By.css("strong.nick")).getText().then(function(nick) {
