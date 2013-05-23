@@ -6,9 +6,8 @@ var ports;
 
 function _presenceSocketOnMessage(event) {
   var data = JSON.parse(event.data);
-  for (var eventType in data) {
-    ports.broadcastEvent(eventType, data[eventType]);
-  }
+  for (var eventType in data)
+    ports.broadcastEvent("talkilla." + eventType, data[eventType]);
 }
 
 function _presenceSocketOnOpen(event) {
@@ -100,11 +99,6 @@ var handlers = {
 
     sendAjax('/signin', 'POST', {nick: msg.data.username},
       _signinCallback.bind(this));
-  },
-
-  // maps the ws `users` event to port's `talkilla.users` one
-  'users': function(msg) {
-    this.postEvent('talkilla.users', msg.data);
   }
 };
 

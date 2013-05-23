@@ -1,23 +1,12 @@
-/* global initMozSocial, before, afterEach, beforeEach, chai,
-   createPresenceSocket, describe, handlers, it, sinon, Port, PortCollection,
-   _config:true, _presenceSocket, loadconfig, ports:true,
-   _presenceSocketOnMessage, _presenceSocketOnError, _presenceSocketOnClose,
-   _presenceSocketOnOpen, _signinCallback */
+/* global afterEach, beforeEach, chai, createPresenceSocket, describe,
+   handlers, it, sinon, Port, PortCollection, _config:true, _presenceSocket,
+   loadconfig, ports:true, _presenceSocketOnMessage, _presenceSocketOnError,
+   _presenceSocketOnClose, _presenceSocketOnOpen, _signinCallback */
 /* jshint expr:true */
 var expect = chai.expect;
 
 describe('Worker', function() {
   "use strict";
-
-  before(function() {
-    initMozSocial({
-      getWorker: function() {
-        return {
-          port: {}
-        };
-      }
-    });
-  });
 
   describe("#loadconfig", function() {
     var oldConfig, xhr, requests, sandbox;
@@ -133,7 +122,8 @@ describe('Worker', function() {
           };
           _presenceSocketOnMessage(event);
           sinon.assert.calledOnce(spy1);
-          sinon.assert.calledWithExactly(spy1, {data: "bar", topic: "topic"});
+          sinon.assert.calledWithExactly(spy1, {data: "bar",
+                                                topic: "talkilla.topic"});
         });
     });
 

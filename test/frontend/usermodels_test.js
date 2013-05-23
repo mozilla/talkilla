@@ -1,4 +1,5 @@
-/* global chai, describe, it, app, beforeEach, afterEach, sinon */
+/* global chai, describe, it, app, beforeEach, afterEach, sinon,
+   initMozSocial */
 var expect = chai.expect;
 
 describe("app.models.User", function() {
@@ -11,47 +12,56 @@ describe("app.models.User", function() {
 
 });
 
+// XXX: please fasten your seatbelt (we're sorry)
+function initMozSocial(port) {
+  app.services._portListener = undefined;
+  navigator.mozSocial = {
+    getWorker: function() {
+      return {
+        port: port
+      };
+    }
+  };
+}
+
 describe("app.models.UserSet", function() {
   "use strict";
 
-  var userSet, sandbox;
+  var sandbox;
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
-    userSet = new app.models.UserSet();
   });
 
   afterEach(function() {
     sandbox.restore();
-    userSet = null;
   });
 
   it("should be empty upon creation", function() {
+    initMozSocial({});
+    var userSet = new app.models.UserSet();
     expect(userSet.length).to.equal(0);
   });
 
-  describe("#initialize", function() {
-    // XXX test that we're attaching _onPortMessage to the right spot
-    it("should add a 'onmessage' handler to the socialPort");
-  });
-
-  // XXX where do i test for and implement detachment of the handler?
-
-  // describe("#onPortMessage", function() {
-
-  //   it("should replace the contents of this set with that of a 'user' message",
-  //     function() {
-  //       expect(userSet.length).to.equal(0);
-
-  //       var arrayOfUsers = [{"nick": "larry"}, {"nick": "curly"}];
-  //       var serverMsg = {'users': arrayOfUsers};
-  //       userSet._onPortMessage({data: serverMsg});
-
-  //       expect(userSet.toJSON()).to.deep.equal(arrayOfUsers);
-
-  //       userSet._onPortMessage({data: {users: []}});
-  //       expect(userSet.length).to.equal(0);
-  //     });
-  //   });
-
+  it("should update the user collection according to `talkilla.users` events",
+    function() {
+      var port = {};
+      initMozSocial(port);
+      var userSet = new app.models.UserSet();
+      expect(navigator.mozSocial.getWorker().port).to.deep.equal(port);
+      expect(port.onmessage).to.be.a("function");
+      port.onmessage({
+        topic: "talkilla.users",
+        data: [{nick: "bob"}]
+      });
+      expect(userSet).have.length.of(1);
+      expect(userSet.at(0).get('nick')).to.equal("bob");
+      port.onmessage({
+        topic: "talkilla.users",
+        data: [{nick: "bob"}, {nick: "bill"}]
+      });
+      expect(userSet).have.length.of(2);
+      expect(userSet.at(0).get('nick')).to.equal("bob");
+      expect(userSet.at(1).get('nick')).to.equal("bill");
+    });
 });

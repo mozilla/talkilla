@@ -5,64 +5,6 @@
 (function(app, Backbone) {
   "use strict";
 
-  var portListener;
-
-  /**
-   * Retrieves or initializes a PortListener object.
-   * @return {PortListener}
-   */
-  app.models.getPortListener = function() {
-    var port;
-    if (portListener)
-      return portListener;
-    try {
-      port = navigator.mozSocial.getWorker().port;
-    } catch (e) {
-      return;
-    }
-    return new app.models.PortListener(port);
-  };
-
-  /**
-   * MozSocial Port listener.
-   * @param  {AbstractPort} port
-   */
-  app.models.PortListener = function(port) {
-    this.port = port;
-    this.listeners = {};
-    this.port.onmessage = this.onmessage.bind(this);
-  };
-
-  app.models.PortListener.prototype = {
-    /**
-     * Adds a topic listener.
-     * @param  {String}   topic
-     * @param  {Function} listener
-     */
-    on: function(topic, listener) {
-      if (!(topic in this.listeners)) {
-        this.listeners[topic] = [];
-      }
-      this.listeners[topic].push(listener);
-    },
-
-    /**
-     * Port message event listener, will call every registered listener for the
-     * received topic.
-     * @param  {Event} event
-     */
-    onmessage: function(event) {
-      var topic = event.data.topic;
-      var data = event.data.data;
-      Object.keys(this.listener).forEach(function(registered) {
-        if (topic === registered)
-          this.listeners.forEach(function(listener) {
-            listener.call(this, data);
-          });
-      });
-    }
-  };
-
   app.models.Call = Backbone.Model.extend({
     initialize: function() {
       this.state = StateMachine.create({
@@ -121,10 +63,10 @@
     model: app.models.User,
 
     initialize: function(models, options) {
-      this.models = models;
+      this.models = models || [];
       this.options = options;
       // register the talkilla.users event
-      app.models.getPortListener().on('talkilla.users', function(users) {
+      app.services.getPortListener().on('talkilla.users', function(users) {
         this.reset(users);
       }.bind(this));
     }
