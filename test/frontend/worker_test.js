@@ -122,7 +122,8 @@ describe('Worker', function() {
           };
           _presenceSocketOnMessage(event);
           sinon.assert.calledOnce(spy1);
-          sinon.assert.calledWithExactly(spy1, {data: "bar", topic: "topic"});
+          sinon.assert.calledWithExactly(spy1, {data: "bar",
+                                                topic: "talkilla.topic"});
         });
     });
 
