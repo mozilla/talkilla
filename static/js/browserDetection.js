@@ -29,6 +29,8 @@ var browserDetection = (function ($) {
   app.activateSocial = function(node, data) {
     var baseUrl = location.href.substring(0, location.href.lastIndexOf('/'));
 
+    // If you update this manifest, please also update the functional
+    // test manifests.
     data = data || {
       // currently required
       "name": "Talkilla" + this._getHostSpecificText(),
