@@ -341,7 +341,7 @@
 
     initialize: function() {
       app.data.user = new app.models.User();
-      app.data.user.on('change', function(model, options) {
+      app.data.user.on('change', function(model) {
         if (model.get('nick')) {
           app.trigger('signin', model);
           app.router.navigate('', {trigger: true});
@@ -374,10 +374,7 @@
       var nick = $.trim($(event.currentTarget).find('[name="nick"]').val());
       if (!nick)
         return app.utils.notifyUI('please enter a nickname');
-      app.services.login(nick, function(err, user) {
-        if (err)
-          return app.utils.notifyUI(err, 'error');
-      });
+      app.services.login(nick);
     },
 
     /**
@@ -387,10 +384,7 @@
      */
     signout: function(event) {
       event.preventDefault();
-      app.services.logout(function(err) {
-        if (err)
-          return app.utils.notifyUI(err, 'error');
-      });
+      app.services.logout();
     }
   });
 

@@ -87,7 +87,7 @@ var Talkilla = (function($, Backbone, _) {
 
   // window event listeners
   window.onbeforeunload = function() {
-    if (!app.data.user.get("nick"))
+    if (!app.data.user || !app.data.user.get("nick"))
       return;
     app.services.logout(function(err) {
       if (err)

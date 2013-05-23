@@ -143,9 +143,8 @@
    * Signs a user in.
    *
    * @param  {String}   nick User's nickname
-   * @param  {Function} cb   Callback(error, User, UserSet)
    */
-  app.services.login = function(nick, cb) {
+  app.services.login = function(nick) {
     $.ajax({
       type: "POST",
       url: '/signin',
@@ -158,33 +157,29 @@
       app.services.startWebSocket({
         id: auth.nick
       });
-      return cb(null, app.data.user);
     })
     .fail(function(xhr, textStatus, error) {
-      app.utils.notifyUI('Error while communicating with the server', 'error');
-      return cb(error);
+      app.utils.notifyUI('Error while communicating with the server: ' +
+                         error, 'error');
     });
   };
 
   /**
    * Signs a user in.
-   *
-   * @param  {Function} cb   Callback(error)
    */
-  app.services.logout = function(cb) {
+  app.services.logout = function() {
     $.ajax({
       type: "POST",
       url: '/signout',
       data: {nick: app.data.user && app.data.user.get('nick')},
       dataType: 'json'
     })
-    .done(function(result) {
+    .done(function() {
       app.data.user.clear();
-      return cb(null, result);
     })
     .fail(function(xhr, textStatus, error) {
-      app.utils.notifyUI('Error while communicating with the server', 'error');
-      return cb(error);
+      app.utils.notifyUI('Error while communicating with the server: ' +
+                         error, 'error');
     });
   };
 
