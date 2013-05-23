@@ -12,25 +12,25 @@ describe("app.models.User", function() {
 
 });
 
-// XXX: please fasten your seatbelt (we're sorry)
-function initMozSocial(port) {
-  app.services._portListener = undefined;
-  navigator.mozSocial = {
-    getWorker: function() {
-      return {
-        port: port
-      };
-    }
-  };
-}
-
 describe("app.models.UserSet", function() {
   "use strict";
 
-  var sandbox;
+  var sandbox, port;
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
+
+    // XXX: please fasten your seatbelt (we're sorry)
+    app.services._portListener = undefined;
+    port = {};
+
+    navigator.mozSocial = {
+      getWorker: function() {
+        return {
+          port: port
+        };
+      }
+    };
   });
 
   afterEach(function() {
@@ -38,15 +38,12 @@ describe("app.models.UserSet", function() {
   });
 
   it("should be empty upon creation", function() {
-    initMozSocial({});
     var userSet = new app.models.UserSet();
     expect(userSet.length).to.equal(0);
   });
 
   it("should update the user collection according to `talkilla.users` events",
     function() {
-      var port = {};
-      initMozSocial(port);
       var userSet = new app.models.UserSet();
       expect(navigator.mozSocial.getWorker().port).to.deep.equal(port);
       expect(port.onmessage).to.be.a("function");
