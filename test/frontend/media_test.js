@@ -102,6 +102,20 @@ describe("Media", function() {
           app.trigger.calledWith("add_local_stream");
         });
 
+      it("should call createOffer if media use was granted",
+        function() {
+          app.media.startCall("dan", null, callType, success, error);
+
+          sinon.assert.calledOnce(fakeMozRTCPeerConnection.createOffer);
+        });
+
+      it("should call setLocalDescription if media use was granted",
+        function() {
+          app.media.startCall("dan", null, callType, success, error);
+
+          sinon.assert.calledOnce(fakeMozRTCPeerConnection.setLocalDescription);
+        });
+
       it("should get a peer connection if the media use was granted",
         function() {
           app.media.startCall("dan", null, callType, success, error);
@@ -127,6 +141,36 @@ describe("Media", function() {
       it("should call the success callback if media use was granted",
         function() {
           app.media.startCall("dan", null, callType, success, error);
+
+          sinon.assert.calledOnce(success);
+          sinon.assert.notCalled(error);
+        });
+
+      it("should call createAnswer if an existing offer was provided",
+        function() {
+          app.media.startCall("florian", "sdp", callType, success, error);
+
+          sinon.assert.calledOnce(fakeMozRTCPeerConnection.createAnswer);
+        });
+
+      it("should call setLocalDescription if an existing offer was provided",
+        function() {
+          app.media.startCall("florian", "sdp", callType, success, error);
+
+          sinon.assert.calledOnce(fakeMozRTCPeerConnection.setLocalDescription);
+        });
+
+      it("should accept signalling if an existing offer was provided",
+        function() {
+          app.media.startCall("florian", "sdp", callType, success, error);
+
+          sinon.assert.calledOnce(app.services.acceptCall);
+          app.services.initiateCall.calledWith("dan", {});
+        });
+
+      it("should call the success callback if an existing offer was provided",
+        function() {
+          app.media.startCall("florian", "sdp", callType, success, error);
 
           sinon.assert.calledOnce(success);
           sinon.assert.notCalled(error);
