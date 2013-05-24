@@ -263,8 +263,13 @@ app.start = function(serverPort, callback) {
 
   var config = app.get('config');
 
+  // ensure compatibility with our testing environment
   if (!("WSURL" in config)) {
     config.WSURL = "ws://localhost:" + serverPort;
+  }
+
+  if (!("ROOTURL" in config)) {
+    config.ROOTURL = "http://localhost:" + serverPort;
   }
 
   app.set('config', config);

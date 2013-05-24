@@ -2,7 +2,8 @@
    handlers, it, sinon, Port, PortCollection, _config:true, _presenceSocket,
    loadconfig, ports:true, _presenceSocketOnMessage, _presenceSocketOnError,
    _presenceSocketOnClose, _presenceSocketOnOpen, _signinCallback,
-   _presenceSocket, _currentUserData, browserPort:true */
+   _presenceSocket, _currentUserData, browserPort:true, _currentUserData:true,
+   UserData */
 /* jshint expr:true */
 var expect = chai.expect;
 
@@ -29,18 +30,47 @@ describe('Worker', function() {
       sandbox.restore();
     });
 
-    it("should populate the _config object from using AJAX load", function() {
-      expect(_config).to.deep.equal({});
-      loadconfig();
-      expect(requests).to.have.length.of(1);
-      expect(requests[0].url).to.equal('/config.json');
-      requests[0].respond(200, {
-        'Content-Type': 'application/json'
-      }, '{"WSURL": "ws://fake", "DEBUG": true}');
-      expect(_config).to.deep.equal({WSURL: 'ws://fake', DEBUG: true});
-    });
+    it("should populate the _config object from using AJAX load",
+      function(done) {
+        expect(_config).to.deep.equal({});
+        loadconfig(function(err, config) {
+          expect(requests).to.have.length.of(1);
+          expect(requests[0].url).to.equal('/config.json');
+          expect(config).to.deep.equal({WSURL: 'ws://fake', DEBUG: true});
+          done();
+        });
+        requests[0].respond(200, {
+          'Content-Type': 'application/json'
+        }, '{"WSURL": "ws://fake", "DEBUG": true}');
+      });
   });
 
+  describe('UserData', function() {
+    it("should be created with defaults values", function() {
+      var userData = new UserData();
+      expect(userData).to.include.keys(Object.keys(userData.defaults));
+    });
+
+    it("should accept initial values", function() {
+      var userData = new UserData({displayName: "foo"});
+      expect(userData).to.include.keys(Object.keys(userData.defaults));
+      expect(userData.displayName).to.equal("foo");
+    });
+
+    it("should accept a configuration object and update defaults accordingly",
+      function() {
+        var userData = new UserData({}, {ROOTURL: "http://fake"});
+        expect(userData.iconURL).to.equal("http://fake/talkilla16.png");
+      });
+
+    it("should reset to defaults", function() {
+      var userData = new UserData({displayName: "foo"});
+      expect(userData.displayName).to.equal("foo");
+      userData.reset();
+      expect(userData).to.include.keys(Object.keys(userData.defaults));
+      expect(userData.displayName).to.equal(undefined);
+    });
+  });
 
   describe('presence socket stuff', function () {
     var spy1;
@@ -281,6 +311,7 @@ describe('Worker', function() {
         postEvent: sandbox.spy()
       };
       _config.WSURL = wsurl;
+      _currentUserData = new UserData({});
       testableCallback = _signinCallback.bind({postEvent: function(){}});
     });
 
@@ -307,7 +338,7 @@ describe('Worker', function() {
   });
 
   describe("#login", function() {
-    var xhr, socketStub, requests, sandbox;
+    var xhr, rootURL, socketStub, requests, sandbox;
 
     beforeEach(function() {
       sandbox = sinon.sandbox.create();
@@ -321,6 +352,11 @@ describe('Worker', function() {
       browserPort = {
         postEvent: sandbox.spy()
       };
+
+      rootURL = 'http://fake';
+      _currentUserData = new UserData({}, {
+        ROOTURL: rootURL
+      });
     });
 
     afterEach(function() {
@@ -373,7 +409,10 @@ describe('Worker', function() {
           '{"nick":"jb"}' );
 
         sinon.assert.calledOnce(browserPort.postEvent);
-        expect(browserPort.postEvent.args[0][1].userName).to.be.equal('jb');
+        var args = browserPort.postEvent.args;
+        expect(args[0][1].userName).to.be.equal('jb');
+        expect(args[0][1].iconURL).to.contain(rootURL + '/talkilla16.png');
+        expect(args[0][1].profileURL).to.contain(rootURL + '/user.html');
       });
 
     it("should post a success message if the server accepted login",
