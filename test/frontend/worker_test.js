@@ -396,7 +396,6 @@ describe('Worker', function() {
 
     afterEach(function() {
       sandbox.restore();
-      //socketStub.restore();
     });
 
     it('should tear down the websocket', function() {
