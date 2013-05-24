@@ -114,9 +114,10 @@ var handlers = {
   },
 
   'talkilla.logout': function() {
-    if (!_currentUserData.nick)
+    if (!_currentUserData.nick) {
       return this.postEvent('talkilla.error',
                             'trying to logout when not logged in');
+    }
 
     _presenceSocket.close();
     sendAjax('/signout', 'POST', {nick: _currentUserData.nick},
