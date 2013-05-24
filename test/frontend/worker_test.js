@@ -164,10 +164,10 @@ describe('Worker', function() {
           presenceSocket.onmessage(event);
 
           sinon.assert.calledTwice(spy1); // first is presence-pending
-          sinon.assert.calledWithExactly(spy1, {data: {},
-                                                topic: "talkilla.presence-pending"});
-          sinon.assert.calledWithExactly(spy1, {data: "bar",
-                                                topic: "talkilla.topic"});
+          sinon.assert.calledWithExactly(spy1,
+            {data: {}, topic: "talkilla.presence-pending"});
+          sinon.assert.calledWithExactly(spy1,
+            {data: "bar", topic: "talkilla.topic"});
         });
 
       it('should call postMessage with a talkilla.websocket-error message',
