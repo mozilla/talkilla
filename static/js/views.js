@@ -80,9 +80,12 @@
 
     deny: function(event) {
       event.preventDefault();
+      // XXX to be replaced
+      /*
       app.services.ws.send(JSON.stringify({
         'call_deny': this.model.toJSON()
       }));
+      */
       this.clear();
     }
   });

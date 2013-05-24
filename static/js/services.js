@@ -1,77 +1,12 @@
-/* global Talkilla, Backbone, jQuery, _, WebSocket */
+/* global Talkilla, Backbone, jQuery, _ */
 /**
  * Talkilla services which can hardly be handled by Backbone models.
  */
-(function(app, Backbone, $, _, WebSocket) {
+(function(app, Backbone, $, _) {
   "use strict";
 
   // add event support to services
   _.extend(app.services, Backbone.Events);
-
-  /**
-   * Creates the "authenticated" WebSocket connection. The WebSocket service is
-   * usually created once the user is authenticated.
-   *
-   * @param  {Object} options
-   */
-  app.services.startWebSocket = function(options) {
-    var id = options && options.id;
-
-    if (!id)
-      throw new Error('Creating a WebSocket needs an id passed');
-
-    /**
-     * WebSocket client
-     * @type {WebSocket}
-     */
-    app.services.ws = new WebSocket(app.options.WSURL + '?nick=' + id);
-
-    /**
-     * Error logging
-     */
-    app.services.ws.onerror = function(error) {
-      app.utils.log('WebSocket Error ' + error);
-      app.utils.notifyUI('An error occured while communicating with the ' +
-                         'server.');
-    };
-
-    /**
-     * Socket closing
-     */
-    app.services.ws.onclose = function(reason) {
-      // XXX At some stage, we should be nicer than resetting everything
-      // i.e. we should try and get it back again. For now, we'll just
-      // notify the user so that they are aware.
-      // 1000 is CLOSE_NORMAL
-      if (reason.code !== 1000) {
-        app.resetApp();
-        app.utils.notifyUI('Sorry, the browser lost communication with ' +
-                           'the server.');
-      }
-    };
-
-    /**
-     * Message handling; app.services triggers an event for each object key
-     * received and passes the corresponding data as the first arg to the
-     * listener callback
-     *
-     * @param {Object} event Message event
-     */
-    app.services.ws.onmessage = function(event) {
-      var data = JSON.parse(event.data);
-      for (var eventType in data) {
-        app.services.trigger(eventType, data[eventType]);
-      }
-    };
-  };
-
-  /**
-   * Closes the current WebSocket connection, if any
-   */
-  app.services.closeWebSocket = function() {
-    if ('ws' in app.services)
-      app.services.ws.close();
-  };
 
   /**
    * Posts a message event to the worker
@@ -190,6 +125,9 @@
    *                                  send to the callee.
    */
   app.services.initiateCall = function(callee, offer) {
+    // XXX to be replaced
+    /* jshint unused:false */
+    /*
     var call = {
       caller: app.data.user.get('nick'),
       callee: callee.get('nick'),
@@ -199,6 +137,7 @@
     // send call offer to the server
     app.services.ws.send(JSON.stringify({"call_offer": call}));
     app.services.trigger('call_offer', call);
+    */
   };
 
   /**
@@ -209,7 +148,10 @@
    *                                  send to the caller.
    */
   app.services.acceptCall = function(caller, answer) {
+    // XXX to be replaced
+    /* jshint unused:false */
     // send call answer to the server
+    /*
     app.services.ws.send(JSON.stringify({
       "call_accepted": {
         caller: caller.get('nick'),
@@ -217,5 +159,6 @@
         answer: answer
       }
     }));
+    */
   };
-})(Talkilla, Backbone, jQuery, _, WebSocket);
+})(Talkilla, Backbone, jQuery, _);
