@@ -257,12 +257,6 @@
         this.render();
       }.bind(this));
 
-      // refresh the users list on new received data
-      app.services.on('users', function(data) {
-        this.collection.set(data);
-        this.render();
-      }.bind(this));
-
       // purge the list on sign out
       app.on('signout', function() {
         this.collection.reset();
