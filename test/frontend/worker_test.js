@@ -2,7 +2,7 @@
    handlers, it, sinon, Port, PortCollection, _config:true, _presenceSocket,
    loadconfig, ports:true, _presenceSocketOnMessage, _presenceSocketOnError,
    _presenceSocketOnClose, _presenceSocketOnOpen, _signinCallback,
-   _presenceSocket, _currentUserData */
+   _presenceSocket, _currentUserData, browserPort:true */
 /* jshint expr:true */
 var expect = chai.expect;
 
@@ -277,11 +277,15 @@ describe('Worker', function() {
       sandbox = sinon.sandbox.create();
       sandbox.stub(window, "WebSocket");
       socketStub = sinon.stub(window, "createPresenceSocket");
+      browserPort = {
+        postEvent: sandbox.spy()
+      };
       _config.WSURL = wsurl;
       testableCallback = _signinCallback.bind({postEvent: function(){}});
     });
 
     afterEach(function() {
+      browserPort = undefined;
       sandbox.restore();
       socketStub.restore();
     });
@@ -313,9 +317,14 @@ describe('Worker', function() {
       xhr = sinon.useFakeXMLHttpRequest();
       requests = [];
       xhr.onCreate = function (req) { requests.push(req); };
+
+      browserPort = {
+        postEvent: sandbox.spy()
+      };
     });
 
     afterEach(function() {
+      browserPort = undefined;
       xhr.restore();
       sandbox.restore();
       socketStub.restore();
@@ -352,6 +361,21 @@ describe('Worker', function() {
         expect(requests[0].requestBody).to.be.equal('{"nick":"jb"}');
       });
 
+    it("should post a social.user-profile message if the server accepted " +
+       "login", function() {
+        handlers['talkilla.login']({
+          topic: "talkilla.login",
+          data: {username: "jb"}
+        });
+        expect(requests.length).to.equal(1);
+
+        requests[0].respond(200, { 'Content-Type': 'application/json' },
+          '{"nick":"jb"}' );
+
+        sinon.assert.calledOnce(browserPort.postEvent);
+        expect(browserPort.postEvent.args[0][1].userName).to.be.equal('jb');
+      });
+
     it("should post a success message if the server accepted login",
       function() {
         handlers.postEvent = sinon.spy();
@@ -379,7 +403,7 @@ describe('Worker', function() {
         requests[0].respond(200, { 'Content-Type': 'application/json' },
           '{"nick":"jb"}' );
 
-        expect(_currentUserData.nick).to.equal('jb');
+        expect(_currentUserData.userName).to.equal('jb');
       });
 
     it("should post a fail message if the server rejected login",
@@ -410,17 +434,22 @@ describe('Worker', function() {
       requests = [];
       xhr.onCreate = function (req) { requests.push(req); };
 
-      _currentUserData.nick = 'romain';
+      _currentUserData.userName = 'romain';
       _presenceSocket.close = sandbox.stub();
+
+      browserPort = {
+        postEvent: sandbox.spy()
+      };
     });
 
     afterEach(function() {
+      browserPort = undefined;
       xhr.restore();
       sandbox.restore();
     });
 
     it('should post an error message if not logged in', function() {
-      _currentUserData.nick = undefined;
+      _currentUserData.userName = undefined;
       handlers.postEvent = sandbox.spy();
       handlers['talkilla.logout']({
         topic: 'talkilla.logout',
@@ -464,6 +493,21 @@ describe('Worker', function() {
         sinon.assert.calledOnce(handlers.postEvent);
         sinon.assert.calledWith(handlers.postEvent, 'talkilla.logout-success');
       });
+
+    it("should post a social.user-profile message", function() {
+        handlers['talkilla.logout']({
+          topic: 'talkilla.logout'
+        });
+        expect(requests.length).to.equal(1);
+
+        requests[0].respond(200, { 'Content-Type': 'text/plain' },
+          'OK' );
+
+        var spy = browserPort.postEvent;
+        sinon.assert.calledOnce(spy);
+        expect(spy.args[0][1].userName).to.be.equal(undefined);
+      });
+
 
     it("should log failure, if the server failed to sign the user out",
       function() {
