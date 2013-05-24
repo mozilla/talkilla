@@ -124,7 +124,7 @@ Port.prototype = {
    */
   onmessage: function(event) {
     var msg = event.data;
-    if (msg && msg.topic && msg.topic in handlers)
+    if (msg && msg.topic && (msg.topic in handlers))
       handlers[msg.topic].call(this, msg);
     else
       this.error('Topic is missing or unknown');

@@ -78,8 +78,9 @@
    * @param  {String} topic
    * @param  {Mixed}  data
    */
-  app.services.postMessage = function(topic, data) {
-    navigator.mozSocial.getWorker().port.postMessage(topic, data);
+  app.services._postToWorker = function(topic, data) {
+    navigator.mozSocial.getWorker().port.postMessage(
+      {topic: topic, data: data});
   };
 
   /**
@@ -129,8 +130,8 @@
      * @param  {Event} event
      */
     onmessage: function(event) {
-      var topic = event.topic;
-      var data = event.data;
+      var topic = event.data.topic;
+      var data = event.data.data;
       if (topic in this.listeners) {
         this.listeners[topic].forEach(function(listener) {
           listener(data);
@@ -139,29 +140,27 @@
     }
   };
 
+  app.services.getPortListener().on("talkilla.login-success", function(data) {
+    app.data.user.set({nick: data.username, presence: "connected"});
+  });
+
+  app.services.getPortListener().on("talkilla.login-failure", function(error) {
+    app.utils.notifyUI('Failed to login while communicating with the server: ' +
+      error, 'error');
+  });
+
+  app.services.getPortListener().on("talkilla.error", function(error) {
+    app.utils.notifyUI('Error while communicating with the server: ' +
+      error, 'error');
+  });
+
   /**
    * Signs a user in.
    *
    * @param  {String}   nick User's nickname
    */
   app.services.login = function(nick) {
-    $.ajax({
-      type: "POST",
-      url: '/signin',
-      data: {nick: nick},
-      dataType: 'json'
-    })
-    .done(function(auth) {
-      app.data.user.set({nick: auth.nick, presence: "connected"});
-      // create WebSocket connection
-      app.services.startWebSocket({
-        id: auth.nick
-      });
-    })
-    .fail(function(xhr, textStatus, error) {
-      app.utils.notifyUI('Error while communicating with the server: ' +
-                         error, 'error');
-    });
+    this._postToWorker("talkilla.login", {username: nick});
   };
 
   /**

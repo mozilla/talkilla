@@ -246,6 +246,14 @@
     initialize: function() {
       app.data.users = this.collection = new app.models.UserSet();
 
+      this.collection.on('change', function() {
+        this.render();
+      }.bind(this));
+
+      this.collection.on('all', function() {
+        this.render();
+      }.bind(this));
+
       // refresh the users list on new received data
       app.services.on('users', function(data) {
         this.collection.set(data);
