@@ -26,11 +26,6 @@ var Talkilla = (function($, Backbone, _) {
       _.extend(this.options, options || {});
       this.router = new app.Router();
       Backbone.history.start();
-
-      // app listeners
-      this.on('signout', function() {
-        this.services.closeWebSocket();
-      });
     }
   };
 

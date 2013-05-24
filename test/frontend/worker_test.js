@@ -1,7 +1,8 @@
 /* global afterEach, beforeEach, chai, createPresenceSocket, describe,
    handlers, it, sinon, Port, PortCollection, _config:true, _presenceSocket,
    loadconfig, ports:true, _presenceSocketOnMessage, _presenceSocketOnError,
-   _presenceSocketOnClose, _presenceSocketOnOpen, _signinCallback */
+   _presenceSocketOnClose, _presenceSocketOnOpen, _signinCallback,
+   _presenceSocket */
 /* jshint expr:true */
 var expect = chai.expect;
 
@@ -385,6 +386,26 @@ describe('Worker', function() {
   });
 
   describe("#logout", function() {
-    it('should tear down the websocket');
+    var sandbox;
+
+    beforeEach(function() {
+      sandbox = sinon.sandbox.create();
+
+      _presenceSocket.close = sandbox.stub();
+    });
+
+    afterEach(function() {
+      sandbox.restore();
+      //socketStub.restore();
+    });
+
+    it('should tear down the websocket', function() {
+      handlers['talkilla.logout']({
+        topic: "talkilla.logout",
+        data: null
+      });
+
+      sinon.assert.calledOnce(_presenceSocket.close);
+    });
   });
 });

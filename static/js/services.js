@@ -89,19 +89,27 @@
       error, 'error');
   });
 
+  app.services.getPortListener().on("talkilla.presence-unavailable",
+    function() {
+      app.resetApp();
+      app.utils.notifyUI('Sorry, the browser lost communication with ' +
+                         'the server.');
+    });
+
   /**
    * Signs a user in.
    *
    * @param  {String}   nick User's nickname
    */
   app.services.login = function(nick) {
-    this._postToWorker("talkilla.login", {username: nick});
+    this._postToWorker('talkilla.login', {username: nick});
   };
 
   /**
    * Signs a user in.
    */
   app.services.logout = function() {
+    this._postToWorker('talkilla.logout');
     $.ajax({
       type: "POST",
       url: '/signout',

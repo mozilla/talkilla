@@ -26,7 +26,9 @@ function _presenceSocketOnClose(event) {
   "use strict";
 
   // XXX: this will need future work to handle retrying presence connections
-  ports.broadcastEvent("talkilla.presence-unavailable", event);
+  // 1000 is CLOSE_NORMAL
+  if (event.code !== 1000)
+    ports.broadcastEvent("talkilla.presence-unavailable", event);
 }
 
 function createPresenceSocket(nickname) {
@@ -99,6 +101,9 @@ var handlers = {
 
     sendAjax('/signin', 'POST', {nick: msg.data.username},
       _signinCallback.bind(this));
+  },
+  'talkilla.logout': function() {
+    _presenceSocket.close();
   }
 };
 
