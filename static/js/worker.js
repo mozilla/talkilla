@@ -1,11 +1,30 @@
 /* jshint unused:false */
 
 var _config = {DEBUG: false};
-var _currentUserData = {
-  nick: undefined
-};
 var _presenceSocket;
 var ports;
+var browserPort;
+
+function UserData() {
+  this.reset();
+}
+
+UserData.prototype = {
+  defaults: {
+    iconURL: "/talkilla16.png",
+    portrait: undefined,
+    userName: undefined,
+    displayName: undefined,
+    profileURL: "/user.html"
+  },
+
+  reset: function() {
+    for (var key in this.defaults)
+      this[key] = this.defaults[key];
+  }
+};
+
+var _currentUserData = new UserData();
 
 function _presenceSocketOnMessage(event) {
   var data = JSON.parse(event.data);
@@ -79,10 +98,14 @@ function _signinCallback(err, responseText) {
     return this.postEvent('talkilla.login-failure', err);
   var username = JSON.parse(responseText).nick;
   if (username) {
-    _currentUserData.nick = username;
+    _currentUserData.userName = _currentUserData.displayName = username;
+    _currentUserData.portrait = "test.png";
+
     this.postEvent('talkilla.login-success', {
       username: username
     });
+
+    browserPort.postEvent('social.user-profile', _currentUserData);
     createPresenceSocket(username);
   }
 }
@@ -91,7 +114,8 @@ function _signoutCallback(err, responseText) {
   if (err)
     return this.postEvent('talkilla.error', 'Bad signout:' + err);
 
-  _currentUserData.nick = undefined;
+  _currentUserData.reset();
+  browserPort.postEvent('social.user-profile', _currentUserData);
   this.postEvent('talkilla.logout-success');
 }
 
@@ -99,6 +123,11 @@ var handlers = {
   // SocialAPI events
   'social.port-closing': function() {
     ports.remove(this);
+  },
+
+  'social.initialize': function() {
+    browserPort = this;
+    this.postEvent('social.user-profile', _currentUserData);
   },
 
   // Talkilla events
@@ -114,13 +143,13 @@ var handlers = {
   },
 
   'talkilla.logout': function() {
-    if (!_currentUserData.nick) {
+    if (!_currentUserData.userName) {
       return this.postEvent('talkilla.error',
                             'trying to logout when not logged in');
     }
 
     _presenceSocket.close();
-    sendAjax('/signout', 'POST', {nick: _currentUserData.nick},
+    sendAjax('/signout', 'POST', {nick: _currentUserData.userName},
       _signoutCallback.bind(this));
   }
 };
