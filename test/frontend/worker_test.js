@@ -2,7 +2,7 @@
    handlers, it, sinon, Port, PortCollection, _config:true, _presenceSocket,
    loadconfig, ports:true, _presenceSocketOnMessage, _presenceSocketOnError,
    _presenceSocketOnClose, _presenceSocketOnOpen, _signinCallback,
-   _presenceSocket */
+   _presenceSocket, _currentUserData */
 /* jshint expr:true */
 var expect = chai.expect;
 
@@ -143,12 +143,12 @@ describe('Worker', function() {
     describe("#_presenceSocketOnClose", function() {
       it('should post a talkilla.presence-unavailable message',
         function() {
-          var event = {foo: "bar"};
+          var event = {code: 1000};
           _presenceSocketOnClose(event);
 
           sinon.assert.calledOnce(spy1);
           sinon.assert.calledWithExactly(spy1,
-            {data: event, topic: "talkilla.presence-unavailable"});
+            {data: 1000, topic: "talkilla.presence-unavailable"});
         }
       );
 
@@ -368,6 +368,20 @@ describe('Worker', function() {
         sinon.assert.calledWith(handlers.postEvent, "talkilla.login-success");
       });
 
+    it("should store the username if the server accepted login",
+      function() {
+        handlers['talkilla.login']({
+          topic: 'talkilla.login',
+          data: {username: 'jb'}
+        });
+        expect(requests.length).to.equal(1);
+
+        requests[0].respond(200, { 'Content-Type': 'application/json' },
+          '{"nick":"jb"}' );
+
+        expect(_currentUserData.nick).to.equal('jb');
+      });
+
     it("should post a fail message if the server rejected login",
       function() {
         handlers.postEvent = sinon.spy();
@@ -386,25 +400,85 @@ describe('Worker', function() {
   });
 
   describe("#logout", function() {
-    var sandbox;
+    var sandbox, xhr, requests;
 
     beforeEach(function() {
       sandbox = sinon.sandbox.create();
+      // XXX For some reason, sandbox.useFakeXMLHttpRequest doesn't want to work
+      // nicely so we have to manually xhr.restore for now.
+      xhr = sinon.useFakeXMLHttpRequest();
+      requests = [];
+      xhr.onCreate = function (req) { requests.push(req); };
 
+      _currentUserData.nick = 'romain';
       _presenceSocket.close = sandbox.stub();
     });
 
     afterEach(function() {
+      xhr.restore();
       sandbox.restore();
+    });
+
+    it('should post an error message if not logged in', function() {
+      _currentUserData.nick = undefined;
+      handlers.postEvent = sandbox.spy();
+      handlers['talkilla.logout']({
+        topic: 'talkilla.logout',
+        data: null
+      });
+
+      sinon.assert.calledOnce(handlers.postEvent);
+      sinon.assert.calledWith(handlers.postEvent, 'talkilla.error');
     });
 
     it('should tear down the websocket', function() {
       handlers['talkilla.logout']({
-        topic: "talkilla.logout",
+        topic: 'talkilla.logout',
         data: null
       });
 
       sinon.assert.calledOnce(_presenceSocket.close);
     });
+
+    it("should post an ajax message to the server",
+      function() {
+        handlers['talkilla.logout']({
+          topic: 'talkilla.logout'
+        });
+        expect(requests.length).to.equal(1);
+        expect(requests[0].url).to.equal('/signout');
+        expect(requests[0].requestBody).to.be.not.empty;
+        expect(requests[0].requestBody).to.be.equal('{"nick":"romain"}');
+      });
+
+    it("should post a success message",
+      function() {
+        handlers.postEvent = sandbox.spy();
+        handlers['talkilla.logout']({
+          topic: 'talkilla.logout'
+        });
+
+        requests[0].respond(200, { 'Content-Type': 'text/plain' },
+          'OK' );
+
+        sinon.assert.calledOnce(handlers.postEvent);
+        sinon.assert.calledWith(handlers.postEvent, 'talkilla.logout-success');
+      });
+
+    it("should log failure, if the server failed to sign the user out",
+      function() {
+        handlers.postEvent = sandbox.spy();
+        handlers['talkilla.logout']({
+          topic: 'talkilla.logout'
+        });
+
+        expect(requests.length).to.equal(1);
+
+        requests[0].respond(401, { 'Content-Type': 'text/plain' },
+                            'Not Authorised' );
+
+        sinon.assert.calledOnce(handlers.postEvent);
+        sinon.assert.calledWith(handlers.postEvent, 'talkilla.error');
+      });
   });
 });
