@@ -35,8 +35,8 @@ describe("app.models.UserSet", function() {
   });
 
   afterEach(function() {
-    app.services._portListener = savedMozSocial;
-    navigator.mozSocial = navigator.mozSocial;
+    app.services._portListener = savedListener;
+    navigator.mozSocial = savedMozSocial;
     sandbox.restore();
   });
 
@@ -50,16 +50,16 @@ describe("app.models.UserSet", function() {
       var userSet = new app.models.UserSet();
       expect(navigator.mozSocial.getWorker().port).to.deep.equal(port);
       expect(port.onmessage).to.be.a("function");
-      port.onmessage({
+      port.onmessage({data: {
         topic: "talkilla.users",
         data: [{nick: "bob"}]
-      });
+      }});
       expect(userSet).have.length.of(1);
       expect(userSet.at(0).get('nick')).to.equal("bob");
-      port.onmessage({
+      port.onmessage({data: {
         topic: "talkilla.users",
         data: [{nick: "bob"}, {nick: "bill"}]
-      });
+      }});
       expect(userSet).have.length.of(2);
       expect(userSet.at(0).get('nick')).to.equal("bob");
       expect(userSet.at(1).get('nick')).to.equal("bill");
