@@ -288,7 +288,7 @@
       this.views = [];
       this.collection.chain().reject(function(user) {
         // filter out current signed in user, if any
-        if (!app.data.user.get('nick'))
+        if (!app.data.user.isLoggedIn())
           return false;
         return user.get('nick') === app.data.user.get('nick');
       }).each(function(user) {
@@ -313,7 +313,7 @@
       }).pluck('el').value();
       this.$('ul').append(userList);
       // show/hide element regarding auth status
-      if (app.data.user.get('nick'))
+      if (app.data.user.isLoggedIn())
         this.$el.show();
       else
         this.$el.hide();
@@ -347,7 +347,7 @@
     initialize: function() {
       app.data.user = new app.models.User();
       app.data.user.on('change', function(model) {
-        if (model.get('nick')) {
+        if (model.isLoggedIn()) {
           app.trigger('signin', model);
           app.router.navigate('', {trigger: true});
           app.router.index();

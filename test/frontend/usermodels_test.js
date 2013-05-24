@@ -12,6 +12,33 @@ describe("app.models.User", function() {
     });
   });
 
+  it("should be initialized as logged out", function() {
+    var user = new app.models.User();
+    expect(user.isLoggedIn()).to.equal(false);
+  });
+
+  it("should be logged out when the user nick is specified, but the user" +
+     "is disconnected", function() {
+    var user = new app.models.User();
+    user.set('nick', 'nicolas');
+    expect(user.isLoggedIn()).to.equal(false);
+  });
+
+  it("should be logged out when the presence is not disconnected, but the " +
+     "user name is empty", function() {
+    var user = new app.models.User();
+    user.set('presence', 'connected');
+    expect(user.isLoggedIn()).to.equal(false);
+  });
+
+  it("should be logged in when the presence is not disconnected and " +
+     "the username is specified", function() {
+    var user = new app.models.User();
+    user.set('presence', 'connected');
+    user.set('nick', 'nicolas');
+    expect(user.isLoggedIn()).to.equal(true);
+  });
+
 });
 
 describe("app.models.UserSet", function() {
