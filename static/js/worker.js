@@ -1,30 +1,44 @@
 /* jshint unused:false */
 
 var _config = {DEBUG: false};
+var _currentUserData;
 var _presenceSocket;
 var ports;
 var browserPort;
 
-function UserData() {
-  this.reset();
-}
+/**
+ * Social API user profile data storage.
+ * @param {Object|undefined}  initial  Initial data
+ * @param {Object|undefined}  config   Environment configuration
+ */
+function UserData(initial, config) {
+  var rootURL = config ? config.ROOTURL : '';
 
-UserData.prototype = {
-  defaults: {
-    iconURL: "/talkilla16.png",
+  this.defaults = {
+    iconURL: rootURL + "/talkilla16.png",
     portrait: undefined,
     userName: undefined,
     displayName: undefined,
-    profileURL: "/user.html"
-  },
+    profileURL: rootURL + "/user.html"
+  };
 
+  this.reset();
+
+  if (initial) {
+    for (var key in initial)
+      this[key] = initial[key];
+  }
+}
+
+UserData.prototype = {
+  /**
+   * Resets current properties to default ones.
+   */
   reset: function() {
     for (var key in this.defaults)
       this[key] = this.defaults[key];
   }
 };
-
-var _currentUserData = new UserData();
 
 function _presenceSocketOnMessage(event) {
   var data = JSON.parse(event.data);
@@ -85,11 +99,15 @@ function sendAjax(url, method, data, cb) {
   xhr.send(JSON.stringify(data));
 }
 
-function loadconfig() {
+function loadconfig(cb) {
   sendAjax('/config.json', 'GET', {}, function(err, data) {
-    if (err)
-      return ports.broadcastError(err);
-    _config = JSON.parse(data);
+    var config;
+    try {
+      config = JSON.parse(data);
+    } catch (err) {
+      return cb(err);
+    }
+    cb(null, config);
   });
 }
 
@@ -127,7 +145,6 @@ var handlers = {
 
   'social.initialize': function() {
     browserPort = this;
-    this.postEvent('social.user-profile', _currentUserData);
   },
 
   // Talkilla events
@@ -253,4 +270,9 @@ function onconnect(event) {
   ports.add(new Port(event.ports[0]));
 }
 
-loadconfig();
+loadconfig(function(err, config) {
+  if (err)
+    return ports.broadcastError(err);
+  _config = config;
+  _currentUserData = new UserData({}, config);
+});
