@@ -56,19 +56,14 @@
   });
 
   app.models.User = Backbone.Model.extend({
-    defaults: {nick: undefined, presence: undefined}
+    defaults: {nick: undefined, presence: "disconnected"},
+
+    isLoggedIn: function() {
+      return this.get('presence') !== "disconnected" && this.get('nick');
+    }
   });
 
   app.models.UserSet = Backbone.Collection.extend({
-    model: app.models.User,
-
-    initialize: function(models, options) {
-      this.models = models || [];
-      this.options = options;
-      // register the talkilla.users event
-      app.services.getPortListener().on('talkilla.users', function(users) {
-        this.reset(users);
-      }.bind(this));
-    }
+    model: app.models.User
   });
 })(Talkilla, Backbone, StateMachine);

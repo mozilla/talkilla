@@ -253,7 +253,7 @@
         this.render();
       }.bind(this));
 
-      this.collection.on('all', function() {
+      this.collection.on('reset', function() {
         this.render();
       }.bind(this));
 

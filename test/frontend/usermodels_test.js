@@ -6,7 +6,10 @@ describe("app.models.User", function() {
 
   it("should be initialized with a sensible defaults object", function() {
     var user = new app.models.User();
-    expect(user.defaults).to.deep.equal({nick: undefined, presence: undefined});
+    expect(user.defaults).to.deep.equal({
+      nick: undefined,
+      presence: "disconnected"
+    });
   });
 
 });

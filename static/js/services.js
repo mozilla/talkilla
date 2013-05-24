@@ -90,10 +90,13 @@
   });
 
   app.services.getPortListener().on("talkilla.presence-unavailable",
-    function() {
-      app.resetApp();
-      app.utils.notifyUI('Sorry, the browser lost communication with ' +
-                         'the server.');
+    function(event) {
+      // 1000 is CLOSE_NORMAL
+      if (event.code !== 1000) {
+        app.resetApp();
+        app.utils.notifyUI('Sorry, the browser lost communication with ' +
+                           'the server.');
+      }
     });
 
   /**
