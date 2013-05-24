@@ -2,7 +2,7 @@
    handlers, it, sinon, Port, PortCollection, _config:true, _presenceSocket,
    loadconfig, ports:true, _presenceSocketOnMessage, _presenceSocketOnError,
    _presenceSocketOnClose, _presenceSocketOnOpen, _signinCallback,
-   _presenceSocket, _data */
+   _presenceSocket, _currentUserData */
 /* jshint expr:true */
 var expect = chai.expect;
 
@@ -379,7 +379,7 @@ describe('Worker', function() {
         requests[0].respond(200, { 'Content-Type': 'application/json' },
           '{"nick":"jb"}' );
 
-        expect(_data.nick).to.equal('jb');
+        expect(_currentUserData.nick).to.equal('jb');
       });
 
     it("should post a fail message if the server rejected login",
@@ -410,7 +410,7 @@ describe('Worker', function() {
       requests = [];
       xhr.onCreate = function (req) { requests.push(req); };
 
-      _data.nick = 'romain';
+      _currentUserData.nick = 'romain';
       _presenceSocket.close = sandbox.stub();
     });
 
@@ -420,7 +420,7 @@ describe('Worker', function() {
     });
 
     it('should post an error message if not logged in', function() {
-      _data.nick = undefined;
+      _currentUserData.nick = undefined;
       handlers.postEvent = sandbox.spy();
       handlers['talkilla.logout']({
         topic: 'talkilla.logout',
