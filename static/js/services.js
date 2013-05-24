@@ -84,18 +84,23 @@
       error, 'error');
   });
 
+  app.services.getPortListener().on("talkilla.logout-success", function() {
+    app.data.user.clear();
+    app.resetApp();
+  });
+
   app.services.getPortListener().on("talkilla.error", function(error) {
     app.utils.notifyUI('Error while communicating with the server: ' +
       error, 'error');
   });
 
   app.services.getPortListener().on("talkilla.presence-unavailable",
-    function(event) {
+    function(code) {
       // 1000 is CLOSE_NORMAL
-      if (event.code !== 1000) {
+      if (code !== 1000) {
         app.resetApp();
         app.utils.notifyUI('Sorry, the browser lost communication with ' +
-                           'the server.');
+                           'the server. code: ' + code);
       }
     });
 
@@ -113,19 +118,6 @@
    */
   app.services.logout = function() {
     this._postToWorker('talkilla.logout');
-    $.ajax({
-      type: "POST",
-      url: '/signout',
-      data: {nick: app.data.user && app.data.user.get('nick')},
-      dataType: 'json'
-    })
-    .done(function() {
-      app.data.user.clear();
-    })
-    .fail(function(xhr, textStatus, error) {
-      app.utils.notifyUI('Error while communicating with the server: ' +
-                         error, 'error');
-    });
   };
 
   /**

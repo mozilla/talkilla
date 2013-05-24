@@ -1,6 +1,9 @@
 /* jshint unused:false */
 
 var _config = {DEBUG: false};
+var _data = {
+  nick: undefined
+};
 var _presenceSocket;
 var ports;
 
@@ -26,7 +29,7 @@ function _presenceSocketOnClose(event) {
   "use strict";
 
   // XXX: this will need future work to handle retrying presence connections
-  ports.broadcastEvent("talkilla.presence-unavailable", event);
+  ports.broadcastEvent("talkilla.presence-unavailable", event.code);
 }
 
 function createPresenceSocket(nickname) {
@@ -76,11 +79,20 @@ function _signinCallback(err, responseText) {
     return this.postEvent('talkilla.login-failure', err);
   var username = JSON.parse(responseText).nick;
   if (username) {
+    _data.nick = username;
     this.postEvent('talkilla.login-success', {
       username: username
     });
     createPresenceSocket(username);
   }
+}
+
+function _signoutCallback(err, responseText) {
+  if (err)
+    return this.postEvent('talkilla.error', 'Bad signout:' + err);
+
+  _data.nick = undefined;
+  this.postEvent('talkilla.logout-success');
 }
 
 var handlers = {
@@ -92,16 +104,23 @@ var handlers = {
   // Talkilla events
   'talkilla.login': function(msg) {
     if (!msg.data || !msg.data.username) {
-      return this.postEvent("talkilla.login-failure", "no username specified");
+      return this.postEvent('talkilla.login-failure', 'no username specified');
     }
 
-    this.postEvent("talkilla.login-pending", null);
+    this.postEvent('talkilla.login-pending', null);
 
     sendAjax('/signin', 'POST', {nick: msg.data.username},
       _signinCallback.bind(this));
   },
+
   'talkilla.logout': function() {
+    if (!_data.nick)
+      return this.postEvent('talkilla.error',
+                            'trying to logout when not logged in');
+
     _presenceSocket.close();
+    sendAjax('/signout', 'POST', {nick: _data.nick},
+      _signoutCallback.bind(this));
   }
 };
 
