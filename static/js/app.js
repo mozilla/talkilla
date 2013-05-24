@@ -26,11 +26,6 @@ var Talkilla = (function($, Backbone, _) {
       _.extend(this.options, options || {});
       this.router = new app.Router();
       Backbone.history.start();
-
-      // app listeners
-      this.on('signout', function() {
-        this.services.closeWebSocket();
-      });
     }
   };
 
@@ -55,7 +50,7 @@ var Talkilla = (function($, Backbone, _) {
     },
 
     call: function(nick) {
-      if (!app.data.user) {
+      if (!app.data.user.get("nick")) {
         app.utils.notifyUI('Please join for calling someone');
         return this.navigate('', {trigger: true, replace: true});
       }
@@ -72,8 +67,14 @@ var Talkilla = (function($, Backbone, _) {
    * Resets the app to the signed out state.
    */
   app.resetApp = function() {
-    // reset all app data
-    app.data = {};
+    // Reset all app data apart from the user model, as the views rely
+    // on it for change notifications, and this saves re-initializing those
+    // hooks.
+    var user = app.data.user;
+    app.data = { user: user };
+
+    user.clear();
+
     app.trigger('signout');
     app.router.navigate('', {trigger: true});
     app.router.index();
@@ -81,7 +82,7 @@ var Talkilla = (function($, Backbone, _) {
 
   // window event listeners
   window.onbeforeunload = function() {
-    if (!app.data.user)
+    if (!app.data.user || !app.data.user.get("nick"))
       return;
     app.services.logout(function(err) {
       if (err)

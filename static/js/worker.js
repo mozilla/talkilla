@@ -79,7 +79,7 @@ function _signinCallback(err, responseText) {
     this.postEvent('talkilla.login-success', {
       username: username
     });
-    createPresenceSocket(_config.WSURL);
+    createPresenceSocket(username);
   }
 }
 
@@ -99,6 +99,9 @@ var handlers = {
 
     sendAjax('/signin', 'POST', {nick: msg.data.username},
       _signinCallback.bind(this));
+  },
+  'talkilla.logout': function() {
+    _presenceSocket.close();
   }
 };
 
@@ -124,7 +127,7 @@ Port.prototype = {
    */
   onmessage: function(event) {
     var msg = event.data;
-    if (msg && msg.topic && msg.topic in handlers)
+    if (msg && msg.topic && (msg.topic in handlers))
       handlers[msg.topic].call(this, msg);
     else
       this.error('Topic is missing or unknown');

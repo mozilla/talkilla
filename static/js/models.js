@@ -56,7 +56,12 @@
   });
 
   app.models.User = Backbone.Model.extend({
-    defaults: {nick: undefined}
+    defaults: {nick: undefined, presence: "disconnected"},
+
+    isLoggedIn: function() {
+      return this.get('presence') !== "disconnected" &&
+        this.get('nick') !== undefined;
+    }
   });
 
   app.models.UserSet = Backbone.Collection.extend({

@@ -6,7 +6,37 @@ describe("app.models.User", function() {
 
   it("should be initialized with a sensible defaults object", function() {
     var user = new app.models.User();
-    expect(user.defaults).to.deep.equal({nick: undefined});
+    expect(user.defaults).to.deep.equal({
+      nick: undefined,
+      presence: "disconnected"
+    });
+  });
+
+  it("should be initialized as logged out", function() {
+    var user = new app.models.User();
+    expect(user.isLoggedIn()).to.equal(false);
+  });
+
+  it("should be logged out when the user nick is specified, but the user" +
+     "is disconnected", function() {
+    var user = new app.models.User();
+    user.set('nick', 'nicolas');
+    expect(user.isLoggedIn()).to.equal(false);
+  });
+
+  it("should be logged out when the presence is not disconnected, but the " +
+     "user name is empty", function() {
+    var user = new app.models.User();
+    user.set('presence', 'connected');
+    expect(user.isLoggedIn()).to.equal(false);
+  });
+
+  it("should be logged in when the presence is not disconnected and " +
+     "the username is specified", function() {
+    var user = new app.models.User();
+    user.set('presence', 'connected');
+    user.set('nick', 'nicolas');
+    expect(user.isLoggedIn()).to.equal(true);
   });
 
 });
@@ -35,8 +65,8 @@ describe("app.models.UserSet", function() {
   });
 
   afterEach(function() {
-    app.services._portListener = savedMozSocial;
-    navigator.mozSocial = navigator.mozSocial;
+    app.services._portListener = savedListener;
+    navigator.mozSocial = savedMozSocial;
     sandbox.restore();
   });
 
@@ -50,16 +80,16 @@ describe("app.models.UserSet", function() {
       var userSet = new app.models.UserSet();
       expect(navigator.mozSocial.getWorker().port).to.deep.equal(port);
       expect(port.onmessage).to.be.a("function");
-      port.onmessage({
+      port.onmessage({data: {
         topic: "talkilla.users",
         data: [{nick: "bob"}]
-      });
+      }});
       expect(userSet).have.length.of(1);
       expect(userSet.at(0).get('nick')).to.equal("bob");
-      port.onmessage({
+      port.onmessage({data: {
         topic: "talkilla.users",
         data: [{nick: "bob"}, {nick: "bill"}]
-      });
+      }});
       expect(userSet).have.length.of(2);
       expect(userSet.at(0).get('nick')).to.equal("bob");
       expect(userSet.at(1).get('nick')).to.equal("bill");
