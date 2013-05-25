@@ -55,6 +55,10 @@ function PresenceSocket(ws, ports) {
 }
 
 PresenceSocket.prototype = {
+  close: function() {
+    this.ws.close();
+  },
+
   onmessage: function(event) {
     var data = JSON.parse(event.data);
     for (var eventType in data) {
