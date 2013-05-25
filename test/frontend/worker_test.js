@@ -135,6 +135,7 @@ describe('Worker', function() {
         sandbox = sinon.sandbox.create();
         sandbox.stub(window, "WebSocket");
         ws = new WebSocket('ws://fake');
+        ws.close = sinon.spy();
         presenceSocket = new PresenceSocket(ws, ports);
       });
 
@@ -188,13 +189,18 @@ describe('Worker', function() {
           sinon.assert.calledTwice(spy1); // first is presence-pending
           sinon.assert.calledWithExactly(spy1,
             {data: 1000, topic: "talkilla.presence-unavailable"});
-        }
-      );
 
-      // XXX should we define behavior that is more than simple proxying
-      // of the CloseEvent?  E.g. should we null out _presenceSocket?
-      // Some first thoughts from Standard8 & dmose at
-      // <https://webrtc-apps.etherpad.mozilla.org/35>
+          // XXX should we define behavior that is more than simple proxying
+          // of the CloseEvent?  E.g. should we null out _presenceSocket?
+          // Some first thoughts from Standard8 & dmose at
+          // <https://webrtc-apps.etherpad.mozilla.org/35>
+        });
+
+      it('should close current WebSocket connection',
+        function() {
+          presenceSocket.close();
+          sinon.assert.called(ws.close);
+        });
     });
   });
 
