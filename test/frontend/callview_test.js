@@ -11,7 +11,7 @@ describe("CallView", function() {
       sandbox = sinon.sandbox.create();
       sandbox.stub(app, "trigger");
       sandbox.stub(app, "on");
-      app.services.on = function() {};
+      sandbox.stub(app.services, "on");
     });
 
     afterEach(function() {

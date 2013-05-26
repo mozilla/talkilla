@@ -1,100 +1,74 @@
-/* global Talkilla, Backbone, jQuery, _ */
+/* jshint camelcase:false */
+/* global Talkilla, Backbone, _ */
 /**
  * Talkilla services which can hardly be handled by Backbone models.
  */
-(function(app, Backbone, $, _) {
+(function(app, Backbone, _) {
   "use strict";
+
+  /**
+   * App services object.
+   * @type {Object}
+   */
+  app.services = app.services || {};
 
   // add event support to services
   _.extend(app.services, Backbone.Events);
 
   /**
-   * Posts a message event to the worker
+   * Social API worker port
+   * @type {AbstractPort|undefined}
+   */
+  app.services._port = undefined;
+
+  /**
+   * `app.services.port` property getter; will retrieve, configure, store and
+   * return the current Social API worker port, if any.
+   * @return {AbstractPort|undefined}
+   */
+  app.services.__defineGetter__('port', function() {
+    if (this._port)
+      return this._port;
+
+    this._port = navigator.mozSocial.getWorker().port;
+
+    // Register Social API message handler
+    this._port.onmessage = function(event) {
+      this.trigger(event.data.topic, event.data.data);
+    }.bind(this);
+
+    return this._port;
+  });
+
+  /**
+   * Posts a message to the Social API Worker.
    * @param  {String} topic
    * @param  {Mixed}  data
    */
-  app.services._postToWorker = function(topic, data) {
-    navigator.mozSocial.getWorker().port.postMessage(
-      {topic: topic, data: data});
+  app.services.postEvent = function(topic, data) {
+    this.port.postMessage({topic: topic, data: data});
   };
 
-  /**
-   * Social API worker port listener; exposed as a global to be reinitialized in
-   * a testing environment.
-   * @type {PortListener|undefined}
-   */
-  app.services._portListener = undefined;
-
-  /**
-   * Retrieves or initializes a PortListener object.
-   * @return {PortListener}
-   */
-  app.services.getPortListener = function() {
-    if (this._portListener)
-      return this._portListener;
-    var port = navigator.mozSocial.getWorker().port;
-    this._portListener = new this.PortListener(port);
-    return this._portListener;
-  };
-
-  /**
-   * MozSocial Port listener.
-   * @param  {AbstractPort} port
-   */
-  app.services.PortListener = function(port) {
-    this.port = port;
-    this.listeners = {};
-    this.port.onmessage = this.onmessage.bind(this);
-  };
-
-  app.services.PortListener.prototype = {
-    /**
-     * Adds a topic listener.
-     * @param  {String}   topic
-     * @param  {Function} listener
-     */
-    on: function(topic, listener) {
-      if (!(topic in this.listeners))
-        this.listeners[topic] = [];
-      this.listeners[topic].push(listener);
-    },
-
-    /**
-     * Port message event listener, will call every registered listener for the
-     * received topic.
-     * @param  {Event} event
-     */
-    onmessage: function(event) {
-      var topic = event.data.topic;
-      var data = event.data.data;
-      if (topic in this.listeners) {
-        this.listeners[topic].forEach(function(listener) {
-          listener(data);
-        }, this);
-      }
-    }
-  };
-
-  app.services.getPortListener().on("talkilla.login-success", function(data) {
+  app.services.on("talkilla.login-success", function(data) {
     app.data.user.set({nick: data.username, presence: "connected"});
   });
 
-  app.services.getPortListener().on("talkilla.login-failure", function(error) {
+  app.services.on("talkilla.login-failure", function(error) {
     app.utils.notifyUI('Failed to login while communicating with the server: ' +
       error, 'error');
   });
 
-  app.services.getPortListener().on("talkilla.logout-success", function() {
+  app.services.on("talkilla.logout-success", function() {
     app.data.user.clear();
     app.resetApp();
   });
 
-  app.services.getPortListener().on("talkilla.error", function(error) {
+  app.services.on("talkilla.error", function(error) {
     app.utils.notifyUI('Error while communicating with the server: ' +
       error, 'error');
   });
 
-  app.services.getPortListener().on("talkilla.presence-unavailable",
+  app.services.on("talkilla.presence-unavailable",
     function(code) {
       // 1000 is CLOSE_NORMAL
       if (code !== 1000) {
@@ -110,14 +84,14 @@
    * @param  {String}   nick User's nickname
    */
   app.services.login = function(nick) {
-    this._postToWorker('talkilla.login', {username: nick});
+    this.postEvent('talkilla.login', {username: nick});
   };
 
   /**
    * Signs a user in.
    */
   app.services.logout = function() {
-    this._postToWorker('talkilla.logout');
+    this.postEvent('talkilla.logout');
   };
 
   /**
@@ -164,4 +138,4 @@
     }));
     */
   };
-})(Talkilla, Backbone, jQuery, _);
+})(Talkilla, Backbone, _);
