@@ -40,41 +40,50 @@ UserData.prototype = {
   }
 };
 
-function _presenceSocketOnMessage(event) {
-  var data = JSON.parse(event.data);
-  for (var eventType in data)
-    ports.broadcastEvent("talkilla." + eventType, data[eventType]);
+function PresenceSocket(ws, ports) {
+  this.ws = ws;
+  this.ports = ports;
+
+  // register event handlers
+  ws.onopen = this.onopen.bind(this);
+  ws.onmessage = this.onmessage.bind(this);
+  ws.onerror = this.onerror.bind(this);
+  ws.onclose = this.onclose.bind(this);
+
+  // dispatch presence-pending event
+  ports.broadcastEvent("talkilla.presence-pending", {});
 }
 
-function _presenceSocketOnOpen(event) {
-  "use strict";
+PresenceSocket.prototype = {
+  close: function() {
+    this.ws.close();
+  },
 
-  ports.broadcastEvent("talkilla.presence-open", event);
-}
+  onmessage: function(event) {
+    var data = JSON.parse(event.data);
+    for (var eventType in data) {
+      this.ports.broadcastEvent("talkilla." + eventType, data[eventType]);
+    }
+  },
 
-function _presenceSocketOnError(event) {
-  "use strict";
+  onopen: function(event) {
+    this.ports.broadcastEvent("talkilla.presence-open", event);
+  },
 
-  ports.broadcastEvent("talkilla.websocket-error", event);
-}
+  onerror: function(event) {
+    this.ports.broadcastEvent("talkilla.websocket-error", event);
+  },
 
-function _presenceSocketOnClose(event) {
-  "use strict";
-
-  // XXX: this will need future work to handle retrying presence connections
-  ports.broadcastEvent('talkilla.presence-unavailable', event.code);
-}
+  onclose: function(event) {
+    // XXX: this will need future work to handle retrying presence connections
+    this.ports.broadcastEvent("talkilla.presence-unavailable", event.code);
+  }
+};
 
 function createPresenceSocket(nickname) {
   "use strict";
-
-  _presenceSocket = new WebSocket(_config.WSURL + "?nick=" + nickname);
-  _presenceSocket.onopen = _presenceSocketOnOpen;
-  _presenceSocket.onmessage = _presenceSocketOnMessage;
-  _presenceSocket.onerror = _presenceSocketOnError;
-  _presenceSocket.onclose = _presenceSocketOnClose;
-
-  ports.broadcastEvent("talkilla.presence-pending", {});
+  var ws = new WebSocket(_config.WSURL + "?nick=" + nickname);
+  _presenceSocket = new PresenceSocket(ws, ports);
 }
 
 function sendAjax(url, method, data, cb) {

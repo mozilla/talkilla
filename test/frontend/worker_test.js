@@ -1,9 +1,7 @@
 /* global afterEach, beforeEach, chai, createPresenceSocket, describe,
    handlers, it, sinon, Port, PortCollection, _config:true, _presenceSocket,
-   loadconfig, ports:true, _presenceSocketOnMessage, _presenceSocketOnError,
-   _presenceSocketOnClose, _presenceSocketOnOpen, _signinCallback,
-   _presenceSocket, _currentUserData, browserPort:true, _currentUserData:true,
-   UserData */
+   loadconfig, ports:true, _signinCallback, _currentUserData, browserPort:true,
+   _currentUserData:true, UserData, PresenceSocket */
 /* jshint expr:true */
 var expect = chai.expect;
 
@@ -111,15 +109,14 @@ describe('Worker', function() {
           var nickname = "bill";
           createPresenceSocket(nickname);
 
-          expect(_presenceSocket).to.be.an.instanceOf(WebSocket);
+          expect(_presenceSocket).to.be.an.instanceOf(PresenceSocket);
 
           sinon.assert.calledOnce(WebSocket);
           sinon.assert.calledWithExactly(WebSocket,
             wsurl + "?nick=" + nickname);
-          expect(_presenceSocket.onopen).to.equal(_presenceSocketOnOpen);
-          expect(_presenceSocket.onmessage).to.equal(_presenceSocketOnMessage);
-          expect(_presenceSocket.onerror).to.equal(_presenceSocketOnError);
-          expect(_presenceSocket.onclose).to.equal(_presenceSocketOnClose);
+
+          expect(_presenceSocket.ws).to.include.keys(
+            ['onopen', 'onmessage', 'onerror', 'onclose']);
         });
 
       it("should post a talkilla.presence-pending message",
@@ -131,19 +128,33 @@ describe('Worker', function() {
         });
     });
 
-    describe('#_presenceSocketOnOpen', function() {
+    describe('PresenceSocket', function() {
+      var ws, presenceSocket, sandbox;
+
+      beforeEach(function() {
+        sandbox = sinon.sandbox.create();
+        sandbox.stub(window, "WebSocket");
+        ws = new WebSocket('ws://fake');
+        ws.close = sinon.spy();
+        presenceSocket = new PresenceSocket(ws, ports);
+      });
+
+      afterEach(function() {
+        sandbox.restore();
+      });
+
       it('should post a talkilla.presence-open message',
         function() {
           var event = {foo: "bar"};
-          _presenceSocketOnOpen(event);
+          presenceSocket.onopen(event);
 
-          sinon.assert.calledOnce(spy1);
+          sinon.assert.calledTwice(spy1);
+          sinon.assert.calledWithExactly(spy1,
+            {data: {}, topic: "talkilla.presence-pending"});
           sinon.assert.calledWithExactly(spy1,
             {data: event, topic: "talkilla.presence-open"});
         });
-    });
 
-    describe('#_presenceSocketOnMessage', function() {
       it("should call postMessage with a JSON version of the received message",
         function() {
           var event = {
@@ -151,43 +162,46 @@ describe('Worker', function() {
               topic: "bar"
             })
           };
-          _presenceSocketOnMessage(event);
-          sinon.assert.calledOnce(spy1);
-          sinon.assert.calledWithExactly(spy1, {data: "bar",
-                                                topic: "talkilla.topic"});
-        });
-    });
+          presenceSocket.onmessage(event);
 
-    describe('#_presenceSocketOnError', function() {
+          sinon.assert.calledTwice(spy1); // first is presence-pending
+          sinon.assert.calledWithExactly(spy1,
+            {data: {}, topic: "talkilla.presence-pending"});
+          sinon.assert.calledWithExactly(spy1,
+            {data: "bar", topic: "talkilla.topic"});
+        });
+
       it('should call postMessage with a talkilla.websocket-error message',
         function() {
           var event = {foo: "bar"};
-          _presenceSocketOnError(event);
+          presenceSocket.onerror(event);
 
-          sinon.assert.calledOnce(spy1);
+          sinon.assert.calledTwice(spy1); // first is presence-pending
           sinon.assert.calledWithExactly(spy1,
             {data: event, topic: "talkilla.websocket-error"});
         });
-    });
 
-    describe("#_presenceSocketOnClose", function() {
       it('should post a talkilla.presence-unavailable message',
         function() {
           var event = {code: 1000};
-          _presenceSocketOnClose(event);
+          presenceSocket.onclose(event);
 
-          sinon.assert.calledOnce(spy1);
+          sinon.assert.calledTwice(spy1); // first is presence-pending
           sinon.assert.calledWithExactly(spy1,
             {data: 1000, topic: "talkilla.presence-unavailable"});
-        }
-      );
 
-      // XXX should we define behavior that is more than simple proxying
-      // of the CloseEvent?  E.g. should we null out _presenceSocket?
-      // Some first thoughts from Standard8 & dmose at
-      // <https://webrtc-apps.etherpad.mozilla.org/35>
+          // XXX should we define behavior that is more than simple proxying
+          // of the CloseEvent?  E.g. should we null out _presenceSocket?
+          // Some first thoughts from Standard8 & dmose at
+          // <https://webrtc-apps.etherpad.mozilla.org/35>
+        });
+
+      it('should close current WebSocket connection',
+        function() {
+          presenceSocket.close();
+          sinon.assert.called(ws.close);
+        });
     });
-
   });
 
   describe('Port', function() {
