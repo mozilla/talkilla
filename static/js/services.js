@@ -68,15 +68,14 @@
       error, 'error');
   });
 
-  app.services.on("talkilla.presence-unavailable",
-    function(code) {
-      // 1000 is CLOSE_NORMAL
-      if (code !== 1000) {
-        app.resetApp();
-        app.utils.notifyUI('Sorry, the browser lost communication with ' +
-                           'the server. code: ' + code);
-      }
-    });
+  app.services.on("talkilla.presence-unavailable", function(code) {
+    // 1000 is CLOSE_NORMAL
+    if (code !== 1000) {
+      app.resetApp();
+      app.utils.notifyUI('Sorry, the browser lost communication with ' +
+                         'the server. code: ' + code);
+    }
+  });
 
   /**
    * Signs a user in.
