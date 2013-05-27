@@ -168,6 +168,10 @@ var handlers = {
     _presenceSocket.close();
     sendAjax('/signout', 'POST', {nick: _currentUserData.userName},
       _signoutCallback.bind(this));
+  },
+
+  'talkilla.call-start': function() {
+    browserPort.postEvent("social.request-chat", 'chat.html');
   }
 };
 
