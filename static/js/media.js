@@ -58,7 +58,7 @@
   function initiatePeerConnection(pc, callee, successCb, errorCb) {
     pc.createOffer(function (offer) {
       pc.setLocalDescription(offer, function () {
-        app.services.initiateCall(callee, offer);
+        app.port.initiateCall(callee, offer);
         successCb(pc);
       }, function (err) {
         errorCb(err);
@@ -72,7 +72,7 @@
     pc.setRemoteDescription(new mozRTCSessionDescription(offer), function () {
       pc.createAnswer(function(answer) {
         pc.setLocalDescription(answer, function() {
-          app.services.acceptCall(caller, answer);
+          app.port.acceptCall(caller, answer);
           successCb(pc);
         }, function (err) {
           errorCb(err);
