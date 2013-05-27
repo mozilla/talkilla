@@ -54,16 +54,16 @@ describe("app.models", function() {
       function() {
         var userSet = new app.models.UserSet();
 
-        app.services.trigger("talkilla.users", [{nick: "bob"}]);
+        app.port.trigger("talkilla.users", [{nick: "bob"}]);
         expect(userSet).have.length.of(1);
         expect(userSet.at(0).get('nick')).to.equal("bob");
 
-        app.services.trigger("talkilla.users", [{nick: "bob"}, {nick: "bill"}]);
+        app.port.trigger("talkilla.users", [{nick: "bob"}, {nick: "bill"}]);
         expect(userSet).have.length.of(2);
         expect(userSet.at(0).get('nick')).to.equal("bob");
         expect(userSet.at(1).get('nick')).to.equal("bill");
 
-        app.services.trigger("talkilla.users", []);
+        app.port.trigger("talkilla.users", []);
         expect(userSet).have.length.of(0);
       });
   });

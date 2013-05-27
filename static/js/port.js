@@ -1,32 +1,32 @@
 /* jshint camelcase:false */
 /* global Talkilla, Backbone, _ */
 /**
- * Talkilla services which can hardly be handled by Backbone models.
+ * Social API Worker Port wrapper & message events listener/dispatcher.
  */
 (function(app, Backbone, _) {
   "use strict";
 
   /**
-   * App services object.
+   * App port object.
    * @type {Object}
    */
-  app.services = app.services || {};
+  app.port = app.port || {};
 
-  // add event support to services
-  _.extend(app.services, Backbone.Events);
+  // add event support to port
+  _.extend(app.port, Backbone.Events);
 
   /**
    * Social API worker port
    * @type {AbstractPort|undefined}
    */
-  app.services._port = undefined;
+  app.port._port = undefined;
 
   /**
-   * `app.services.port` property getter; will retrieve, configure, store and
+   * `app.port.port` property getter; will retrieve, configure, store and
    * return the current Social API worker port, if any.
    * @return {AbstractPort|undefined}
    */
-  app.services.__defineGetter__('port', function() {
+  app.port.__defineGetter__('port', function() {
     if (this._port)
       return this._port;
 
@@ -45,30 +45,30 @@
    * @param  {String} topic
    * @param  {Mixed}  data
    */
-  app.services.postEvent = function(topic, data) {
+  app.port.postEvent = function(topic, data) {
     this.port.postMessage({topic: topic, data: data});
   };
 
-  app.services.on("talkilla.login-success", function(data) {
+  app.port.on("talkilla.login-success", function(data) {
     app.data.user.set({nick: data.username, presence: "connected"});
   });
 
-  app.services.on("talkilla.login-failure", function(error) {
+  app.port.on("talkilla.login-failure", function(error) {
     app.utils.notifyUI('Failed to login while communicating with the server: ' +
       error, 'error');
   });
 
-  app.services.on("talkilla.logout-success", function() {
+  app.port.on("talkilla.logout-success", function() {
     app.data.user.clear();
     app.resetApp();
   });
 
-  app.services.on("talkilla.error", function(error) {
+  app.port.on("talkilla.error", function(error) {
     app.utils.notifyUI('Error while communicating with the server: ' +
       error, 'error');
   });
 
-  app.services.on("talkilla.presence-unavailable", function(code) {
+  app.port.on("talkilla.presence-unavailable", function(code) {
     // 1000 is CLOSE_NORMAL
     if (code !== 1000) {
       app.resetApp();
@@ -82,14 +82,14 @@
    *
    * @param  {String}   nick User's nickname
    */
-  app.services.login = function(nick) {
+  app.port.login = function(nick) {
     this.postEvent('talkilla.login', {username: nick});
   };
 
   /**
    * Signs a user in.
    */
-  app.services.logout = function() {
+  app.port.logout = function() {
     this.postEvent('talkilla.logout');
   };
 
@@ -100,7 +100,7 @@
    * @param  {Object}          offer  JSON blob of the peer connection data to
    *                                  send to the callee.
    */
-  app.services.initiateCall = function(callee, offer) {
+  app.port.initiateCall = function(callee, offer) {
     // XXX to be replaced
     /* jshint unused:false */
     /*
@@ -111,8 +111,8 @@
     };
 
     // send call offer to the server
-    app.services.ws.send(JSON.stringify({"call_offer": call}));
-    app.services.trigger('call_offer', call);
+    app.port.ws.send(JSON.stringify({"call_offer": call}));
+    app.port.trigger('call_offer', call);
     */
   };
 
@@ -123,12 +123,12 @@
    * @param  {Object}          answer JSON blob of the peer connection data to
    *                                  send to the caller.
    */
-  app.services.acceptCall = function(caller, answer) {
+  app.port.acceptCall = function(caller, answer) {
     // XXX to be replaced
     /* jshint unused:false */
     // send call answer to the server
     /*
-    app.services.ws.send(JSON.stringify({
+    app.port.ws.send(JSON.stringify({
       "call_accepted": {
         caller: caller.get('nick'),
         callee: app.data.user.get('nick'),

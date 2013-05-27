@@ -80,7 +80,7 @@
 
     deny: function(event) {
       event.preventDefault();
-      app.services.postEvent('call_deny', this.model.toJSON());
+      app.port.postEvent('call_deny', this.model.toJSON());
       this.clear();
     }
   });
@@ -137,21 +137,21 @@
 
     initialize: function() {
       // service events
-      app.services.on('incoming_call', function(data) {
+      app.port.on('incoming_call', function(data) {
         var notification = new app.views.IncomingCallNotificationView({
           model: new app.models.IncomingCall(data)
         });
         this.addNotification(notification);
       }.bind(this));
 
-      app.services.on('call_offer', function(data) {
+      app.port.on('call_offer', function(data) {
         var notification = new app.views.PendingCallNotificationView({
           model: new app.models.PendingCall(data)
         });
         this.addNotification(notification);
       }.bind(this));
 
-      app.services.on('call_denied', function(data) {
+      app.port.on('call_denied', function(data) {
         var notification = new app.views.DeniedCallNotificationView({
           model: new app.models.DeniedCall(data)
         });
@@ -374,7 +374,7 @@
       var nick = $.trim($(event.currentTarget).find('[name="nick"]').val());
       if (!nick)
         return app.utils.notifyUI('please enter a nickname');
-      app.services.login(nick);
+      app.port.login(nick);
     },
 
     /**
@@ -384,7 +384,7 @@
      */
     signout: function(event) {
       event.preventDefault();
-      app.services.logout();
+      app.port.logout();
     }
   });
 
@@ -417,7 +417,7 @@
       this.remote = $('#remote-video').get(0);
 
       // service events
-      app.services.on('call_accepted', function(data) {
+      app.port.on('call_accepted', function(data) {
         app.media.addAnswerToPeerConnection(
           this.pc,
 

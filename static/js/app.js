@@ -18,7 +18,7 @@ var Talkilla = (function($, Backbone, _) {
     data: {},
     media: {},
     models: {},
-    services: {},
+    port: {},
     utils: {},
     views: {},
 
@@ -84,7 +84,7 @@ var Talkilla = (function($, Backbone, _) {
   window.onbeforeunload = function() {
     if (!app.data.user || !app.data.user.get("nick"))
       return;
-    app.services.logout(function(err) {
+    app.port.logout(function(err) {
       if (err)
         app.utils.log('Error occured while signing out:', err);
     });

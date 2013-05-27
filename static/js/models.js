@@ -71,7 +71,7 @@
       this.models = models || [];
       this.options = options;
       // register the talkilla.users event
-      app.services.on('talkilla.users', function(users) {
+      app.port.on('talkilla.users', function(users) {
         this.reset(users);
       }.bind(this));
     }

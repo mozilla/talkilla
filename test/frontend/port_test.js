@@ -1,7 +1,7 @@
 /* global Backbone, describe, it, beforeEach, afterEach, sinon, chai, app */
 var expect = chai.expect;
 
-describe("app.services", function() {
+describe("app.port", function() {
   "use strict";
 
   var sandbox, mozSocialBackup, fakePort, postMessageSpy;
@@ -18,7 +18,7 @@ describe("app.services", function() {
         };
       }
     };
-    app.services._port = undefined; // reset _port singleton
+    app.port._port = undefined; // reset _port singleton
   });
 
   afterEach(function() {
@@ -27,20 +27,20 @@ describe("app.services", function() {
   });
 
   it("should implement Backbone.Events interface", function() {
-    expect(app.services).to.include.keys(Object.keys(Backbone.Events));
+    expect(app.port).to.include.keys(Object.keys(Backbone.Events));
   });
 
   it("should be able to trigger and subscribe to events", function(done) {
     var testData = {bar: "baz"};
-    app.services.on("foo", function(data) {
+    app.port.on("foo", function(data) {
       expect(data).to.deep.equal(testData);
       done();
     });
-    app.services.trigger("foo", testData);
+    app.port.trigger("foo", testData);
   });
 
   it("should retrieve a configured worker port", function() {
-    var port = app.services.port;
+    var port = app.port.port;
     expect(port).to.deep.equal(fakePort);
     expect(port).to.include.keys(['onmessage', 'postMessage']);
     expect(port.onmessage).to.be.a('function');
@@ -48,8 +48,8 @@ describe("app.services", function() {
 
   it("should trigger an event when a message is received by the port",
     function(done) {
-      var port = app.services.port;
-      app.services.on("universe", function(data) {
+      var port = app.port.port;
+      app.port.on("universe", function(data) {
         expect(data.answer).to.equal(42);
         done();
       });
@@ -57,7 +57,7 @@ describe("app.services", function() {
     });
 
   it("should be able to post an event", function() {
-    app.services.postEvent("answer", 42);
+    app.port.postEvent("answer", 42);
     sinon.assert.calledOnce(postMessageSpy);
     sinon.assert.calledWithExactly(postMessageSpy, {topic: "answer", data: 42});
   });
