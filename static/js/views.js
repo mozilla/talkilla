@@ -461,10 +461,12 @@
      */
     initiate: function() {
       app.trigger('call', {callee: this.callee});
-      app.media.startPeerConnection(
+      app.media.startCall(
         this.callee,
 
         this.offer,
+
+        { video: true, audio: true, data: false },
 
         function onSuccess(pc) {
           this.pc = pc;

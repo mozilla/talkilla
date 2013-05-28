@@ -6,20 +6,29 @@
   "use strict";
 
   /**
-   * Sets up media and then starts a peer connection for a communication.
+   * This sets up the media, peer connections for a call, and then passes
+   * the resulting request to the transport for signalling to the other side.
+   *
+   * This method may trigger at the time or later:
+   *  add_local_stream with the local stream of audio and/or video
+   *  add_remote_stream with the remote stream of audio and/or video
+   *  add_data_channel with the joined data channel pair
    *
    * @param  {String}   callee      The id of the person to call
-   * @param  {Object}   offer       Optional. sdp of the incoming call
+   * @param  {String}   offer       Optional. sdp of the incoming call
+   * @param  {Object}   callType    An object containing video, audio and data
+   *                                with their values as true or false depending
+   *                                on if they should be enabled for this call
+   *                                or not.
    * @param  {Function} successCb   Callback(peerConnection)
    * @param  {Function} errorCb     Callback(error)
    */
-  app.media.startPeerConnection = function(callee, offer, successCb,
-                                           errorCb) {
+  app.media.startCall = function(callee, offer, callType, successCb, errorCb) {
     // First of all, see if the user wants to let us use their media
-    getMedia(
+    getMedia(callType,
       function (localStream) {
         // They do, so setup the peer connection
-        var pc = getPeerConnection(localStream);
+        var pc = getPeerConnection(callType, localStream);
 
         if (!offer)
           initiatePeerConnection(pc, callee, successCb, errorCb);
@@ -34,7 +43,7 @@
    * Adds an sdp answer to the peer connection.
    *
    * @param {Object}   pc        The peer connection to add the sdp to.
-   * @param {Object}   answer    The answer sdp received
+   * @param {String}   answer    The answer sdp received
    * @param {Function} successCb Callback()
    * @param {Function} errorCb   Callback(err)
    */
@@ -85,11 +94,13 @@
     });
   }
 
-  function getMedia(successCb, errorCb) {
-    // TODO:
-    // - handle asynchronicity (events?)
+  function getMedia(callType, successCb, errorCb) {
+    // We only need to call get user media for audio and video calls.
+    if (!callType.audio && !callType.video)
+      return successCb();
+
     navigator.mozGetUserMedia(
-      {video: true, audio: true},
+      callType,
 
       function onSuccess(stream) {
         app.trigger("add_local_stream", stream);
@@ -102,10 +113,19 @@
     );
   }
 
-  function getPeerConnection(localStream) {
+  function getPeerConnection(callType, localStream) {
     var pc = new mozRTCPeerConnection();
 
-    pc.addStream(localStream);
+    if (localStream)
+      pc.addStream(localStream);
+
+    if (callType.data) {
+      var chan = pc.createDataChannel("Talkilla");
+
+      pc.ondatachannel = function(aEvent) {
+        app.trigger("add_data_channel", chan, aEvent.channel);
+      };
+    }
 
     pc.onaddstream = function (event) {
       app.trigger("add_remote_stream", event.stream);
