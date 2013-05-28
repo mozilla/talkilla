@@ -27,6 +27,27 @@
     }
   });
 
+  app.models.WebRTCCall = Backbone.Model.extend({
+    offer: function() {
+      var onError = this._onError.bind(this);
+
+      this._getMedia(function() {
+        this.pc = new mozRTCPeerConnection();
+
+        this.pc.createOffer(function(offer) {
+          this.pc.setLocalDescription(offer, this.trigger.bind(this, 'sdp', offer), onError);
+        }, onError);
+      }, onError);
+    },
+
+    _getMedia: function(callback, errback) {
+      var constraints = {video: this.get('video'), audio: this.get('audio')};
+      navigator.mozGetUserMedia(constraints, callback, errback);
+    },
+
+    _onError: function() {}
+  });
+
   app.models.IncomingCall = Backbone.Model.extend({
     defaults: {callee: undefined,
                caller: undefined,

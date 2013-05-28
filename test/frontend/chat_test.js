@@ -28,6 +28,10 @@ describe("ChatApp", function() {
         "talkilla.chat-window-ready", {});
     });
 
+  it("should have a webrtc call model", function() {
+    expect(chatApp.webrtc).to.be.an.instanceOf(app.models.WebRTCCall);
+  });
+
   it("should attach _onCallStart to talkilla.call-start", function() {
     var caller = "alice";
     var callee = "bob";
@@ -62,6 +66,21 @@ describe("ChatApp", function() {
       sinon.assert.calledOnce(chatApp.call.start);
       sinon.assert.calledWithExactly(chatApp.call.start);
     });
+
+    it.skip("should create a webrtc offer", function() {
+      var caller = "alice";
+      var callee = "bob";
+
+      sandbox.stub(chatApp.call, "set");
+      sandbox.stub(chatApp.call, "start");
+      sandbox.stub(chatApp.webrtc, "offer");
+
+      chatApp._onCallStart(caller, callee);
+
+      sinon.assert.calledOnce(chatApp.webrtc.offer);
+      sinon.assert.calledWithExactly(chatApp.webrtc.offer);
+    });
+
   });
 
   it("should set the caller + callee and set the call as " +
@@ -145,5 +164,52 @@ describe("Call", function() {
 
   });
 
+});
+
+
+describe("WebRTCCall", function() {
+  var webrtc;
+
+  beforeEach(function() {
+    sandbox = sinon.sandbox.create();
+    webrtc = new app.models.WebRTCCall();
+    console.log(webrtc);
+  });
+
+  afterEach(function() {
+    sandbox.restore();
+  });
+
+  describe("#offer", function() {
+
+    it("should call getUserMedia", function() {
+      sandbox.stub(navigator, "mozGetUserMedia");
+
+      webrtc.set({video: true, audio: true});
+      webrtc.offer();
+
+      sinon.assert.calledOnce(navigator.mozGetUserMedia);
+      sinon.assert.calledWith(navigator.mozGetUserMedia, {video: true, audio: true});
+    });
+
+    it("should trigger an sdp event with an offer", function() {
+      var gum = sandbox.stub(navigator, "mozGetUserMedia");
+      var offer = {type: 'offer'};
+      gum.returns({
+        createOffer: function(callback) {
+          callback();
+        }, setLocalDescription: function(offer, callback, errback) {
+          callback();
+        }
+      });
+
+      webrtc.on('sdp', function(offer) {
+        expect(offer.type).to.equal('offer');
+      });
+
+      webrtc.offer();
+    });
+
+  });
 });
 
