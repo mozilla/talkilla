@@ -223,7 +223,7 @@ describe("Media", function() {
 
       it("should trigger add_data_channel for data calls", function() {
         app.media.startCall("dan", null, callType, success, error);
-        fakeMozRTCPeerConnection.ondatachannel({chan: {} });
+        fakeMozRTCPeerConnection.ondatachannel({channel: {} });
 
         sinon.assert.calledOnce(app.trigger);
         app.trigger.calledWith("add_data_channel");

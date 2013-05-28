@@ -123,7 +123,7 @@
       var chan = pc.createDataChannel("Talkilla");
 
       pc.ondatachannel = function(aEvent) {
-        app.trigger("add_data_channel", chan, aEvent.chan);
+        app.trigger("add_data_channel", chan, aEvent.channel);
       };
     }
 
