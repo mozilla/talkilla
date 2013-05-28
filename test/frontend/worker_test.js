@@ -566,29 +566,29 @@ describe('Worker', function() {
   });
 
   describe("call", function() {
-      var sandbox;
+    var sandbox;
 
-      beforeEach(function() {
-          sandbox = sinon.sandbox.create();
-          browserPort = {postEvent: sandbox.spy()};
+    beforeEach(function() {
+      sandbox = sinon.sandbox.create();
+      browserPort = {postEvent: sandbox.spy()};
+    });
+
+    afterEach(function() {
+      browserPort = undefined;
+      sandbox.restore();
+    });
+
+
+    it("should open a chat window when receiving a talkilla.call-start event", function() {
+      handlers.postEvent = sinon.spy();
+      handlers['talkilla.call-start']({
+        topic: "talkilla.call-start",
+        data: {}
       });
 
-      afterEach(function() {
-          browserPort = undefined;
-          sandbox.restore();
-      });
-
-
-      it("should open a chat window when receiving a talkilla.call-start event", function() {
-        handlers.postEvent = sinon.spy();
-        handlers['talkilla.call-start']({
-          topic: "talkilla.call-start",
-          data: {}
-        });
-
-          sinon.assert.calledOnce(browserPort.postEvent);
-          sinon.assert.calledWithExactly(browserPort.postEvent, 'social.request-chat', "chat.html");
-      });
+      sinon.assert.calledOnce(browserPort.postEvent);
+      sinon.assert.calledWithExactly(browserPort.postEvent, 'social.request-chat', "chat.html");
+    });
 
     it("should post a talkilla.call-start event when receiving a talkilla.chat-window-ready", function () {
       var port = {postEvent: sinon.spy()};
