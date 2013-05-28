@@ -8,7 +8,7 @@ describe("ChatApp", function() {
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
     sandbox.stub(app.port, "postEvent");
-    chatApp = new ChatApp;
+    chatApp = new ChatApp();
   });
 
   afterEach(function() {
@@ -20,23 +20,45 @@ describe("ChatApp", function() {
     expect(chatApp.call).to.be.an.instanceOf(app.models.Call);
   });
 
-  it("should ping back the worker when ready", function() {
+  it("should ping back the worker with a talkilla.chat-window-ready during construction", function() {
     sinon.assert.calledOnce(app.port.postEvent);
     sinon.assert.calledWithExactly(app.port.postEvent, "talkilla.chat-window-ready", {});
   });
 
-  it("should set the caller and callee and start the call when receiving a talkilla.call-start event", function() {
+  it("should attach _onCallStart to talkilla.call-start", function() {
     var caller = "alice";
     var callee = "bob";
-    sandbox.stub(chatApp.call, "set");
-    sandbox.stub(chatApp.call, "start");
+    sandbox.stub(ChatApp.prototype, "_onCallStart");
+    chatApp = new ChatApp(); // We need the constructor to take the stub into account.
 
-    app.port.trigger('talkilla.call-start', caller, callee);
-    sinon.assert.calledOnce(chatApp.call.set);
-    sinon.assert.calledWithExactly(chatApp.call.set, {caller: "alice", callee: "bob"});
+    chatApp.port.trigger("talkilla.call-start", caller, callee);
 
-    sinon.assert.calledOnce(chatApp.call.start);
-    sinon.assert.calledWithExactly(chatApp.call.start);
+    sinon.assert.calledOnce(chatApp._onCallStart);
+    sinon.assert.calledWithExactly(chatApp._onCallStart, caller, callee);
+  });
+
+  describe("#_onCallStart", function() {
+
+    it("should set the caller and callee", function() {
+      var caller = "alice";
+      var callee = "bob";
+
+      chatApp._onCallStart(caller, callee);
+
+      expect(chatApp.call.get('caller')).to.equal(caller);
+      expect(chatApp.call.get('callee')).to.equal(callee);
+    });
+
+    it("should start the call", function() {
+      var caller = "alice";
+      var callee = "bob";
+      sandbox.stub(chatApp.call, "start");
+
+      chatApp._onCallStart(caller, callee);
+
+      sinon.assert.calledOnce(chatApp.call.start);
+      sinon.assert.calledWithExactly(chatApp.call.start);
+    });
   });
 
   it("should set the caller and callee and set the call as incoming when receiving a talkilla.call-incoming event", function() {
