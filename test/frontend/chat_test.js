@@ -24,6 +24,35 @@ describe("ChatApp", function() {
     sinon.assert.calledOnce(app.port.postEvent);
     sinon.assert.calledWithExactly(app.port.postEvent, "talkilla.chat-window-ready", {});
   });
+
+  it("should set the caller and callee and start the call when receiving a talkilla.call-start event", function() {
+    var caller = "alice";
+    var callee = "bob";
+    sandbox.stub(chatApp.call, "set");
+    sandbox.stub(chatApp.call, "start");
+
+    app.port.trigger('talkilla.call-start', caller, callee);
+    sinon.assert.calledOnce(chatApp.call.set);
+    sinon.assert.calledWithExactly(chatApp.call.set, {caller: "alice", callee: "bob"});
+
+    sinon.assert.calledOnce(chatApp.call.start);
+    sinon.assert.calledWithExactly(chatApp.call.start);
+  });
+
+  it("should set the caller and callee and set the call as incoming when receiving a talkilla.call-incoming event", function() {
+    var caller = "alice";
+    var callee = "bob";
+    var offer = {};
+    sandbox.stub(chatApp.call, "set");
+    sandbox.stub(chatApp.call, "incoming");
+
+    app.port.trigger('talkilla.call-incoming', caller, callee, offer);
+    sinon.assert.calledOnce(chatApp.call.set);
+    sinon.assert.calledWithExactly(chatApp.call.set, {caller: "alice", callee: "bob"});
+
+    sinon.assert.calledOnce(chatApp.call.incoming);
+    sinon.assert.calledWithExactly(chatApp.call.incoming);
+  });
 });
 
 describe("Call", function() {
