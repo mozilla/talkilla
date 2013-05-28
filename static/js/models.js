@@ -10,29 +10,23 @@
       this.state = StateMachine.create({
         initial: 'ready',
         events: [
-          {name: 'start',  from: 'ready',   to: 'pending'},
-          {name: 'accept', from: 'pending', to: 'ongoing'},
-          {name: 'hangup', from: '*',       to: 'terminated'}
+          // Call initiation scenario
+          {name: 'start',     from: 'ready',   to: 'pending'},
+          {name: 'establish', from: 'pending', to: 'ongoing'},
+
+          // Incoming call scenario
+          {name: 'incoming',  from: 'ready',   to: 'pending'},
+          {name: 'accept',    from: 'pending', to: 'ongoing'}
         ]
       });
 
-      this.start = this.state.start.bind(this.state);
-      this.accept = this.state.accept.bind(this.state);
-      this.hangup = this.state.hangup.bind(this.state);
-    },
+      this.start     = this.state.start.bind(this.state);
+      this.incoming  = this.state.incoming.bind(this.state);
+      this.accept    = this.state.accept.bind(this.state);
+      this.establish = this.state.establish.bind(this.state);
+    }
+  });
 
-    _pc: null,
-    _localStream: null,
-    _remoteStream: null,
-
-    _onHangup: function(media) {
-      media.closePeerConnection(this._pc, this._localStream,
-        this._remoteStream);
-      this._pc = null;
-      this._remoteStream = null;
-      this._localStream = null;
-      this.callee = null;
-      app.trigger('hangup_done');
     }
   });
 
