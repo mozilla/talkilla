@@ -5,6 +5,7 @@ var _currentUserData;
 var _presenceSocket;
 var ports;
 var browserPort;
+var currentCall;
 
 /**
  * Social API user profile data storage.
@@ -170,8 +171,13 @@ var handlers = {
       _signoutCallback.bind(this));
   },
 
-  'talkilla.call-start': function() {
+  'talkilla.call-start': function(event) {
+    currentCall = event.data;
     browserPort.postEvent("social.request-chat", 'chat.html');
+  },
+
+  'talkilla.chat-window-ready': function() {
+    this.postEvent("talkilla.call-start", currentCall);
   }
 };
 

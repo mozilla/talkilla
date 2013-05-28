@@ -589,5 +589,18 @@ describe('Worker', function() {
           sinon.assert.calledOnce(browserPort.postEvent);
           sinon.assert.calledWithExactly(browserPort.postEvent, 'social.request-chat', "chat.html");
       });
+
+    it("should post a talkilla.call-start event when receiving a talkilla.chat-window-ready", function () {
+      var port = {postEvent: sinon.spy()};
+      currentCall = {caller: "alice", callee: "bob"};
+
+      handlers['talkilla.chat-window-ready'].bind(port)({
+        topic: "talkilla.chat-window-ready",
+        data: {}
+      });
+
+      sinon.assert.calledOnce(port.postEvent);
+      sinon.assert.calledWithExactly(port.postEvent, 'talkilla.call-start', {caller: "alice", callee: "bob"});
+    });
   });
 });
