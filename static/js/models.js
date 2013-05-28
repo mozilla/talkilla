@@ -1,4 +1,4 @@
-/* global Talkilla, Backbone, StateMachine */
+/* global app, Backbone, StateMachine */
 /**
  * Talkilla models and collections.
  */
@@ -24,9 +24,6 @@
       this.incoming  = this.state.incoming.bind(this.state);
       this.accept    = this.state.accept.bind(this.state);
       this.establish = this.state.establish.bind(this.state);
-    }
-  });
-
     }
   });
 

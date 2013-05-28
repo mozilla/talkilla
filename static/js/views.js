@@ -217,11 +217,20 @@
   app.views.UserEntryView = Backbone.View.extend({
     tagName: 'li',
 
-    template: _.template('<a href="#call/<%= nick %>"><%= nick %></a>'),
+    template: _.template('<a href="#" data-nick="<%= nick %>"><%= nick %></a>'),
+
+    events: {
+      'click a': 'call'
+    },
 
     initialize: function(options) {
       this.model = options && options.model;
       this.active = options && options.active;
+    },
+
+    call: function(event) {
+      event.preventDefault();
+      alert('plop')
     },
 
     render: function() {
