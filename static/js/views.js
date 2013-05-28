@@ -1,4 +1,4 @@
-/* global Talkilla, Backbone, _, jQuery*/
+/* global app, Backbone, _, jQuery*/
 /**
  * Talkilla Backbone views.
  */
@@ -217,7 +217,7 @@
   app.views.UserEntryView = Backbone.View.extend({
     tagName: 'li',
 
-    template: _.template('<a href="#" data-nick="<%= nick %>"><%= nick %></a>'),
+    template: _.template('<a href="#" rel="<%= nick %>"><%= nick %></a>'),
 
     events: {
       'click a': 'call'
@@ -230,7 +230,10 @@
 
     call: function(event) {
       event.preventDefault();
-      alert('plop')
+      app.port.postEvent('talkilla.call-start', {
+        caller: app.data.user.get('nick'),
+        callee: event.currentTarget.getAttribute('rel')
+      });
     },
 
     render: function() {
@@ -519,4 +522,4 @@
       return this;
     }
   });
-})(Talkilla, Backbone, _, jQuery);
+})(app, Backbone, _, jQuery);

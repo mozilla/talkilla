@@ -10,21 +10,26 @@ var ChatApp = (function($, Backbone, _) {
    * Application object
    * @type {Object}
    */
-  window.app = {
+  var app = window.app = {
     // default options
     options: {},
 
     // app modules
     models: {},
-    port: {}
+    port: {},
+    media: {},
+    views: {},
+    utils: {},
+
+    start: function(options) {
+      _.extend(this.options, options || {});
+    }
   };
 
 
   var ChatApp = function() {
     this.call = new app.models.Call();
     this.port = app.port;
-    // this.webrtc = new app.models.WebRTCCall();
-    // this.callView = new app.view.CallView({model: this.call, webrtc: this.webrtc});
 
     this.port.postEvent('talkilla.chat-window-ready', {});
 

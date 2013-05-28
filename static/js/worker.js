@@ -258,9 +258,8 @@ PortCollection.prototype = {
    * @param  {Mixed}  data
    */
   broadcastEvent: function(topic, data) {
-    for (var id in this.ports) {
+    for (var id in this.ports)
       this.ports[id].postEvent(topic, data);
-    }
   },
 
   /**
@@ -268,9 +267,8 @@ PortCollection.prototype = {
    * @param  {String} message
    */
   broadcastError: function(message) {
-    for (var id in this.ports) {
+    for (var id in this.ports)
       this.ports[id].error(message);
-    }
   }
 };
 
