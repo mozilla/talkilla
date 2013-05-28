@@ -6,7 +6,9 @@
   <link rel="stylesheet" media="all" href="vendor/mocha.css">
 </head>
 <body>
-  <div id="mocha"></div>
+  <div id="mocha">
+    <p><a href=".">Index</a></p>
+  </div>
   <div id="messages"></div>
   <div id="fixtures"></div>
   <script src="vendor/mocha.js"></script>
@@ -21,6 +23,7 @@
   <script src="../../js/browserDetection.js"></script>
   <script src="../../js/media.js"></script>
   <script src="../../js/models.js"></script>
+  <script src="../../js/port.js"></script>
   <script src="../../js/services.js"></script>
   <script src="../../js/views.js"></script>
   <script src="../../js/worker.js"></script>
@@ -30,6 +33,8 @@
   <script src="callview_test.js"></script>
   <script src="media_test.js"></script>
   <script src="worker_test.js"></script>
+  <script src="usermodels_test.js"></script>
+  <script src="port_test.js"></script>
   <script>
     mocha.run();
   </script>

@@ -1,7 +1,9 @@
 /* global afterEach, beforeEach, chai, createPresenceSocket, describe,
    handlers, it, sinon, Port, PortCollection, _config:true, _presenceSocket,
    loadconfig, ports:true, _presenceSocketOnMessage, _presenceSocketOnError,
-   _presenceSocketOnClose, _presenceSocketOnOpen, _signinCallback */
+   _presenceSocketOnClose, _presenceSocketOnOpen, _signinCallback,
+   _presenceSocket, _currentUserData, browserPort:true, _currentUserData:true,
+   UserData */
 /* jshint expr:true */
 var expect = chai.expect;
 
@@ -28,18 +30,47 @@ describe('Worker', function() {
       sandbox.restore();
     });
 
-    it("should populate the _config object from using AJAX load", function() {
-      expect(_config).to.deep.equal({});
-      loadconfig();
-      expect(requests).to.have.length.of(1);
-      expect(requests[0].url).to.equal('/config.json');
-      requests[0].respond(200, {
-        'Content-Type': 'application/json'
-      }, '{"WSURL": "ws://fake", "DEBUG": true}');
-      expect(_config).to.deep.equal({WSURL: 'ws://fake', DEBUG: true});
-    });
+    it("should populate the _config object from using AJAX load",
+      function(done) {
+        expect(_config).to.deep.equal({});
+        loadconfig(function(err, config) {
+          expect(requests).to.have.length.of(1);
+          expect(requests[0].url).to.equal('/config.json');
+          expect(config).to.deep.equal({WSURL: 'ws://fake', DEBUG: true});
+          done();
+        });
+        requests[0].respond(200, {
+          'Content-Type': 'application/json'
+        }, '{"WSURL": "ws://fake", "DEBUG": true}');
+      });
   });
 
+  describe('UserData', function() {
+    it("should be created with defaults values", function() {
+      var userData = new UserData();
+      expect(userData).to.include.keys(Object.keys(userData.defaults));
+    });
+
+    it("should accept initial values", function() {
+      var userData = new UserData({displayName: "foo"});
+      expect(userData).to.include.keys(Object.keys(userData.defaults));
+      expect(userData.displayName).to.equal("foo");
+    });
+
+    it("should accept a configuration object and update defaults accordingly",
+      function() {
+        var userData = new UserData({}, {ROOTURL: "http://fake"});
+        expect(userData.iconURL).to.equal("http://fake/talkilla16.png");
+      });
+
+    it("should reset to defaults", function() {
+      var userData = new UserData({displayName: "foo"});
+      expect(userData.displayName).to.equal("foo");
+      userData.reset();
+      expect(userData).to.include.keys(Object.keys(userData.defaults));
+      expect(userData.displayName).to.equal(undefined);
+    });
+  });
 
   describe('presence socket stuff', function () {
     var spy1;
@@ -122,7 +153,8 @@ describe('Worker', function() {
           };
           _presenceSocketOnMessage(event);
           sinon.assert.calledOnce(spy1);
-          sinon.assert.calledWithExactly(spy1, {data: "bar", topic: "topic"});
+          sinon.assert.calledWithExactly(spy1, {data: "bar",
+                                                topic: "talkilla.topic"});
         });
     });
 
@@ -141,12 +173,12 @@ describe('Worker', function() {
     describe("#_presenceSocketOnClose", function() {
       it('should post a talkilla.presence-unavailable message',
         function() {
-          var event = {foo: "bar"};
+          var event = {code: 1000};
           _presenceSocketOnClose(event);
 
           sinon.assert.calledOnce(spy1);
           sinon.assert.calledWithExactly(spy1,
-            {data: event, topic: "talkilla.presence-unavailable"});
+            {data: 1000, topic: "talkilla.presence-unavailable"});
         }
       );
 
@@ -275,11 +307,16 @@ describe('Worker', function() {
       sandbox = sinon.sandbox.create();
       sandbox.stub(window, "WebSocket");
       socketStub = sinon.stub(window, "createPresenceSocket");
+      browserPort = {
+        postEvent: sandbox.spy()
+      };
       _config.WSURL = wsurl;
+      _currentUserData = new UserData({});
       testableCallback = _signinCallback.bind({postEvent: function(){}});
     });
 
     afterEach(function() {
+      browserPort = undefined;
       sandbox.restore();
       socketStub.restore();
     });
@@ -289,7 +326,7 @@ describe('Worker', function() {
         var nickname = "bill";
         testableCallback(null, JSON.stringify({nick: nickname}));
         sinon.assert.calledOnce(socketStub);
-        sinon.assert.calledWithExactly(socketStub, wsurl);
+        sinon.assert.calledWithExactly(socketStub, nickname);
       });
 
     it("should not initiate the presence connection if signin failed",
@@ -301,7 +338,7 @@ describe('Worker', function() {
   });
 
   describe("#login", function() {
-    var xhr, socketStub, requests, sandbox;
+    var xhr, rootURL, socketStub, requests, sandbox;
 
     beforeEach(function() {
       sandbox = sinon.sandbox.create();
@@ -311,9 +348,19 @@ describe('Worker', function() {
       xhr = sinon.useFakeXMLHttpRequest();
       requests = [];
       xhr.onCreate = function (req) { requests.push(req); };
+
+      browserPort = {
+        postEvent: sandbox.spy()
+      };
+
+      rootURL = 'http://fake';
+      _currentUserData = new UserData({}, {
+        ROOTURL: rootURL
+      });
     });
 
     afterEach(function() {
+      browserPort = undefined;
       xhr.restore();
       sandbox.restore();
       socketStub.restore();
@@ -350,6 +397,24 @@ describe('Worker', function() {
         expect(requests[0].requestBody).to.be.equal('{"nick":"jb"}');
       });
 
+    it("should post a social.user-profile message if the server accepted " +
+       "login", function() {
+        handlers['talkilla.login']({
+          topic: "talkilla.login",
+          data: {username: "jb"}
+        });
+        expect(requests.length).to.equal(1);
+
+        requests[0].respond(200, { 'Content-Type': 'application/json' },
+          '{"nick":"jb"}' );
+
+        sinon.assert.calledOnce(browserPort.postEvent);
+        var args = browserPort.postEvent.args;
+        expect(args[0][1].userName).to.be.equal('jb');
+        expect(args[0][1].iconURL).to.contain(rootURL + '/talkilla16.png');
+        expect(args[0][1].profileURL).to.contain(rootURL + '/user.html');
+      });
+
     it("should post a success message if the server accepted login",
       function() {
         handlers.postEvent = sinon.spy();
@@ -364,6 +429,20 @@ describe('Worker', function() {
 
         sinon.assert.calledTwice(handlers.postEvent);
         sinon.assert.calledWith(handlers.postEvent, "talkilla.login-success");
+      });
+
+    it("should store the username if the server accepted login",
+      function() {
+        handlers['talkilla.login']({
+          topic: 'talkilla.login',
+          data: {username: 'jb'}
+        });
+        expect(requests.length).to.equal(1);
+
+        requests[0].respond(200, { 'Content-Type': 'application/json' },
+          '{"nick":"jb"}' );
+
+        expect(_currentUserData.userName).to.equal('jb');
       });
 
     it("should post a fail message if the server rejected login",
@@ -384,6 +463,105 @@ describe('Worker', function() {
   });
 
   describe("#logout", function() {
-    it('should tear down the websocket');
+    var sandbox, xhr, requests;
+
+    beforeEach(function() {
+      sandbox = sinon.sandbox.create();
+      // XXX For some reason, sandbox.useFakeXMLHttpRequest doesn't want to work
+      // nicely so we have to manually xhr.restore for now.
+      xhr = sinon.useFakeXMLHttpRequest();
+      requests = [];
+      xhr.onCreate = function (req) { requests.push(req); };
+
+      _currentUserData.userName = 'romain';
+      _presenceSocket.close = sandbox.stub();
+
+      browserPort = {
+        postEvent: sandbox.spy()
+      };
+    });
+
+    afterEach(function() {
+      browserPort = undefined;
+      xhr.restore();
+      sandbox.restore();
+    });
+
+    it('should post an error message if not logged in', function() {
+      _currentUserData.userName = undefined;
+      handlers.postEvent = sandbox.spy();
+      handlers['talkilla.logout']({
+        topic: 'talkilla.logout',
+        data: null
+      });
+
+      sinon.assert.calledOnce(handlers.postEvent);
+      sinon.assert.calledWith(handlers.postEvent, 'talkilla.error');
+    });
+
+    it('should tear down the websocket', function() {
+      handlers['talkilla.logout']({
+        topic: 'talkilla.logout',
+        data: null
+      });
+
+      sinon.assert.calledOnce(_presenceSocket.close);
+    });
+
+    it("should post an ajax message to the server",
+      function() {
+        handlers['talkilla.logout']({
+          topic: 'talkilla.logout'
+        });
+        expect(requests.length).to.equal(1);
+        expect(requests[0].url).to.equal('/signout');
+        expect(requests[0].requestBody).to.be.not.empty;
+        expect(requests[0].requestBody).to.be.equal('{"nick":"romain"}');
+      });
+
+    it("should post a success message",
+      function() {
+        handlers.postEvent = sandbox.spy();
+        handlers['talkilla.logout']({
+          topic: 'talkilla.logout'
+        });
+
+        requests[0].respond(200, { 'Content-Type': 'text/plain' },
+          'OK' );
+
+        sinon.assert.calledOnce(handlers.postEvent);
+        sinon.assert.calledWith(handlers.postEvent, 'talkilla.logout-success');
+      });
+
+    it("should post a social.user-profile message", function() {
+        handlers['talkilla.logout']({
+          topic: 'talkilla.logout'
+        });
+        expect(requests.length).to.equal(1);
+
+        requests[0].respond(200, { 'Content-Type': 'text/plain' },
+          'OK' );
+
+        var spy = browserPort.postEvent;
+        sinon.assert.calledOnce(spy);
+        expect(spy.args[0][1].userName).to.be.equal(undefined);
+      });
+
+
+    it("should log failure, if the server failed to sign the user out",
+      function() {
+        handlers.postEvent = sandbox.spy();
+        handlers['talkilla.logout']({
+          topic: 'talkilla.logout'
+        });
+
+        expect(requests.length).to.equal(1);
+
+        requests[0].respond(401, { 'Content-Type': 'text/plain' },
+                            'Not Authorised' );
+
+        sinon.assert.calledOnce(handlers.postEvent);
+        sinon.assert.calledWith(handlers.postEvent, 'talkilla.error');
+      });
   });
 });

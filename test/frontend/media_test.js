@@ -26,8 +26,8 @@ describe("Media", function() {
     mozRTCPeerConnection = sandbox.stub().returns(fakeMozRTCPeerConnection);
     mozRTCSessionDescription = sandbox.stub().returns({});
 
-    app.services.initiateCall = sandbox.spy();
-    app.services.acceptCall = sandbox.spy();
+    app.port.initiateCall = sandbox.spy();
+    app.port.acceptCall = sandbox.spy();
     app.trigger = sandbox.spy();
   }
 
@@ -134,8 +134,8 @@ describe("Media", function() {
       it("should initiate signalling if media use was granted", function() {
         app.media.startCall("dan", null, callType, success, error);
 
-        sinon.assert.calledOnce(app.services.initiateCall);
-        app.services.initiateCall.calledWith("dan", {});
+        sinon.assert.calledOnce(app.port.initiateCall);
+        app.port.initiateCall.calledWith("dan", {});
       });
 
       it("should call the success callback if media use was granted",
@@ -164,8 +164,8 @@ describe("Media", function() {
         function() {
           app.media.startCall("florian", "sdp", callType, success, error);
 
-          sinon.assert.calledOnce(app.services.acceptCall);
-          app.services.initiateCall.calledWith("dan", {});
+          sinon.assert.calledOnce(app.port.acceptCall);
+          app.port.initiateCall.calledWith("dan", {});
         });
 
       it("should call the success callback if an existing offer was provided",
