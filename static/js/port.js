@@ -137,4 +137,4 @@
     }));
     */
   };
-})(Talkilla, Backbone, _);
+})(app, Backbone, _);

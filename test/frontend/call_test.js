@@ -1,7 +1,7 @@
 /* global app, chai, describe, it, beforeEach, afterEach, sinon */
 var expect = chai.expect;
 
-describe("Call", function() {
+describe.skip("Call", function() {
   var call;
 
   beforeEach(function() {

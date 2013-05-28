@@ -2,7 +2,7 @@
 /**
  * Talkilla models and collections.
  */
-(function(app, Backbone) {
+(function(app, Backbone, StateMachine) {
   "use strict";
 
   app.models.Call = Backbone.Model.extend({
@@ -76,4 +76,4 @@
       }.bind(this));
     }
   });
-})(Talkilla, Backbone, StateMachine);
+})(app, Backbone, StateMachine);
