@@ -1,4 +1,5 @@
-/* global app, chai, describe, it */
+/* global app, chai, describe, it, sinon, beforeEach, afterEach,
+   ChatApp */
 /* jshint expr:true */
 var expect = chai.expect;
 
@@ -20,16 +21,18 @@ describe("ChatApp", function() {
     expect(chatApp.call).to.be.an.instanceOf(app.models.Call);
   });
 
-  it("should ping back the worker with a talkilla.chat-window-ready during construction", function() {
-    sinon.assert.calledOnce(app.port.postEvent);
-    sinon.assert.calledWithExactly(app.port.postEvent, "talkilla.chat-window-ready", {});
-  });
+  it("should post talkilla.chat-window-ready to the worker during construction",
+    function() {
+      sinon.assert.calledOnce(app.port.postEvent);
+      sinon.assert.calledWithExactly(app.port.postEvent,
+        "talkilla.chat-window-ready", {});
+    });
 
   it("should attach _onCallStart to talkilla.call-start", function() {
     var caller = "alice";
     var callee = "bob";
     sandbox.stub(ChatApp.prototype, "_onCallStart");
-    chatApp = new ChatApp(); // We need the constructor to take the stub into account.
+    chatApp = new ChatApp(); // We need the constructor to use the stub
 
     chatApp.port.trigger("talkilla.call-start", caller, callee);
 
@@ -61,7 +64,8 @@ describe("ChatApp", function() {
     });
   });
 
-  it("should set the caller and callee and set the call as incoming when receiving a talkilla.call-incoming event", function() {
+  it("should set the caller + callee and set the call as " +
+    "incoming when receiving a talkilla.call-incoming event", function() {
     var caller = "alice";
     var callee = "bob";
     var offer = {};
@@ -70,7 +74,8 @@ describe("ChatApp", function() {
 
     app.port.trigger('talkilla.call-incoming', caller, callee, offer);
     sinon.assert.calledOnce(chatApp.call.set);
-    sinon.assert.calledWithExactly(chatApp.call.set, {caller: "alice", callee: "bob"});
+    sinon.assert.calledWithExactly(chatApp.call.set,
+      {caller: "alice", callee: "bob"});
 
     sinon.assert.calledOnce(chatApp.call.incoming);
     sinon.assert.calledWithExactly(chatApp.call.incoming);
@@ -79,7 +84,7 @@ describe("ChatApp", function() {
 
 describe("Call", function() {
 
-  var call;
+  var sandbox, call;
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();

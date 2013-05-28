@@ -41,7 +41,7 @@ var ChatApp = (function($, Backbone, _) {
     }.bind(this));
 
     this.port.postEvent('talkilla.chat-window-ready', {});
-  };
+  }
 
   ChatApp.prototype._onCallStart = function(caller, callee) {
     this.call.set({caller: caller, callee: callee});
