@@ -49,6 +49,24 @@
                message: "empty message"}
   });
 
+  app.models.TextChatEntry = Backbone.Model.extend({
+    defaults: {nick: undefined,
+               message: undefined,
+               date: new Date().getTime()}
+  });
+
+  app.models.TextChat = Backbone.Collection.extend({
+    model: app.models.TextChatEntry,
+
+    constructor: function() {
+      Backbone.Collection.apply(this, arguments);
+      // register the talkilla.text-message event
+      app.port.on('talkilla.text-message', function(entry) {
+        this.add(entry);
+      }.bind(this));
+    }
+  });
+
   app.models.User = Backbone.Model.extend({
     defaults: {nick: undefined, presence: "disconnected"},
 
