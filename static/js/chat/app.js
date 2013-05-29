@@ -46,7 +46,7 @@ var ChatApp = (function($, Backbone, _) {
     this.webrtc.offer();
   };
 
-  ChatApp.prototype._onCallEstablishement = function(answer) {
+  ChatApp.prototype._onCallEstablishment = function(answer) {
     this.call.establish();
     this.webrtc.establish(answer);
   };

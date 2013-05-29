@@ -116,14 +116,14 @@ describe("ChatApp", function() {
     });
   });
 
-  describe("#_onCallEstablishement", function() {
+  describe("#_onCallEstablishment", function() {
 
     it("should set the call as established", function() {
       var answer = {};
       sandbox.stub(chatApp.call, "establish");
       sandbox.stub(chatApp.webrtc, "establish");
 
-      chatApp._onCallEstablishement(answer);
+      chatApp._onCallEstablishment(answer);
 
       sinon.assert.calledOnce(chatApp.call.establish);
       sinon.assert.calledWithExactly(chatApp.call.establish);
@@ -133,7 +133,7 @@ describe("ChatApp", function() {
       sandbox.stub(chatApp.call, "establish");
       sandbox.stub(chatApp.webrtc, "establish");
 
-      chatApp._onCallEstablishement(fakeAnswer);
+      chatApp._onCallEstablishment(fakeAnswer);
 
       sinon.assert.calledOnce(chatApp.webrtc.establish);
       sinon.assert.calledWithExactly(chatApp.webrtc.establish, fakeAnswer);
