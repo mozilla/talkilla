@@ -7,6 +7,8 @@ describe("ChatApp", function() {
   var sandbox, chatApp;
   var fakeOffer = "fakeOffer";
   var fakeAnswer = "fakeAnswer";
+  var caller = "alice";
+  var callee = "bob";
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
@@ -35,8 +37,6 @@ describe("ChatApp", function() {
     });
 
   it("should attach _onStartingCall to talkilla.call-start", function() {
-    var caller = "alice";
-    var callee = "bob";
     sandbox.stub(ChatApp.prototype, "_onStartingCall");
     chatApp = new ChatApp(); // We need the constructor to use the stub
 
@@ -47,8 +47,6 @@ describe("ChatApp", function() {
   });
 
   it("should attach _onIncomingCall to talkilla.call-incoming", function() {
-    var caller = "alice";
-    var callee = "bob";
     sandbox.stub(ChatApp.prototype, "_onIncomingCall");
     chatApp = new ChatApp(); // We need the constructor to use the stub
 
@@ -61,9 +59,6 @@ describe("ChatApp", function() {
   describe("#_onStartingCall", function() {
 
     it("should set the caller and callee", function() {
-      var caller = "alice";
-      var callee = "bob";
-
       chatApp._onStartingCall(caller, callee);
 
       expect(chatApp.call.get('caller')).to.equal(caller);
@@ -71,8 +66,6 @@ describe("ChatApp", function() {
     });
 
     it("should start the call", function() {
-      var caller = "alice";
-      var callee = "bob";
       sandbox.stub(chatApp.call, "start");
 
       chatApp._onStartingCall(caller, callee);
@@ -82,9 +75,6 @@ describe("ChatApp", function() {
     });
 
     it("should create a webrtc offer", function() {
-      var caller = "alice";
-      var callee = "bob";
-
       sandbox.stub(chatApp.call, "set");
       sandbox.stub(chatApp.call, "start");
       sandbox.stub(chatApp.webrtc, "offer");
@@ -99,9 +89,6 @@ describe("ChatApp", function() {
 
   describe("#_onIncomingCall", function() {
     it("should set the caller and callee", function() {
-      var caller = "alice";
-      var callee = "bob";
-
       chatApp._onIncomingCall(caller, callee, fakeOffer);
 
       expect(chatApp.call.get('caller')).to.equal(caller);
@@ -109,8 +96,6 @@ describe("ChatApp", function() {
     });
 
     it("should set the call as incoming", function() {
-      var caller = "alice";
-      var callee = "bob";
       sandbox.stub(chatApp.call, "incoming");
 
       chatApp._onIncomingCall(caller, callee, fakeOffer);
@@ -120,9 +105,6 @@ describe("ChatApp", function() {
     });
 
     it("should create a webrtc offer", function() {
-      var caller = "alice";
-      var callee = "bob";
-
       sandbox.stub(chatApp.call, "set");
       sandbox.stub(chatApp.call, "start");
       sandbox.stub(chatApp.webrtc, "answer");
