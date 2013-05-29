@@ -43,10 +43,25 @@
       this.pc.setRemoteDescription(answer, null, this._onError);
     },
 
+    answer: function(offer) {
+      var callback = this.trigger.bind(this, "sdp");
+      var createAnswer = this._createAnswer.bind(this, offer, callback);
+      this._getMedia(createAnswer, this._onError);
+    },
+
     _createOffer: function(callback) {
       this.pc.createOffer(function(offer) {
         var cb = callback.bind(this, offer);
         this.pc.setLocalDescription(offer, cb, this._onError);
+      }.bind(this), this._onError);
+    },
+
+    _createAnswer: function(offer, callback) {
+      this.pc.setRemoteDescription(offer, function() {
+        this.pc.createAnswer(offer, function(answer) {
+          var cb = callback.bind(this, answer);
+          this.pc.setLocalDescription(answer, callback, this._onError);
+        }.bind(this), this._onError);
       }.bind(this), this._onError);
     },
 

@@ -5,6 +5,8 @@ var expect = chai.expect;
 
 describe("ChatApp", function() {
   var sandbox, chatApp;
+  var fakeOffer = "fakeOffer";
+  var fakeAnswer = "fakeAnswer";
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
@@ -96,12 +98,11 @@ describe("ChatApp", function() {
   });
 
   describe("#_onIncomingCall", function() {
-
     it("should set the caller and callee", function() {
       var caller = "alice";
       var callee = "bob";
 
-      chatApp._onIncomingCall(caller, callee);
+      chatApp._onIncomingCall(caller, callee, fakeOffer);
 
       expect(chatApp.call.get('caller')).to.equal(caller);
       expect(chatApp.call.get('callee')).to.equal(callee);
@@ -112,12 +113,25 @@ describe("ChatApp", function() {
       var callee = "bob";
       sandbox.stub(chatApp.call, "incoming");
 
-      chatApp._onIncomingCall(caller, callee);
+      chatApp._onIncomingCall(caller, callee, fakeOffer);
 
       sinon.assert.calledOnce(chatApp.call.incoming);
       sinon.assert.calledWithExactly(chatApp.call.incoming);
     });
 
+    it("should create a webrtc offer", function() {
+      var caller = "alice";
+      var callee = "bob";
+
+      sandbox.stub(chatApp.call, "set");
+      sandbox.stub(chatApp.call, "start");
+      sandbox.stub(chatApp.webrtc, "answer");
+
+      chatApp._onIncomingCall(caller, callee, fakeOffer);
+
+      sinon.assert.calledOnce(chatApp.webrtc.answer);
+      sinon.assert.calledWithExactly(chatApp.webrtc.answer, fakeOffer);
+    });
   });
 
   describe("#_onCallEstablishement", function() {
@@ -214,6 +228,8 @@ describe("Call", function() {
 
 describe("WebRTCCall", function() {
   var sandbox, webrtc;
+  var fakeOffer = "fakeOffer";
+  var fakeAnswer = "fakeAnswer";
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
@@ -284,6 +300,58 @@ describe("WebRTCCall", function() {
 
       sinon.assert.calledOnce(webrtc.pc.setRemoteDescription);
       sinon.assert.calledWith(webrtc.pc.setRemoteDescription, answer);
+    });
+
+  });
+
+  describe("#answer", function() {
+
+    it("should call getUserMedia", function() {
+      sandbox.stub(navigator, "mozGetUserMedia");
+
+      webrtc.set({video: true, audio: true});
+      webrtc.answer(fakeAnswer);
+
+      sinon.assert.calledOnce(navigator.mozGetUserMedia);
+      sinon.assert.calledWith(navigator.mozGetUserMedia,
+                              {video: true, audio: true});
+    });
+
+    it("should trigger an sdp event with an answer", function(done) {
+      sandbox.stub(navigator, "mozGetUserMedia", function(constraints, callback, errback) {
+        callback();
+      });
+      webrtc._createAnswer = function(offer, callback) {
+        callback(fakeAnswer);
+      };
+      webrtc.on('sdp', function(answer) {
+        expect(answer).to.equal(fakeAnswer);
+        done();
+      });
+
+      webrtc.answer(fakeOffer);
+    });
+
+  });
+
+  describe("_createAnswer", function() {
+
+    it("should call createAnswer, setLocalDescription and setRemoteDescription", function() {
+      sandbox.stub(webrtc.pc, "setRemoteDescription", function(offer, callback) {
+        callback();
+      });
+      sandbox.stub(webrtc.pc, "createAnswer", function(offer, callback) {
+        callback(fakeAnswer);
+      });
+      sandbox.stub(webrtc.pc, "setLocalDescription");
+
+      webrtc._createAnswer(fakeOffer, function() {});
+
+      sinon.assert.calledOnce(webrtc.pc.setRemoteDescription);
+      sinon.assert.calledWith(webrtc.pc.setRemoteDescription, fakeOffer);
+      sinon.assert.calledOnce(webrtc.pc.createAnswer);
+      sinon.assert.calledOnce(webrtc.pc.setLocalDescription);
+      sinon.assert.calledWith(webrtc.pc.setLocalDescription, fakeAnswer);
     });
 
   });
