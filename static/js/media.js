@@ -1,4 +1,4 @@
-/* global Talkilla, mozRTCSessionDescription, mozRTCPeerConnection */
+/* global app, mozRTCSessionDescription, mozRTCPeerConnection */
 /**
  * Media setup and handling for Talkilla
  */
@@ -114,4 +114,4 @@
     return pc;
   }
 
-})(Talkilla);
+})(app);

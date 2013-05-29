@@ -1,5 +1,5 @@
 /* jshint camelcase:false */
-/* global Talkilla, Backbone, _ */
+/* global app, Backbone, _ */
 /**
  * Social API Worker Port wrapper & message events listener/dispatcher.
  */
@@ -137,4 +137,4 @@
     }));
     */
   };
-})(Talkilla, Backbone, _);
+})(app, Backbone, _);

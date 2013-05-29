@@ -3,7 +3,7 @@
    loadconfig, ports:true, _presenceSocketOnMessage, _presenceSocketOnError,
    _presenceSocketOnClose, _presenceSocketOnOpen, _signinCallback,
    _presenceSocket, _currentUserData, browserPort:true, _currentUserData:true,
-   UserData */
+   UserData, currentCall:true */
 /* jshint expr:true */
 var expect = chai.expect;
 
@@ -563,5 +563,48 @@ describe('Worker', function() {
         sinon.assert.calledOnce(handlers.postEvent);
         sinon.assert.calledWith(handlers.postEvent, 'talkilla.error');
       });
+  });
+
+  describe("call", function() {
+    var sandbox;
+
+    beforeEach(function() {
+      sandbox = sinon.sandbox.create();
+      browserPort = {postEvent: sandbox.spy()};
+    });
+
+    afterEach(function() {
+      browserPort = undefined;
+      sandbox.restore();
+    });
+
+
+    it("should open a chat window when receiving a talkilla.call-start event",
+      function() {
+        handlers.postEvent = sinon.spy();
+        handlers['talkilla.call-start']({
+          topic: "talkilla.call-start",
+          data: {}
+        });
+
+        sinon.assert.calledOnce(browserPort.postEvent);
+        sinon.assert.calledWithExactly(browserPort.postEvent,
+          'social.request-chat', "chat.html");
+      });
+
+    it("should post a talkilla.call-start event when " +
+      "receiving a talkilla.chat-window-ready", function () {
+      var port = {postEvent: sinon.spy()};
+      currentCall = {caller: "alice", callee: "bob"};
+
+      handlers['talkilla.chat-window-ready'].bind(port)({
+        topic: "talkilla.chat-window-ready",
+        data: {}
+      });
+
+      sinon.assert.calledOnce(port.postEvent);
+      sinon.assert.calledWithExactly(port.postEvent,
+        'talkilla.call-start', currentCall);
+    });
   });
 });

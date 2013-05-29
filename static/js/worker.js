@@ -5,6 +5,7 @@ var _currentUserData;
 var _presenceSocket;
 var ports;
 var browserPort;
+var currentCall;
 
 /**
  * Social API user profile data storage.
@@ -168,6 +169,15 @@ var handlers = {
     _presenceSocket.close();
     sendAjax('/signout', 'POST', {nick: _currentUserData.userName},
       _signoutCallback.bind(this));
+  },
+
+  'talkilla.call-start': function(event) {
+    currentCall = event.data;
+    browserPort.postEvent("social.request-chat", 'chat.html');
+  },
+
+  'talkilla.chat-window-ready': function() {
+    this.postEvent("talkilla.call-start", currentCall);
   }
 };
 
@@ -248,9 +258,8 @@ PortCollection.prototype = {
    * @param  {Mixed}  data
    */
   broadcastEvent: function(topic, data) {
-    for (var id in this.ports) {
+    for (var id in this.ports)
       this.ports[id].postEvent(topic, data);
-    }
   },
 
   /**
@@ -258,9 +267,8 @@ PortCollection.prototype = {
    * @param  {String} message
    */
   broadcastError: function(message) {
-    for (var id in this.ports) {
+    for (var id in this.ports)
       this.ports[id].error(message);
-    }
   }
 };
 
