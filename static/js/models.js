@@ -28,18 +28,26 @@
   });
 
   app.models.WebRTCCall = Backbone.Model.extend({
+    initialize: function() {
+      this.pc = new mozRTCPeerConnection();
+
+      this._onError = this._onError.bind(this);
+    },
+
     offer: function() {
-      var onError = this._onError.bind(this);
+      var callback = this.trigger.bind(this, "sdp");
+      this._getMedia(this._createOffer.bind(this, callback), this._onError);
+    },
 
-      this._getMedia(function() {
-        /* jshint newcap: false */
-        this.pc = new mozRTCPeerConnection();
+    establish: function(answer) {
+      this.pc.setRemoteDescription(answer, null, this._onError);
+    },
 
-        this.pc.createOffer(function(offer) {
-          this.pc.setLocalDescription(offer,
-            this.trigger.bind(this, 'sdp', offer), onError);
-        }, onError);
-      }, onError);
+    _createOffer: function(callback) {
+      this.pc.createOffer(function(offer) {
+        var cb = callback.bind(this, offer);
+        this.pc.setLocalDescription(offer, cb, this._onError);
+      }.bind(this), this._onError);
     },
 
     _getMedia: function(callback, errback) {

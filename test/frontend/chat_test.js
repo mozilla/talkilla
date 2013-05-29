@@ -192,7 +192,6 @@ describe("WebRTCCall", function() {
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
     webrtc = new app.models.WebRTCCall();
-    console.log(webrtc);
   });
 
   afterEach(function() {
@@ -209,27 +208,56 @@ describe("WebRTCCall", function() {
 
       sinon.assert.calledOnce(navigator.mozGetUserMedia);
       sinon.assert.calledWith(navigator.mozGetUserMedia,
-        {video: true, audio: true});
+                              {video: true, audio: true});
     });
 
-    it("should trigger an sdp event with an offer", function() {
-      var gum = sandbox.stub(navigator, "mozGetUserMedia");
+    it("should trigger an sdp event with an offer", function(done) {
+      var fakeOffer = 'fakeOffer';
 
-      /* jshint unused: vars */
-      gum.returns({
-        createOffer: function(callback) {
-          callback();
-        },
-        setLocalDescription: function(offer, callback, errback) {
-          callback();
-        }
+      sandbox.stub(navigator, "mozGetUserMedia", function(constraints, callback, errback) {
+        callback();
       });
-
+      webrtc._createOffer = function(callback) {
+        callback(fakeOffer);
+      };
       webrtc.on('sdp', function(offer) {
-        expect(offer.type).to.equal('offer');
+        expect(offer).to.equal(fakeOffer);
+        done();
       });
 
       webrtc.offer();
+    });
+
+  });
+
+  describe("_createOffer", function() {
+
+    it("should call createOffer and setRemoteDescription", function() {
+      var fakeOffer = 'fakeOffer';
+      sandbox.stub(webrtc.pc, "createOffer", function(callback) {
+        callback(fakeOffer);
+      });
+      sandbox.stub(webrtc.pc, "setLocalDescription");
+
+      webrtc._createOffer(function() {});
+
+      sinon.assert.calledOnce(webrtc.pc.createOffer);
+      sinon.assert.calledOnce(webrtc.pc.setLocalDescription);
+      sinon.assert.calledWith(webrtc.pc.setLocalDescription, fakeOffer);
+    });
+
+  });
+
+  describe("#establish", function() {
+
+    it("should set the given answer as a remote description", function() {
+      var answer = {};
+
+      webrtc.pc = {setRemoteDescription: sinon.spy()};
+      webrtc.establish(answer);
+
+      sinon.assert.calledOnce(webrtc.pc.setRemoteDescription);
+      sinon.assert.calledWith(webrtc.pc.setRemoteDescription, answer);
     });
 
   });
