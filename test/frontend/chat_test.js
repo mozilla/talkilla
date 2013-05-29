@@ -119,6 +119,32 @@ describe("ChatApp", function() {
     });
 
   });
+
+  describe("#_onCallEstablishement", function() {
+
+    it("should set the call as established", function() {
+      var answer = {};
+      sandbox.stub(chatApp.call, "establish");
+      sandbox.stub(chatApp.webrtc, "establish");
+
+      chatApp._onCallEstablishement(answer);
+
+      sinon.assert.calledOnce(chatApp.call.establish);
+      sinon.assert.calledWithExactly(chatApp.call.establish);
+    });
+
+    it("should establish the webrtc call", function() {
+      var fakeAnswer = 'fakeAnswer';
+      sandbox.stub(chatApp.call, "establish");
+      sandbox.stub(chatApp.webrtc, "establish");
+
+      chatApp._onCallEstablishement(fakeAnswer);
+
+      sinon.assert.calledOnce(chatApp.webrtc.establish);
+      sinon.assert.calledWithExactly(chatApp.webrtc.establish, fakeAnswer);
+    });
+
+  });
 });
 
 describe("Call", function() {
