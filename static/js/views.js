@@ -522,4 +522,43 @@
       return this;
     }
   });
+
+  /**
+   * Text chat entry view.
+   */
+  app.views.TextChatEntryView = Backbone.View.extend({
+    template: _.template([
+      '<dt><%= nick %></dt>',
+      '<dd><%= message %></dd>'
+    ].join('')),
+
+    render: function() {
+      this.$el.html(this.template(this.model.toJSON()));
+      return this;
+    }
+  });
+
+  /**
+   * Text chat conversation view.
+   */
+  app.views.TextChatView = Backbone.View.extend({
+    el: '#textchat',
+
+    constructor: function() {
+      Backbone.View.apply(this, arguments);
+
+      this.collection.on('add', function() {
+        this.render();
+      }, this);
+    },
+
+    render: function() {
+      var $dl = this.$('dl').empty();
+      this.collection.each(function(entry) {
+        var view = new app.views.TextChatEntryView({model: entry});
+        $dl.append(view.render().$el);
+      });
+      return this;
+    }
+  });
 })(app, Backbone, _, jQuery);

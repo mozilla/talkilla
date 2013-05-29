@@ -57,10 +57,7 @@
 
     constructor: function() {
       Backbone.Collection.apply(this, arguments);
-      // register the talkilla.text-message event
-      app.port.on('talkilla.text-message', function(entry) {
-        this.add(entry);
-      }.bind(this));
+      // XXX: listen to data channel events to update data
     }
   });
 
