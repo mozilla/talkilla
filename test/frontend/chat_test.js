@@ -21,6 +21,10 @@ describe("ChatApp", function() {
     expect(chatApp.call).to.be.an.instanceOf(app.models.Call);
   });
 
+  it("should have a webrtc call model", function() {
+    expect(chatApp.webrtc).to.be.an.instanceOf(app.models.WebRTCCall);
+  });
+
   it("should post talkilla.chat-window-ready to the worker during construction",
     function() {
       sinon.assert.calledOnce(app.port.postEvent);
@@ -28,20 +32,16 @@ describe("ChatApp", function() {
         "talkilla.chat-window-ready", {});
     });
 
-  it("should have a webrtc call model", function() {
-    expect(chatApp.webrtc).to.be.an.instanceOf(app.models.WebRTCCall);
-  });
-
-  it("should attach _onCallStart to talkilla.call-start", function() {
+  it("should attach _onStartingCall to talkilla.call-start", function() {
     var caller = "alice";
     var callee = "bob";
-    sandbox.stub(ChatApp.prototype, "_onCallStart");
+    sandbox.stub(ChatApp.prototype, "_onStartingCall");
     chatApp = new ChatApp(); // We need the constructor to use the stub
 
     chatApp.port.trigger("talkilla.call-start", caller, callee);
 
-    sinon.assert.calledOnce(chatApp._onCallStart);
-    sinon.assert.calledWithExactly(chatApp._onCallStart, caller, callee);
+    sinon.assert.calledOnce(chatApp._onStartingCall);
+    sinon.assert.calledWithExactly(chatApp._onStartingCall, caller, callee);
   });
 
   it("should attach _onIncomingCall to talkilla.call-incoming", function() {
@@ -56,13 +56,13 @@ describe("ChatApp", function() {
     sinon.assert.calledWithExactly(chatApp._onIncomingCall, caller, callee);
   });
 
-  describe("#_onCallStart", function() {
+  describe("#_onStartingCall", function() {
 
     it("should set the caller and callee", function() {
       var caller = "alice";
       var callee = "bob";
 
-      chatApp._onCallStart(caller, callee);
+      chatApp._onStartingCall(caller, callee);
 
       expect(chatApp.call.get('caller')).to.equal(caller);
       expect(chatApp.call.get('callee')).to.equal(callee);
@@ -73,7 +73,7 @@ describe("ChatApp", function() {
       var callee = "bob";
       sandbox.stub(chatApp.call, "start");
 
-      chatApp._onCallStart(caller, callee);
+      chatApp._onStartingCall(caller, callee);
 
       sinon.assert.calledOnce(chatApp.call.start);
       sinon.assert.calledWithExactly(chatApp.call.start);
@@ -87,7 +87,7 @@ describe("ChatApp", function() {
       sandbox.stub(chatApp.call, "start");
       sandbox.stub(chatApp.webrtc, "offer");
 
-      chatApp._onCallStart(caller, callee);
+      chatApp._onStartingCall(caller, callee);
 
       sinon.assert.calledOnce(chatApp.webrtc.offer);
       sinon.assert.calledWithExactly(chatApp.webrtc.offer);

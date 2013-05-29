@@ -33,7 +33,7 @@ var ChatApp = (function($, Backbone, _) {
     this.webrtc = new app.models.WebRTCCall();
 
     // Incoming events
-    this.port.on('talkilla.call-start', this._onCallStart.bind(this));
+    this.port.on('talkilla.call-start', this._onStartingCall.bind(this));
     this.port.on('talkilla.call-incoming', this._onIncomingCall.bind(this));
 
 
@@ -53,7 +53,7 @@ var ChatApp = (function($, Backbone, _) {
     this.port.postEvent('talkilla.chat-window-ready', {});
   }
 
-  ChatApp.prototype._onCallStart = function(caller, callee) {
+  ChatApp.prototype._onStartingCall = function(caller, callee) {
     this.call.set({caller: caller, callee: callee});
     this.call.start();
   };
