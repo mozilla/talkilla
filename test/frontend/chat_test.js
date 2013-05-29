@@ -44,6 +44,18 @@ describe("ChatApp", function() {
     sinon.assert.calledWithExactly(chatApp._onCallStart, caller, callee);
   });
 
+  it("should attach _onIncomingCall to talkilla.call-incoming", function() {
+    var caller = "alice";
+    var callee = "bob";
+    sandbox.stub(ChatApp.prototype, "_onIncomingCall");
+    chatApp = new ChatApp(); // We need the constructor to use the stub
+
+    chatApp.port.trigger("talkilla.call-incoming", caller, callee);
+
+    sinon.assert.calledOnce(chatApp._onIncomingCall);
+    sinon.assert.calledWithExactly(chatApp._onIncomingCall, caller, callee);
+  });
+
   describe("#_onCallStart", function() {
 
     it("should set the caller and callee", function() {
@@ -83,21 +95,29 @@ describe("ChatApp", function() {
 
   });
 
-  it("should set the caller + callee and set the call as " +
-    "incoming when receiving a talkilla.call-incoming event", function() {
-    var caller = "alice";
-    var callee = "bob";
-    var offer = {};
-    sandbox.stub(chatApp.call, "set");
-    sandbox.stub(chatApp.call, "incoming");
+  describe("#_onIncomingCall", function() {
 
-    app.port.trigger('talkilla.call-incoming', caller, callee, offer);
-    sinon.assert.calledOnce(chatApp.call.set);
-    sinon.assert.calledWithExactly(chatApp.call.set,
-      {caller: "alice", callee: "bob"});
+    it("should set the caller and callee", function() {
+      var caller = "alice";
+      var callee = "bob";
 
-    sinon.assert.calledOnce(chatApp.call.incoming);
-    sinon.assert.calledWithExactly(chatApp.call.incoming);
+      chatApp._onIncomingCall(caller, callee);
+
+      expect(chatApp.call.get('caller')).to.equal(caller);
+      expect(chatApp.call.get('callee')).to.equal(callee);
+    });
+
+    it("should set the call as incoming", function() {
+      var caller = "alice";
+      var callee = "bob";
+      sandbox.stub(chatApp.call, "incoming");
+
+      chatApp._onIncomingCall(caller, callee);
+
+      sinon.assert.calledOnce(chatApp.call.incoming);
+      sinon.assert.calledWithExactly(chatApp.call.incoming);
+    });
+
   });
 });
 
@@ -165,7 +185,6 @@ describe("Call", function() {
   });
 
 });
-
 
 describe("WebRTCCall", function() {
   var sandbox, webrtc;

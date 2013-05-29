@@ -34,12 +34,8 @@ var ChatApp = (function($, Backbone, _) {
 
     // Incoming events
     this.port.on('talkilla.call-start', this._onCallStart.bind(this));
+    this.port.on('talkilla.call-incoming', this._onIncomingCall.bind(this));
 
-    this.port.on('talkilla.call-incoming', function(caller, callee, offer) {
-      this.call.set({caller: caller, callee: callee});
-      this.call.incoming();
-      // this.webrtc.answer(offer);
-    }.bind(this));
 
     this.port.on('talkilla.call-established', function(answer) {
       this.call.establish();
@@ -60,6 +56,11 @@ var ChatApp = (function($, Backbone, _) {
   ChatApp.prototype._onCallStart = function(caller, callee) {
     this.call.set({caller: caller, callee: callee});
     this.call.start();
+  };
+
+  ChatApp.prototype._onIncomingCall = function(caller, callee) {
+    this.call.set({caller: caller, callee: callee});
+    this.call.incoming();
   };
 
   return ChatApp;
