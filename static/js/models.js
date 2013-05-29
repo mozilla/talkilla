@@ -1,4 +1,4 @@
-/* global app, Backbone, StateMachine */
+/* global app, Backbone, StateMachine, mozRTCPeerConnection */
 /**
  * Talkilla models and collections.
  */
@@ -32,10 +32,12 @@
       var onError = this._onError.bind(this);
 
       this._getMedia(function() {
+        /* jshint newcap: false */
         this.pc = new mozRTCPeerConnection();
 
         this.pc.createOffer(function(offer) {
-          this.pc.setLocalDescription(offer, this.trigger.bind(this, 'sdp', offer), onError);
+          this.pc.setLocalDescription(offer,
+            this.trigger.bind(this, 'sdp', offer), onError);
         }, onError);
       }, onError);
     },

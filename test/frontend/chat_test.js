@@ -168,7 +168,7 @@ describe("Call", function() {
 
 
 describe("WebRTCCall", function() {
-  var webrtc;
+  var sandbox, webrtc;
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
@@ -189,16 +189,19 @@ describe("WebRTCCall", function() {
       webrtc.offer();
 
       sinon.assert.calledOnce(navigator.mozGetUserMedia);
-      sinon.assert.calledWith(navigator.mozGetUserMedia, {video: true, audio: true});
+      sinon.assert.calledWith(navigator.mozGetUserMedia,
+        {video: true, audio: true});
     });
 
     it("should trigger an sdp event with an offer", function() {
       var gum = sandbox.stub(navigator, "mozGetUserMedia");
-      var offer = {type: 'offer'};
+
+      /* jshint unused: vars */
       gum.returns({
         createOffer: function(callback) {
           callback();
-        }, setLocalDescription: function(offer, callback, errback) {
+        },
+        setLocalDescription: function(offer, callback, errback) {
           callback();
         }
       });
