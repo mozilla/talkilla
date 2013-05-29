@@ -79,7 +79,7 @@ describe("ChatApp", function() {
       sinon.assert.calledWithExactly(chatApp.call.start);
     });
 
-    it.skip("should create a webrtc offer", function() {
+    it("should create a webrtc offer", function() {
       var caller = "alice";
       var callee = "bob";
 

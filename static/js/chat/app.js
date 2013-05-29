@@ -56,6 +56,7 @@ var ChatApp = (function($, Backbone, _) {
   ChatApp.prototype._onStartingCall = function(caller, callee) {
     this.call.set({caller: caller, callee: callee});
     this.call.start();
+    this.webrtc.offer();
   };
 
   ChatApp.prototype._onIncomingCall = function(caller, callee) {
