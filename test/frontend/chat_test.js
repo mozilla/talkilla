@@ -148,7 +148,6 @@ describe("ChatApp", function() {
     });
 
     it("should establish the webrtc call", function() {
-      var fakeAnswer = 'fakeAnswer';
       sandbox.stub(chatApp.call, "establish");
       sandbox.stub(chatApp.webrtc, "establish");
 
@@ -254,8 +253,6 @@ describe("WebRTCCall", function() {
     });
 
     it("should trigger an sdp event with an offer", function(done) {
-      var fakeOffer = 'fakeOffer';
-
       sandbox.stub(navigator, "mozGetUserMedia", function(constraints, callback, errback) {
         callback();
       });
@@ -275,7 +272,6 @@ describe("WebRTCCall", function() {
   describe("_createOffer", function() {
 
     it("should call createOffer and setRemoteDescription", function() {
-      var fakeOffer = 'fakeOffer';
       sandbox.stub(webrtc.pc, "createOffer", function(callback) {
         callback(fakeOffer);
       });
