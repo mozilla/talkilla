@@ -46,6 +46,16 @@ describe("ChatApp", function() {
     sinon.assert.calledWithExactly(chatApp._onStartingCall, caller, callee);
   });
 
+  it("should attach _onCallEstablishment to talkilla.call-establishment", function() {
+    sandbox.stub(ChatApp.prototype, "_onCallEstablishment");
+    chatApp = new ChatApp(); // We need the constructor to use the stub
+
+    chatApp.port.trigger("talkilla.call-establishment", fakeAnswer);
+
+    sinon.assert.calledOnce(chatApp._onCallEstablishment);
+    sinon.assert.calledWithExactly(chatApp._onCallEstablishment, fakeAnswer);
+  });
+
   it("should attach _onIncomingCall to talkilla.call-incoming", function() {
     sandbox.stub(ChatApp.prototype, "_onIncomingCall");
     chatApp = new ChatApp(); // We need the constructor to use the stub

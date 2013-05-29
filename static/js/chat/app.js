@@ -35,6 +35,8 @@ var ChatApp = (function($, Backbone, _) {
     // Incoming events
     this.port.on('talkilla.call-start', this._onStartingCall.bind(this));
     this.port.on('talkilla.call-incoming', this._onIncomingCall.bind(this));
+    this.port.on('talkilla.call-establishment',
+                 this._onCallEstablishment.bind(this));
 
     this.port.postEvent('talkilla.chat-window-ready', {});
   }
