@@ -142,7 +142,7 @@ describe("browser tests", function() {
     driver2.switchTo().frame("//chatbox");
 
     // Check that a #call element exists
-    driver2.findElement(By.id("call")).then(function(res) {
+    driver2.findElement(By.id("call")).then(function() {
       done();
     });
   });
