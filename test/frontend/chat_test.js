@@ -388,3 +388,46 @@ describe("WebRTCCall", function() {
   });
 });
 
+
+describe("CallView", function() {
+  var fakeLocalStream = "fakeLocalStream";
+  var fakeRemoteStream = "fakeRemoteStream";
+
+  beforeEach(function() {
+    sandbox = sinon.sandbox.create();
+  });
+
+  afterEach(function() {
+    sandbox.restore();
+  });
+
+  describe("#initialize", function() {
+
+    it("should expect a webrtc model", function() {
+      var webrtc = new app.models.WebRTCCall();
+      var callView = new app.views.CallView({webrtc: webrtc});
+
+      expect(callView.webrtc).to.equal(webrtc);
+    });
+
+    it("should call #_displayLocalVideo when the webrtc model set its localStream", function () {
+      var webrtc = new app.models.WebRTCCall();
+      sandbox.stub(app.views.CallView.prototype, "_displayLocalVideo");
+      var callView = new app.views.CallView({webrtc: webrtc});
+
+      webrtc.set("localStream", fakeLocalStream);
+
+      sinon.assert.calledOnce(callView._displayLocalVideo);
+    });
+
+    it("should call #_displayRemoteVideo when the webrtc model set its remoteStream", function () {
+      var webrtc = new app.models.WebRTCCall();
+      sandbox.stub(app.views.CallView.prototype, "_displayRemoteVideo");
+      var callView = new app.views.CallView({webrtc: webrtc});
+
+      webrtc.set("remoteStream", fakeRemoteStream);
+
+      sinon.assert.calledOnce(callView._displayRemoteVideo);
+    });
+  });
+});
