@@ -1,5 +1,5 @@
 /* global app, chai, describe, it, sinon, beforeEach, afterEach,
-   ChatApp */
+   ChatApp, $, mozRTCPeerConnection */
 /* jshint expr:true */
 var expect = chai.expect;
 
@@ -364,6 +364,7 @@ describe("WebRTCCall", function() {
 
     var fakeLocalStream = "fakeLocalStream";
     sandbox.stub(navigator, "mozGetUserMedia",
+      /* jshint unused: vars */
       function(constraints, cb, errback) {
         cb(fakeLocalStream);
       });
@@ -395,7 +396,7 @@ describe("WebRTCCall", function() {
   });
 
   it("should set the remoteStream", function() {
-    var mozPeerConnection = sandbox.stub(window, "mozRTCPeerConnection");
+    sandbox.stub(window, "mozRTCPeerConnection");
     var fakeRemoteStream = "fakeRemoteStream";
     var event = {stream: fakeRemoteStream};
     var pc = {};
@@ -412,6 +413,7 @@ describe("WebRTCCall", function() {
 describe("CallView", function() {
   var fakeLocalStream = "fakeLocalStream";
   var fakeRemoteStream = "fakeRemoteStream";
+  var sandbox;
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
@@ -430,25 +432,27 @@ describe("CallView", function() {
       expect(callView.webrtc).to.equal(webrtc);
     });
 
-    it("should call #_displayLocalVideo when the webrtc model set its localStream", function () {
-      var webrtc = new app.models.WebRTCCall();
-      sandbox.stub(app.views.CallView.prototype, "_displayLocalVideo");
-      var callView = new app.views.CallView({webrtc: webrtc});
+    it("should call #_displayLocalVideo when the webrtc model sets localStream",
+      function () {
+        var webrtc = new app.models.WebRTCCall();
+        sandbox.stub(app.views.CallView.prototype, "_displayLocalVideo");
+        var callView = new app.views.CallView({webrtc: webrtc});
 
-      webrtc.set("localStream", fakeLocalStream);
+        webrtc.set("localStream", fakeLocalStream);
 
-      sinon.assert.calledOnce(callView._displayLocalVideo);
-    });
+        sinon.assert.calledOnce(callView._displayLocalVideo);
+      });
 
-    it("should call #_displayRemoteVideo when the webrtc model set its remoteStream", function () {
-      var webrtc = new app.models.WebRTCCall();
-      sandbox.stub(app.views.CallView.prototype, "_displayRemoteVideo");
-      var callView = new app.views.CallView({webrtc: webrtc});
+    it("should call #_displayRemoteVideo when webrtc model sets remoteStream",
+      function () {
+        var webrtc = new app.models.WebRTCCall();
+        sandbox.stub(app.views.CallView.prototype, "_displayRemoteVideo");
+        var callView = new app.views.CallView({webrtc: webrtc});
 
-      webrtc.set("remoteStream", fakeRemoteStream);
+        webrtc.set("remoteStream", fakeRemoteStream);
 
-      sinon.assert.calledOnce(callView._displayRemoteVideo);
-    });
+        sinon.assert.calledOnce(callView._displayRemoteVideo);
+      });
   });
 
   describe("#_displayLocalVideo", function() {

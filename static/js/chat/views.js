@@ -2,6 +2,7 @@
 /**
  * Talkilla Backbone views.
  */
+/* jshint unused: vars */
 (function(app, Backbone, _, $) {
   "use strict";
 
