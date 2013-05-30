@@ -417,6 +417,8 @@ describe("WebRTCCall", function() {
 
 
 describe("CallView", function() {
+  "use strict";
+  
   var fakeLocalStream = "fakeLocalStream";
   var fakeRemoteStream = "fakeRemoteStream";
   var sandbox;
