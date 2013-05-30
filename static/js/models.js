@@ -1,4 +1,4 @@
-/* global app, Backbone, StateMachine */
+/* global app, Backbone, StateMachine, mozRTCPeerConnection */
 /**
  * Talkilla models and collections.
  */
@@ -25,6 +25,52 @@
       this.accept    = this.state.accept.bind(this.state);
       this.establish = this.state.establish.bind(this.state);
     }
+  });
+
+  app.models.WebRTCCall = Backbone.Model.extend({
+    initialize: function() {
+      this.pc = new mozRTCPeerConnection();
+
+      this._onError = this._onError.bind(this);
+    },
+
+    offer: function() {
+      var callback = this.trigger.bind(this, "sdp");
+      this._getMedia(this._createOffer.bind(this, callback), this._onError);
+    },
+
+    establish: function(answer) {
+      this.pc.setRemoteDescription(answer, null, this._onError);
+    },
+
+    answer: function(offer) {
+      var callback = this.trigger.bind(this, "sdp");
+      var createAnswer = this._createAnswer.bind(this, offer, callback);
+      this._getMedia(createAnswer, this._onError);
+    },
+
+    _createOffer: function(callback) {
+      this.pc.createOffer(function(offer) {
+        var cb = callback.bind(this, offer);
+        this.pc.setLocalDescription(offer, cb, this._onError);
+      }.bind(this), this._onError);
+    },
+
+    _createAnswer: function(offer, callback) {
+      this.pc.setRemoteDescription(offer, function() {
+        this.pc.createAnswer(offer, function(answer) {
+          var cb = callback.bind(this, answer);
+          this.pc.setLocalDescription(answer, cb, this._onError);
+        }.bind(this), this._onError);
+      }.bind(this), this._onError);
+    },
+
+    _getMedia: function(callback, errback) {
+      var constraints = {video: this.get('video'), audio: this.get('audio')};
+      navigator.mozGetUserMedia(constraints, callback, errback);
+    },
+
+    _onError: function() {}
   });
 
   app.models.IncomingCall = Backbone.Model.extend({
