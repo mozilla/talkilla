@@ -9,8 +9,13 @@ var serverPort = 3000;
 var serverHost = "localhost";
 // XXX For now, the sidebar page isn't really in the social sidebar,
 // so just add it.
-var serverHttpBase = 'http://' + serverHost + ':' + serverPort +
-                     '/test/frontend/index.html';
+var serverHttpBase = 'http://' + serverHost + ':' + serverPort;
+var testUrls = [
+  '/test/frontend/index.html',
+  '/test/frontend/chatWindow.html'
+].map(function(path) {
+  return serverHttpBase + path;
+});
 
 var webdriver = require('selenium-webdriver'),
     By = webdriver.By;
@@ -18,7 +23,7 @@ var webdriver = require('selenium-webdriver'),
 var driver;
 
 describe("frontend tests", function() {
-  this.timeout(60000);
+  this.timeout(120000);
 
   before(function(done) {
     app.start(serverPort, function() {
@@ -36,16 +41,15 @@ describe("frontend tests", function() {
     app.shutdown(done);
   });
 
-  it("should run the tests without failures", function(done) {
-    driver.get(serverHttpBase);
-    driver.getTitle().then(function(title) {
-      expect(title).to.equal("Talkilla unit tests");
-      driver.findElement(By.css('.failures > em')).getText()
-        .then(function(text){
-          expect(text).to.equal(String(0));
-          done();
-        });
+  testUrls.forEach(function(testUrl) {
+    it("should run " + testUrl + " tests without failures", function(done) {
+      driver.get(testUrl).then(function() {
+        driver.findElement(By.css('.failures > em')).getText()
+          .then(function(text){
+            expect(text).to.equal(String(0));
+            done();
+          });
+      });
     });
-
   });
 });
