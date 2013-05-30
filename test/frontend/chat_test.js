@@ -75,6 +75,11 @@ describe("ChatApp", function() {
     assertModelEventTriggersHandler("offer-ready", "_onOfferReady");
   });
 
+  it("should attach _onAnswerReady to answer-ready on the webrtc model",
+    function() {
+    assertModelEventTriggersHandler("answer-ready", "_onAnswerReady");
+  });
+
   it("should post talkilla.chat-window-ready to the worker",
     function() {
       chatApp = new ChatApp();
@@ -199,8 +204,20 @@ describe("ChatApp", function() {
         sinon.assert.calledOnce(app.port.postEvent);
       });
     });
-  });
 
+    describe("#_onAnswerReady", function() {
+      it("should post an event to the worker when answer-ready is triggered", function() {
+        var answer = {
+          sdp: 'sdp',
+          type: 'type'
+        };
+
+        chatApp._onAnswerReady(answer);
+
+        sinon.assert.calledOnce(app.port.postEvent);
+      });
+    });
+  });
 });
 
 describe("Call", function() {

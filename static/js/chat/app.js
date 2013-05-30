@@ -41,6 +41,7 @@ var ChatApp = (function($, Backbone, _) {
 
     // Outgoing events
     this.webrtc.on('offer-ready', this._onOfferReady.bind(this));
+    this.webrtc.on('answer-ready', this._onAnswerReady.bind(this));
   }
 
   // Outgoing calls
@@ -70,6 +71,16 @@ var ChatApp = (function($, Backbone, _) {
     };
 
     this.port.postEvent('talkilla.call-offer', callData);
+  };
+
+  ChatApp.prototype._onAnswerReady = function(answer) {
+    var callData = {
+      caller: this.call.get("caller"),
+      callee: this.call.get("callee"),
+      answer: answer
+    };
+
+    this.port.postEvent('talkilla.call-answer', callData);
   };
 
   return ChatApp;
