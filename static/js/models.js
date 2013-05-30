@@ -60,7 +60,7 @@
       this.pc.setRemoteDescription(offer, function() {
         this.pc.createAnswer(offer, function(answer) {
           var cb = callback.bind(this, answer);
-          this.pc.setLocalDescription(answer, callback, this._onError);
+          this.pc.setLocalDescription(answer, cb, this._onError);
         }.bind(this), this._onError);
       }.bind(this), this._onError);
     },
