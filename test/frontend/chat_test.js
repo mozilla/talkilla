@@ -193,29 +193,31 @@ describe("ChatApp", function() {
     });
 
     describe("#_onOfferReady", function() {
-      it("should post an event to the worker when offer-ready is triggered", function() {
-        var offer = {
-          sdp: 'sdp',
-          type: 'type'
-        };
+      it("should post an event to the worker when offer-ready is triggered",
+        function() {
+          var offer = {
+            sdp: 'sdp',
+            type: 'type'
+          };
 
-        chatApp._onOfferReady(offer);
+          chatApp._onOfferReady(offer);
 
-        sinon.assert.calledOnce(app.port.postEvent);
-      });
+          sinon.assert.calledOnce(app.port.postEvent);
+        });
     });
 
     describe("#_onAnswerReady", function() {
-      it("should post an event to the worker when answer-ready is triggered", function() {
-        var answer = {
-          sdp: 'sdp',
-          type: 'type'
-        };
+      it("should post an event to the worker when answer-ready is triggered",
+        function() {
+          var answer = {
+            sdp: 'sdp',
+            type: 'type'
+          };
 
-        chatApp._onAnswerReady(answer);
+          chatApp._onAnswerReady(answer);
 
-        sinon.assert.calledOnce(app.port.postEvent);
-      });
+          sinon.assert.calledOnce(app.port.postEvent);
+        });
     });
   });
 });

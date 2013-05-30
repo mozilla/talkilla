@@ -1,9 +1,9 @@
 /* global afterEach, beforeEach, chai, createPresenceSocket, describe,
    handlers, it, sinon, Port, PortCollection, _config:true, _presenceSocket,
    loadconfig, ports:true, _presenceSocketOnMessage, _presenceSocketOnError,
-   _presenceSocketOnClose, _presenceSocketOnOpen, _signinCallback,
-   _presenceSocket, _currentUserData, browserPort:true, _currentUserData:true,
-   UserData, currentCall:true */
+   _presenceSocketOnClose, _presenceSocketSendMessage:true,
+   _presenceSocketOnOpen, _signinCallback, _presenceSocket, _currentUserData,
+   browserPort:true, _currentUserData:true, UserData, currentCall:true */
 /* jshint expr:true */
 var expect = chai.expect;
 
@@ -633,7 +633,6 @@ describe('Worker', function() {
 
   describe("Call offers and answers", function() {
     var sandbox;
-    var wsurl = "ws://example.com/";
 
     beforeEach(function() {
       sandbox = sinon.sandbox.create();
