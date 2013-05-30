@@ -418,23 +418,24 @@ describe("WebRTCCall", function() {
 
 describe("CallView", function() {
   "use strict";
-  
+
   var fakeLocalStream = "fakeLocalStream";
   var fakeRemoteStream = "fakeRemoteStream";
-  var sandbox;
+  var sandbox, webrtc;
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
+    webrtc = new app.models.WebRTCCall();
   });
 
   afterEach(function() {
     sandbox.restore();
+    webrtc = null;
   });
 
   describe("#initialize", function() {
 
     it("should expect a webrtc model", function() {
-      var webrtc = new app.models.WebRTCCall();
       var callView = new app.views.CallView({webrtc: webrtc});
 
       expect(callView.webrtc).to.equal(webrtc);
@@ -442,7 +443,6 @@ describe("CallView", function() {
 
     it("should call #_displayLocalVideo when the webrtc model sets localStream",
       function () {
-        var webrtc = new app.models.WebRTCCall();
         sandbox.stub(app.views.CallView.prototype, "_displayLocalVideo");
         var callView = new app.views.CallView({webrtc: webrtc});
 
@@ -453,7 +453,6 @@ describe("CallView", function() {
 
     it("should call #_displayRemoteVideo when webrtc model sets remoteStream",
       function () {
-        var webrtc = new app.models.WebRTCCall();
         sandbox.stub(app.views.CallView.prototype, "_displayRemoteVideo");
         var callView = new app.views.CallView({webrtc: webrtc});
 
@@ -469,7 +468,6 @@ describe("CallView", function() {
       var el = $('<div><div id="local-video"></div></div>');
       $("#fixtures").append(el);
 
-      var webrtc = new app.models.WebRTCCall();
       var callView = new app.views.CallView({el: el, webrtc: webrtc});
 
       webrtc.set("localStream", fakeLocalStream, {silent: true});
