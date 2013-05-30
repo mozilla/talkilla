@@ -25,12 +25,11 @@
     },
 
     _displayRemoteVideo: function() {
-    //   var remoteVideo = this.$('#local-stream')[0];
-    //   var remoteStream = this.webrtc.get("remoteStream");
+      var remoteVideo = this.$('#remote-video')[0];
+      var remoteStream = this.webrtc.get("remoteStream");
 
-    //   if (remoteStream)
-    //     remoteVideo.mozSrcObject = remoteStream;
-    //   return this;
+      remoteVideo.mozSrcObject = remoteStream;
+      return this;
     }
   });
 })(app, Backbone, _, jQuery);

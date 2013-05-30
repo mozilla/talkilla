@@ -431,6 +431,7 @@ describe("CallView", function() {
   afterEach(function() {
     sandbox.restore();
     webrtc = null;
+    $("#fixtures").empty();
   });
 
   describe("#initialize", function() {
@@ -467,13 +468,28 @@ describe("CallView", function() {
     it("should setup the local video with the local stream", function() {
       var el = $('<div><div id="local-video"></div></div>');
       $("#fixtures").append(el);
-
       var callView = new app.views.CallView({el: el, webrtc: webrtc});
-
       webrtc.set("localStream", fakeLocalStream, {silent: true});
+
       callView._displayLocalVideo();
+
       expect(el.find('#local-video')[0].mozSrcObject).to.equal(fakeLocalStream);
     });
+  });
+
+  describe("#_displayRemoteVideo", function() {
+    it("should attach the remote stream to the remote-video element",
+      function() {
+        var el = $('<div><div id="remote-video"></div></div>');
+        $("#fixtures").append(el);
+        var callView = new app.views.CallView({el: el, webrtc: webrtc});
+        webrtc.set("remoteStream", fakeRemoteStream, {silent: true});
+
+        callView._displayRemoteVideo();
+
+        expect(el.find('#remote-video')[0].mozSrcObject).
+          to.equal(fakeRemoteStream);
+      });
 
   });
 });
