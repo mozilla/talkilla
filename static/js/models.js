@@ -70,7 +70,12 @@
 
     _getMedia: function(callback, errback) {
       var constraints = {video: this.get('video'), audio: this.get('audio')};
-      var cb = _.compose(callback, this.set.bind(this, "localStream"));
+
+      var cb = function (localStream) {
+        this.set("localStream", localStream);
+        callback();
+      }.bind(this);
+
       navigator.mozGetUserMedia(constraints, cb, errback);
     },
 
