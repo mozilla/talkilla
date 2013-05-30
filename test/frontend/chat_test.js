@@ -51,18 +51,53 @@ describe("ChatApp", function() {
     assertEventTriggersHandler("talkilla.call-incoming", "_onIncomingCall");
   });
 
+  function assertModelEventTriggersHandler(event, handler) {
+    "use strict";
+
+    // need to stub the prototype so that the stub happens before
+    // the constructor bind()s the method
+    sandbox.stub(ChatApp.prototype, handler);
+    chatApp = new ChatApp();
+
+    var offer = {
+      sdp: 'sdp',
+      type: 'type'
+    };
+
+    chatApp.webrtc.trigger(event, offer);
+
+    sinon.assert.calledOnce(chatApp[handler]);
+    sinon.assert.calledWithExactly(chatApp[handler], offer);
+  }
+
+  it("should attach _onOfferReady to offer-ready on the webrtc model",
+    function() {
+    assertModelEventTriggersHandler("offer-ready", "_onOfferReady");
+  });
+
+  it("should attach _onAnswerReady to answer-ready on the webrtc model",
+    function() {
+    assertModelEventTriggersHandler("answer-ready", "_onAnswerReady");
+  });
+
+  it("should post talkilla.chat-window-ready to the worker",
+    function() {
+      chatApp = new ChatApp();
+
+      sinon.assert.calledOnce(app.port.postEvent);
+      sinon.assert.calledWithExactly(app.port.postEvent,
+        "talkilla.chat-window-ready", {});
+    });
+
+
   describe("ChatApp (constructed)", function () {
     beforeEach(function() {
       "use strict";
       chatApp = new ChatApp();
+      // Reset the postEvent spy as this is trigger in the ChatApp
+      // constructor.
+      app.port.postEvent.reset();
     });
-
-    it("should post talkilla.chat-window-ready to the worker",
-      function() {
-        sinon.assert.calledOnce(app.port.postEvent);
-        sinon.assert.calledWithExactly(app.port.postEvent,
-          "talkilla.chat-window-ready", {});
-      });
 
     it("should have a call model" , function() {
       expect(chatApp.call).to.be.an.instanceOf(app.models.Call);
@@ -157,8 +192,34 @@ describe("ChatApp", function() {
 
     });
 
-  });
+    describe("#_onOfferReady", function() {
+      it("should post an event to the worker when offer-ready is triggered",
+        function() {
+          var offer = {
+            sdp: 'sdp',
+            type: 'type'
+          };
 
+          chatApp._onOfferReady(offer);
+
+          sinon.assert.calledOnce(app.port.postEvent);
+        });
+    });
+
+    describe("#_onAnswerReady", function() {
+      it("should post an event to the worker when answer-ready is triggered",
+        function() {
+          var answer = {
+            sdp: 'sdp',
+            type: 'type'
+          };
+
+          chatApp._onAnswerReady(answer);
+
+          sinon.assert.calledOnce(app.port.postEvent);
+        });
+    });
+  });
 });
 
 describe("Call", function() {
@@ -254,7 +315,7 @@ describe("WebRTCCall", function() {
                               {video: true, audio: true});
     });
 
-    it("should trigger an sdp event with an offer", function(done) {
+    it("should trigger a offer-ready event with an offer", function(done) {
       /* jshint unused: vars */
       sandbox.stub(navigator, "mozGetUserMedia",
         function(constraints, callback, errback) {
@@ -263,7 +324,7 @@ describe("WebRTCCall", function() {
       webrtc._createOffer = function(callback) {
         callback(fakeOffer);
       };
-      webrtc.on('sdp', function(offer) {
+      webrtc.on('offer-ready', function(offer) {
         expect(offer).to.equal(fakeOffer);
         done();
       });
@@ -318,7 +379,7 @@ describe("WebRTCCall", function() {
                               {video: true, audio: true});
     });
 
-    it("should trigger an sdp event with an answer", function(done) {
+    it("should trigger an answer-ready event with an answer", function(done) {
       /* jshint unused: vars */
       sandbox.stub(navigator, "mozGetUserMedia",
         function(constraints, callback, errback) {
@@ -327,7 +388,7 @@ describe("WebRTCCall", function() {
       webrtc._createAnswer = function(offer, callback) {
         callback(fakeAnswer);
       };
-      webrtc.on('sdp', function(answer) {
+      webrtc.on('answer-ready', function(answer) {
         expect(answer).to.equal(fakeAnswer);
         done();
       });

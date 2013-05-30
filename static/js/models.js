@@ -39,7 +39,7 @@
     },
 
     offer: function() {
-      var callback = this.trigger.bind(this, "sdp");
+      var callback = this.trigger.bind(this, "offer-ready");
       this._getMedia(this._createOffer.bind(this, callback), this._onError);
     },
 
@@ -49,7 +49,7 @@
     },
 
     answer: function(offer) {
-      var callback = this.trigger.bind(this, "sdp");
+      var callback = this.trigger.bind(this, "answer-ready");
       var createAnswer = this._createAnswer.bind(this, offer, callback);
       this._getMedia(createAnswer, this._onError);
     },
