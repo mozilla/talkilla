@@ -72,6 +72,7 @@
       var constraints = {video: this.get('video'), audio: this.get('audio')};
 
       var cb = function (localStream) {
+        this.pc.addStream(localStream);
         this.set("localStream", localStream);
         callback();
       }.bind(this);

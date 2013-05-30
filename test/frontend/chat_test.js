@@ -233,6 +233,7 @@ describe("WebRTCCall", function() {
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
     webrtc = new app.models.WebRTCCall();
+    sinon.stub(webrtc.pc, "addStream");
   });
 
   afterEach(function() {
@@ -359,19 +360,38 @@ describe("WebRTCCall", function() {
   });
 
   describe("#_getMedia", function() {
+    "use strict";
+
+    var fakeLocalStream = "fakeLocalStream";
+    sandbox.stub(navigator, "mozGetUserMedia",
+      function(constraints, cb, errback) {
+        cb(fakeLocalStream);
+      });
 
     it("should set the localStream", function() {
-      sandbox.stub(navigator, "mozGetUserMedia", function(constraints, callback, errback) {
-        callback(fakeLocalStream);
-      });
-      var callback = sinon.spy();
-      var fakeLocalStream = "fakeLocalStream";
-
-      webrtc._getMedia(callback, function() {});
+      webrtc._getMedia(function() {}, function() {});
 
       expect(webrtc.get("localStream")).to.equal(fakeLocalStream);
-      sinon.assert.calledOnce(callback);
     });
+
+    it('should invoke the given callback',
+      function() {
+        var callback = sinon.spy();
+
+        webrtc._getMedia(callback, function() {});
+
+        sinon.assert.calledOnce(callback);
+      });
+
+    it("should attach the localStream to the peerConnection",
+      function () {
+        sandbox.stub(webrtc, "set");
+
+        webrtc._getMedia(function callbk() {}, function errbk() {});
+
+        sinon.assert.calledOnce(webrtc.pc.addStream);
+        sinon.assert.calledWithExactly(webrtc.pc.addStream, fakeLocalStream);
+      });
   });
 
   it("should set the remoteStream", function() {
