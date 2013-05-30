@@ -26,7 +26,6 @@ var ChatApp = (function($, Backbone, _) {
     }
   };
 
-
   function ChatApp() {
     this.port = app.port;
     this.call = new app.models.Call();

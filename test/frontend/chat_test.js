@@ -357,5 +357,21 @@ describe("WebRTCCall", function() {
       });
 
   });
+
+  describe("#_getMedia", function() {
+
+    it("should set the localStream", function() {
+      sandbox.stub(navigator, "mozGetUserMedia", function(constraints, callback, errback) {
+        callback(fakeLocalStream);
+      });
+      var callback = sinon.spy();
+      var fakeLocalStream = "fakeLocalStream";
+
+      webrtc._getMedia(callback, function() {});
+
+      expect(webrtc.get("localStream")).to.equal(fakeLocalStream);
+      sinon.assert.calledOnce(callback);
+    });
+  });
 });
 
