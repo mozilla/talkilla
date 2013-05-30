@@ -1,5 +1,6 @@
 /* global app, chai, describe, it, sinon, beforeEach, afterEach,
-   ChatApp, mozRTCSessionDescription */
+   ChatApp, mozRTCSessionDescription, $, mozRTCPeerConnection */
+
 /* jshint expr:true */
 var expect = chai.expect;
 
@@ -233,6 +234,7 @@ describe("WebRTCCall", function() {
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
     webrtc = new app.models.WebRTCCall();
+    sinon.stub(webrtc.pc, "addStream");
   });
 
   afterEach(function() {
@@ -359,5 +361,116 @@ describe("WebRTCCall", function() {
       });
 
   });
+
+  describe("#_getMedia", function() {
+    "use strict";
+
+    var fakeLocalStream = "fakeLocalStream";
+    sandbox.stub(navigator, "mozGetUserMedia",
+      /* jshint unused: vars */
+      function(constraints, cb, errback) {
+        cb(fakeLocalStream);
+      });
+
+    it("should set the localStream", function() {
+      webrtc._getMedia(function() {}, function() {});
+
+      expect(webrtc.get("localStream")).to.equal(fakeLocalStream);
+    });
+
+    it('should invoke the given callback',
+      function() {
+        var callback = sinon.spy();
+
+        webrtc._getMedia(callback, function() {});
+
+        sinon.assert.calledOnce(callback);
+      });
+
+    it("should attach the localStream to the peerConnection",
+      function () {
+        sandbox.stub(webrtc, "set");
+
+        webrtc._getMedia(function callbk() {}, function errbk() {});
+
+        sinon.assert.calledOnce(webrtc.pc.addStream);
+        sinon.assert.calledWithExactly(webrtc.pc.addStream, fakeLocalStream);
+      });
+  });
+
+  it("should set the remoteStream", function() {
+    sandbox.stub(window, "mozRTCPeerConnection");
+    var fakeRemoteStream = "fakeRemoteStream";
+    var event = {stream: fakeRemoteStream};
+    var pc = {};
+    mozRTCPeerConnection.returns(pc);
+    webrtc = new app.models.WebRTCCall();
+
+    pc.onaddstream(event);
+
+    expect(webrtc.get("remoteStream")).to.equal(fakeRemoteStream);
+  });
 });
 
+
+describe("CallView", function() {
+  var fakeLocalStream = "fakeLocalStream";
+  var fakeRemoteStream = "fakeRemoteStream";
+  var sandbox;
+
+  beforeEach(function() {
+    sandbox = sinon.sandbox.create();
+  });
+
+  afterEach(function() {
+    sandbox.restore();
+  });
+
+  describe("#initialize", function() {
+
+    it("should expect a webrtc model", function() {
+      var webrtc = new app.models.WebRTCCall();
+      var callView = new app.views.CallView({webrtc: webrtc});
+
+      expect(callView.webrtc).to.equal(webrtc);
+    });
+
+    it("should call #_displayLocalVideo when the webrtc model sets localStream",
+      function () {
+        var webrtc = new app.models.WebRTCCall();
+        sandbox.stub(app.views.CallView.prototype, "_displayLocalVideo");
+        var callView = new app.views.CallView({webrtc: webrtc});
+
+        webrtc.set("localStream", fakeLocalStream);
+
+        sinon.assert.calledOnce(callView._displayLocalVideo);
+      });
+
+    it("should call #_displayRemoteVideo when webrtc model sets remoteStream",
+      function () {
+        var webrtc = new app.models.WebRTCCall();
+        sandbox.stub(app.views.CallView.prototype, "_displayRemoteVideo");
+        var callView = new app.views.CallView({webrtc: webrtc});
+
+        webrtc.set("remoteStream", fakeRemoteStream);
+
+        sinon.assert.calledOnce(callView._displayRemoteVideo);
+      });
+  });
+
+  describe("#_displayLocalVideo", function() {
+
+    it("should setup the local video with the local stream", function() {
+      var el = $('<div><div id="local-video"></div></div>');
+      $("#fixtures").append(el);
+
+      var webrtc = new app.models.WebRTCCall();
+      var callView = new app.views.CallView({el: el, webrtc: webrtc});
+
+      webrtc.set("localStream", fakeLocalStream, {silent: true});
+      callView._displayLocalVideo();
+      expect(el.find('#local-video')[0].mozSrcObject).to.equal(fakeLocalStream);
+    });
+
+  });
+});

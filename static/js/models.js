@@ -31,6 +31,9 @@
   app.models.WebRTCCall = Backbone.Model.extend({
     initialize: function() {
       this.pc = new mozRTCPeerConnection();
+      this.pc.onaddstream = function (event) {
+        this.set("remoteStream", event.stream);
+      }.bind(this);
 
       this._onError = this._onError.bind(this);
     },
@@ -70,7 +73,14 @@
 
     _getMedia: function(callback, errback) {
       var constraints = {video: this.get('video'), audio: this.get('audio')};
-      navigator.mozGetUserMedia(constraints, callback, errback);
+
+      var cb = function (localStream) {
+        this.pc.addStream(localStream);
+        this.set("localStream", localStream);
+        callback();
+      }.bind(this);
+
+      navigator.mozGetUserMedia(constraints, cb, errback);
     },
 
     _onError: function() {}
