@@ -122,6 +122,31 @@ describe("browser tests", function() {
     });
   });
 
+  it("should open a chat window when clicking a nick", function(done) {
+    // Sign in user 1
+    driver.switchTo().frame("//#social-sidebar-browser");
+    driver.navigate().refresh();
+    driver.findElement(By.name("nick")).sendKeys("bob");
+    driver.findElement(By.id("submit")).click();
+
+    // Sign in user 2
+    driver2.switchTo().frame("//#social-sidebar-browser");
+    driver2.navigate().refresh();
+    driver2.findElement(By.name("nick")).sendKeys("larry");
+    driver2.findElement(By.id("submit")).click();
+
+    // Click a nick
+    driver2.findElement(By.css("ul.nav-list>li>a")).click();
+
+    // Check that we have a chat window
+    driver2.switchTo().frame("//chatbox");
+
+    // Check that a #call element exists
+    driver2.findElement(By.id("call")).then(function() {
+      done();
+    });
+  });
+
   it("should handle an interuppted websocket connection", function(done) {
     driver.switchTo().frame("//#social-sidebar-browser");
     driver.navigate().refresh();
