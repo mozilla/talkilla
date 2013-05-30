@@ -43,8 +43,7 @@ describe("frontend tests", function() {
 
   testUrls.forEach(function(testUrl) {
     it("should run " + testUrl + " tests without failures", function(done) {
-      driver.get(testUrl);
-      driver.getTitle().then(function(title) {
+      driver.get(testUrl).then(function() {
         driver.findElement(By.css('.failures > em')).getText()
           .then(function(text){
             expect(text).to.equal(String(0));
