@@ -366,11 +366,14 @@ describe("WebRTCCall", function() {
     "use strict";
 
     var fakeLocalStream = "fakeLocalStream";
-    sandbox.stub(navigator, "mozGetUserMedia",
-      /* jshint unused: vars */
-      function(constraints, cb, errback) {
-        cb(fakeLocalStream);
-      });
+
+    beforeEach(function() {
+      sandbox.stub(navigator, "mozGetUserMedia",
+        /* jshint unused: vars */
+        function(constraints, cb, errback) {
+          cb(fakeLocalStream);
+        });
+    });
 
     it("should set the localStream", function() {
       webrtc._getMedia(function() {}, function() {});
