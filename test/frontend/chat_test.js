@@ -373,5 +373,18 @@ describe("WebRTCCall", function() {
       sinon.assert.calledOnce(callback);
     });
   });
+
+  it("should set the remoteStream", function() {
+    var mozPeerConnection = sandbox.stub(window, "mozRTCPeerConnection");
+    var fakeRemoteStream = "fakeRemoteStream";
+    var event = {stream: fakeRemoteStream};
+    var pc = {};
+    mozRTCPeerConnection.returns(pc);
+    webrtc = new app.models.WebRTCCall();
+
+    pc.onaddstream(event);
+
+    expect(webrtc.get("remoteStream")).to.equal(fakeRemoteStream);
+  });
 });
 

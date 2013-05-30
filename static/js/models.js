@@ -30,6 +30,9 @@
   app.models.WebRTCCall = Backbone.Model.extend({
     initialize: function() {
       this.pc = new mozRTCPeerConnection();
+      this.pc.onaddstream = function (event) {
+        this.set("remoteStream", event.stream);
+      }.bind(this);
 
       this._onError = this._onError.bind(this);
     },
