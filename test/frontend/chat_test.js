@@ -391,6 +391,7 @@ describe('Text chat', function() {
       $('body').append([
         '<div id="textchat">',
         '  <dl></dl>',
+        '  <form><input name="message"></form>',
         '</div>'
       ].join(''));
       sandbox = sinon.sandbox.create();
@@ -429,14 +430,17 @@ describe('Text chat', function() {
       expect(view.$('dl dt')).to.have.length.of(3);
     });
 
-    it("should allow to send a new message", function(done) {
-      chatApp._onStartingCall("niko", "jb");
+    it("should allow the caller to send a first message", function(done) {
+      app.port.trigger("talkilla.call-start", "niko", "jb");
       expect(chatApp.textChatView.collection).to.have.length.of(0);
-      chatApp.textChatView.collection.once('add', function() {
+      chatApp.textChatView.collection.once("add", function(entry) {
+        expect(entry).to.be.an.instanceOf(app.models.TextChatEntry);
+        expect(entry.get("nick")).to.equal("niko");
+        expect(entry.get("message")).to.equal("plop");
         done();
       });
-      $('#textchat [name="entry"]').val('plop');
-      $('#textchat form').trigger('submit');
+      $('#textchat [name="message"]').val("plop");
+      $("#textchat form").trigger("submit");
     });
   });
 

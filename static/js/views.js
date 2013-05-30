@@ -544,12 +544,25 @@
   app.views.TextChatView = Backbone.View.extend({
     el: '#textchat',
 
+    caller: undefined,
+    callee: undefined,
+
     events: {
       'submit form': 'send'
     },
 
     constructor: function() {
       Backbone.View.apply(this, arguments);
+
+      app.port.on('talkilla.call-start', function(caller, callee) {
+        this.caller = caller;
+        this.callee = callee;
+      }, this);
+
+      app.port.on('talkilla.call-incoming', function(caller, callee) {
+        this.caller = caller;
+        this.callee = callee;
+      }, this);
 
       this.collection.on('add', function() {
         this.render();
@@ -560,7 +573,7 @@
       event.preventDefault();
       var $input = this.$('form input[name="message"]');
       this.collection.add({
-        nick: chatApp.call.get('caller'),
+        nick: this.caller,
         message: $input.val().trim()
       });
       $input.val('');
