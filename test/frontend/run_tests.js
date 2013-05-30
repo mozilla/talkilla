@@ -23,7 +23,7 @@ var webdriver = require('selenium-webdriver'),
 var driver;
 
 describe("frontend tests", function() {
-  this.timeout(60000);
+  this.timeout(120000);
 
   before(function(done) {
     app.start(serverPort, function() {
