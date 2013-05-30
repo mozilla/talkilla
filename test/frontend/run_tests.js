@@ -23,7 +23,7 @@ var webdriver = require('selenium-webdriver'),
 var driver;
 
 describe("frontend tests", function() {
-  this.timeout(60000);
+  this.timeout(120000);
 
   before(function(done) {
     app.start(serverPort, function() {
@@ -43,8 +43,7 @@ describe("frontend tests", function() {
 
   testUrls.forEach(function(testUrl) {
     it("should run " + testUrl + " tests without failures", function(done) {
-      driver.get(testUrl);
-      driver.getTitle().then(function(title) {
+      driver.get(testUrl).then(function() {
         driver.findElement(By.css('.failures > em')).getText()
           .then(function(text){
             expect(text).to.equal(String(0));
