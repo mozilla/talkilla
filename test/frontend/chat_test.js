@@ -1,11 +1,12 @@
-/* global $, app, chai, describe, it, sinon, beforeEach, afterEach, ChatApp */
+/* global $, app, chai, describe, it, sinon, beforeEach, afterEach,
+   ChatApp, mozRTCSessionDescription */
 /* jshint expr:true */
 var expect = chai.expect;
 
 describe("ChatApp", function() {
   var sandbox, chatApp;
-  var fakeOffer = "fakeOffer";
-  var fakeAnswer = "fakeAnswer";
+  var fakeOffer = {type: "offer", sdp: "fake"};
+  var fakeAnswer = {type: "answer", sdp: "fake"};
   var caller = "alice";
   var callee = "bob";
 
@@ -226,8 +227,8 @@ describe("Call", function() {
 
 describe("WebRTCCall", function() {
   var sandbox, webrtc;
-  var fakeOffer = "fakeOffer";
-  var fakeAnswer = "fakeAnswer";
+  var fakeOffer = {type: "offer", sdp: "fake"};
+  var fakeAnswer = {type: "answer", sdp: "fake"};
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
@@ -296,7 +297,8 @@ describe("WebRTCCall", function() {
       webrtc.establish(answer);
 
       sinon.assert.calledOnce(webrtc.pc.setRemoteDescription);
-      sinon.assert.calledWith(webrtc.pc.setRemoteDescription, answer);
+      sinon.assert.calledWith(webrtc.pc.setRemoteDescription,
+                              new mozRTCSessionDescription(answer));
     });
 
   });
@@ -349,7 +351,8 @@ describe("WebRTCCall", function() {
         webrtc._createAnswer(fakeOffer, function() {});
 
         sinon.assert.calledOnce(webrtc.pc.setRemoteDescription);
-        sinon.assert.calledWith(webrtc.pc.setRemoteDescription, fakeOffer);
+        sinon.assert.calledWith(webrtc.pc.setRemoteDescription,
+                                new mozRTCSessionDescription(fakeOffer));
         sinon.assert.calledOnce(webrtc.pc.createAnswer);
         sinon.assert.calledOnce(webrtc.pc.setLocalDescription);
         sinon.assert.calledWith(webrtc.pc.setLocalDescription, fakeAnswer);

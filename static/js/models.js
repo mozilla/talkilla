@@ -1,4 +1,5 @@
-/* global app, Backbone, StateMachine, mozRTCPeerConnection */
+/* global app, Backbone, StateMachine,
+   mozRTCPeerConnection, mozRTCSessionDescription */
 /**
  * Talkilla models and collections.
  */
@@ -40,7 +41,8 @@
     },
 
     establish: function(answer) {
-      this.pc.setRemoteDescription(answer, null, this._onError);
+      var answerDescription = new mozRTCSessionDescription(answer);
+      this.pc.setRemoteDescription(answerDescription, null, this._onError);
     },
 
     answer: function(offer) {
@@ -57,7 +59,8 @@
     },
 
     _createAnswer: function(offer, callback) {
-      this.pc.setRemoteDescription(offer, function() {
+      var offerDescription = new mozRTCSessionDescription(offer);
+      this.pc.setRemoteDescription(offerDescription, function() {
         this.pc.createAnswer(offer, function(answer) {
           var cb = callback.bind(this, answer);
           this.pc.setLocalDescription(answer, cb, this._onError);
