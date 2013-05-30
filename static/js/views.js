@@ -558,10 +558,12 @@
 
     send: function(event) {
       event.preventDefault();
+      var $input = this.$('form input[name="message"]');
       this.collection.add({
         nick: chatApp.call.get('caller'),
-        message: this.$('form input[name="message"]').val().trim()
+        message: $input.val().trim()
       });
+      $input.val('');
     },
 
     render: function() {
