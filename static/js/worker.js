@@ -47,6 +47,10 @@ function _presenceSocketOnMessage(event) {
     ports.broadcastEvent("talkilla." + eventType, data[eventType]);
 }
 
+function _presenceSocketSendMessage(data) {
+  _presenceSocket.send(data);
+}
+
 function _presenceSocketOnOpen(event) {
   "use strict";
 
@@ -178,6 +182,28 @@ var handlers = {
 
   'talkilla.chat-window-ready': function() {
     this.postEvent("talkilla.call-start", currentCall);
+  },
+
+  /**
+   * The data for talkilla.call-offer is:
+   *
+   * - callee: the person you are calling
+   * - caller: the person who is calling you
+   * - offer: an RTCSessionDescription containing the sdp data for the call.
+   */
+  'talkilla.call-offer': function(event) {
+    _presenceSocketSendMessage(JSON.stringify({ 'call_offer': event.data }));
+  },
+
+  /**
+   * The data for talkilla.call-answer is:
+   *
+   * - callee: the person you are calling
+   * - caller: the person who is calling you
+   * - offer: an RTCSessionDescription containing the sdp data for the call.
+   */
+  'talkilla.call-answer': function (event) {
+    _presenceSocketSendMessage(JSON.stringify({ 'call_accepted': event.data }));
   }
 };
 

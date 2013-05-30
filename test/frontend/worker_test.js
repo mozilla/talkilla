@@ -158,6 +158,30 @@ describe('Worker', function() {
         });
     });
 
+    describe('#_presenceSocketSendMessage', function() {
+      var sandbox, dummySocket;
+      var wsurl = "ws://example.com/";
+
+      beforeEach(function() {
+        sandbox = sinon.sandbox.create();
+        _config.WSURL = wsurl;
+        dummySocket = { send: sandbox.spy() };
+        sandbox.stub(window, "WebSocket").returns(dummySocket);
+      });
+
+      afterEach(function() {
+        sandbox.restore();
+      });
+
+      it("should send a message to the WebSocket with the supplied string",
+        function() {
+          var data = "test";
+          createPresenceSocket("larry");
+          _presenceSocketSendMessage(data);
+          sinon.assert.calledWith(dummySocket.send, data);
+        });
+    });
+
     describe('#_presenceSocketOnError', function() {
       it('should call postMessage with a talkilla.websocket-error message',
         function() {
@@ -565,7 +589,7 @@ describe('Worker', function() {
       });
   });
 
-  describe("call", function() {
+  describe("talkilla.call-start", function() {
     var sandbox;
 
     beforeEach(function() {
@@ -577,7 +601,6 @@ describe('Worker', function() {
       browserPort = undefined;
       sandbox.restore();
     });
-
 
     it("should open a chat window when receiving a talkilla.call-start event",
       function() {
@@ -606,5 +629,58 @@ describe('Worker', function() {
       sinon.assert.calledWithExactly(port.postEvent,
         'talkilla.call-start', currentCall);
     });
+  });
+
+  describe("Call offers and answers", function() {
+    var sandbox;
+    var wsurl = "ws://example.com/";
+
+    beforeEach(function() {
+      sandbox = sinon.sandbox.create();
+      browserPort = {postEvent: sandbox.spy()};
+    });
+
+    afterEach(function() {
+      browserPort = undefined;
+      sandbox.restore();
+    });
+
+    it("should send a websocket message when receiving talkilla.call-offer",
+      function() {
+        _presenceSocketSendMessage = sandbox.spy();
+        var data = {
+          caller: "fred",
+          callee: "tom",
+          offer: { sdp: "sdp", type: "type" }
+        };
+
+        handlers['talkilla.call-offer']({
+          topic: "talkilla.call-offer",
+          data: data
+        });
+
+        sinon.assert.calledOnce(_presenceSocketSendMessage);
+        sinon.assert.calledWithExactly(_presenceSocketSendMessage,
+         JSON.stringify({'call_offer': data }));
+      });
+
+    it("should send a websocket message when receiving talkilla.call-answer",
+      function() {
+        _presenceSocketSendMessage = sandbox.spy();
+        var data = {
+          caller: "fred",
+          callee: "tom",
+          offer: { sdp: "sdp", type: "type" }
+        };
+
+        handlers['talkilla.call-answer']({
+          topic: "talkilla.call-answer",
+          data: data
+        });
+
+        sinon.assert.calledOnce(_presenceSocketSendMessage);
+        sinon.assert.calledWithExactly(_presenceSocketSendMessage,
+         JSON.stringify({ 'call_accepted': data }));
+      });
   });
 });
