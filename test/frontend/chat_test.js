@@ -430,4 +430,20 @@ describe("CallView", function() {
       sinon.assert.calledOnce(callView._displayRemoteVideo);
     });
   });
+
+  describe("#_displayLocalVideo", function() {
+
+    it("should setup the local video with the local stream", function() {
+      var el = $('<div><div id="local-video"></div></div>');
+      $("#fixtures").append(el);
+
+      var webrtc = new app.models.WebRTCCall();
+      var callView = new app.views.CallView({el: el, webrtc: webrtc});
+
+      webrtc.set("localStream", fakeLocalStream, {silent: true});
+      callView._displayLocalVideo();
+      expect(el.find('#local-video')[0].mozSrcObject).to.equal(fakeLocalStream);
+    });
+
+  });
 });
