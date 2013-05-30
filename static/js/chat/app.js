@@ -28,7 +28,13 @@ var ChatApp = (function($, Backbone, _) {
 
 
   function ChatApp() {
+    // current call
     this.call = new app.models.Call();
+
+    // text chat
+    this.textChat = new app.models.TextChat();
+    this.textChatView = new app.views.TextChatView({collection: this.textChat});
+
     this.port = app.port;
 
     // Incoming events

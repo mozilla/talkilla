@@ -544,12 +544,24 @@
   app.views.TextChatView = Backbone.View.extend({
     el: '#textchat',
 
+    events: {
+      'submit form': 'send'
+    },
+
     constructor: function() {
       Backbone.View.apply(this, arguments);
 
       this.collection.on('add', function() {
         this.render();
       }, this);
+    },
+
+    send: function(event) {
+      event.preventDefault();
+      this.collection.add({
+        nick: chatApp.call.get('caller'),
+        message: this.$('form input[name="message"]').val().trim()
+      });
     },
 
     render: function() {
