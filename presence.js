@@ -173,7 +173,6 @@ function configureWs(ws) {
 
   // when a call offer has been accepted
   ws.on('call_accepted', function(data) {
-    console.log("call accepted " + JSON.stringify(data));
     try {
       var users = app.get('users');
       var caller = users[data.caller];
