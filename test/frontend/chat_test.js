@@ -116,6 +116,10 @@ describe("ChatApp", function() {
       expect(chatApp.webrtc).to.be.an.instanceOf(app.models.WebRTCCall);
     });
 
+    it("should have a call view" , function() {
+      expect(chatApp.callView).to.be.an.instanceOf(app.views.CallView);
+    });
+
     describe("#_onStartingCall", function() {
 
       it("should set the caller and callee", function() {
