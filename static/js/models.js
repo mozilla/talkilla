@@ -55,6 +55,9 @@
     },
 
     _createOffer: function(callback) {
+      if (!this.get('video') && !this.get('audio'))
+        return this._onError("Call type has not been defined");
+
       this.pc.createOffer(function(offer) {
         var cb = callback.bind(this, offer);
         this.pc.setLocalDescription(offer, cb, this._onError);
@@ -62,6 +65,9 @@
     },
 
     _createAnswer: function(offer, callback) {
+      if (!this.get('video') && !this.get('audio'))
+        return this._onError("Call type has not been defined");
+
       var offerDescription = new mozRTCSessionDescription(offer);
       this.pc.setRemoteDescription(offerDescription, function() {
         this.pc.createAnswer(offer, function(answer) {
@@ -83,7 +89,10 @@
       navigator.mozGetUserMedia(constraints, cb, errback);
     },
 
-    _onError: function() {}
+    _onError: function(error) {
+      // XXX Better error logging and handling
+      console.log("WebRTCCall error: " + error);
+    }
   });
 
   app.models.IncomingCall = Backbone.Model.extend({

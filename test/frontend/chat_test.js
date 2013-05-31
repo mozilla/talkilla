@@ -6,10 +6,13 @@ var expect = chai.expect;
 
 describe("ChatApp", function() {
   var sandbox, chatApp;
-  var fakeOffer = {type: "offer", sdp: "fake"};
-  var fakeAnswer = {type: "answer", sdp: "fake"};
-  var caller = "alice";
-  var callee = "bob";
+  var fakeAnswer = {answer: {type: "answer", sdp: "fake"}};
+  var callData = {caller: "alice", callee: "bob"};
+  var incomingCallData = {
+    caller: "alice",
+    callee: "bob",
+    offer: {type: "answer", sdp: "fake"}
+  };
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
@@ -22,7 +25,7 @@ describe("ChatApp", function() {
     chatApp = null;
   });
 
-  function assertEventTriggersHandler(event, handler) {
+  function assertEventTriggersHandler(event, handler, data) {
     "use strict";
 
     // need to stub the prototype so that the stub happens before
@@ -30,25 +33,27 @@ describe("ChatApp", function() {
     sandbox.stub(ChatApp.prototype, handler);
     chatApp = new ChatApp();
 
-    chatApp.port.trigger(event, caller, callee);
+    chatApp.port.trigger(event, data);
 
     sinon.assert.calledOnce(chatApp[handler]);
-    sinon.assert.calledWithExactly(chatApp[handler], caller, callee);
+    sinon.assert.calledWithExactly(chatApp[handler], data);
   }
 
   it("should attach _onStartingCall to talkilla.call-start", function() {
     "use strict";
-    assertEventTriggersHandler("talkilla.call-start", "_onStartingCall");
+    assertEventTriggersHandler("talkilla.call-start",
+      "_onStartingCall", callData);
   });
 
   it("should attach _onCallEstablishment to talkilla.call-establishment",
     function() {
       assertEventTriggersHandler("talkilla.call-establishment",
-        "_onCallEstablishment");
+        "_onCallEstablishment", incomingCallData);
     });
 
   it("should attach _onIncomingCall to talkilla.call-incoming", function() {
-    assertEventTriggersHandler("talkilla.call-incoming", "_onIncomingCall");
+    assertEventTriggersHandler("talkilla.call-incoming",
+      "_onIncomingCall", incomingCallData);
   });
 
   function assertModelEventTriggersHandler(event, handler) {
@@ -110,16 +115,16 @@ describe("ChatApp", function() {
     describe("#_onStartingCall", function() {
 
       it("should set the caller and callee", function() {
-        chatApp._onStartingCall(caller, callee);
+        chatApp._onStartingCall(callData);
 
-        expect(chatApp.call.get('caller')).to.equal(caller);
-        expect(chatApp.call.get('callee')).to.equal(callee);
+        expect(chatApp.call.get('caller')).to.equal(callData.caller);
+        expect(chatApp.call.get('callee')).to.equal(callData.callee);
       });
 
       it("should start the call", function() {
         sandbox.stub(chatApp.call, "start");
 
-        chatApp._onStartingCall(caller, callee);
+        chatApp._onStartingCall(callData);
 
         sinon.assert.calledOnce(chatApp.call.start);
         sinon.assert.calledWithExactly(chatApp.call.start);
@@ -130,7 +135,7 @@ describe("ChatApp", function() {
         sandbox.stub(chatApp.call, "start");
         sandbox.stub(chatApp.webrtc, "offer");
 
-        chatApp._onStartingCall(caller, callee);
+        chatApp._onStartingCall(callData);
 
         sinon.assert.calledOnce(chatApp.webrtc.offer);
         sinon.assert.calledWithExactly(chatApp.webrtc.offer);
@@ -140,16 +145,16 @@ describe("ChatApp", function() {
 
     describe("#_onIncomingCall", function() {
       it("should set the caller and callee", function() {
-        chatApp._onIncomingCall(caller, callee, fakeOffer);
+        chatApp._onIncomingCall(incomingCallData);
 
-        expect(chatApp.call.get('caller')).to.equal(caller);
-        expect(chatApp.call.get('callee')).to.equal(callee);
+        expect(chatApp.call.get('caller')).to.equal(incomingCallData.caller);
+        expect(chatApp.call.get('callee')).to.equal(incomingCallData.callee);
       });
 
       it("should set the call as incoming", function() {
         sandbox.stub(chatApp.call, "incoming");
 
-        chatApp._onIncomingCall(caller, callee, fakeOffer);
+        chatApp._onIncomingCall(incomingCallData);
 
         sinon.assert.calledOnce(chatApp.call.incoming);
         sinon.assert.calledWithExactly(chatApp.call.incoming);
@@ -160,10 +165,11 @@ describe("ChatApp", function() {
         sandbox.stub(chatApp.call, "start");
         sandbox.stub(chatApp.webrtc, "answer");
 
-        chatApp._onIncomingCall(caller, callee, fakeOffer);
+        chatApp._onIncomingCall(incomingCallData);
 
         sinon.assert.calledOnce(chatApp.webrtc.answer);
-        sinon.assert.calledWithExactly(chatApp.webrtc.answer, fakeOffer);
+        sinon.assert.calledWithExactly(chatApp.webrtc.answer,
+                                       incomingCallData.offer);
       });
     });
 
@@ -187,7 +193,8 @@ describe("ChatApp", function() {
         chatApp._onCallEstablishment(fakeAnswer);
 
         sinon.assert.calledOnce(chatApp.webrtc.establish);
-        sinon.assert.calledWithExactly(chatApp.webrtc.establish, fakeAnswer);
+        sinon.assert.calledWithExactly(chatApp.webrtc.establish,
+                                       fakeAnswer.answer);
       });
 
     });
@@ -336,12 +343,22 @@ describe("WebRTCCall", function() {
 
   describe("_createOffer", function() {
 
+    it("should note an error if audio or video types have not been set",
+      function() {
+        webrtc._onError = sandbox.spy();
+
+        webrtc._createOffer(function() {});
+
+        sinon.assert.calledOnce(webrtc._onError);
+      });
+
     it("should call createOffer and setRemoteDescription", function() {
       sandbox.stub(webrtc.pc, "createOffer", function(callback) {
         callback(fakeOffer);
       });
       sandbox.stub(webrtc.pc, "setLocalDescription");
 
+      webrtc.set({video: true, audio: true});
       webrtc._createOffer(function() {});
 
       sinon.assert.calledOnce(webrtc.pc.createOffer);
@@ -400,6 +417,15 @@ describe("WebRTCCall", function() {
 
   describe("_createAnswer", function() {
 
+    it("should note an error if audio or video types have not been set",
+      function() {
+        webrtc._onError = sandbox.spy();
+
+        webrtc._createAnswer(fakeOffer, function() {});
+
+        sinon.assert.calledOnce(webrtc._onError);
+      });
+
     it("should call createAnswer, setLocalDescription and setRemoteDescription",
       function() {
         sandbox.stub(webrtc.pc, "setRemoteDescription",
@@ -411,6 +437,7 @@ describe("WebRTCCall", function() {
         });
         sandbox.stub(webrtc.pc, "setLocalDescription");
 
+        webrtc.set({video: true, audio: true});
         webrtc._createAnswer(fakeOffer, function() {});
 
         sinon.assert.calledOnce(webrtc.pc.setRemoteDescription);
