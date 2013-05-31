@@ -6,10 +6,13 @@ var expect = chai.expect;
 
 describe("ChatApp", function() {
   var sandbox, chatApp;
-  var fakeOffer = {type: "offer", sdp: "fake"};
-  var fakeAnswer = {type: "answer", sdp: "fake"};
-  var caller = "alice";
-  var callee = "bob";
+  var fakeAnswer = {answer: {type: "answer", sdp: "fake"}};
+  var outgoingData = {caller: "alice", callee: "bob"};
+  var incomingData = {
+    caller: "alice",
+    callee: "bob",
+    offer: {type: "answer", sdp: "fake"}
+  };
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
@@ -30,10 +33,10 @@ describe("ChatApp", function() {
     sandbox.stub(ChatApp.prototype, handler);
     chatApp = new ChatApp();
 
-    chatApp.port.trigger(event, caller, callee);
+    chatApp.port.trigger(event, outgoingData);
 
     sinon.assert.calledOnce(chatApp[handler]);
-    sinon.assert.calledWithExactly(chatApp[handler], caller, callee);
+    sinon.assert.calledWithExactly(chatApp[handler], outgoingData);
   }
 
   it("should attach _onStartingCall to talkilla.call-start", function() {
@@ -110,16 +113,16 @@ describe("ChatApp", function() {
     describe("#_onStartingCall", function() {
 
       it("should set the caller and callee", function() {
-        chatApp._onStartingCall(caller, callee);
+        chatApp._onStartingCall(outgoingData);
 
-        expect(chatApp.call.get('caller')).to.equal(caller);
-        expect(chatApp.call.get('callee')).to.equal(callee);
+        expect(chatApp.call.get('caller')).to.equal(outgoingData.caller);
+        expect(chatApp.call.get('callee')).to.equal(outgoingData.callee);
       });
 
       it("should start the call", function() {
         sandbox.stub(chatApp.call, "start");
 
-        chatApp._onStartingCall(caller, callee);
+        chatApp._onStartingCall(outgoingData);
 
         sinon.assert.calledOnce(chatApp.call.start);
         sinon.assert.calledWithExactly(chatApp.call.start);
@@ -130,7 +133,7 @@ describe("ChatApp", function() {
         sandbox.stub(chatApp.call, "start");
         sandbox.stub(chatApp.webrtc, "offer");
 
-        chatApp._onStartingCall(caller, callee);
+        chatApp._onStartingCall(outgoingData);
 
         sinon.assert.calledOnce(chatApp.webrtc.offer);
         sinon.assert.calledWithExactly(chatApp.webrtc.offer);
@@ -140,16 +143,16 @@ describe("ChatApp", function() {
 
     describe("#_onIncomingCall", function() {
       it("should set the caller and callee", function() {
-        chatApp._onIncomingCall(caller, callee, fakeOffer);
+        chatApp._onIncomingCall(incomingData);
 
-        expect(chatApp.call.get('caller')).to.equal(caller);
-        expect(chatApp.call.get('callee')).to.equal(callee);
+        expect(chatApp.call.get('caller')).to.equal(incomingData.caller);
+        expect(chatApp.call.get('callee')).to.equal(incomingData.callee);
       });
 
       it("should set the call as incoming", function() {
         sandbox.stub(chatApp.call, "incoming");
 
-        chatApp._onIncomingCall(caller, callee, fakeOffer);
+        chatApp._onIncomingCall(incomingData);
 
         sinon.assert.calledOnce(chatApp.call.incoming);
         sinon.assert.calledWithExactly(chatApp.call.incoming);
@@ -160,10 +163,11 @@ describe("ChatApp", function() {
         sandbox.stub(chatApp.call, "start");
         sandbox.stub(chatApp.webrtc, "answer");
 
-        chatApp._onIncomingCall(caller, callee, fakeOffer);
+        chatApp._onIncomingCall(incomingData);
 
         sinon.assert.calledOnce(chatApp.webrtc.answer);
-        sinon.assert.calledWithExactly(chatApp.webrtc.answer, fakeOffer);
+        sinon.assert.calledWithExactly(chatApp.webrtc.answer,
+                                       incomingData.offer);
       });
     });
 
@@ -187,7 +191,8 @@ describe("ChatApp", function() {
         chatApp._onCallEstablishment(fakeAnswer);
 
         sinon.assert.calledOnce(chatApp.webrtc.establish);
-        sinon.assert.calledWithExactly(chatApp.webrtc.establish, fakeAnswer);
+        sinon.assert.calledWithExactly(chatApp.webrtc.establish,
+                                       fakeAnswer.answer);
       });
 
     });
