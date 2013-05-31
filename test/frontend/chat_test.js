@@ -96,9 +96,16 @@ describe("ChatApp", function() {
 
 
   describe("ChatApp (constructed)", function () {
+    var callFixture;
+
     beforeEach(function() {
       "use strict";
+
+      callFixture = $('<div id="call"></div>');
+      $("#fixtures").append(callFixture);
+
       chatApp = new ChatApp();
+
       // Reset the postEvent spy as this is trigger in the ChatApp
       // constructor.
       app.port.postEvent.reset();
@@ -108,12 +115,22 @@ describe("ChatApp", function() {
       sandbox.stub(navigator, "mozGetUserMedia");
     });
 
+    afterEach(function() {
+      "use strict";
+      $("#fixtures").empty();
+    });
+
     it("should have a call model" , function() {
       expect(chatApp.call).to.be.an.instanceOf(app.models.Call);
     });
 
     it("should have a webrtc call model", function() {
       expect(chatApp.webrtc).to.be.an.instanceOf(app.models.WebRTCCall);
+    });
+
+    it("should have a call view attached to the 'call' element" , function() {
+      expect(chatApp.callView).to.be.an.instanceOf(app.views.CallView);
+      expect(chatApp.callView.el).to.equal(callFixture[0]);
     });
 
     describe("#_onStartingCall", function() {
@@ -513,6 +530,7 @@ describe("CallView", function() {
 
   var fakeLocalStream = "fakeLocalStream";
   var fakeRemoteStream = "fakeRemoteStream";
+  var el = 'fakeDom';
   var sandbox, webrtc;
 
   beforeEach(function() {
@@ -528,16 +546,30 @@ describe("CallView", function() {
 
   describe("#initialize", function() {
 
-    it("should expect a webrtc model", function() {
-      var callView = new app.views.CallView({webrtc: webrtc});
+    it("should attach a given webrtc model", function() {
+      var callView = new app.views.CallView({el: el, webrtc: webrtc});
 
       expect(callView.webrtc).to.equal(webrtc);
+    });
+
+    it("should throw an error when no webrtc model is given", function() {
+      function shouldExplode() {
+        new app.views.CallView({el: 'fakeDom'});
+      }
+      expect(shouldExplode).to.Throw(Error, /missing parameter: webrtc/);
+    });
+
+    it("should throw an error when no el parameter is given", function() {
+      function shouldExplode() {
+        new app.views.CallView({webrtc: 'fakeWebrtc'});
+      }
+      expect(shouldExplode).to.Throw(Error, /missing parameter: el/);
     });
 
     it("should call #_displayLocalVideo when the webrtc model sets localStream",
       function () {
         sandbox.stub(app.views.CallView.prototype, "_displayLocalVideo");
-        var callView = new app.views.CallView({webrtc: webrtc});
+        var callView = new app.views.CallView({el: el, webrtc: webrtc});
 
         webrtc.set("localStream", fakeLocalStream);
 
@@ -547,7 +579,7 @@ describe("CallView", function() {
     it("should call #_displayRemoteVideo when webrtc model sets remoteStream",
       function () {
         sandbox.stub(app.views.CallView.prototype, "_displayRemoteVideo");
-        var callView = new app.views.CallView({webrtc: webrtc});
+        var callView = new app.views.CallView({el: el, webrtc: webrtc});
 
         webrtc.set("remoteStream", fakeRemoteStream);
 

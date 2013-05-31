@@ -30,6 +30,8 @@ var ChatApp = (function($, Backbone, _) {
     this.port = app.port;
     this.call = new app.models.Call();
     this.webrtc = new app.models.WebRTCCall();
+    this.callView = new app.views.CallView(
+     { webrtc: this.webrtc, el: $("#call") });
 
     // Incoming events
     this.port.on('talkilla.call-start', this._onStartingCall.bind(this));
