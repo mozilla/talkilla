@@ -40,43 +40,32 @@
     }
 
 /**
- * Main content area
+ * Chat window
  */
-.main {
-  background: #fff;
-  margin-top: 20px;
-  padding-right: 20px;
+video {
+  width: 100%;
 }
-  .main video {
-    width: 100%;
-    max-height: 300px;
-  }
-  .main .video-area {
-    position: relative;
-    background: #eee;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-  }
-    .main .video-area .controls {
-      float: right;
-    }
-    .main .video-area .remote-video {
-      width: 100%;
-      max-height: 300px;
-      z-index: 0;
-      overflow: hidden;
-    }
-    .main .video-area .local-video {
-      position: absolute;
-      right: 15px;
-      bottom: 20px;
-      width: 160px;
-      height: 120px;
-      z-index: 1;
-      background: #777;
-      overflow: hidden;
-    }
+.video-area {
+  position: relative;
+  background: #eee;
+}
+#controls {
+  float: right;
+}
+.remote-video {
+  width: 100%;
+  max-height: 300px;
+  z-index: 0;
+}
+.local-video {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 50%;
+  height: 50%;
+  z-index: 1;
+  background: #777;
+}
 
 /**
  * Notifications
