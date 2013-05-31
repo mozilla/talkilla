@@ -12,6 +12,12 @@
   app.views.CallView = Backbone.View.extend({
 
     initialize: function(options) {
+      options = options || {};
+      if (!options.webrtc)
+        throw Error("missing parameter: webrtc");
+      if (!options.el)
+        throw Error("missing parameter: el");
+
       this.webrtc = options.webrtc;
       this.webrtc.on('change:localStream', this._displayLocalVideo, this);
       this.webrtc.on('change:remoteStream', this._displayRemoteVideo, this);

@@ -513,6 +513,7 @@ describe("CallView", function() {
 
   var fakeLocalStream = "fakeLocalStream";
   var fakeRemoteStream = "fakeRemoteStream";
+  var el = 'fakeDom';
   var sandbox, webrtc;
 
   beforeEach(function() {
@@ -528,16 +529,30 @@ describe("CallView", function() {
 
   describe("#initialize", function() {
 
-    it("should expect a webrtc model", function() {
-      var callView = new app.views.CallView({webrtc: webrtc});
+    it("should attach a given webrtc model", function() {
+      var callView = new app.views.CallView({el: el, webrtc: webrtc});
 
       expect(callView.webrtc).to.equal(webrtc);
+    });
+
+    it("should throw an error when no webrtc model is given", function() {
+      function shouldExplode() {
+        new app.views.CallView({el: 'fakeDom'})
+      }
+      expect(shouldExplode).to.Throw(Error, /missing parameter: webrtc/);
+    });
+
+    it("should throw an error when no el parameter is given", function() {
+      function shouldExplode() {
+        new app.views.CallView({webrtc: 'fakeWebrtc'})
+      }
+      expect(shouldExplode).to.Throw(Error, /missing parameter: el/);
     });
 
     it("should call #_displayLocalVideo when the webrtc model sets localStream",
       function () {
         sandbox.stub(app.views.CallView.prototype, "_displayLocalVideo");
-        var callView = new app.views.CallView({webrtc: webrtc});
+        var callView = new app.views.CallView({el: el, webrtc: webrtc});
 
         webrtc.set("localStream", fakeLocalStream);
 
@@ -547,7 +562,7 @@ describe("CallView", function() {
     it("should call #_displayRemoteVideo when webrtc model sets remoteStream",
       function () {
         sandbox.stub(app.views.CallView.prototype, "_displayRemoteVideo");
-        var callView = new app.views.CallView({webrtc: webrtc});
+        var callView = new app.views.CallView({el: el, webrtc: webrtc});
 
         webrtc.set("remoteStream", fakeRemoteStream);
 
