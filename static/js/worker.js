@@ -42,8 +42,8 @@ UserData.prototype = {
 };
 
 var serverHandlers = {
-  'incoming_call': function(event) {
-    currentCall = {port: undefined, data: event.data};
+  'incoming_call': function(data) {
+    currentCall = {port: undefined, data: data};
     browserPort.postEvent('social.request-chat', 'chat.html');
   }
 };
@@ -52,7 +52,7 @@ function _presenceSocketOnMessage(event) {
   var data = JSON.parse(event.data);
   for (var eventType in data)
     if (eventType in serverHandlers)
-      serverHandlers[eventType](event);
+      serverHandlers[eventType](data[eventType]);
     else
       ports.broadcastEvent("talkilla." + eventType, data[eventType]);
 }

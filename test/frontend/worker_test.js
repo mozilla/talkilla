@@ -773,7 +773,7 @@ describe('Worker', function() {
         callee: "alice",
         offer: {type: "fake", sdp: "sdp" }
       };
-      serverHandlers.incoming_call({ data: data });
+      serverHandlers.incoming_call(data);
 
       expect(currentCall).to.deep.equal({port: undefined, data: data});
     });
