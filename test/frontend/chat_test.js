@@ -102,6 +102,10 @@ describe("ChatApp", function() {
       // Reset the postEvent spy as this is trigger in the ChatApp
       // constructor.
       app.port.postEvent.reset();
+      // Some functions only test a little bit, and don't stub everything, so
+      // stub mozGetUserMedia as that tends to let callbacks happen which
+      // can cause unexpected sending of data to worker ports.
+      sandbox.stub(navigator, "mozGetUserMedia");
     });
 
     it("should have a call model" , function() {
@@ -432,7 +436,7 @@ describe("WebRTCCall", function() {
           function(offer, callback) {
             callback();
           });
-        sandbox.stub(webrtc.pc, "createAnswer", function(offer, callback) {
+        sandbox.stub(webrtc.pc, "createAnswer", function(callback) {
           callback(fakeAnswer);
         });
         sandbox.stub(webrtc.pc, "setLocalDescription");
