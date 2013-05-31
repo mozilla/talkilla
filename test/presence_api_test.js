@@ -396,7 +396,7 @@ describe("Server", function() {
 
   });
 
-  describe("call offer", function() {
+  describe("call handling", function() {
     var callerWs,
         calleeWs,
         messages = {callee: [], caller: []};
@@ -476,5 +476,22 @@ describe("Server", function() {
           "call_accepted": { caller: "first", callee: "second" }
         }));
       });
+
+    it("should notify the a call has been ended", function(done) {
+      /*jshint camelcase:false*/
+      callerWs.on('message', function(data) {
+        var message = JSON.parse(data);
+
+        if (message.call_hangup) {
+          expect(message).to.be.an('object');
+          expect(message.call_hangup.other).to.equal('first');
+          done();
+        }
+      });
+
+      calleeWs.send(JSON.stringify({
+        "call_hangup": { other: "first" }
+      }));
+    });
   });
 });

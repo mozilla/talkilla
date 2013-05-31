@@ -189,6 +189,20 @@ function configureWs(ws) {
     } catch (e) {console.error('call_deny', e);}
   });
 
+  /**
+   * When a call is hung up.
+   *
+   * data is expected to contain
+   * - other: id of the other user for which the call should be hung up.
+   */
+  ws.on('call_hangup', function(data) {
+    try {
+      var users = app.get('users');
+      var other = users[data.other];
+      other.ws.send(JSON.stringify({'call_hangup': data}));
+    } catch (e) {console.error('call_deny', e);}
+  });
+
   // when a connection is closed, remove it from the pool as well and update the
   // list of online users
   ws.on('close', function() {
