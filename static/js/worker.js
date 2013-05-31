@@ -41,10 +41,20 @@ UserData.prototype = {
   }
 };
 
+var serverHandlers = {
+  'incoming_call': function(event) {
+    currentCall = {port: undefined, data: event.data};
+    browserPort.postEvent('social.request-chat', 'chat.html');
+  }
+};
+
 function _presenceSocketOnMessage(event) {
   var data = JSON.parse(event.data);
   for (var eventType in data)
-    ports.broadcastEvent("talkilla." + eventType, data[eventType]);
+    if (eventType in serverHandlers)
+      serverHandlers[eventType](event);
+    else
+      ports.broadcastEvent("talkilla." + eventType, data[eventType]);
 }
 
 function _presenceSocketSendMessage(data) {

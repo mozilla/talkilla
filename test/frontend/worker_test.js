@@ -144,6 +144,16 @@ describe('Worker', function() {
     });
 
     describe('#_presenceSocketOnMessage', function() {
+      var sandbox;
+
+      beforeEach(function() {
+        sandbox = sinon.sandbox.create();
+      });
+
+      afterEach(function() {
+        sandbox.restore();
+      });
+
       it("should call postMessage with a JSON version of the received message",
         function() {
           var event = {
@@ -155,6 +165,19 @@ describe('Worker', function() {
           sinon.assert.calledOnce(spy1);
           sinon.assert.calledWithExactly(spy1, {data: "bar",
                                                 topic: "talkilla.topic"});
+        });
+
+      it("should handle incoming-call internally",
+        function() {
+          sandbox.stub(serverHandlers, 'incoming_call');
+          var event = {
+            data: JSON.stringify({
+              incoming_call: "bar"
+            })
+          };
+          _presenceSocketOnMessage(event);
+          sinon.assert.notCalled(spy1);
+          sinon.assert.calledOnce(serverHandlers['incoming_call']);
         });
     });
 
@@ -681,5 +704,40 @@ describe('Worker', function() {
         sinon.assert.calledWithExactly(_presenceSocketSendMessage,
          JSON.stringify({ 'call_accepted': data }));
       });
+  });
+
+  describe("#incoming_call", function() {
+    var sandbox;
+
+    beforeEach(function() {
+      sandbox = sinon.sandbox.create();
+      browserPort = {postEvent: sandbox.spy()};
+    });
+
+    afterEach(function() {
+      browserPort = undefined;
+      sandbox.restore();
+    });
+
+    it("should store the current call data", function() {
+      var data = {
+        caller: "bob",
+        callee: "alice",
+        offer: {type: "fake", sdp: "sdp" }
+      };
+      serverHandlers['incoming_call']({ data: data });
+
+      expect(currentCall).to.deep.equal({port: undefined, data: data});
+    });
+
+    it("should open a chat window", function() {
+      serverHandlers['incoming_call']({
+        event: {data: {}}
+      });
+
+      sinon.assert.calledOnce(browserPort.postEvent);
+      sinon.assert.calledWithExactly(browserPort.postEvent,
+        'social.request-chat', "chat.html");
+    });
   });
 });
