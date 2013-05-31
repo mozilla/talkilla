@@ -3,8 +3,11 @@
    loadconfig, ports:true, _presenceSocketOnMessage, _presenceSocketOnError,
    _presenceSocketOnClose, _presenceSocketSendMessage:true,
    _presenceSocketOnOpen, _signinCallback, _presenceSocket, _currentUserData,
-   browserPort:true, _currentUserData:true, UserData, currentCall:true */
+   browserPort:true, _currentUserData:true, UserData, currentCall:true,
+   serverHandlers */
 /* jshint expr:true */
+/* Needed due to the use of non-camelcase in the websocket topics */
+/* jshint camelcase:false */
 var expect = chai.expect;
 
 describe('Worker', function() {
@@ -177,7 +180,7 @@ describe('Worker', function() {
           };
           _presenceSocketOnMessage(event);
           sinon.assert.notCalled(spy1);
-          sinon.assert.calledOnce(serverHandlers['incoming_call']);
+          sinon.assert.calledOnce(serverHandlers.incoming_call);
         });
     });
 
@@ -653,47 +656,50 @@ describe('Worker', function() {
     });
 
     it("should post a talkilla.call-start event when " +
-      "receiving a talkilla.chat-window-ready for an outgoing call", function () {
-      var port = {postEvent: sinon.spy()};
-      currentCall = {port: port, data: {caller: "alice", callee: "bob"}};
+      "receiving a talkilla.chat-window-ready for an outgoing call",
+      function () {
+        var port = {postEvent: sinon.spy()};
+        currentCall = {port: port, data: {caller: "alice", callee: "bob"}};
 
-      handlers['talkilla.chat-window-ready'].bind(port)({
-        topic: "talkilla.chat-window-ready",
-        data: {}
+        handlers['talkilla.chat-window-ready'].bind(port)({
+          topic: "talkilla.chat-window-ready",
+          data: {}
+        });
+
+        sinon.assert.calledOnce(port.postEvent);
+        sinon.assert.calledWithExactly(port.postEvent,
+          'talkilla.call-start', currentCall.data);
       });
-
-      sinon.assert.calledOnce(port.postEvent);
-      sinon.assert.calledWithExactly(port.postEvent,
-        'talkilla.call-start', currentCall.data);
-    });
 
     it("should post a talkilla.call-incoming event when " +
-      "receiving a talkilla.chat-window-ready for an outgoing call", function () {
-      var port = {postEvent: sinon.spy()};
-      currentCall = {port: undefined, data: {caller: "alice", callee: "bob"}};
+      "receiving a talkilla.chat-window-ready for an outgoing call",
+       function () {
+        var port = {postEvent: sinon.spy()};
+        currentCall = {port: undefined, data: {caller: "alice", callee: "bob"}};
 
-      handlers['talkilla.chat-window-ready'].bind(port)({
-        topic: "talkilla.chat-window-ready",
-        data: {}
+        handlers['talkilla.chat-window-ready'].bind(port)({
+          topic: "talkilla.chat-window-ready",
+          data: {}
+        });
+
+        sinon.assert.calledOnce(port.postEvent);
+        sinon.assert.calledWithExactly(port.postEvent,
+          'talkilla.call-incoming', currentCall.data);
       });
-
-      sinon.assert.calledOnce(port.postEvent);
-      sinon.assert.calledWithExactly(port.postEvent,
-        'talkilla.call-incoming', currentCall.data);
-    });
 
     it("should store the current port when " +
-      "receiving a talkilla.chat-window-ready for an outgoing call", function () {
-      var port = {postEvent: sinon.spy()};
-      currentCall = {port: undefined, data: {caller: "alice", callee: "bob"}};
+      "receiving a talkilla.chat-window-ready for an outgoing call",
+      function () {
+        var port = {postEvent: sinon.spy()};
+        currentCall = {port: undefined, data: {caller: "alice", callee: "bob"}};
 
-      handlers['talkilla.chat-window-ready'].bind(port)({
-        topic: "talkilla.chat-window-ready",
-        data: {}
+        handlers['talkilla.chat-window-ready'].bind(port)({
+          topic: "talkilla.chat-window-ready",
+          data: {}
+        });
+
+        expect(currentCall.port).to.be.equal(port);
       });
-
-      expect(currentCall.port).to.be.equal(port);
-    });
   });
 
   describe("Call offers and answers", function() {
@@ -767,13 +773,13 @@ describe('Worker', function() {
         callee: "alice",
         offer: {type: "fake", sdp: "sdp" }
       };
-      serverHandlers['incoming_call']({ data: data });
+      serverHandlers.incoming_call({ data: data });
 
       expect(currentCall).to.deep.equal({port: undefined, data: data});
     });
 
     it("should open a chat window", function() {
-      serverHandlers['incoming_call']({
+      serverHandlers.incoming_call({
         event: {data: {}}
       });
 
