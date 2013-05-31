@@ -206,7 +206,6 @@ var handlers = {
       "talkilla.call-start";
 
     this.postEvent(topic, currentCall.data);
-
   },
 
   /**
@@ -229,6 +228,16 @@ var handlers = {
    */
   'talkilla.call-answer': function (event) {
     _presenceSocketSendMessage(JSON.stringify({ 'call_accepted': event.data }));
+  },
+
+  /**
+   * Ends a call. The expected data is:
+   *
+   * - other: the person you are talking to.
+   */
+  'talkilla.call-hangup': function (event) {
+    _presenceSocketSendMessage(JSON.stringify({ 'call_hangup': event.data }));
+    currentCall = undefined;
   }
 };
 

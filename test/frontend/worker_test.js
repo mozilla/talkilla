@@ -764,6 +764,42 @@ describe('Worker', function() {
         sinon.assert.calledWithExactly(_presenceSocketSendMessage,
          JSON.stringify({ 'call_accepted': data }));
       });
+
+    it("should send a websocket message when receiving talkilla.call-hangup",
+      function() {
+        _presenceSocketSendMessage = sandbox.spy();
+        var data = {
+          other: "florian",
+        };
+
+        handlers['talkilla.call-hangup']({
+          topic: "talkilla.call-hangup",
+          data: data
+        });
+
+        sinon.assert.calledOnce(_presenceSocketSendMessage);
+        sinon.assert.calledWithExactly(_presenceSocketSendMessage,
+         JSON.stringify({ 'call_hangup': data }));
+      });
+
+    it("should send reset the call data when receiving talkilla.call-hangup",
+      function() {
+        currentCall = {
+          port: {},
+          data: { caller: "romain", callee: "florian" }
+        };
+        _presenceSocketSendMessage = sandbox.spy();
+        var data = {
+          other: "florian",
+        };
+
+        handlers['talkilla.call-hangup']({
+          topic: "talkilla.call-hangup",
+          data: data
+        });
+
+        expect(currentCall).to.be.equal(undefined);
+      });
   });
 
   describe("#incoming_call", function() {
