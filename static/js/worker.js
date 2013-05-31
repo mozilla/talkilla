@@ -191,6 +191,12 @@ var handlers = {
   },
 
   'talkilla.chat-window-ready': function() {
+    // If this is an incoming call, we won't have the port yet.
+    if (!currentCall.port) {
+      currentCall.port = this;
+      return this.postEvent("talkilla.call-incoming", currentCall.data);
+    }
+
     this.postEvent("talkilla.call-start", currentCall.data);
   },
 

@@ -637,9 +637,23 @@ describe('Worker', function() {
         sinon.assert.calledWithExactly(browserPort.postEvent,
           'social.request-chat', "chat.html");
       });
+  });
+
+  describe("talkilla.call-window-ready", function() {
+    var sandbox;
+
+    beforeEach(function() {
+      sandbox = sinon.sandbox.create();
+      browserPort = {postEvent: sandbox.spy()};
+    });
+
+    afterEach(function() {
+      browserPort = undefined;
+      sandbox.restore();
+    });
 
     it("should post a talkilla.call-start event when " +
-      "receiving a talkilla.chat-window-ready", function () {
+      "receiving a talkilla.chat-window-ready for an outgoing call", function () {
       var port = {postEvent: sinon.spy()};
       currentCall = {port: port, data: {caller: "alice", callee: "bob"}};
 
@@ -651,6 +665,34 @@ describe('Worker', function() {
       sinon.assert.calledOnce(port.postEvent);
       sinon.assert.calledWithExactly(port.postEvent,
         'talkilla.call-start', currentCall.data);
+    });
+
+    it("should post a talkilla.call-incoming event when " +
+      "receiving a talkilla.chat-window-ready for an outgoing call", function () {
+      var port = {postEvent: sinon.spy()};
+      currentCall = {port: undefined, data: {caller: "alice", callee: "bob"}};
+
+      handlers['talkilla.chat-window-ready'].bind(port)({
+        topic: "talkilla.chat-window-ready",
+        data: {}
+      });
+
+      sinon.assert.calledOnce(port.postEvent);
+      sinon.assert.calledWithExactly(port.postEvent,
+        'talkilla.call-incoming', currentCall.data);
+    });
+
+    it("should store the current port when " +
+      "receiving a talkilla.chat-window-ready for an outgoing call", function () {
+      var port = {postEvent: sinon.spy()};
+      currentCall = {port: undefined, data: {caller: "alice", callee: "bob"}};
+
+      handlers['talkilla.chat-window-ready'].bind(port)({
+        topic: "talkilla.chat-window-ready",
+        data: {}
+      });
+
+      expect(currentCall.port).to.be.equal(port);
     });
   });
 
