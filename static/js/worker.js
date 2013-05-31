@@ -190,8 +190,11 @@ var handlers = {
   },
 
   'talkilla.call-start': function(event) {
-    currentCall = {port: undefined, data: event.data};
-    browserPort.postEvent("social.request-chat", 'chat.html');
+    // XXX Temporarily work around to only allow one call at a time.
+    if (!currentCall) {
+      currentCall = {port: undefined, data: event.data};
+      browserPort.postEvent("social.request-chat", 'chat.html');
+    }
   },
 
   'talkilla.chat-window-ready': function() {
