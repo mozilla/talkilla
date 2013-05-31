@@ -301,11 +301,13 @@ describe("WebRTCCall", function() {
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
+    sandbox.stub(app.port, "postEvent");
     webrtc = new app.models.WebRTCCall();
     sinon.stub(webrtc.pc, "addStream");
   });
 
   afterEach(function() {
+    app.port.off();
     sandbox.restore();
   });
 
@@ -432,7 +434,7 @@ describe("WebRTCCall", function() {
           function(offer, callback) {
             callback();
           });
-        sandbox.stub(webrtc.pc, "createAnswer", function(offer, callback) {
+        sandbox.stub(webrtc.pc, "createAnswer", function(callback) {
           callback(fakeAnswer);
         });
         sandbox.stub(webrtc.pc, "setLocalDescription");

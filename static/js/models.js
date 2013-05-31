@@ -70,7 +70,7 @@
 
       var offerDescription = new mozRTCSessionDescription(offer);
       this.pc.setRemoteDescription(offerDescription, function() {
-        this.pc.createAnswer(offer, function(answer) {
+        this.pc.createAnswer(function(answer) {
           var cb = callback.bind(this, answer);
           this.pc.setLocalDescription(answer, cb, this._onError);
         }.bind(this), this._onError);
