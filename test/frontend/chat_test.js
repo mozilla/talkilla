@@ -96,9 +96,16 @@ describe("ChatApp", function() {
 
 
   describe("ChatApp (constructed)", function () {
+    var callFixture;
+
     beforeEach(function() {
       "use strict";
+
+      callFixture = $('<div id="call"></div>');
+      $("#fixtures").append(callFixture);
+
       chatApp = new ChatApp();
+
       // Reset the postEvent spy as this is trigger in the ChatApp
       // constructor.
       app.port.postEvent.reset();
@@ -106,6 +113,11 @@ describe("ChatApp", function() {
       // stub mozGetUserMedia as that tends to let callbacks happen which
       // can cause unexpected sending of data to worker ports.
       sandbox.stub(navigator, "mozGetUserMedia");
+    });
+
+    afterEach(function() {
+      "use strict";
+      $("#fixtures").empty();
     });
 
     it("should have a call model" , function() {
@@ -116,8 +128,9 @@ describe("ChatApp", function() {
       expect(chatApp.webrtc).to.be.an.instanceOf(app.models.WebRTCCall);
     });
 
-    it("should have a call view" , function() {
+    it("should have a call view attached to the 'call' element" , function() {
       expect(chatApp.callView).to.be.an.instanceOf(app.views.CallView);
+      expect(chatApp.callView.el).to.equal(callFixture[0]);
     });
 
     describe("#_onStartingCall", function() {
