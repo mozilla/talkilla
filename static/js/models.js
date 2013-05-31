@@ -55,6 +55,10 @@
       this._getMedia(createAnswer, this._onError);
     },
 
+    hangup: function() {
+      this.pc.close();
+    },
+
     _createOffer: function(callback) {
       if (!this.get('video') && !this.get('audio'))
         return this._onError("Call type has not been defined");

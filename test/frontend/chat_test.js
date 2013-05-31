@@ -404,6 +404,17 @@ describe("WebRTCCall", function() {
 
   });
 
+  describe("#hangup", function() {
+
+    it("should close the peer connection", function() {
+      webrtc.pc = {close: sinon.spy()};
+      webrtc.hangup();
+
+      sinon.assert.calledOnce(webrtc.pc.close);
+    });
+
+  });
+
   describe("#answer", function() {
 
     it("should call getUserMedia", function() {
