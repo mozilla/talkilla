@@ -675,7 +675,14 @@ describe('Worker', function() {
       "receiving a talkilla.chat-window-ready for an outgoing call",
        function () {
         var port = {postEvent: sinon.spy()};
-        currentCall = {port: undefined, data: {caller: "alice", callee: "bob"}};
+        currentCall = {
+          port: undefined,
+          data: {
+            caller: "alice",
+            callee: "bob",
+            offer: {type: "fake", sdp: "sdp"}
+          }
+        };
 
         handlers['talkilla.chat-window-ready'].bind(port)({
           topic: "talkilla.chat-window-ready",
@@ -755,6 +762,41 @@ describe('Worker', function() {
   });
 
   describe("#incoming_call", function() {
+    var sandbox;
+
+    beforeEach(function() {
+      sandbox = sinon.sandbox.create();
+      browserPort = {postEvent: sandbox.spy()};
+    });
+
+    afterEach(function() {
+      browserPort = undefined;
+      sandbox.restore();
+    });
+
+    it("should store the current call data", function() {
+      var data = {
+        caller: "bob",
+        callee: "alice",
+        offer: {type: "fake", sdp: "sdp" }
+      };
+      serverHandlers.incoming_call(data);
+
+      expect(currentCall).to.deep.equal({port: undefined, data: data});
+    });
+
+    it("should open a chat window", function() {
+      serverHandlers.incoming_call({
+        event: {data: {}}
+      });
+
+      sinon.assert.calledOnce(browserPort.postEvent);
+      sinon.assert.calledWithExactly(browserPort.postEvent,
+        'social.request-chat', "chat.html");
+    });
+  });
+
+  describe("#call_accepted", function() {
     var sandbox;
 
     beforeEach(function() {

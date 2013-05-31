@@ -45,7 +45,8 @@
 
     establish: function(answer) {
       var answerDescription = new mozRTCSessionDescription(answer);
-      this.pc.setRemoteDescription(answerDescription, null, this._onError);
+      var cb = function() {};
+      this.pc.setRemoteDescription(answerDescription, cb, this._onError);
     },
 
     answer: function(offer) {

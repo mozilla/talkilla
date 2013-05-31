@@ -45,6 +45,10 @@ var serverHandlers = {
   'incoming_call': function(data) {
     currentCall = {port: undefined, data: data};
     browserPort.postEvent('social.request-chat', 'chat.html');
+  },
+
+  'call_accepted': function(data) {
+    currentCall.port.postEvent('talkilla.call-establishment', data);
   }
 };
 
@@ -186,18 +190,20 @@ var handlers = {
   },
 
   'talkilla.call-start': function(event) {
-    currentCall = {port: this, data: event.data};
+    currentCall = {port: undefined, data: event.data};
     browserPort.postEvent("social.request-chat", 'chat.html');
   },
 
   'talkilla.chat-window-ready': function() {
-    // If this is an incoming call, we won't have the port yet.
-    if (!currentCall.port) {
-      currentCall.port = this;
-      return this.postEvent("talkilla.call-incoming", currentCall.data);
-    }
+    currentCall.port = this;
 
-    this.postEvent("talkilla.call-start", currentCall.data);
+    // If this is an incoming call, we won't have the port yet.
+    var topic = currentCall.data.offer ?
+      "talkilla.call-incoming" :
+      "talkilla.call-start";
+
+    this.postEvent(topic, currentCall.data);
+
   },
 
   /**
