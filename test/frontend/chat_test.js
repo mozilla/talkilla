@@ -341,12 +341,22 @@ describe("WebRTCCall", function() {
 
   describe("_createOffer", function() {
 
+    it("should note an error if audio or video types have not been set",
+      function() {
+        webrtc._onError = sandbox.spy();
+
+        webrtc._createOffer(function() {});
+
+        sinon.assert.calledOnce(webrtc._onError);
+    });
+
     it("should call createOffer and setRemoteDescription", function() {
       sandbox.stub(webrtc.pc, "createOffer", function(callback) {
         callback(fakeOffer);
       });
       sandbox.stub(webrtc.pc, "setLocalDescription");
 
+      webrtc.set({video: true, audio: true});
       webrtc._createOffer(function() {});
 
       sinon.assert.calledOnce(webrtc.pc.createOffer);
@@ -405,6 +415,15 @@ describe("WebRTCCall", function() {
 
   describe("_createAnswer", function() {
 
+    it("should note an error if audio or video types have not been set",
+      function() {
+        webrtc._onError = sandbox.spy();
+
+        webrtc._createAnswer(fakeOffer, function() {});
+
+        sinon.assert.calledOnce(webrtc._onError);
+    });
+
     it("should call createAnswer, setLocalDescription and setRemoteDescription",
       function() {
         sandbox.stub(webrtc.pc, "setRemoteDescription",
@@ -416,6 +435,7 @@ describe("WebRTCCall", function() {
         });
         sandbox.stub(webrtc.pc, "setLocalDescription");
 
+        webrtc.set({video: true, audio: true});
         webrtc._createAnswer(fakeOffer, function() {});
 
         sinon.assert.calledOnce(webrtc.pc.setRemoteDescription);
