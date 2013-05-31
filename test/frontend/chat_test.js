@@ -348,7 +348,7 @@ describe("WebRTCCall", function() {
         webrtc._createOffer(function() {});
 
         sinon.assert.calledOnce(webrtc._onError);
-    });
+      });
 
     it("should call createOffer and setRemoteDescription", function() {
       sandbox.stub(webrtc.pc, "createOffer", function(callback) {
@@ -422,7 +422,7 @@ describe("WebRTCCall", function() {
         webrtc._createAnswer(fakeOffer, function() {});
 
         sinon.assert.calledOnce(webrtc._onError);
-    });
+      });
 
     it("should call createAnswer, setLocalDescription and setRemoteDescription",
       function() {
