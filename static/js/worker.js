@@ -176,12 +176,12 @@ var handlers = {
   },
 
   'talkilla.call-start': function(event) {
-    currentCall = event.data;
+    currentCall = {port: this, data: event.data};
     browserPort.postEvent("social.request-chat", 'chat.html');
   },
 
   'talkilla.chat-window-ready': function() {
-    this.postEvent("talkilla.call-start", currentCall);
+    this.postEvent("talkilla.call-start", currentCall.data);
   },
 
   /**
