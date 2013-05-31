@@ -45,22 +45,28 @@ var ChatApp = (function($, Backbone, _) {
   }
 
   // Outgoing calls
-  ChatApp.prototype._onStartingCall = function(caller, callee) {
-    this.call.set({caller: caller, callee: callee});
+  ChatApp.prototype._onStartingCall = function(data) {
+    this.call.set({caller: data.caller, callee: data.callee});
     this.call.start();
+    // XXX Assume both video and audio call for now
+    // Really webrtc and calls should be set up on clicking a button
+    this.webrtc.set({video: true, audio: true});
     this.webrtc.offer();
   };
 
-  ChatApp.prototype._onCallEstablishment = function(answer) {
+  ChatApp.prototype._onCallEstablishment = function(data) {
     this.call.establish();
-    this.webrtc.establish(answer);
+    this.webrtc.establish(data.answer);
   };
 
   // Incoming calls
-  ChatApp.prototype._onIncomingCall = function(caller, callee, offer) {
-    this.call.set({caller: caller, callee: callee});
+  ChatApp.prototype._onIncomingCall = function(data) {
+    this.call.set({caller: data.caller, callee: data.callee});
     this.call.incoming();
-    this.webrtc.answer(offer);
+    // XXX Assume both video and audio call for now
+    // Really webrtc and calls should be set up on clicking a button
+    this.webrtc.set({video: true, audio: true});
+    this.webrtc.answer(data.offer);
   };
 
   ChatApp.prototype._onOfferReady = function(offer) {
