@@ -588,31 +588,59 @@ describe("CallView", function() {
   });
 
   describe("#_displayLocalVideo", function() {
+    var el, callView, videoElement;
 
-    it("should setup the local video with the local stream", function() {
-      var el = $('<div><div id="local-video"></div></div>');
+    beforeEach(function() {
+      el = $('<div><div id="local-video"></div></div>');
       $("#fixtures").append(el);
-      var callView = new app.views.CallView({el: el, webrtc: webrtc});
+      callView = new app.views.CallView({el: el, webrtc: webrtc});
       webrtc.set("localStream", fakeLocalStream, {silent: true});
 
-      callView._displayLocalVideo();
-
-      expect(el.find('#local-video')[0].mozSrcObject).to.equal(fakeLocalStream);
+      videoElement = el.find('#local-video')[0];
+      videoElement.play = sandbox.spy();
     });
+
+    it("should attach the local stream to the local-video element",
+      function() {
+        callView._displayLocalVideo();
+
+        expect(videoElement.mozSrcObject).to.equal(fakeLocalStream);
+      });
+
+    it("should call play on the local-video element",
+      function() {
+        callView._displayLocalVideo();
+
+        sinon.assert.calledOnce(videoElement.play);
+      });
   });
 
   describe("#_displayRemoteVideo", function() {
-    it("should attach the remote stream to the remote-video element",
-      function() {
-        var el = $('<div><div id="remote-video"></div></div>');
-        $("#fixtures").append(el);
-        var callView = new app.views.CallView({el: el, webrtc: webrtc});
-        webrtc.set("remoteStream", fakeRemoteStream, {silent: true});
+    var el, callView, videoElement;
 
+    beforeEach(function() {
+      el = $('<div><div id="remote-video"></div></div>');
+      $("#fixtures").append(el);
+      callView = new app.views.CallView({el: el, webrtc: webrtc});
+      webrtc.set("remoteStream", fakeRemoteStream, {silent: true});
+
+      videoElement = el.find('#remote-video')[0];
+      videoElement.play = sandbox.spy();
+    });
+
+    it("should attach the remote stream to the 'remove-video' element",
+      function() {
         callView._displayRemoteVideo();
 
         expect(el.find('#remote-video')[0].mozSrcObject).
           to.equal(fakeRemoteStream);
+      });
+
+    it("should play the remote videoStream",
+      function() {
+        callView._displayRemoteVideo();
+
+        sinon.assert.calledOnce(videoElement.play);
       });
 
   });
