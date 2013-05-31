@@ -791,9 +791,7 @@ describe('Worker', function() {
     });
 
     it("should open a chat window", function() {
-      serverHandlers.incoming_call({
-        event: {data: {}}
-      });
+      serverHandlers.incoming_call({});
 
       sinon.assert.calledOnce(browserPort.postEvent);
       sinon.assert.calledWithExactly(browserPort.postEvent,
@@ -806,33 +804,28 @@ describe('Worker', function() {
 
     beforeEach(function() {
       sandbox = sinon.sandbox.create();
-      browserPort = {postEvent: sandbox.spy()};
     });
 
     afterEach(function() {
-      browserPort = undefined;
       sandbox.restore();
     });
 
-    it("should store the current call data", function() {
-      var data = {
-        caller: "bob",
-        callee: "alice",
-        offer: {type: "fake", sdp: "sdp" }
-      };
-      serverHandlers.incoming_call(data);
+    it("should post talkilla.call-establishment to the chat window",
+      function() {
+        var port = {postEvent: sinon.spy()};
+        var data = {
+          caller: "alice",
+          callee: "bob",
+          answer: { type: "fake", sdp: "sdp" }
+        };
 
-      expect(currentCall).to.deep.equal({port: undefined, data: data});
-    });
+        currentCall = {port: port, data: {caller: "alice", callee: "bob"}};
 
-    it("should open a chat window", function() {
-      serverHandlers.incoming_call({
-        event: {data: {}}
+        serverHandlers.call_accepted(data);
+
+        sinon.assert.calledOnce(port.postEvent);
+        sinon.assert.calledWithExactly(port.postEvent,
+          'talkilla.call-establishment', data);
       });
-
-      sinon.assert.calledOnce(browserPort.postEvent);
-      sinon.assert.calledWithExactly(browserPort.postEvent,
-        'social.request-chat', "chat.html");
-    });
   });
 });
