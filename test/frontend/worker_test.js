@@ -179,7 +179,6 @@ describe('Worker', function() {
             })
           };
           _presenceSocketOnMessage(event);
-          sinon.assert.notCalled(spy1);
           sinon.assert.calledOnce(serverHandlers.incoming_call);
         });
     });
@@ -658,23 +657,29 @@ describe('Worker', function() {
     it("should post a talkilla.call-start event when " +
       "receiving a talkilla.chat-window-ready for an outgoing call",
       function () {
-        var port = {postEvent: sinon.spy()};
-        currentCall = {port: port, data: {caller: "alice", callee: "bob"}};
+        var chatAppPort = {postEvent: sinon.spy()};
+        currentCall = {
+          port: chatAppPort,
+          data: {
+            caller: "alice",
+            callee: "bob"
+          }
+        };
 
-        handlers['talkilla.chat-window-ready'].bind(port)({
+        handlers['talkilla.chat-window-ready'].bind(chatAppPort)({
           topic: "talkilla.chat-window-ready",
           data: {}
         });
 
-        sinon.assert.calledOnce(port.postEvent);
-        sinon.assert.calledWithExactly(port.postEvent,
+        sinon.assert.calledOnce(chatAppPort.postEvent);
+        sinon.assert.calledWithExactly(chatAppPort.postEvent,
           'talkilla.call-start', currentCall.data);
       });
 
     it("should post a talkilla.call-incoming event when " +
-      "receiving a talkilla.chat-window-ready for an outgoing call",
+      "receiving a talkilla.chat-window-ready for an incoming call",
        function () {
-        var port = {postEvent: sinon.spy()};
+        var chatAppPort = {postEvent: sinon.spy()};
         currentCall = {
           port: undefined,
           data: {
@@ -684,13 +689,13 @@ describe('Worker', function() {
           }
         };
 
-        handlers['talkilla.chat-window-ready'].bind(port)({
+        handlers['talkilla.chat-window-ready'].bind(chatAppPort)({
           topic: "talkilla.chat-window-ready",
           data: {}
         });
 
-        sinon.assert.calledOnce(port.postEvent);
-        sinon.assert.calledWithExactly(port.postEvent,
+        sinon.assert.calledOnce(chatAppPort.postEvent);
+        sinon.assert.calledWithExactly(chatAppPort.postEvent,
           'talkilla.call-incoming', currentCall.data);
       });
 

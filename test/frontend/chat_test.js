@@ -102,6 +102,10 @@ describe("ChatApp", function() {
       // Reset the postEvent spy as this is trigger in the ChatApp
       // constructor.
       app.port.postEvent.reset();
+      // Some functions only test a little bit, and don't stub everything, so
+      // stub mozGetUserMedia as that tends to let callbacks happen which
+      // can cause unexpected sending of data to worker ports.
+      sandbox.stub(navigator, "mozGetUserMedia");
     });
 
     it("should have a call model" , function() {
@@ -301,13 +305,11 @@ describe("WebRTCCall", function() {
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
-    sandbox.stub(app.port, "postEvent");
     webrtc = new app.models.WebRTCCall();
     sinon.stub(webrtc.pc, "addStream");
   });
 
   afterEach(function() {
-    app.port.off();
     sandbox.restore();
   });
 
