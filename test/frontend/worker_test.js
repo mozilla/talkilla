@@ -769,7 +769,7 @@ describe('Worker', function() {
       function() {
         _presenceSocketSendMessage = sandbox.spy();
         var data = {
-          other: "florian",
+          other: "florian"
         };
 
         handlers['talkilla.call-hangup']({
@@ -790,7 +790,7 @@ describe('Worker', function() {
         };
         _presenceSocketSendMessage = sandbox.spy();
         var data = {
-          other: "florian",
+          other: "florian"
         };
 
         handlers['talkilla.call-hangup']({
@@ -881,7 +881,7 @@ describe('Worker', function() {
     it("should notify the chat window", function() {
       handlers.postEvent = sandbox.spy();
       var data = {
-        other: "bob",
+        other: "bob"
       };
       currentCall = {port: {postEvent: handlers.postEvent}, data: data};
 
@@ -895,7 +895,7 @@ describe('Worker', function() {
     it("should clear the current call data", function() {
       handlers.postEvent = sandbox.spy();
       var data = {
-        other: "bob",
+        other: "bob"
       };
       currentCall = {port: {postEvent: handlers.postEvent}, data: data};
 
