@@ -1,4 +1,4 @@
-/* global Talkilla*/
+/* global app*/
 /**
  * Talkilla utilities.
  */
@@ -34,4 +34,4 @@
     app.router.view.notifications.addNotification(notification);
     return notification;
   };
-})(Talkilla);
+})(app);

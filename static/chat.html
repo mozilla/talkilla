@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Talkilla Chat Window</title>
+  <link href="vendor/bootstrap-2.1.1/css/bootstrap.css" rel="stylesheet">
+  <link href="vendor/bootstrap-2.1.1/css/bootstrap-responsive.css" rel="stylesheet">
+  <link rel="stylesheet" media="all" href="css/style.css">
+</head>
+<body>
+  <div class="container-fluid">
+    <div class="row-fluid">
+      <div>
+
+        <!-- Call view -->
+        <div id="call">
+          <div class="video-area">
+            <strong class="callee"></strong>
+            <div id="controls">
+              <a class="btn btn-hangup disabled"><i class="icon-stop"></i> End call</a>
+            </div>
+            <video id="remote-video" class="remote-video"></video>
+            <video id="local-video" class="local-video" muted></video>
+          </div>
+        </div>
+        <!-- /Call view -->
+
+      </div>
+    </div>
+  </div>
+  <script src="vendor/jquery-1.9.1.js"></script>
+  <script src="vendor/underscore-1.4.4.js"></script>
+  <script src="vendor/backbone-1.0.0.js"></script>
+  <script src="vendor/bootstrap-2.1.1/js/bootstrap.js"></script>
+  <script src="vendor/state-machine-2.2.0.js"></script>
+  <script src="js/chat/app.js"></script>
+  <script src="js/port.js"></script>
+  <script src="js/models.js"></script>
+  <script src="js/chat/views.js"></script>
+  <script>
+    $(function() {
+      $.getJSON('/config.json', function(config) {
+        app.start(config);
+        window.chatApp = new ChatApp();
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-/* global Talkilla, Backbone, _, jQuery*/
+/* global app, Backbone, _, jQuery*/
 /**
  * Talkilla Backbone views.
  */
@@ -15,7 +15,7 @@
       this.notifications = new app.views.NotificationsView();
       this.login = new app.views.LoginView();
       this.users = new app.views.UsersView();
-      this.call = new app.views.CallView();
+      this.call = new app.views.CallView({model: new app.models.Call()});
     },
 
     render: function() {
@@ -80,9 +80,7 @@
 
     deny: function(event) {
       event.preventDefault();
-      app.services.ws.send(JSON.stringify({
-        'call_deny': this.model.toJSON()
-      }));
+      app.port.postEvent('call_deny', this.model.toJSON());
       this.clear();
     }
   });
@@ -139,21 +137,21 @@
 
     initialize: function() {
       // service events
-      app.services.on('incoming_call', function(data) {
+      app.port.on('incoming_call', function(data) {
         var notification = new app.views.IncomingCallNotificationView({
           model: new app.models.IncomingCall(data)
         });
         this.addNotification(notification);
       }.bind(this));
 
-      app.services.on('call_offer', function(data) {
+      app.port.on('call_offer', function(data) {
         var notification = new app.views.PendingCallNotificationView({
           model: new app.models.PendingCall(data)
         });
         this.addNotification(notification);
       }.bind(this));
 
-      app.services.on('call_denied', function(data) {
+      app.port.on('call_denied', function(data) {
         var notification = new app.views.DeniedCallNotificationView({
           model: new app.models.DeniedCall(data)
         });
@@ -219,11 +217,23 @@
   app.views.UserEntryView = Backbone.View.extend({
     tagName: 'li',
 
-    template: _.template('<a href="#call/<%= nick %>"><%= nick %></a>'),
+    template: _.template('<a href="#" rel="<%= nick %>"><%= nick %></a>'),
+
+    events: {
+      'click a': 'call'
+    },
 
     initialize: function(options) {
       this.model = options && options.model;
       this.active = options && options.active;
+    },
+
+    call: function(event) {
+      event.preventDefault();
+      app.port.postEvent('talkilla.call-start', {
+        caller: app.data.user.get('nick'),
+        callee: event.currentTarget.getAttribute('rel')
+      });
     },
 
     render: function() {
@@ -244,16 +254,19 @@
     activeNotification: null,
 
     initialize: function() {
-      // refresh the users list on new received data
-      app.services.on('users', function(data) {
-        this.collection = new app.models.UserSet(data);
-        app.data.users = this.collection;
+      app.data.users = this.collection = new app.models.UserSet();
+
+      this.collection.on('change', function() {
+        this.render();
+      }.bind(this));
+
+      this.collection.on('reset', function() {
         this.render();
       }.bind(this));
 
       // purge the list on sign out
       app.on('signout', function() {
-        this.collection = undefined;
+        this.collection.reset();
         this.callee = undefined;
         this.render();
       }.bind(this));
@@ -282,7 +295,7 @@
       this.views = [];
       this.collection.chain().reject(function(user) {
         // filter out current signed in user, if any
-        if (!app.data.user)
+        if (!app.data.user.isLoggedIn())
           return false;
         return user.get('nick') === app.data.user.get('nick');
       }).each(function(user) {
@@ -307,7 +320,7 @@
       }).pluck('el').value();
       this.$('ul').append(userList);
       // show/hide element regarding auth status
-      if (app.data.user)
+      if (app.data.user.isLoggedIn())
         this.$el.show();
       else
         this.$el.hide();
@@ -338,8 +351,22 @@
       'submit form#signout': 'signout'
     },
 
+    initialize: function() {
+      app.data.user = new app.models.User();
+      app.data.user.on('change', function(model) {
+        if (model.isLoggedIn()) {
+          app.trigger('signin', model);
+          app.router.navigate('', {trigger: true});
+          app.router.index();
+          return;
+        }
+
+        app.resetApp();
+      });
+    },
+
     render: function() {
-      if (!app.data.user) {
+      if (!app.data.user.get("nick")) {
         this.$('#signin').show();
         this.$('#signout').hide().find('.nick').text('');
       } else {
@@ -359,14 +386,7 @@
       var nick = $.trim($(event.currentTarget).find('[name="nick"]').val());
       if (!nick)
         return app.utils.notifyUI('please enter a nickname');
-      app.services.login(nick, function(err, user) {
-        if (err)
-          return app.utils.notifyUI(err, 'error');
-        app.data.user = user;
-        app.trigger('signin', user);
-        app.router.navigate('', {trigger: true});
-        app.router.index();
-      });
+      app.port.login(nick);
     },
 
     /**
@@ -376,11 +396,7 @@
      */
     signout: function(event) {
       event.preventDefault();
-      app.services.logout(function(err) {
-        if (err)
-          return app.utils.notifyUI(err, 'error');
-        app.resetApp();
-      });
+      app.port.logout();
     }
   });
 
@@ -403,12 +419,17 @@
 
     initialize: function(options) {
       this.callee = options && options.callee;
+
+      if (!(options && ('model' in options))) {
+        throw new Error('No model passed to CallView.initialize()');
+      }
+
       app.trigger('hangup');
       this.local = $('#local-video').get(0);
       this.remote = $('#remote-video').get(0);
 
       // service events
-      app.services.on('call_accepted', function(data) {
+      app.port.on('call_accepted', function(data) {
         app.media.addAnswerToPeerConnection(
           this.pc,
 
@@ -425,7 +446,7 @@
       }.bind(this));
 
       // app events
-      app.on('hangup', function() {
+      app.on('hangup', function () {
         this.hangup();
         this.render();
       }.bind(this));
@@ -476,19 +497,18 @@
         event.preventDefault();
 
       // Stop the media elements running
-      if (this.local.mozSrcObject) {
+      if (this.local && this.local.mozSrcObject) {
         this.local.mozSrcObject.stop();
         this.local.mozSrcObject = null;
       }
-      this.remote.pause();
-      this.remote.mozSrcObject = null;
+      if (this.remote) {
+        this.remote.pause();
+        this.remote.mozSrcObject = null;
+      }
 
-      // Now close the peer connection
-      app.media.closePeerConnection(this.pc);
-      this.pc = null;
-      this.callee = undefined;
+      // XXX trigger "hangup" event on model here
+
       app.router.navigate('', {trigger: true});
-      app.trigger('hangup_done');
     },
 
     render: function() {
@@ -502,4 +522,4 @@
       return this;
     }
   });
-})(Talkilla, Backbone, _, jQuery);
+})(app, Backbone, _, jQuery);

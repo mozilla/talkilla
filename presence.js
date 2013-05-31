@@ -47,6 +47,7 @@ function getConfigFromFile(file) {
   if (!process.env.NO_LOCAL_CONFIG) {
     var localConfigFile = path.join(configRoot, 'local.json');
     if (fs.existsSync(localConfigFile)) {
+      console.log("Warning: using local.json");
       config = merge(config, JSON.parse(fs.readFileSync(localConfigFile)));
     }
   }
@@ -57,6 +58,7 @@ exports.getConfigFromFile = getConfigFromFile;
 // development settings
 app.configure('development', function() {
   app.set('config', getConfigFromFile('dev.json'));
+  app.use('/test', express.static(__dirname + '/test'));
 });
 
 // production settings
@@ -258,6 +260,19 @@ function _configureWebSocketServer(httpServer, httpUpgradeHandler, callback) {
 
 app.start = function(serverPort, callback) {
   app.set('users', {});
+
+  var config = app.get('config');
+
+  // ensure compatibility with our testing environment
+  if (!("WSURL" in config)) {
+    config.WSURL = "ws://localhost:" + serverPort;
+  }
+
+  if (!("ROOTURL" in config)) {
+    config.ROOTURL = "http://localhost:" + serverPort;
+  }
+
+  app.set('config', config);
 
   server = http.createServer(this);
   _createWebSocketServer();

@@ -1,8 +1,9 @@
 /* global app, chai, describe, it */
+/* jshint expr:true */
 var expect = chai.expect;
 
 describe("App", function() {
-  it("Instance", function() {
-    expect(!!app).to.equal(true);
+  it("should exist", function() {
+    expect(app).to.exist;
   });
 });

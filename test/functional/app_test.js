@@ -5,10 +5,7 @@ var presence = require("../../presence"),
     app = presence.app;
 var expect = require("chai").expect;
 
-var serverPort = 5000;
-var serverHost = "localhost";
-var serverHttpBase = 'http://' + serverHost + ':' + serverPort;
-
+var serverPort = 3000;
 var webdriver = require('selenium-webdriver'),
     By = webdriver.By;
 
@@ -40,16 +37,16 @@ describe("browser tests", function() {
   });
 
   it("should open the homepage", function(done) {
-    driver.get(serverHttpBase);
+    driver.switchTo().frame("//#social-sidebar-browser");
     driver.getTitle().then(function(title) {
-      expect(title).to.equal("Talkilla");
+      expect(title).to.equal("Talkilla Sidebar");
       done();
     });
   });
 
   it("should sign users in", function(done) {
     // Sign in user 1
-    driver.get(serverHttpBase);
+    driver.switchTo().frame("//#social-sidebar-browser");
     driver.findElement(By.name("nick")).sendKeys("bob");
     driver.findElement(By.id("submit")).click();
     driver.findElement(By.css("strong.nick")).getText().then(function(nick) {
@@ -63,7 +60,7 @@ describe("browser tests", function() {
     });
 
     // Sign in user 2
-    driver2.get(serverHttpBase);
+    driver2.switchTo().frame("//#social-sidebar-browser");
     driver2.findElement(By.name("nick")).sendKeys("larry");
     driver2.findElement(By.id("submit")).click();
     driver2.findElement(By.css("strong.nick")).getText().then(function(nick) {
@@ -82,7 +79,8 @@ describe("browser tests", function() {
 
   it("should sign users out", function(done) {
     // Sign in user 1
-    driver.get(serverHttpBase);
+    driver.switchTo().frame("//#social-sidebar-browser");
+    driver.navigate().refresh();
     driver.findElement(By.name("nick")).sendKeys("bob");
     driver.findElement(By.id("submit")).click();
     driver.findElement(By.id("signout")).isDisplayed().then(function(res) {
@@ -90,7 +88,8 @@ describe("browser tests", function() {
     });
 
     // Sign in user 2
-    driver2.get(serverHttpBase);
+    driver2.switchTo().frame("//#social-sidebar-browser");
+    driver2.navigate().refresh();
     driver2.findElement(By.name("nick")).sendKeys("larry");
     driver2.findElement(By.id("submit")).click();
     driver2.findElement(By.css("strong.nick")).getText().then(function(nick) {
@@ -123,8 +122,34 @@ describe("browser tests", function() {
     });
   });
 
+  it("should open a chat window when clicking a nick", function(done) {
+    // Sign in user 1
+    driver.switchTo().frame("//#social-sidebar-browser");
+    driver.navigate().refresh();
+    driver.findElement(By.name("nick")).sendKeys("bob");
+    driver.findElement(By.id("submit")).click();
+
+    // Sign in user 2
+    driver2.switchTo().frame("//#social-sidebar-browser");
+    driver2.navigate().refresh();
+    driver2.findElement(By.name("nick")).sendKeys("larry");
+    driver2.findElement(By.id("submit")).click();
+
+    // Click a nick
+    driver2.findElement(By.css("ul.nav-list>li>a")).click();
+
+    // Check that we have a chat window
+    driver2.switchTo().frame("//chatbox");
+
+    // Check that a #call element exists
+    driver2.findElement(By.id("call")).then(function() {
+      done();
+    });
+  });
+
   it("should handle an interuppted websocket connection", function(done) {
-    driver.get(serverHttpBase);
+    driver.switchTo().frame("//#social-sidebar-browser");
+    driver.navigate().refresh();
     driver.findElement(By.name("nick")).sendKeys("bob");
     driver.findElement(By.id("submit")).click();
     driver.findElement(By.css("strong.nick")).getText().then(function(nick) {

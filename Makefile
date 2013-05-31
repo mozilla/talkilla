@@ -1,4 +1,4 @@
-test: mocha jshint selenium
+test: jshint mocha selenium_all
 
 install:
 	@npm install
@@ -18,10 +18,14 @@ runserver:
 runserver_dev:
 	@env NODE_ENV=development PORT=5000 node app.js
 
+selenium_all:
+  # This command should include the directories from both the selenium and frontend targets
+	@env NO_LOCAL_CONFIG=true NODE_ENV=development bin/run_selenium_test.sh test/functional/ test/frontend/run_tests.js
+
 selenium:
-	bin/selenium.sh start
-	@env NODE_ENV=development ./node_modules/mocha/bin/mocha test/functional/ --reporter spec
-	bin/selenium.sh stop
+	@env NO_LOCAL_CONFIG=true NODE_ENV=development bin/run_selenium_test.sh test/functional/
+
+frontend:
+	@env NO_LOCAL_CONFIG=true NODE_ENV=development bin/run_selenium_test.sh test/frontend/run_tests.js
 
 .PHONY: test
-
