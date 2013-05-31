@@ -541,14 +541,14 @@ describe("CallView", function() {
 
     it("should throw an error when no webrtc model is given", function() {
       function shouldExplode() {
-        new app.views.CallView({el: 'fakeDom'})
+        new app.views.CallView({el: 'fakeDom'});
       }
       expect(shouldExplode).to.Throw(Error, /missing parameter: webrtc/);
     });
 
     it("should throw an error when no el parameter is given", function() {
       function shouldExplode() {
-        new app.views.CallView({webrtc: 'fakeWebrtc'})
+        new app.views.CallView({webrtc: 'fakeWebrtc'});
       }
       expect(shouldExplode).to.Throw(Error, /missing parameter: el/);
     });

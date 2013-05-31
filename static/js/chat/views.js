@@ -14,9 +14,9 @@
     initialize: function(options) {
       options = options || {};
       if (!options.webrtc)
-        throw Error("missing parameter: webrtc");
+        throw new Error("missing parameter: webrtc");
       if (!options.el)
-        throw Error("missing parameter: el");
+        throw new Error("missing parameter: el");
 
       this.webrtc = options.webrtc;
       this.webrtc.on('change:localStream', this._displayLocalVideo, this);
