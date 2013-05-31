@@ -178,6 +178,13 @@ var handlers = {
 
   'talkilla.chat-window-ready': function() {
     this.postEvent("talkilla.call-start", currentCall);
+  },
+
+  'talkilla.sidebar-ready': function() {
+    this.postEvent('talkilla.login-success', {
+      username: _currentUserData.userName
+    });
+
   }
 };
 
