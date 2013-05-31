@@ -49,6 +49,11 @@ var serverHandlers = {
 
   'call_accepted': function(data) {
     currentCall.port.postEvent('talkilla.call-establishment', data);
+  },
+
+  'call_hangup': function(data) {
+    currentCall.port.postEvent('talkilla.call-hangup', data);
+    currentCall = undefined;
   }
 };
 

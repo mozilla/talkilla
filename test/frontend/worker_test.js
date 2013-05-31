@@ -864,4 +864,44 @@ describe('Worker', function() {
           'talkilla.call-establishment', data);
       });
   });
+
+  describe("#call_hangup", function() {
+    var sandbox;
+
+    beforeEach(function() {
+      sandbox = sinon.sandbox.create();
+      browserPort = {postEvent: sandbox.spy()};
+    });
+
+    afterEach(function() {
+      browserPort = undefined;
+      sandbox.restore();
+    });
+
+    it("should notify the chat window", function() {
+      handlers.postEvent = sandbox.spy();
+      var data = {
+        other: "bob",
+      };
+      currentCall = {port: {postEvent: handlers.postEvent}, data: data};
+
+      serverHandlers.call_hangup(data);
+
+      sinon.assert.calledOnce(handlers.postEvent);
+      sinon.assert.calledWithExactly(handlers.postEvent,
+        'talkilla.call-hangup', data);
+    });
+
+    it("should clear the current call data", function() {
+      handlers.postEvent = sandbox.spy();
+      var data = {
+        other: "bob",
+      };
+      currentCall = {port: {postEvent: handlers.postEvent}, data: data};
+
+      serverHandlers.call_hangup(data);
+
+      expect(currentCall).to.be.equal(undefined);
+    });
+  });
 });
