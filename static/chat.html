@@ -10,13 +10,13 @@
 <body>
   <div class="container-fluid">
     <div class="row-fluid">
-      <div class="span9 main">
+      <div>
 
         <!-- Call view -->
-        <div id="call" class="hide">
+        <div id="call">
           <div class="video-area">
             <strong class="callee"></strong>
-            <div class="controls" id="controls">
+            <div id="controls">
               <a class="btn btn-hangup disabled"><i class="icon-stop"></i> End call</a>
             </div>
             <video id="remote-video" class="remote-video"></video>
@@ -45,13 +45,14 @@
   <script src="vendor/state-machine-2.2.0.js"></script>
   <script src="js/chat/app.js"></script>
   <script src="js/port.js"></script>
-  <script src="js/media.js"></script>
   <script src="js/models.js"></script>
-  <script src="js/utils.js"></script>
-  <script src="js/views.js"></script>
+  <script src="js/chat/views.js"></script>
   <script>
-    // mozSocial fake object, for local manual testing
-    if (!navigator.mozSocial) {
+    function localConfiguration(config) {
+      if (!config || !config.DEBUG || 'mozSocial' in navigator) {
+        return;
+      }
+      // mozSocial fake object, for local manual testing
       navigator.mozSocial = {
         getWorker: function() {
           return {
@@ -66,8 +67,10 @@
         }
       };
     }
-    $(function() {
+
+    jQuery(function($) {
       $.getJSON('/config.json', function(config) {
+        localConfiguration(config);
         app.start(config);
         window.chatApp = new ChatApp();
       });

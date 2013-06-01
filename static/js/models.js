@@ -31,27 +31,34 @@
   app.models.WebRTCCall = Backbone.Model.extend({
     initialize: function() {
       this.pc = new mozRTCPeerConnection();
+      this.pc.onaddstream = function (event) {
+        this.set("remoteStream", event.stream);
+      }.bind(this);
 
       this._onError = this._onError.bind(this);
     },
 
     offer: function() {
-      var callback = this.trigger.bind(this, "sdp");
+      var callback = this.trigger.bind(this, "offer-ready");
       this._getMedia(this._createOffer.bind(this, callback), this._onError);
     },
 
     establish: function(answer) {
       var answerDescription = new mozRTCSessionDescription(answer);
-      this.pc.setRemoteDescription(answerDescription, null, this._onError);
+      var cb = function() {};
+      this.pc.setRemoteDescription(answerDescription, cb, this._onError);
     },
 
     answer: function(offer) {
-      var callback = this.trigger.bind(this, "sdp");
+      var callback = this.trigger.bind(this, "answer-ready");
       var createAnswer = this._createAnswer.bind(this, offer, callback);
       this._getMedia(createAnswer, this._onError);
     },
 
     _createOffer: function(callback) {
+      if (!this.get('video') && !this.get('audio'))
+        return this._onError("Call type has not been defined");
+
       this.pc.createOffer(function(offer) {
         var cb = callback.bind(this, offer);
         this.pc.setLocalDescription(offer, cb, this._onError);
@@ -59,9 +66,12 @@
     },
 
     _createAnswer: function(offer, callback) {
+      if (!this.get('video') && !this.get('audio'))
+        return this._onError("Call type has not been defined");
+
       var offerDescription = new mozRTCSessionDescription(offer);
       this.pc.setRemoteDescription(offerDescription, function() {
-        this.pc.createAnswer(offer, function(answer) {
+        this.pc.createAnswer(function(answer) {
           var cb = callback.bind(this, answer);
           this.pc.setLocalDescription(answer, cb, this._onError);
         }.bind(this), this._onError);
@@ -70,10 +80,20 @@
 
     _getMedia: function(callback, errback) {
       var constraints = {video: this.get('video'), audio: this.get('audio')};
-      navigator.mozGetUserMedia(constraints, callback, errback);
+
+      var cb = function (localStream) {
+        this.pc.addStream(localStream);
+        this.set("localStream", localStream);
+        callback();
+      }.bind(this);
+
+      navigator.mozGetUserMedia(constraints, cb, errback);
     },
 
-    _onError: function() {}
+    _onError: function(error) {
+      // XXX Better error logging and handling
+      console.log("WebRTCCall error: " + error);
+    }
   });
 
   app.models.IncomingCall = Backbone.Model.extend({

@@ -34,9 +34,9 @@ var browserDetection = (function ($) {
     data = data || {
       // currently required
       "name": "Talkilla" + this._getHostSpecificText(),
-      "iconURL": baseUrl + "/talkilla16.png",
-      "icon32URL": baseUrl + "/talkilla32.png",
-      "icon64URL": baseUrl + "/talkilla64.png",
+      "iconURL": baseUrl + "/img/talkilla16.png",
+      "icon32URL": baseUrl + "/img/talkilla32.png",
+      "icon64URL": baseUrl + "/img/talkilla64.png",
 
       // at least one of these must be defined
       "sidebarURL": baseUrl + "/sidebar.html",

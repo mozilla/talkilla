@@ -1,4 +1,4 @@
-/* global app, Backbone, _, jQuery, chatApp */
+/* global app, Backbone, _, jQuery */
 /**
  * Talkilla Backbone views.
  */
@@ -519,72 +519,6 @@
       this.$('.callee').text(this.callee.get('nick'));
       this.initiate();
       this.$el.show();
-      return this;
-    }
-  });
-
-  /**
-   * Text chat entry view.
-   */
-  app.views.TextChatEntryView = Backbone.View.extend({
-    template: _.template([
-      '<dt><%= nick %></dt>',
-      '<dd><%= message %></dd>'
-    ].join('')),
-
-    render: function() {
-      this.$el.html(this.template(this.model.toJSON()));
-      return this;
-    }
-  });
-
-  /**
-   * Text chat conversation view.
-   */
-  app.views.TextChatView = Backbone.View.extend({
-    el: '#textchat',
-
-    caller: undefined,
-    callee: undefined,
-
-    events: {
-      'submit form': 'send'
-    },
-
-    constructor: function() {
-      Backbone.View.apply(this, arguments);
-
-      app.port.on('talkilla.call-start', function(caller, callee) {
-        this.caller = caller;
-        this.callee = callee;
-      }, this);
-
-      app.port.on('talkilla.call-incoming', function(caller, callee) {
-        this.caller = caller;
-        this.callee = callee;
-      }, this);
-
-      this.collection.on('add', function() {
-        this.render();
-      }, this);
-    },
-
-    send: function(event) {
-      event.preventDefault();
-      var $input = this.$('form input[name="message"]');
-      this.collection.add({
-        nick: this.caller,
-        message: $input.val().trim()
-      });
-      $input.val('');
-    },
-
-    render: function() {
-      var $dl = this.$('dl').empty();
-      this.collection.each(function(entry) {
-        var view = new app.views.TextChatEntryView({model: entry});
-        $dl.append(view.render().$el);
-      });
       return this;
     }
   });

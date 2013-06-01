@@ -41,10 +41,28 @@ UserData.prototype = {
   }
 };
 
+var serverHandlers = {
+  'incoming_call': function(data) {
+    currentCall = {port: undefined, data: data};
+    browserPort.postEvent('social.request-chat', 'chat.html');
+  },
+
+  'call_accepted': function(data) {
+    currentCall.port.postEvent('talkilla.call-establishment', data);
+  }
+};
+
 function _presenceSocketOnMessage(event) {
   var data = JSON.parse(event.data);
   for (var eventType in data)
-    ports.broadcastEvent("talkilla." + eventType, data[eventType]);
+    if (eventType in serverHandlers)
+      serverHandlers[eventType](data[eventType]);
+    else
+      ports.broadcastEvent("talkilla." + eventType, data[eventType]);
+}
+
+function _presenceSocketSendMessage(data) {
+  _presenceSocket.send(data);
 }
 
 function _presenceSocketOnOpen(event) {
@@ -172,12 +190,42 @@ var handlers = {
   },
 
   'talkilla.call-start': function(event) {
-    currentCall = event.data;
+    currentCall = {port: undefined, data: event.data};
     browserPort.postEvent("social.request-chat", 'chat.html');
   },
 
   'talkilla.chat-window-ready': function() {
-    this.postEvent("talkilla.call-start", currentCall);
+    currentCall.port = this;
+
+    // If this is an incoming call, we won't have the port yet.
+    var topic = currentCall.data.offer ?
+      "talkilla.call-incoming" :
+      "talkilla.call-start";
+
+    this.postEvent(topic, currentCall.data);
+
+  },
+
+  /**
+   * The data for talkilla.call-offer is:
+   *
+   * - callee: the person you are calling
+   * - caller: the person who is calling you
+   * - offer: an RTCSessionDescription containing the sdp data for the call.
+   */
+  'talkilla.call-offer': function(event) {
+    _presenceSocketSendMessage(JSON.stringify({ 'call_offer': event.data }));
+  },
+
+  /**
+   * The data for talkilla.call-answer is:
+   *
+   * - callee: the person you are calling
+   * - caller: the person who is calling you
+   * - offer: an RTCSessionDescription containing the sdp data for the call.
+   */
+  'talkilla.call-answer': function (event) {
+    _presenceSocketSendMessage(JSON.stringify({ 'call_accepted': event.data }));
   }
 };
 
