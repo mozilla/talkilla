@@ -446,11 +446,8 @@ describe("Server", function() {
         calleeWs.on('message', function(data) {
           var message = JSON.parse(data);
 
-          if (message.incoming_call) {
-            expect(message).to.be.an('object');
-            expect(message.incoming_call.caller).to.equal('first');
-            done();
-          }
+          expect(message.incoming_call.caller).to.equal('first');
+          done();
         });
 
         callerWs.send(JSON.stringify({
@@ -465,11 +462,8 @@ describe("Server", function() {
         callerWs.on('message', function(data) {
           var message = JSON.parse(data);
 
-          if (message.call_accepted) {
-            expect(message).to.be.an('object');
-            expect(message.call_accepted.caller).to.equal('first');
-            done();
-          }
+          expect(message.call_accepted.caller).to.equal('first');
+          done();
         });
 
         calleeWs.send(JSON.stringify({
@@ -482,11 +476,8 @@ describe("Server", function() {
       callerWs.on('message', function(data) {
         var message = JSON.parse(data);
 
-        if (message.call_hangup) {
-          expect(message).to.be.an('object');
-          expect(message.call_hangup.other).to.equal('first');
-          done();
-        }
+        expect(message.call_hangup.other).to.equal('first');
+        done();
       });
 
       calleeWs.send(JSON.stringify({
