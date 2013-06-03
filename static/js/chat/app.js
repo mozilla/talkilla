@@ -55,7 +55,7 @@ var ChatApp = (function($, Backbone, _) {
     }, this);
 
     this.textChat.on('entry.created', function(entry) {
-      this.webrtc.send(JSON.stringify(entry.toJSON()));
+      this.webrtc.send(JSON.stringify(entry));
     }, this);
   }
 
