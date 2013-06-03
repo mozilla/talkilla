@@ -55,6 +55,11 @@ describe("ChatApp", function() {
       "_onIncomingCall", incomingCallData);
   });
 
+  it("should attach _onCallHangup to talkilla.call-hangup", function() {
+    assertEventTriggersHandler("talkilla.call-hangup",
+      "_onCallHangup", { other: "mark" });
+  });
+
   function assertModelEventTriggersHandler(event, handler) {
     "use strict";
 
@@ -137,8 +142,8 @@ describe("ChatApp", function() {
       it("should set the caller and callee", function() {
         chatApp._onStartingCall(callData);
 
-        expect(chatApp.call.get('caller')).to.equal(callData.caller);
-        expect(chatApp.call.get('callee')).to.equal(callData.callee);
+        expect(chatApp.call.get('id')).to.equal(callData.caller);
+        expect(chatApp.call.get('otherUser')).to.equal(callData.callee);
       });
 
       it("should start the call", function() {
@@ -167,8 +172,8 @@ describe("ChatApp", function() {
       it("should set the caller and callee", function() {
         chatApp._onIncomingCall(incomingCallData);
 
-        expect(chatApp.call.get('caller')).to.equal(incomingCallData.caller);
-        expect(chatApp.call.get('callee')).to.equal(incomingCallData.callee);
+        expect(chatApp.call.get('otherUser')).to.equal(incomingCallData.caller);
+        expect(chatApp.call.get('id')).to.equal(incomingCallData.callee);
       });
 
       it("should set the call as incoming", function() {
@@ -219,6 +224,30 @@ describe("ChatApp", function() {
 
     });
 
+    describe("#_onCallHangup", function() {
+      var hangupData = { other: "mark" };
+
+      it("should call the _hangup function", function() {
+        sandbox.stub(chatApp, "_hangup");
+        sandbox.stub(window, "close");
+
+        chatApp._onCallHangup(hangupData);
+
+        sinon.assert.calledOnce(chatApp._hangup);
+        sinon.assert.calledWithExactly(chatApp._hangup);
+      });
+
+      it("should close the window", function() {
+        sandbox.stub(chatApp, "_hangup");
+        sandbox.stub(window, "close");
+
+        chatApp._onCallHangup(hangupData);
+
+        sinon.assert.calledOnce(window.close);
+        sinon.assert.calledWithExactly(window.close);
+      });
+    });
+
     describe("#_onOfferReady", function() {
       it("should post an event to the worker when offer-ready is triggered",
         function() {
@@ -245,6 +274,60 @@ describe("ChatApp", function() {
 
           sinon.assert.calledOnce(app.port.postEvent);
         });
+    });
+
+    describe("#_hangup", function() {
+      it("should set the call as hung up", function() {
+        sandbox.stub(chatApp.call, "hangup");
+        sandbox.stub(chatApp.webrtc, "hangup");
+
+        chatApp._hangup();
+
+        sinon.assert.calledOnce(chatApp.call.hangup);
+        sinon.assert.calledWithExactly(chatApp.call.hangup);
+      });
+
+      it("should close the window", function() {
+        sandbox.stub(chatApp.call, "hangup");
+        sandbox.stub(chatApp.webrtc, "hangup");
+
+        chatApp._hangup();
+
+        sinon.assert.calledOnce(chatApp.webrtc.hangup);
+        sinon.assert.calledWithExactly(chatApp.webrtc.hangup);
+      });
+    });
+
+    describe("#doHangup", function() {
+      var savedCall;
+
+      beforeEach(function() {
+        savedCall = chatApp.call;
+        chatApp.call = new app.models.Call();
+        chatApp.call.start();
+        chatApp.call.set({otherUser: 'mark'});
+      });
+
+      afterEach(function() {
+        chatApp.call = savedCall;
+      });
+
+      it("should send a hangup message if the state is not ready", function() {
+        sandbox.stub(chatApp, "_hangup");
+        chatApp.doHangup();
+
+        sinon.assert.calledOnce(chatApp.port.postEvent);
+        sinon.assert.calledWithExactly(chatApp.port.postEvent,
+          'talkilla.call-hangup', {other: 'mark'});
+      });
+
+      it("should call _hangup", function() {
+        sandbox.stub(chatApp, "_hangup");
+        chatApp.doHangup();
+
+        sinon.assert.calledOnce(chatApp._hangup);
+        sinon.assert.calledWithExactly(chatApp._hangup);
+      });
     });
   });
 });
@@ -310,6 +393,21 @@ describe("Call", function() {
       expect(call.state.current).to.equal('ongoing');
     });
 
+  });
+
+  describe("#hangup", function() {
+    it("should change the state from pending to terminated", function() {
+      call.start();
+      call.hangup();
+      expect(call.state.current).to.equal('terminated');
+    });
+
+    it("should change the state from ongoing to terminated", function() {
+      call.start();
+      call.accept();
+      call.hangup();
+      expect(call.state.current).to.equal('terminated');
+    });
   });
 
 });
@@ -399,6 +497,17 @@ describe("WebRTCCall", function() {
       sinon.assert.calledOnce(webrtc.pc.setRemoteDescription);
       sinon.assert.calledWith(webrtc.pc.setRemoteDescription,
                               new mozRTCSessionDescription(answer));
+    });
+
+  });
+
+  describe("#hangup", function() {
+
+    it("should close the peer connection", function() {
+      webrtc.pc = {close: sinon.spy()};
+      webrtc.hangup();
+
+      sinon.assert.calledOnce(webrtc.pc.close);
     });
 
   });
@@ -788,6 +897,44 @@ describe("CallView", function() {
 
         sinon.assert.calledOnce(callView._displayRemoteVideo);
       });
+  });
+
+  describe("events", function() {
+    it("should call hangup() when a click event is fired on the hangup button",
+      function() {
+        var el = $('<div><button class="btn-hangup"/></div>');
+        $("#fixtures").append(el);
+        sandbox.stub(app.views.CallView.prototype, "initialize");
+        sandbox.stub(app.views.CallView.prototype, "hangup");
+        var callView = new app.views.CallView({el: el});
+
+        $(el).find('button').click();
+        sinon.assert.calledOnce(callView.hangup);
+
+        $("#fixtures").empty();
+      });
+  });
+
+  describe("#hangup", function() {
+    var chatApp, callView;
+
+    beforeEach(function() {
+      chatApp = window.chatApp = new ChatApp();
+      sandbox.stub(chatApp, "doHangup");
+      sandbox.stub(window, "close");
+      sandbox.stub(app.views.CallView.prototype, "initialize");
+      callView = new app.views.CallView({el: el, webrtc: webrtc});
+    });
+
+    it('should trigger a hangup event on the chatApp', function() {
+      callView.hangup();
+      sinon.assert.calledOnce(chatApp.doHangup);
+    });
+
+    it('should close the window', function() {
+      callView.hangup();
+      sinon.assert.calledOnce(window.close);
+    });
   });
 
   describe("#_displayLocalVideo", function() {

@@ -396,7 +396,7 @@ describe("Server", function() {
 
   });
 
-  describe("call offer", function() {
+  describe("call handling", function() {
     var callerWs,
         calleeWs,
         messages = {callee: [], caller: []};
@@ -446,8 +446,9 @@ describe("Server", function() {
         calleeWs.on('message', function(data) {
           var message = JSON.parse(data);
 
+          // The first message received on creating the socket has topic
+          // 'users' so ignore that here.
           if (message.incoming_call) {
-            expect(message).to.be.an('object');
             expect(message.incoming_call.caller).to.equal('first');
             done();
           }
@@ -465,8 +466,9 @@ describe("Server", function() {
         callerWs.on('message', function(data) {
           var message = JSON.parse(data);
 
+          // The first message received on creating the socket has topic
+          // 'users' so ignore that here.
           if (message.call_accepted) {
-            expect(message).to.be.an('object');
             expect(message.call_accepted.caller).to.equal('first');
             done();
           }
@@ -476,5 +478,26 @@ describe("Server", function() {
           "call_accepted": { caller: "first", callee: "second" }
         }));
       });
+
+    it("should notify a user that a call has been ended", function(done) {
+      /*jshint camelcase:false*/
+      callerWs.on('message', function(data) {
+        var message = JSON.parse(data);
+
+        // The first message received on creating the socket has topic
+        // 'users' so ignore that here.
+        if (message.call_hangup) {
+          // Although we send first, we should get second as the result
+          // as the receiver of the message needs to know who hung up the
+          // call.
+          expect(message.call_hangup.other).to.equal('second');
+          done();
+        }
+      });
+
+      calleeWs.send(JSON.stringify({
+        "call_hangup": { other: "first" }
+      }));
+    });
   });
 });
