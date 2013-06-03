@@ -92,49 +92,4 @@
   app.port.logout = function() {
     this.postEvent('talkilla.logout');
   };
-
-  /**
-   * Initiates a call.
-   *
-   * @param  {app.models.User} callee The user to call
-   * @param  {Object}          offer  JSON blob of the peer connection data to
-   *                                  send to the callee.
-   */
-  app.port.initiateCall = function(callee, offer) {
-    // XXX to be replaced
-    /* jshint unused:false */
-    /*
-    var call = {
-      caller: app.data.user.get('nick'),
-      callee: callee.get('nick'),
-      offer: offer
-    };
-
-    // send call offer to the server
-    app.port.ws.send(JSON.stringify({"call_offer": call}));
-    app.port.trigger('call_offer', call);
-    */
-  };
-
-  /**
-   * Accepts a call.
-   *
-   * @param  {app.models.User} caller The user emitter of the call
-   * @param  {Object}          answer JSON blob of the peer connection data to
-   *                                  send to the caller.
-   */
-  app.port.acceptCall = function(caller, answer) {
-    // XXX to be replaced
-    /* jshint unused:false */
-    // send call answer to the server
-    /*
-    app.port.ws.send(JSON.stringify({
-      "call_accepted": {
-        caller: caller.get('nick'),
-        callee: app.data.user.get('nick'),
-        answer: answer
-      }
-    }));
-    */
-  };
 })(app, Backbone, _);
