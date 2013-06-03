@@ -49,7 +49,7 @@ var ChatApp = (function($, Backbone, _) {
 
   // Outgoing calls
   ChatApp.prototype._onStartingCall = function(data) {
-    this.call.set({caller: data.caller, callee: data.callee});
+    this.call.set({id: data.caller, otherUser: data.callee});
     this.call.start();
     // XXX Assume both video and audio call for now
     // Really webrtc and calls should be set up on clicking a button
@@ -64,7 +64,7 @@ var ChatApp = (function($, Backbone, _) {
 
   // Incoming calls
   ChatApp.prototype._onIncomingCall = function(data) {
-    this.call.set({caller: data.caller, callee: data.callee});
+    this.call.set({otherUser: data.caller, id: data.callee});
     this.call.incoming();
     // XXX Assume both video and audio call for now
     // Really webrtc and calls should be set up on clicking a button
@@ -80,8 +80,8 @@ var ChatApp = (function($, Backbone, _) {
 
   ChatApp.prototype._onOfferReady = function(offer) {
     var callData = {
-      caller: this.call.get("caller"),
-      callee: this.call.get("callee"),
+      caller: this.call.get("id"),
+      callee: this.call.get("otherUser"),
       offer: offer
     };
 
@@ -90,8 +90,8 @@ var ChatApp = (function($, Backbone, _) {
 
   ChatApp.prototype._onAnswerReady = function(answer) {
     var callData = {
-      caller: this.call.get("caller"),
-      callee: this.call.get("callee"),
+      caller: this.call.get("otherUser"),
+      callee: this.call.get("id"),
       answer: answer
     };
 
@@ -100,7 +100,7 @@ var ChatApp = (function($, Backbone, _) {
 
   ChatApp.prototype.doHangup = function() {
     if (this.call.state.current !== "ready") {
-      var other = this.call.get("caller");
+      var other = this.call.get("otherUser");
       this.port.postEvent('talkilla.call-hangup', {other: other});
     }
 

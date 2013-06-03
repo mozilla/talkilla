@@ -143,8 +143,8 @@ describe("ChatApp", function() {
       it("should set the caller and callee", function() {
         chatApp._onStartingCall(callData);
 
-        expect(chatApp.call.get('caller')).to.equal(callData.caller);
-        expect(chatApp.call.get('callee')).to.equal(callData.callee);
+        expect(chatApp.call.get('id')).to.equal(callData.caller);
+        expect(chatApp.call.get('otherUser')).to.equal(callData.callee);
       });
 
       it("should start the call", function() {
@@ -173,8 +173,8 @@ describe("ChatApp", function() {
       it("should set the caller and callee", function() {
         chatApp._onIncomingCall(incomingCallData);
 
-        expect(chatApp.call.get('caller')).to.equal(incomingCallData.caller);
-        expect(chatApp.call.get('callee')).to.equal(incomingCallData.callee);
+        expect(chatApp.call.get('otherUser')).to.equal(incomingCallData.caller);
+        expect(chatApp.call.get('id')).to.equal(incomingCallData.callee);
       });
 
       it("should set the call as incoming", function() {
@@ -306,7 +306,7 @@ describe("ChatApp", function() {
         savedCall = chatApp.call;
         chatApp.call = new app.models.Call();
         chatApp.call.start();
-        chatApp.call.set({caller: 'mark'});
+        chatApp.call.set({otherUser: 'mark'});
       });
 
       afterEach(function() {
