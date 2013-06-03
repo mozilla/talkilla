@@ -60,10 +60,9 @@
    * Text chat conversation view.
    */
   app.views.TextChatView = Backbone.View.extend({
-    el: '#textchat',
+    el: '#textchat', // XXX: uncouple the selector from this view
 
-    caller: undefined,
-    callee: undefined,
+    me: undefined,
 
     events: {
       'submit form': 'send'
@@ -73,13 +72,11 @@
       Backbone.View.apply(this, arguments);
 
       app.port.on('talkilla.call-start', function(caller, callee) {
-        this.caller = caller;
-        this.callee = callee;
+        this.me = caller;
       }, this);
 
       app.port.on('talkilla.call-incoming', function(caller, callee) {
-        this.caller = caller;
-        this.callee = callee;
+        this.me = callee;
       }, this);
 
       this.collection.on('add', function() {
@@ -91,7 +88,7 @@
       event.preventDefault();
       var $input = this.$('form input[name="message"]');
       this.collection.add({
-        nick: this.caller,
+        nick: this.me,
         message: $input.val().trim()
       });
       $input.val('');

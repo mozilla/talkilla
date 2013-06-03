@@ -31,9 +31,19 @@
   app.models.WebRTCCall = Backbone.Model.extend({
     initialize: function() {
       this.pc = new mozRTCPeerConnection();
-      this.pc.onaddstream = function (event) {
+
+      this.pc.onaddstream = function(event) {
         this.set("remoteStream", event.stream);
       }.bind(this);
+
+      // // data channel for incoming calls
+      this.pc.ondatachannel = this._setupDataChannel.bind(this);
+
+      // data channel for outgoing calls
+      this.on('offer-ready', this._setupDataChannel.bind(
+        this,
+        this.pc.createDataChannel('dc', {})
+      ));
 
       this._onError = this._onError.bind(this);
     },
@@ -88,6 +98,27 @@
       }.bind(this);
 
       navigator.mozGetUserMedia(constraints, cb, errback);
+    },
+
+    _setupDataChannel: function(dataChannel) {
+      this.dc = dataChannel;
+      this.dc.binaryType = 'blob';
+
+      this.dc.onopen = function(event) {
+        this.trigger('dc.open', event);
+      }.bind(this);
+
+      this.dc.onmessage = function(event) {
+        this.trigger('dc.message', event);
+      }.bind(this);
+
+      this.dc.onerror = function(event) {
+        this.trigger('dc.error', event);
+      }.bind(this);
+
+      this.dc.onclose = function(event) {
+        this.trigger('dc.close', event);
+      }.bind(this);
     },
 
     _onError: function(error) {

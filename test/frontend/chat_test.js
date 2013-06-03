@@ -513,14 +513,94 @@ describe("WebRTCCall", function() {
     sandbox.stub(window, "mozRTCPeerConnection");
     var fakeRemoteStream = "fakeRemoteStream";
     var event = {stream: fakeRemoteStream};
-    var pc = {};
-    mozRTCPeerConnection.returns(pc);
+    var fakePC = {createDataChannel: function() {}};
+    mozRTCPeerConnection.returns(fakePC);
     webrtc = new app.models.WebRTCCall();
 
-    pc.onaddstream(event);
+    fakePC.onaddstream(event);
 
     expect(webrtc.get("remoteStream")).to.equal(fakeRemoteStream);
   });
+
+  describe("#_setupDataChannel", function() {
+    it("should attach _setupDataChannel to pc.ondatachannel", function() {
+      var fakePC = {createDataChannel: function() {}};
+      sandbox.stub(window, "mozRTCPeerConnection").returns(fakePC);
+      var _setupDataChannel = sandbox.stub(app.models.WebRTCCall.prototype,
+                                          "_setupDataChannel");
+      new app.models.WebRTCCall();
+
+      fakePC.ondatachannel();
+
+      sinon.assert.calledOnce(_setupDataChannel);
+    });
+
+    it("should setup a data channel on offer-ready", function(done) {
+      var fakePC = {createDataChannel: function() {}};
+      sandbox.stub(window, "mozRTCPeerConnection").returns(fakePC);
+      var _setupDataChannel = sandbox.stub(app.models.WebRTCCall.prototype,
+                                          "_setupDataChannel");
+      var rtcCall = new app.models.WebRTCCall();
+
+      rtcCall.on('offer-ready', function() {
+        sinon.assert.calledOnce(_setupDataChannel);
+        done();
+      }).trigger('offer-ready');
+    });
+
+    it("should setup a data channel", function() {
+      var rtcCall = new app.models.WebRTCCall();
+      var fakeDC = {};
+
+      rtcCall._setupDataChannel(fakeDC);
+
+      expect(fakeDC).to.be.a('object');
+      expect(fakeDC.binaryType).to.equal('blob');
+      expect(fakeDC).to.include.keys([
+        'onopen', 'onmessage', 'onerror', 'onclose']);
+    });
+
+    it("should configure data channel to trigger the dc.open event",
+      function(done) {
+        var rtcCall = new app.models.WebRTCCall();
+        rtcCall._setupDataChannel({});
+        rtcCall.on('dc.open', function() {
+          done();
+        });
+        rtcCall.dc.onopen();
+      });
+
+    it("should configure data channel to trigger the dc.close event",
+      function(done) {
+        var rtcCall = new app.models.WebRTCCall();
+        rtcCall._setupDataChannel({});
+        rtcCall.on('dc.close', function() {
+          done();
+        });
+        rtcCall.dc.onclose();
+      });
+
+    it("should configure data channel to trigger the dc.message event",
+      function(done) {
+        var rtcCall = new app.models.WebRTCCall();
+        rtcCall._setupDataChannel({});
+        rtcCall.on('dc.message', function() {
+          done();
+        });
+        rtcCall.dc.onmessage();
+      });
+
+    it("should configure data channel to trigger the dc.error event",
+      function(done) {
+        var rtcCall = new app.models.WebRTCCall();
+        rtcCall._setupDataChannel({});
+        rtcCall.on('dc.error', function() {
+          done();
+        });
+        rtcCall.dc.onerror();
+      });
+  });
+
 });
 
 describe('Text chat', function() {
