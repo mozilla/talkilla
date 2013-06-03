@@ -1,5 +1,7 @@
 #!/bin/bash
 
+FIREFOX_BZIP2_FILENAME="firefox-24.0a1.en-US.linux-x86_64.tar.bz2"
+FIREFOX_BZIP2_URL="http://ftp.mozilla.org/pub/mozilla.org/firefox/nightly/latest-mozilla-central/$FIREFOX_BZIP2_FILENAME"
 SELENIUM_JAR_FILENAME="selenium-server-standalone-2.32.0a.jar"
 SELENIUM_JAR_URL="http://people.mozilla.com/~mbanner2/talkilla/$SELENIUM_JAR_FILENAME"
 SELENIUM_PID_FILE="/tmp/selenium-server-pid"
@@ -9,6 +11,10 @@ install() {
         echo "Downloading $SELENIUM_JAR_URL"
         curl $SELENIUM_JAR_URL > $SELENIUM_JAR_FILENAME
         echo "Selenium server install in $SELENIUM_JAR_FILENAME"
+    fi
+    if [[ (`uname` != "Darwin") && (!(-e /usr/bin/firefox-nightly)) ]]; then
+        curl $FIREFOX_BZIP2_URL > $FIREFOX_BZIP2_FILENAME
+        tar -xjf $FIREFOX_BZIP2_FILENAME
     fi
 }
 
