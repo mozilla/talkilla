@@ -764,6 +764,42 @@ describe('Worker', function() {
         sinon.assert.calledWithExactly(_presenceSocketSendMessage,
          JSON.stringify({ 'call_accepted': data }));
       });
+
+    it("should send a websocket message when receiving talkilla.call-hangup",
+      function() {
+        _presenceSocketSendMessage = sandbox.spy();
+        var data = {
+          other: "florian"
+        };
+
+        handlers['talkilla.call-hangup']({
+          topic: "talkilla.call-hangup",
+          data: data
+        });
+
+        sinon.assert.calledOnce(_presenceSocketSendMessage);
+        sinon.assert.calledWithExactly(_presenceSocketSendMessage,
+         JSON.stringify({ 'call_hangup': data }));
+      });
+
+    it("should reset the call data when receiving talkilla.call-hangup",
+      function() {
+        currentCall = {
+          port: {},
+          data: { caller: "romain", callee: "florian" }
+        };
+        _presenceSocketSendMessage = sandbox.spy();
+        var data = {
+          other: "florian"
+        };
+
+        handlers['talkilla.call-hangup']({
+          topic: "talkilla.call-hangup",
+          data: data
+        });
+
+        expect(currentCall).to.be.equal(undefined);
+      });
   });
 
   describe("#incoming_call", function() {
@@ -827,5 +863,38 @@ describe('Worker', function() {
         sinon.assert.calledWithExactly(port.postEvent,
           'talkilla.call-establishment', data);
       });
+  });
+
+  describe("#call_hangup", function() {
+    var sandbox, callData;
+
+    beforeEach(function() {
+      sandbox = sinon.sandbox.create();
+      browserPort = {postEvent: sandbox.spy()};
+      handlers.postEvent = sandbox.spy();
+      callData = {
+        other: "bob"
+      };
+      currentCall = {port: {postEvent: handlers.postEvent}, data: callData};
+    });
+
+    afterEach(function() {
+      browserPort = undefined;
+      sandbox.restore();
+    });
+
+    it("should notify the chat window", function() {
+      serverHandlers.call_hangup(callData);
+
+      sinon.assert.calledOnce(handlers.postEvent);
+      sinon.assert.calledWithExactly(handlers.postEvent,
+        'talkilla.call-hangup', callData);
+    });
+
+    it("should clear the current call data", function() {
+      serverHandlers.call_hangup(callData);
+
+      expect(currentCall).to.be.equal(undefined);
+    });
   });
 });

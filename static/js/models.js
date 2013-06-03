@@ -17,7 +17,10 @@
 
           // Incoming call scenario
           {name: 'incoming',  from: 'ready',   to: 'pending'},
-          {name: 'accept',    from: 'pending', to: 'ongoing'}
+          {name: 'accept',    from: 'pending', to: 'ongoing'},
+
+          // Call hangup scenario
+          {name: 'hangup',    from: '*', to: 'terminated'}
         ]
       });
 
@@ -25,6 +28,7 @@
       this.incoming  = this.state.incoming.bind(this.state);
       this.accept    = this.state.accept.bind(this.state);
       this.establish = this.state.establish.bind(this.state);
+      this.hangup    = this.state.hangup.bind(this.state);
     }
   });
 
@@ -53,6 +57,10 @@
       var callback = this.trigger.bind(this, "answer-ready");
       var createAnswer = this._createAnswer.bind(this, offer, callback);
       this._getMedia(createAnswer, this._onError);
+    },
+
+    hangup: function() {
+      this.pc.close();
     },
 
     _createOffer: function(callback) {
