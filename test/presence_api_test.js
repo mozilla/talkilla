@@ -471,7 +471,7 @@ describe("Server", function() {
         }));
       });
 
-    it("should notify the a call has been ended", function(done) {
+    it("should notify a user that a call has been ended", function(done) {
       /*jshint camelcase:false*/
       callerWs.on('message', function(data) {
         var message = JSON.parse(data);
