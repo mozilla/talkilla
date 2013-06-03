@@ -144,7 +144,7 @@ app.post('/signout', function(req, res) {
  * @param  {WebSocket} ws WebSocket client connection
  * @return {WebSocket}
  */
-function configureWs(ws) {
+function configureWs(ws, nick) {
   ws.on('message', function(message) {
     var events;
 
@@ -194,12 +194,13 @@ function configureWs(ws) {
    *
    * data is expected to contain
    * - other: id of the other user for which the call should be hung up.
+   * -
    */
   ws.on('call_hangup', function(data) {
     try {
       var users = app.get('users');
       var other = users[data.other];
-      other.ws.send(JSON.stringify({'call_hangup': data}));
+      other.ws.send(JSON.stringify({'call_hangup': {other: nick}}));
     } catch (e) {console.error('call_deny', e);}
   });
 
@@ -239,7 +240,7 @@ function httpUpgradeHandler(req, socket, upgradeHead) {
     // attach the WebSocket to the user
     // XXX: The user could be signed out at this point
     var users = app.get('users');
-    users[nick].ws = configureWs(ws);
+    users[nick].ws = configureWs(ws, nick);
     app.set('users', users);
 
     Object.keys(users).forEach(function(nick) {

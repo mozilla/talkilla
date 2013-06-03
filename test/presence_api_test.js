@@ -446,8 +446,12 @@ describe("Server", function() {
         calleeWs.on('message', function(data) {
           var message = JSON.parse(data);
 
-          expect(message.incoming_call.caller).to.equal('first');
-          done();
+          // The first message received on creating the socket has topic
+          // 'users' so ignore that here.
+          if (message.incoming_call) {
+            expect(message.incoming_call.caller).to.equal('first');
+            done();
+          }
         });
 
         callerWs.send(JSON.stringify({
@@ -462,8 +466,12 @@ describe("Server", function() {
         callerWs.on('message', function(data) {
           var message = JSON.parse(data);
 
-          expect(message.call_accepted.caller).to.equal('first');
-          done();
+          // The first message received on creating the socket has topic
+          // 'users' so ignore that here.
+          if (message.call_accepted) {
+            expect(message.call_accepted.caller).to.equal('first');
+            done();
+          }
         });
 
         calleeWs.send(JSON.stringify({
@@ -476,8 +484,15 @@ describe("Server", function() {
       callerWs.on('message', function(data) {
         var message = JSON.parse(data);
 
-        expect(message.call_hangup.other).to.equal('first');
-        done();
+        // The first message received on creating the socket has topic
+        // 'users' so ignore that here.
+        if (message.call_hangup) {
+          // Although we send first, we should get second as the result
+          // as the receiver of the message needs to know who hung up the
+          // call.
+          expect(message.call_hangup.other).to.equal('second');
+          done();
+        }
       });
 
       calleeWs.send(JSON.stringify({
