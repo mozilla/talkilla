@@ -73,12 +73,12 @@
     constructor: function() {
       Backbone.View.apply(this, arguments);
 
-      app.port.on('talkilla.call-start', function(caller, callee) {
-        this.me = caller;
+      app.port.on('talkilla.call-start', function(data) {
+        this.me = data.caller; // If I'm receiving this, I'm the caller
       }, this);
 
-      app.port.on('talkilla.call-incoming', function(caller, callee) {
-        this.me = callee;
+      app.port.on('talkilla.call-incoming', function(data) {
+        this.me = data.callee; // If I'm receiving this, I'm the callee
       }, this);
 
       this.collection.on('add', function() {
@@ -89,11 +89,12 @@
     send: function(event) {
       event.preventDefault();
       var $input = this.$('form input[name="message"]');
+      var message = $input.val().trim();
+      $input.val('');
       this.collection.newEntry({
         nick: this.me,
-        message: $input.val().trim()
+        message: message
       });
-      $input.val('');
     },
 
     render: function() {
