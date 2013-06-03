@@ -49,6 +49,11 @@ var serverHandlers = {
 
   'call_accepted': function(data) {
     currentCall.port.postEvent('talkilla.call-establishment', data);
+  },
+
+  'call_hangup': function(data) {
+    currentCall.port.postEvent('talkilla.call-hangup', data);
+    currentCall = undefined;
   }
 };
 
@@ -190,8 +195,11 @@ var handlers = {
   },
 
   'talkilla.call-start': function(event) {
-    currentCall = {port: undefined, data: event.data};
-    browserPort.postEvent("social.request-chat", 'chat.html');
+    // XXX Temporarily work around to only allow one call at a time.
+    if (!currentCall) {
+      currentCall = {port: undefined, data: event.data};
+      browserPort.postEvent("social.request-chat", 'chat.html');
+    }
   },
 
   'talkilla.chat-window-ready': function() {
@@ -203,7 +211,6 @@ var handlers = {
       "talkilla.call-start";
 
     this.postEvent(topic, currentCall.data);
-
   },
 
   /**
@@ -226,6 +233,16 @@ var handlers = {
    */
   'talkilla.call-answer': function (event) {
     _presenceSocketSendMessage(JSON.stringify({ 'call_accepted': event.data }));
+  },
+
+  /**
+   * Ends a call. The expected data is:
+   *
+   * - other: the person you are talking to.
+   */
+  'talkilla.call-hangup': function (event) {
+    _presenceSocketSendMessage(JSON.stringify({ 'call_hangup': event.data }));
+    currentCall = undefined;
   }
 };
 

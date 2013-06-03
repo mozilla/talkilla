@@ -139,12 +139,13 @@ app.post('/signout', function(req, res) {
  * - call_offer: call offer event
  * - call_accept: call accepted event
  * - call_deny: call denied event
+ * - call_hangup: call hung up event
  * - incoming_call: incoming call event
  *
  * @param  {WebSocket} ws WebSocket client connection
  * @return {WebSocket}
  */
-function configureWs(ws) {
+function configureWs(ws, nick) {
   ws.on('message', function(message) {
     var events;
 
@@ -189,6 +190,22 @@ function configureWs(ws) {
     } catch (e) {console.error('call_deny', e);}
   });
 
+  /**
+   * When a call is hung up.
+   *
+   * data is expected to contain
+   * - other: id of the other user for which the call should be hung up.
+   *
+   * The 'other' value will be translated to the id of the sender.
+   */
+  ws.on('call_hangup', function(data) {
+    try {
+      var users = app.get('users');
+      var other = users[data.other];
+      other.ws.send(JSON.stringify({'call_hangup': {other: nick}}));
+    } catch (e) {console.error('call_hangup', e);}
+  });
+
   // when a connection is closed, remove it from the pool as well and update the
   // list of online users
   ws.on('close', function() {
@@ -225,7 +242,7 @@ function httpUpgradeHandler(req, socket, upgradeHead) {
     // attach the WebSocket to the user
     // XXX: The user could be signed out at this point
     var users = app.get('users');
-    users[nick].ws = configureWs(ws);
+    users[nick].ws = configureWs(ws, nick);
     app.set('users', users);
 
     Object.keys(users).forEach(function(nick) {
