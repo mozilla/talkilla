@@ -136,7 +136,9 @@ describe("browser tests", function() {
     driver2.findElement(By.id("submit")).click();
 
     // Click a nick
+    driver2.manage().timeouts().implicitlyWait(2000);
     driver2.findElement(By.css("ul.nav-list>li>a")).click();
+    driver2.manage().timeouts().implicitlyWait(0);
 
     // Check that we have a chat window
     driver2.switchTo().frame("//chatbox");
