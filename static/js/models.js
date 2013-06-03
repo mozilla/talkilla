@@ -20,7 +20,7 @@
           {name: 'accept',    from: 'pending', to: 'ongoing'},
 
           // Call hangup scenario
-          {name: 'hangup',    from: ['pending', 'ongoing'], to: 'ready'}
+          {name: 'hangup',    from: '*', to: 'terminated'}
         ]
       });
 

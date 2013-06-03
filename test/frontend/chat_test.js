@@ -397,17 +397,17 @@ describe("Call", function() {
   });
 
   describe("#hangup", function() {
-    it("should change the state from pending to ready", function() {
+    it("should change the state from pending to terminated", function() {
       call.start();
       call.hangup();
-      expect(call.state.current).to.equal('ready');
+      expect(call.state.current).to.equal('terminated');
     });
 
-    it("should change the state from ongoing to ready", function() {
+    it("should change the state from ongoing to terminated", function() {
       call.start();
       call.accept();
       call.hangup();
-      expect(call.state.current).to.equal('ready');
+      expect(call.state.current).to.equal('terminated');
     });
   });
 

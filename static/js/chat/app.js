@@ -99,7 +99,8 @@ var ChatApp = (function($, Backbone, _) {
   };
 
   ChatApp.prototype.doHangup = function() {
-    if (this.call.state.current !== "ready") {
+    if (this.call.state.current !== "ready" &&
+        this.call.state.current !== "terminated") {
       var other = this.call.get("otherUser");
       this.port.postEvent('talkilla.call-hangup', {other: other});
     }
