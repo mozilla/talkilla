@@ -1,5 +1,5 @@
 {
   "DEBUG": false,
-  "WSURL": "ws://talkilla.mozillalabs.com/",
-  "ROOTURL": "http://talkilla.mozillalabs.com"
+  "WSURL": "wss://talkilla.mozillalabs.com/",
+  "ROOTURL": "https://talkilla.mozillalabs.com"
 }
