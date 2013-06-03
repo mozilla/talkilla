@@ -29,6 +29,9 @@
   });
 
   app.models.WebRTCCall = Backbone.Model.extend({
+    pc: undefined, // peer connection
+    dc: undefined, // data channel
+
     initialize: function() {
       this.pc = new mozRTCPeerConnection();
 
@@ -37,13 +40,14 @@
       }.bind(this);
 
       // data channel for incoming calls
-      this.pc.ondatachannel = this._setupDataChannel.bind(this);
+      this.pc.ondatachannel = function(event) {
+        this.dc = this._setupDataChannel(event.channel);
+      }.bind(this);
 
       // data channel for outgoing calls
-      this.on('offer-ready', this._setupDataChannel.bind(
-        this,
-        this.pc.createDataChannel('dc', {})
-      ));
+      this.on('offer-ready', function() {
+        this.dc = this._setupDataChannel(this.pc.createDataChannel('dc', {}));
+      }.bind(this));
 
       this._onError = this._onError.bind(this);
     },
@@ -107,29 +111,30 @@
     },
 
     _setupDataChannel: function(dataChannel) {
-      this.dc = dataChannel;
-      this.dc.binaryType = 'blob';
+      dataChannel.binaryType = 'blob';
 
-      this.dc.onopen = function(event) {
+      dataChannel.onopen = function(event) {
         this.trigger('dc.open', event);
       }.bind(this);
 
-      this.dc.onmessage = function(event) {
+      dataChannel.onmessage = function(event) {
         this.trigger('dc.message', event);
       }.bind(this);
 
-      this.dc.onerror = function(event) {
+      dataChannel.onerror = function(event) {
         this.trigger('dc.error', event);
       }.bind(this);
 
-      this.dc.onclose = function(event) {
+      dataChannel.onclose = function(event) {
         this.trigger('dc.close', event);
       }.bind(this);
+
+      return dataChannel;
     },
 
     _onError: function(error) {
       // XXX Better error logging and handling
-      console.log("WebRTCCall error: " + error);
+      alert("WebRTCCall error: " + error);
     }
   });
 
@@ -166,8 +171,8 @@
       // XXX: listen to data channel events to update data
     },
 
-    newEntry: function(entry) {
-      this.add(entry);
+    newEntry: function(data) {
+      var entry = this.add(data).at(this.length - 1);
       this.trigger('entry.created', entry);
     }
   });
