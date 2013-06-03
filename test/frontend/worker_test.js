@@ -782,7 +782,7 @@ describe('Worker', function() {
          JSON.stringify({ 'call_hangup': data }));
       });
 
-    it("should send reset the call data when receiving talkilla.call-hangup",
+    it("should reset the call data when receiving talkilla.call-hangup",
       function() {
         currentCall = {
           port: {},
@@ -866,11 +866,16 @@ describe('Worker', function() {
   });
 
   describe("#call_hangup", function() {
-    var sandbox;
+    var sandbox, callData;
 
     beforeEach(function() {
       sandbox = sinon.sandbox.create();
       browserPort = {postEvent: sandbox.spy()};
+      handlers.postEvent = sandbox.spy();
+      callData = {
+        other: "bob"
+      };
+      currentCall = {port: {postEvent: handlers.postEvent}, data: callData};
     });
 
     afterEach(function() {
@@ -879,27 +884,15 @@ describe('Worker', function() {
     });
 
     it("should notify the chat window", function() {
-      handlers.postEvent = sandbox.spy();
-      var data = {
-        other: "bob"
-      };
-      currentCall = {port: {postEvent: handlers.postEvent}, data: data};
-
-      serverHandlers.call_hangup(data);
+      serverHandlers.call_hangup(callData);
 
       sinon.assert.calledOnce(handlers.postEvent);
       sinon.assert.calledWithExactly(handlers.postEvent,
-        'talkilla.call-hangup', data);
+        'talkilla.call-hangup', callData);
     });
 
     it("should clear the current call data", function() {
-      handlers.postEvent = sandbox.spy();
-      var data = {
-        other: "bob"
-      };
-      currentCall = {port: {postEvent: handlers.postEvent}, data: data};
-
-      serverHandlers.call_hangup(data);
+      serverHandlers.call_hangup(callData);
 
       expect(currentCall).to.be.equal(undefined);
     });
