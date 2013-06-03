@@ -25,6 +25,8 @@
 
     _displayLocalVideo: function() {
       var localVideo = this.$('#local-video')[0];
+      if (!localVideo)
+        return this;
       var localStream = this.webrtc.get("localStream");
       localVideo.mozSrcObject = localStream;
       localVideo.play();
@@ -87,7 +89,7 @@
     send: function(event) {
       event.preventDefault();
       var $input = this.$('form input[name="message"]');
-      this.collection.add({
+      this.collection.newEntry({
         nick: this.me,
         message: $input.val().trim()
       });

@@ -36,7 +36,7 @@
         this.set("remoteStream", event.stream);
       }.bind(this);
 
-      // // data channel for incoming calls
+      // data channel for incoming calls
       this.pc.ondatachannel = this._setupDataChannel.bind(this);
 
       // data channel for outgoing calls
@@ -63,6 +63,12 @@
       var callback = this.trigger.bind(this, "answer-ready");
       var createAnswer = this._createAnswer.bind(this, offer, callback);
       this._getMedia(createAnswer, this._onError);
+    },
+
+    send: function(data) {
+      if (!this.dc)
+        return this._onError('no data channel connection available');
+      this.dc.send(data);
     },
 
     _createOffer: function(callback) {
@@ -158,6 +164,11 @@
     constructor: function() {
       Backbone.Collection.apply(this, arguments);
       // XXX: listen to data channel events to update data
+    },
+
+    newEntry: function(entry) {
+      this.add(entry);
+      this.trigger('entry.created', entry);
     }
   });
 

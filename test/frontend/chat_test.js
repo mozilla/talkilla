@@ -622,8 +622,48 @@ describe('Text chat', function() {
       textChat.add({nick: "jb", message: "hi"});
       expect(textChat).to.have.length.of(1);
     });
+  });
 
-    it("should listen to data channels events and update accordingly");
+  describe('chatApp events for text chat', function () {
+    var sandbox, chatApp;
+
+    beforeEach(function() {
+      sandbox = sinon.sandbox.create();
+      sandbox.stub(app.port, "postEvent");
+      chatApp = new ChatApp();
+    });
+
+    afterEach(function() {
+      app.port.off();
+      sandbox.restore();
+    });
+
+    it('should update text chat when a dc.message event is received',
+      function() {
+        chatApp.webrtc.trigger('dc.message', {
+          data: JSON.stringify({nick: "niko", message: "hi"})
+        });
+        expect(chatApp.textChat).to.have.length.of(1);
+        expect(chatApp.textChat.at(0).get('nick')).to.equal("niko");
+        expect(chatApp.textChat.at(0).get('message')).to.equal("hi");
+
+        chatApp.webrtc.trigger('dc.message', {
+          data: JSON.stringify({nick: "jb", message: "hi niko"})
+        });
+        expect(chatApp.textChat).to.have.length.of(2);
+        expect(chatApp.textChat.at(1).get('nick')).to.equal("jb");
+        expect(chatApp.textChat.at(1).get('message')).to.equal("hi niko");
+      });
+
+    it('should listen to `entry.created` to send an entry over data channel',
+      function() {
+        var sendStub = sandbox.stub(app.models.WebRTCCall.prototype, "send");
+        var entry = new app.models.TextChatEntry({nick: "niko", message: "hi"});
+
+        chatApp.textChat.newEntry(entry);
+
+        sinon.assert.calledWith(sendStub, JSON.stringify(entry.toJSON()));
+      });
   });
 
   describe('app.views.TextChatView', function() {

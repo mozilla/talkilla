@@ -48,6 +48,15 @@ var ChatApp = (function($, Backbone, _) {
     // Outgoing events
     this.webrtc.on('offer-ready', this._onOfferReady.bind(this));
     this.webrtc.on('answer-ready', this._onAnswerReady.bind(this));
+
+    // Data channels
+    this.webrtc.on('dc.message', function(event) {
+      this.textChat.add(JSON.parse(event.data));
+    }, this);
+
+    this.textChat.on('entry.created', function(entry) {
+      this.webrtc.send(JSON.stringify(entry.toJSON()));
+    }, this);
   }
 
   // Outgoing calls
