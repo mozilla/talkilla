@@ -74,7 +74,7 @@ var ChatApp = (function($, Backbone, _) {
 
   // Call Hangup
   ChatApp.prototype._onCallHangup = function(data) {
-    this.hangup();
+    this._hangup();
     window.close();
   };
 
@@ -98,17 +98,23 @@ var ChatApp = (function($, Backbone, _) {
     this.port.postEvent('talkilla.call-answer', callData);
   };
 
-  ChatApp.prototype.hangup = function() {
-    if (this.call.state === "incoming" || this.call.state === "accepted") {
+  ChatApp.prototype.doHangup = function() {
+    if (this.call.state.current !== "ready") {
       var other = this.call.get("caller");
       this.port.postEvent('talkilla.call-hangup', {other: other});
     }
 
+    this._hangup();
+  };
+
+  ChatApp.prototype._hangup = function() {
+    this.call.hangup();
     this.webrtc.hangup();
   };
 
+  // Closing the call
   window.addEventListener("unload", function() {
-    window.chatApp.hangup();
+    window.chatApp.doHangup();
   });
 
   return ChatApp;
