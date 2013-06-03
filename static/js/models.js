@@ -17,7 +17,10 @@
 
           // Incoming call scenario
           {name: 'incoming',  from: 'ready',   to: 'pending'},
-          {name: 'accept',    from: 'pending', to: 'ongoing'}
+          {name: 'accept',    from: 'pending', to: 'ongoing'},
+
+          // Call hangup scenario
+          {name: 'hangup',    from: ['pending', 'ongoing'], to: 'ready'}
         ]
       });
 
@@ -25,6 +28,7 @@
       this.incoming  = this.state.incoming.bind(this.state);
       this.accept    = this.state.accept.bind(this.state);
       this.establish = this.state.establish.bind(this.state);
+      this.hangup    = this.state.hangup.bind(this.state);
     }
   });
 

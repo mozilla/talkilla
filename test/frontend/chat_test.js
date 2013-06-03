@@ -313,6 +313,21 @@ describe("Call", function() {
 
   });
 
+  describe("#hangup", function() {
+    it("should change the state from pending to ready", function() {
+      call.start();
+      call.hangup();
+      expect(call.state.current).to.equal('ready');
+    });
+
+    it("should change the state from ongoing to ready", function() {
+      call.start();
+      call.accept();
+      call.hangup();
+      expect(call.state.current).to.equal('ready');
+    });
+  });
+
 });
 
 describe("WebRTCCall", function() {
