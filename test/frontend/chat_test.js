@@ -696,6 +696,44 @@ describe("CallView", function() {
       });
   });
 
+  describe("events", function() {
+    it("should call hangup() when a click event is fired on the hangup button",
+      function() {
+        var el = $('<div><button class="btn-hangup"/></div>');
+        $("#fixtures").append(el);
+        sandbox.stub(app.views.CallView.prototype, "initialize");
+        sandbox.stub(app.views.CallView.prototype, "hangup");
+        var callView = new app.views.CallView({el: el});
+
+        $(el).find('button').click();
+        sinon.assert.calledOnce(callView.hangup);
+
+        $("#fixtures").empty();
+      });
+  });
+
+  describe("#hangup", function() {
+    var chatApp, callView;
+
+    beforeEach(function() {
+      chatApp = window.chatApp = new ChatApp();
+      sandbox.stub(chatApp, "doHangup");
+      sandbox.stub(window, "close");
+      sandbox.stub(app.views.CallView.prototype, "initialize");
+      callView = new app.views.CallView({el: el, webrtc: webrtc});
+    });
+
+    it('should trigger a hangup event on the chatApp', function() {
+      callView.hangup();
+      sinon.assert.calledOnce(chatApp.doHangup);
+    });
+
+    it('should close the window', function() {
+      callView.hangup();
+      sinon.assert.calledOnce(window.close);
+    });
+  });
+
   describe("#_displayLocalVideo", function() {
 
     it("should setup the local video with the local stream", function() {
