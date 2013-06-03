@@ -38,6 +38,7 @@ var ChatApp = (function($, Backbone, _) {
     this.port.on('talkilla.call-incoming', this._onIncomingCall.bind(this));
     this.port.on('talkilla.call-establishment',
                  this._onCallEstablishment.bind(this));
+    this.port.on('talkilla.call-hangup', this._onCallHangup.bind(this));
 
     this.port.postEvent('talkilla.chat-window-ready', {});
 
@@ -71,6 +72,12 @@ var ChatApp = (function($, Backbone, _) {
     this.webrtc.answer(data.offer);
   };
 
+  // Call Hangup
+  ChatApp.prototype._onCallHangup = function(data) {
+    this._hangup();
+    window.close();
+  };
+
   ChatApp.prototype._onOfferReady = function(offer) {
     var callData = {
       caller: this.call.get("caller"),
@@ -90,6 +97,25 @@ var ChatApp = (function($, Backbone, _) {
 
     this.port.postEvent('talkilla.call-answer', callData);
   };
+
+  ChatApp.prototype.doHangup = function() {
+    if (this.call.state.current !== "ready") {
+      var other = this.call.get("caller");
+      this.port.postEvent('talkilla.call-hangup', {other: other});
+    }
+
+    this._hangup();
+  };
+
+  ChatApp.prototype._hangup = function() {
+    this.call.hangup();
+    this.webrtc.hangup();
+  };
+
+  // Closing the call
+  window.addEventListener("unload", function() {
+    window.chatApp.doHangup();
+  });
 
   return ChatApp;
 })(jQuery, Backbone, _);
