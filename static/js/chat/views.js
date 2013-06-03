@@ -39,6 +39,7 @@
       var localVideo = this.$('#local-video')[0];
       var localStream = this.webrtc.get("localStream");
       localVideo.mozSrcObject = localStream;
+      localVideo.play();
       return this;
     },
 
@@ -47,6 +48,7 @@
       var remoteStream = this.webrtc.get("remoteStream");
 
       remoteVideo.mozSrcObject = remoteStream;
+      remoteVideo.play();
       return this;
     }
   });
