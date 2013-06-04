@@ -645,9 +645,11 @@ describe("CallView", function() {
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
     webrtc = new app.models.WebRTCCall();
+    sandbox.stub(app.port, "postEvent");
   });
 
   afterEach(function() {
+    app.port.off();
     sandbox.restore();
     webrtc = null;
     $("#fixtures").empty();
