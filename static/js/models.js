@@ -53,22 +53,27 @@
 
     // Caller side
     webrtc.on('offer-ready', function(offer) {
-    sendOffer(offer);
+      sendOffer(offer);
     });
     webrtc.offer()
 
     // Callee side
     webrtc.on('answer-ready', function(answer) {
-    sendAnswer(answer);
+      sendAnswer(answer);
     }
     webrtc.answer(offer);
 
+    // Once the caller receive the answer
+    webrtc.establish(answer)
+
     // Both sides
     webrtc.on("change:localStream", function() {
-    localVideo.mozSrcObject = webrtc.get("localStream");
+      localVideo.mozSrcObject = webrtc.get("localStream");
+      localVideo.play();
     });
     webrtc.on("change:remoteStream", function() {
-    remoteVideo.mozSrcObject = webrtc.get("remoteStream");
+      remoteVideo.mozSrcObject = webrtc.get("remoteStream");
+      remoteVideo.play();
     });
 
   */
