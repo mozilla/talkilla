@@ -127,8 +127,10 @@ describe("ChatApp", function() {
 
       chatApp = new ChatApp();
 
-      // Reset the postEvent spy as this is trigger in the ChatApp
-      // constructor.
+      // Reset the postEvent spy as the ChatApp constructor already
+      // triggered a talkilla.chat-window-ready event. We do not want
+      // this trigger to mess with our following tests.
+      app.port.postEvent.reset();
       // Some functions only test a little bit, and don't stub everything, so
       // stub mozGetUserMedia as that tends to let callbacks happen which
       // can cause unexpected sending of data to worker ports.
@@ -298,11 +300,7 @@ describe("ChatApp", function() {
 
         sinon.assert.notCalled(chatApp.call.hangup);
         sinon.assert.notCalled(chatApp.webrtc.hangup);
-
-        // The port is called once in the constructor
-        sinon.assert.calledOnce(app.port.postEvent);
-        sinon.assert.calledWith(app.port.postEvent,
-                                "talkilla.chat-window-ready", {});
+        sinon.assert.notCalled(app.port.postEvent);
       });
 
       it("should do nothing if the call was not started", function () {
@@ -312,11 +310,7 @@ describe("ChatApp", function() {
 
         sinon.assert.notCalled(chatApp.call.hangup);
         sinon.assert.notCalled(chatApp.webrtc.hangup);
-
-        // The port is called once in the constructor
-        sinon.assert.calledOnce(app.port.postEvent);
-        sinon.assert.calledWith(app.port.postEvent,
-                                "talkilla.chat-window-ready", {});
+        sinon.assert.notCalled(app.port.postEvent);
       });
     });
 
