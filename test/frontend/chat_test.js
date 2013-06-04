@@ -288,7 +288,7 @@ describe("ChatApp", function() {
       it("should post a talkilla.call-hangup event to the worker", function() {
         chatApp.call.set("otherUser", "florian");
         chatApp._onCallHangup();
-        sinon.assert.called(app.port.postEvent);
+        sinon.assert.calledOnce(app.port.postEvent);
         sinon.assert.calledWith(app.port.postEvent,
                                 "talkilla.call-hangup", {other: "florian"});
       });
@@ -324,7 +324,7 @@ describe("ChatApp", function() {
 
           chatApp._onOfferReady(offer);
 
-          sinon.assert.called(app.port.postEvent);
+          sinon.assert.calledOnce(app.port.postEvent);
           sinon.assert.calledWith(app.port.postEvent, "talkilla.call-offer");
         });
     });
@@ -339,7 +339,7 @@ describe("ChatApp", function() {
 
           chatApp._onAnswerReady(answer);
 
-          sinon.assert.called(app.port.postEvent);
+          sinon.assert.calledOnce(app.port.postEvent);
           sinon.assert.calledWith(app.port.postEvent, "talkilla.call-answer");
         });
     });
