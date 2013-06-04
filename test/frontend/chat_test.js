@@ -1,5 +1,5 @@
 /* global app, chai, describe, it, sinon, beforeEach, afterEach,
-   ChatApp, mozRTCSessionDescription, $, mozRTCPeerConnection */
+   ChatApp, mozRTCSessionDescription, $, _, Backbone, mozRTCPeerConnection */
 
 /* jshint expr:true */
 var expect = chai.expect;
@@ -241,8 +241,6 @@ describe("ChatApp", function() {
     });
 
     describe("#_onCallShutdown", function() {
-      var hangupData = { other: "mark" };
-
       beforeEach(function() {
         sandbox.stub(chatApp.call, "hangup");
         sandbox.stub(chatApp.webrtc, "hangup");
@@ -267,8 +265,6 @@ describe("ChatApp", function() {
     });
 
     describe("#_onCallHangup", function() {
-      var hangupData = { other: "mark" };
-
       beforeEach(function() {
         sandbox.stub(chatApp.call, "hangup");
         sandbox.stub(chatApp.webrtc, "hangup");
