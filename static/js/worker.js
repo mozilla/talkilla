@@ -6,6 +6,7 @@ var _presenceSocket;
 var ports;
 var browserPort;
 var currentCall;
+var currentUsers;
 
 /**
  * Social API user profile data storage.
@@ -42,6 +43,11 @@ UserData.prototype = {
 };
 
 var serverHandlers = {
+  'users': function(data) {
+    currentUsers = data;
+    ports.broadcastEvent("talkilla.users", data);
+  },
+
   'incoming_call': function(data) {
     currentCall = {port: undefined, data: data};
     browserPort.postEvent('social.request-chat', 'chat.html');
@@ -138,7 +144,7 @@ function _signinCallback(err, responseText) {
     _currentUserData.userName = _currentUserData.displayName = username;
     _currentUserData.portrait = "test.png";
 
-    this.postEvent('talkilla.login-success', {
+    ports.broadcastEvent('talkilla.login-success', {
       username: username
     });
 
@@ -153,7 +159,7 @@ function _signoutCallback(err, responseText) {
 
   _currentUserData.reset();
   browserPort.postEvent('social.user-profile', _currentUserData);
-  this.postEvent('talkilla.logout-success');
+  ports.broadcastEvent('talkilla.logout-success');
 }
 
 var handlers = {
@@ -210,6 +216,7 @@ var handlers = {
     this.postEvent('talkilla.login-success', {
       username: _currentUserData.userName
     });
+    this.postEvent('talkilla.users', currentUsers);
   },
 
   /**
