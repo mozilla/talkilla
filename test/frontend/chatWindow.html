@@ -23,7 +23,7 @@
   <script src="../../js/chat/views.js"></script>
   <script src="chat_test.js"></script>
   <script>
-    mocha.run();
-  </script>
+    mocha.run(function () { $('body').append("<p id='complete'>complete</p>"); });
+</script>
 </body>
 </html>
