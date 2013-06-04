@@ -20,8 +20,8 @@ describe("ChatApp", function() {
     _.extend(app.port, Backbone.Events);
     sandbox.stub(window, "addEventListener");
     // Although we're not testing it in this set of tests, stub the WebRTCCall
-    // model's initialize function, as creating new media items (e.g. PeerConnection)
-    // takes a lot of time that we don't need to spend time on.
+    // model's initialize function, as creating new media items
+    // (e.g. PeerConnection) takes a lot of time that we don't need to spend.
     sandbox.stub(app.models.WebRTCCall.prototype, "initialize");
   });
 
@@ -667,8 +667,8 @@ describe("CallView", function() {
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
     // Although we're not testing it in this set of tests, stub the WebRTCCall
-    // model's initialize function, as creating new media items (e.g. PeerConnection)
-    // takes a lot of time that we don't need to spend time on.
+    // model's initialize function, as creating new media items
+    // (e.g. PeerConnection) takes a lot of time that we don't need to spend.
     sandbox.stub(app.models.WebRTCCall.prototype, "initialize");
     webrtc = new app.models.WebRTCCall();
   });
