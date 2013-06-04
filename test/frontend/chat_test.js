@@ -16,7 +16,8 @@ describe("ChatApp", function() {
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
-    sandbox.stub(app.port, "postEvent");
+    app.port = {postEvent: sinon.spy()};
+    _.extend(app.port, Backbone.Events);
   });
 
   afterEach(function() {
@@ -113,7 +114,6 @@ describe("ChatApp", function() {
 
       // Reset the postEvent spy as this is trigger in the ChatApp
       // constructor.
-      app.port.postEvent.reset();
       // Some functions only test a little bit, and don't stub everything, so
       // stub mozGetUserMedia as that tends to let callbacks happen which
       // can cause unexpected sending of data to worker ports.
@@ -259,7 +259,8 @@ describe("ChatApp", function() {
 
           chatApp._onOfferReady(offer);
 
-          sinon.assert.calledOnce(app.port.postEvent);
+          sinon.assert.called(app.port.postEvent);
+          sinon.assert.calledWith(app.port.postEvent, "talkilla.call-offer");
         });
     });
 
@@ -273,7 +274,8 @@ describe("ChatApp", function() {
 
           chatApp._onAnswerReady(answer);
 
-          sinon.assert.calledOnce(app.port.postEvent);
+          sinon.assert.called(app.port.postEvent);
+          sinon.assert.calledWith(app.port.postEvent, "talkilla.call-answer");
         });
     });
 
@@ -317,7 +319,7 @@ describe("ChatApp", function() {
         sandbox.stub(chatApp, "_hangup");
         chatApp.doHangup();
 
-        sinon.assert.calledOnce(chatApp.port.postEvent);
+        sinon.assert.called(chatApp.port.postEvent);
         sinon.assert.calledWithExactly(chatApp.port.postEvent,
           'talkilla.call-hangup', {other: 'mark'});
       });
