@@ -43,8 +43,8 @@ describe("frontend tests", function() {
 
   testUrls.forEach(function(testUrl) {
     it("should run " + testUrl + " tests without failures", function(done) {
+      driver.manage().timeouts().implicitlyWait(20000);
       driver.get(testUrl).then(function() {
-        driver.manage().timeouts().implicitlyWait(20000);
         driver.findElement(By.id('complete')).then(function () {
           driver.findElement(By.css('.failures > em')).getText()
             .then(function(text){
@@ -53,6 +53,7 @@ describe("frontend tests", function() {
             });
         });
       });
+      driver.manage().timeouts().implicitlyWait(0);
     });
   });
 });
