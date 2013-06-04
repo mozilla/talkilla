@@ -38,6 +38,7 @@
 
     initialize: function() {
       this.pc = new mozRTCPeerConnection();
+      this.dc = this._setupDataChannel(this.pc.createDataChannel('dc', {}));
 
       this.pc.onaddstream = function(event) {
         this.set("remoteStream", event.stream);
@@ -46,12 +47,8 @@
       // data channel for incoming calls
       this.pc.ondatachannel = function(event) {
         this.dc = this._setupDataChannel(event.channel);
+        this.trigger('dc.ready', event);
       }.bind(this);
-
-      // data channel for outgoing calls
-      this.on('offer-ready', function() {
-        this.dc = this._setupDataChannel(this.pc.createDataChannel('dc', {}));
-      }.bind(this));
 
       this._onError = this._onError.bind(this);
     },
@@ -107,42 +104,47 @@
     },
 
     _getMedia: function(callback, errback) {
-      var constraints = {video: this.get('video'), audio: this.get('audio')};
+      var constraints = {
+        video: this.get('video'),
+        audio: this.get('audio'),
+        fake: true
+      };
 
       var cb = function (localStream) {
         this.pc.addStream(localStream);
         this.set("localStream", localStream);
+        this.trigger('local.media.ready');
         callback();
       }.bind(this);
 
       navigator.mozGetUserMedia(constraints, cb, errback);
     },
 
-    _setupDataChannel: function(dataChannel) {
-      dataChannel.binaryType = 'blob';
+    _setupDataChannel: function(channel) {
+      channel.binaryType = 'blob';
 
-      dataChannel.onopen = function(event) {
+      channel.onopen = function(event) {
         this.trigger('dc.open', event);
       }.bind(this);
 
-      dataChannel.onmessage = function(event) {
+      channel.onmessage = function(event) {
         this.trigger('dc.message', event);
       }.bind(this);
 
-      dataChannel.onerror = function(event) {
+      channel.onerror = function(event) {
         this.trigger('dc.error', event);
       }.bind(this);
 
-      dataChannel.onclose = function(event) {
+      channel.onclose = function(event) {
         this.trigger('dc.close', event);
       }.bind(this);
 
-      return dataChannel;
+      return channel;
     },
 
     _onError: function(error) {
       // XXX Better error logging and handling
-      alert("WebRTCCall error: " + error);
+      console.error("WebRTCCall error: " + error);
     }
   });
 

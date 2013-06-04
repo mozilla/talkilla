@@ -82,8 +82,9 @@
       'submit form': 'send'
     },
 
-    constructor: function() {
-      Backbone.View.apply(this, arguments);
+    initialize: function(options) {
+      this.collection = options.collection;
+      this.webrtc = options.webrtc;
 
       app.port.on('talkilla.call-start', function(data) {
         this.me = data.caller; // If I'm receiving this, I'm the caller
@@ -95,6 +96,10 @@
 
       this.collection.on('add', function() {
         this.render();
+      }, this);
+
+      this.webrtc.on('dc.ready', function() {
+        this.$('input').removeAttr('disabled');
       }, this);
     },
 

@@ -35,7 +35,10 @@ var ChatApp = (function($, Backbone, _) {
 
     // Text chat
     this.textChat = new app.models.TextChat();
-    this.textChatView = new app.views.TextChatView({collection: this.textChat});
+    this.textChatView = new app.views.TextChatView({
+      collection: this.textChat,
+      webrtc: this.webrtc
+    });
 
     // Incoming events
     this.port.on('talkilla.call-start', this._onStartingCall.bind(this));
