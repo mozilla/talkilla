@@ -31,7 +31,6 @@
       if (event)
         event.preventDefault();
 
-      chatApp.doHangup();
       window.close();
     },
 

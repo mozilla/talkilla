@@ -18,6 +18,7 @@ describe("ChatApp", function() {
     sandbox = sinon.sandbox.create();
     app.port = {postEvent: sinon.spy()};
     _.extend(app.port, Backbone.Events);
+    sandbox.stub(window, "addEventListener");
   });
 
   afterEach(function() {
@@ -57,9 +58,9 @@ describe("ChatApp", function() {
       "_onIncomingCall", incomingCallData);
   });
 
-  it("should attach _onCallHangup to talkilla.call-hangup", function() {
+  it("should attach _onCallShutdown to talkilla.call-hangup", function() {
     assertEventTriggersHandler("talkilla.call-hangup",
-      "_onCallHangup", { other: "mark" });
+      "_onCallShutdown", { other: "mark" });
   });
 
   function assertModelEventTriggersHandler(event, handler) {
@@ -91,14 +92,28 @@ describe("ChatApp", function() {
     assertModelEventTriggersHandler("answer-ready", "_onAnswerReady");
   });
 
-  it("should post talkilla.chat-window-ready to the worker",
-    function() {
+  it("should post talkilla.chat-window-ready to the worker", function() {
       chatApp = new ChatApp();
 
       sinon.assert.calledOnce(app.port.postEvent);
       sinon.assert.calledWithExactly(app.port.postEvent,
         "talkilla.chat-window-ready", {});
     });
+
+  it("should attach _onCallHangup to unload on window", function() {
+    var onCallHangup;
+    window.addEventListener.restore();
+    sandbox.stub(window, "addEventListener", function(event, handler) {
+      onCallHangup = handler;
+    });
+    sandbox.stub(ChatApp.prototype, "_onCallHangup");
+    chatApp = new ChatApp();
+
+    onCallHangup();
+
+    sinon.assert.calledOnce(chatApp._onCallHangup);
+    sinon.assert.calledWithExactly(chatApp._onCallHangup);
+  });
 
 
   describe("ChatApp (constructed)", function () {
@@ -225,27 +240,87 @@ describe("ChatApp", function() {
 
     });
 
-    describe("#_onCallHangup", function() {
+    describe("#_onCallShutdown", function() {
       var hangupData = { other: "mark" };
 
-      it("should call the _hangup function", function() {
-        sandbox.stub(chatApp, "_hangup");
+      beforeEach(function() {
+        sandbox.stub(chatApp.call, "hangup");
+        sandbox.stub(chatApp.webrtc, "hangup");
         sandbox.stub(window, "close");
+        chatApp._onCallShutdown();
+      });
 
-        chatApp._onCallHangup(hangupData);
+      it("should hangup the call", function() {
+        sinon.assert.calledOnce(chatApp.call.hangup);
+        sinon.assert.calledWithExactly(chatApp.call.hangup);
+      });
 
-        sinon.assert.calledOnce(chatApp._hangup);
-        sinon.assert.calledWithExactly(chatApp._hangup);
+      it("should hangup the webrtc connection", function() {
+        sinon.assert.calledOnce(chatApp.webrtc.hangup);
+        sinon.assert.calledWithExactly(chatApp.webrtc.hangup);
       });
 
       it("should close the window", function() {
-        sandbox.stub(chatApp, "_hangup");
-        sandbox.stub(window, "close");
-
-        chatApp._onCallHangup(hangupData);
-
         sinon.assert.calledOnce(window.close);
         sinon.assert.calledWithExactly(window.close);
+      });
+    });
+
+    describe("#_onCallHangup", function() {
+      var hangupData = { other: "mark" };
+
+      beforeEach(function() {
+        sandbox.stub(chatApp.call, "hangup");
+        sandbox.stub(chatApp.webrtc, "hangup");
+        chatApp.call.state.current = "ongoing";
+      });
+
+      it("should hangup the call", function() {
+        chatApp._onCallHangup();
+        sinon.assert.calledOnce(chatApp.call.hangup);
+        sinon.assert.calledWithExactly(chatApp.call.hangup);
+      });
+
+      it("should hangup the webrtc connection", function() {
+        chatApp._onCallHangup();
+        sinon.assert.calledOnce(chatApp.webrtc.hangup);
+        sinon.assert.calledWithExactly(chatApp.webrtc.hangup);
+      });
+
+      it("should post a talkilla.call-hangup event to the worker", function() {
+        chatApp.call.set("otherUser", "florian");
+        chatApp._onCallHangup();
+        sinon.assert.called(app.port.postEvent);
+        sinon.assert.calledWith(app.port.postEvent,
+                                "talkilla.call-hangup", {other: "florian"});
+      });
+
+      it("should do nothing if the call is already terminated", function () {
+        chatApp.call.state.current = "terminated";
+
+        chatApp._onCallHangup();
+
+        sinon.assert.notCalled(chatApp.call.hangup);
+        sinon.assert.notCalled(chatApp.webrtc.hangup);
+
+        // The port is called once in the constructor
+        sinon.assert.calledOnce(app.port.postEvent);
+        sinon.assert.calledWith(app.port.postEvent,
+                                "talkilla.chat-window-ready", {});
+      });
+
+      it("should do nothing if the call was not started", function () {
+        chatApp.call.state.current = "ready";
+
+        chatApp._onCallHangup();
+
+        sinon.assert.notCalled(chatApp.call.hangup);
+        sinon.assert.notCalled(chatApp.webrtc.hangup);
+
+        // The port is called once in the constructor
+        sinon.assert.calledOnce(app.port.postEvent);
+        sinon.assert.calledWith(app.port.postEvent,
+                                "talkilla.chat-window-ready", {});
       });
     });
 
@@ -277,60 +352,6 @@ describe("ChatApp", function() {
           sinon.assert.called(app.port.postEvent);
           sinon.assert.calledWith(app.port.postEvent, "talkilla.call-answer");
         });
-    });
-
-    describe("#_hangup", function() {
-      it("should set the call as hung up", function() {
-        sandbox.stub(chatApp.call, "hangup");
-        sandbox.stub(chatApp.webrtc, "hangup");
-
-        chatApp._hangup();
-
-        sinon.assert.calledOnce(chatApp.call.hangup);
-        sinon.assert.calledWithExactly(chatApp.call.hangup);
-      });
-
-      it("should close the window", function() {
-        sandbox.stub(chatApp.call, "hangup");
-        sandbox.stub(chatApp.webrtc, "hangup");
-
-        chatApp._hangup();
-
-        sinon.assert.calledOnce(chatApp.webrtc.hangup);
-        sinon.assert.calledWithExactly(chatApp.webrtc.hangup);
-      });
-    });
-
-    describe("#doHangup", function() {
-      var savedCall;
-
-      beforeEach(function() {
-        savedCall = chatApp.call;
-        chatApp.call = new app.models.Call();
-        chatApp.call.start();
-        chatApp.call.set({otherUser: 'mark'});
-      });
-
-      afterEach(function() {
-        chatApp.call = savedCall;
-      });
-
-      it("should send a hangup message if the state is not ready", function() {
-        sandbox.stub(chatApp, "_hangup");
-        chatApp.doHangup();
-
-        sinon.assert.called(chatApp.port.postEvent);
-        sinon.assert.calledWithExactly(chatApp.port.postEvent,
-          'talkilla.call-hangup', {other: 'mark'});
-      });
-
-      it("should call _hangup", function() {
-        sandbox.stub(chatApp, "_hangup");
-        chatApp.doHangup();
-
-        sinon.assert.calledOnce(chatApp._hangup);
-        sinon.assert.calledWithExactly(chatApp._hangup);
-      });
     });
   });
 });
@@ -399,6 +420,11 @@ describe("Call", function() {
   });
 
   describe("#hangup", function() {
+    it("should change the state from ready to terminated", function() {
+      call.hangup();
+      expect(call.state.current).to.equal('terminated');
+    });
+
     it("should change the state from pending to terminated", function() {
       call.start();
       call.hangup();
@@ -715,23 +741,15 @@ describe("CallView", function() {
   });
 
   describe("#hangup", function() {
-    var chatApp, callView;
-
-    beforeEach(function() {
-      chatApp = window.chatApp = new ChatApp();
-      sandbox.stub(chatApp, "doHangup");
-      sandbox.stub(window, "close");
-      sandbox.stub(app.views.CallView.prototype, "initialize");
-      callView = new app.views.CallView({el: el, webrtc: webrtc});
-    });
-
-    it('should trigger a hangup event on the chatApp', function() {
-      callView.hangup();
-      sinon.assert.calledOnce(chatApp.doHangup);
-    });
 
     it('should close the window', function() {
+      var el = $('<div><div id="local-video"></div></div>');
+      $("#fixtures").append(el);
+      var callView = new app.views.CallView({el: el, webrtc: webrtc});
+      sandbox.stub(window, "close");
+
       callView.hangup();
+
       sinon.assert.calledOnce(window.close);
     });
   });

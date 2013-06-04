@@ -38,13 +38,17 @@ var ChatApp = (function($, Backbone, _) {
     this.port.on('talkilla.call-incoming', this._onIncomingCall.bind(this));
     this.port.on('talkilla.call-establishment',
                  this._onCallEstablishment.bind(this));
-    this.port.on('talkilla.call-hangup', this._onCallHangup.bind(this));
-
-    this.port.postEvent('talkilla.chat-window-ready', {});
+    this.port.on('talkilla.call-hangup', this._onCallShutdown.bind(this));
 
     // Outgoing events
     this.webrtc.on('offer-ready', this._onOfferReady.bind(this));
     this.webrtc.on('answer-ready', this._onAnswerReady.bind(this));
+
+    // Internal events
+    window.addEventListener("unload", this._onCallHangup.bind(this));
+
+    this.port.postEvent('talkilla.chat-window-ready', {});
+
   }
 
   // Outgoing calls
@@ -72,12 +76,6 @@ var ChatApp = (function($, Backbone, _) {
     this.webrtc.answer(data.offer);
   };
 
-  // Call Hangup
-  ChatApp.prototype._onCallHangup = function(data) {
-    this._hangup();
-    window.close();
-  };
-
   ChatApp.prototype._onOfferReady = function(offer) {
     var callData = {
       caller: this.call.get("id"),
@@ -98,25 +96,24 @@ var ChatApp = (function($, Backbone, _) {
     this.port.postEvent('talkilla.call-answer', callData);
   };
 
-  ChatApp.prototype.doHangup = function() {
-    if (this.call.state.current !== "ready" &&
-        this.call.state.current !== "terminated") {
-      var other = this.call.get("otherUser");
-      this.port.postEvent('talkilla.call-hangup', {other: other});
-    }
-
-    this._hangup();
-  };
-
-  ChatApp.prototype._hangup = function() {
+  // Call Hangup
+  ChatApp.prototype._onCallShutdown = function() {
     this.call.hangup();
     this.webrtc.hangup();
+    window.close();
   };
 
-  // Closing the call
-  window.addEventListener("unload", function() {
-    window.chatApp.doHangup();
-  });
+  ChatApp.prototype._onCallHangup = function(data) {
+    var callState = this.call.state.current;
+    if (callState === "ready" || callState === "terminated")
+      return;
+
+    var other = this.call.get("otherUser");
+    this.call.hangup();
+    this.webrtc.hangup();
+
+    this.port.postEvent('talkilla.call-hangup', {other: other});
+  };
 
   return ChatApp;
 })(jQuery, Backbone, _);

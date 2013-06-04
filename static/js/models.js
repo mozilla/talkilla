@@ -19,8 +19,8 @@
           {name: 'incoming',  from: 'ready',   to: 'pending'},
           {name: 'accept',    from: 'pending', to: 'ongoing'},
 
-          // Call hangup scenario
-          {name: 'hangup',    from: '*', to: 'terminated'}
+          // Call hangup
+          {name: 'hangup',    from: '*',       to: 'terminated'}
         ]
       });
 
