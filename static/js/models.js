@@ -19,8 +19,8 @@
           {name: 'incoming',  from: 'ready',   to: 'pending'},
           {name: 'accept',    from: 'pending', to: 'ongoing'},
 
-          // Call hangup scenario
-          {name: 'hangup',    from: '*', to: 'terminated'}
+          // Call hangup
+          {name: 'hangup',    from: '*',       to: 'terminated'}
         ]
       });
 
@@ -146,20 +146,6 @@
       // XXX Better error logging and handling
       console.error("WebRTCCall error: " + error);
     }
-  });
-
-  app.models.IncomingCall = Backbone.Model.extend({
-    defaults: {callee: undefined,
-               caller: undefined,
-               offer: {}}
-  });
-
-  app.models.PendingCall = Backbone.Model.extend({
-    defaults: {callee: undefined, caller: undefined}
-  });
-
-  app.models.DeniedCall = Backbone.Model.extend({
-    defaults: {callee: undefined, caller: undefined}
   });
 
   app.models.Notification = Backbone.Model.extend({

@@ -1,4 +1,4 @@
-/* global app, Backbone, _, jQuery, chatApp */
+/* global app, Backbone, _, jQuery */
 /**
  * Talkilla Backbone views.
  */
@@ -31,7 +31,6 @@
       if (event)
         event.preventDefault();
 
-      chatApp.doHangup();
       window.close();
     },
 
