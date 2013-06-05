@@ -59,7 +59,7 @@
    * Text chat entry view.
    */
   app.views.TextChatEntryView = Backbone.View.extend({
-    tag: 'li',
+    tagName: 'li',
 
     template: _.template('<strong><%= nick %>:</strong> <%= message %>'),
 
