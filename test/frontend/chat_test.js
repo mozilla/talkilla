@@ -631,37 +631,26 @@ describe("WebRTCCall", function() {
     expect(webrtc.get("remoteStream")).to.equal(fakeRemoteStream);
   });
 
-  describe("#_setupDataChannel", function() {
-    it("should attach _setupDataChannel to pc.ondatachannel", function() {
+  describe("#_setupDataChannelIn", function() {
+    it("should be called when receiving a data channel event", function() {
       var fakePC = {createDataChannel: function() {}};
+      var fakeChannel = {};
       sandbox.stub(window, "mozRTCPeerConnection").returns(fakePC);
-      var _setupDataChannel = sandbox.stub(app.models.WebRTCCall.prototype,
-                                          "_setupDataChannel");
+      var _setupDataChannelIn = sandbox.stub(app.models.WebRTCCall.prototype,
+                                             "_setupDataChannelIn");
       new app.models.WebRTCCall();
 
-      fakePC.ondatachannel();
+      fakePC.ondatachannel({channel: fakeChannel});
 
-      sinon.assert.calledOnce(_setupDataChannel);
-    });
-
-    it("should setup a data channel on offer-ready", function(done) {
-      var fakePC = {createDataChannel: function() {}};
-      sandbox.stub(window, "mozRTCPeerConnection").returns(fakePC);
-      var _setupDataChannel = sandbox.stub(app.models.WebRTCCall.prototype,
-                                          "_setupDataChannel");
-      var rtcCall = new app.models.WebRTCCall();
-
-      rtcCall.on('offer-ready', function() {
-        sinon.assert.calledOnce(_setupDataChannel);
-        done();
-      }).trigger('offer-ready');
+      sinon.assert.calledOnce(_setupDataChannelIn);
+      sinon.assert.calledWithExactly(_setupDataChannelIn, fakeChannel);
     });
 
     it("should setup a data channel", function() {
       var rtcCall = new app.models.WebRTCCall();
       var fakeDC = {};
 
-      rtcCall._setupDataChannel(fakeDC);
+      rtcCall._setupDataChannelIn(fakeDC);
 
       expect(fakeDC).to.be.a('object');
       expect(fakeDC.binaryType).to.equal('blob');
@@ -669,44 +658,56 @@ describe("WebRTCCall", function() {
         'onopen', 'onmessage', 'onerror', 'onclose']);
     });
 
-    it("should configure data channel to trigger the dc.open event",
+    it("should configure data channel to trigger the dc.in.open event",
       function(done) {
         var rtcCall = new app.models.WebRTCCall();
-        rtcCall._setupDataChannel({});
-        rtcCall.on('dc.open', function() {
+        var fakeChannel = {};
+        rtcCall.on('dc.in.open', function() {
           done();
         });
-        rtcCall.dc.onopen();
+
+        rtcCall.pc.ondatachannel({channel: fakeChannel});
+
+        rtcCall.dcIn.onopen();
       });
 
-    it("should configure data channel to trigger the dc.close event",
+    it("should configure data channel to trigger the dc.in.close event",
       function(done) {
         var rtcCall = new app.models.WebRTCCall();
-        rtcCall._setupDataChannel({});
-        rtcCall.on('dc.close', function() {
+        var fakeChannel = {};
+        rtcCall.on('dc.in.close', function() {
           done();
         });
-        rtcCall.dc.onclose();
+
+        rtcCall.pc.ondatachannel({channel: fakeChannel});
+
+        rtcCall.dcIn.onclose();
       });
 
-    it("should configure data channel to trigger the dc.message event",
+    it("should configure data channel to trigger the dc.in.message event",
       function(done) {
         var rtcCall = new app.models.WebRTCCall();
-        rtcCall._setupDataChannel({});
-        rtcCall.on('dc.message', function() {
+        var fakeChannel = {};
+        rtcCall.on('dc.in.message', function() {
           done();
         });
-        rtcCall.dc.onmessage();
+
+        rtcCall.pc.ondatachannel({channel: fakeChannel});
+
+        rtcCall.dcIn.onmessage();
       });
 
-    it("should configure data channel to trigger the dc.error event",
+    it("should configure data channel to trigger the dc.in.error event",
       function(done) {
         var rtcCall = new app.models.WebRTCCall();
-        rtcCall._setupDataChannel({});
-        rtcCall.on('dc.error', function() {
+        var fakeChannel = {};
+        rtcCall.on('dc.in.error', function() {
           done();
         });
-        rtcCall.dc.onerror();
+
+        rtcCall.pc.ondatachannel({channel: fakeChannel});
+
+        rtcCall.dcIn.onerror();
       });
   });
 
@@ -747,16 +748,16 @@ describe('Text chat', function() {
       sandbox.restore();
     });
 
-    it('should update text chat when a dc.message event is received',
+    it('should update text chat when a dc.in.message event is received',
       function() {
-        chatApp.webrtc.trigger('dc.message', {
+        chatApp.webrtc.trigger('dc.in.message', {
           data: JSON.stringify({nick: "niko", message: "hi"})
         });
         expect(chatApp.textChat).to.have.length.of(1);
         expect(chatApp.textChat.at(0).get('nick')).to.equal("niko");
         expect(chatApp.textChat.at(0).get('message')).to.equal("hi");
 
-        chatApp.webrtc.trigger('dc.message', {
+        chatApp.webrtc.trigger('dc.in.message', {
           data: JSON.stringify({nick: "jb", message: "hi niko"})
         });
         expect(chatApp.textChat).to.have.length.of(2);
@@ -781,7 +782,7 @@ describe('Text chat', function() {
     beforeEach(function() {
       $('body').append([
         '<div id="textchat">',
-        '  <dl></dl>',
+        '  <ul></ul>',
         '  <form><input name="message"></form>',
         '</div>'
       ].join(''));
@@ -798,38 +799,46 @@ describe('Text chat', function() {
 
     it("should be empty by default", function() {
       var view = new app.views.TextChatView({
+        webrtc: {on: function(){}},
         collection: new app.models.TextChat()
       });
       expect(view.collection).to.have.length.of(0);
       view.render();
-      expect(view.$('dl').html()).to.equal('');
+      expect(view.$('ul').html()).to.equal('');
     });
 
     it("should update rendering when its collection is updated", function() {
       var view = new app.views.TextChatView({
+        webrtc: {on: function(){}},
         collection: new app.models.TextChat([
           {nick: "niko", message: "plop"},
           {nick: "jb", message: "hello"}
         ])
       });
       expect(view.collection).to.have.length.of(2);
+
+      // check rendered view
       view.render();
-      expect(view.$('dl dt')).to.have.length.of(2);
+      expect(view.$('li')).to.have.length.of(2);
+
       // add a new message to the conversation
       view.collection.add({nick: "niko", message: "how is it going?"});
+
       expect(view.collection).to.have.length.of(3);
-      expect(view.$('dl dt')).to.have.length.of(3);
+      expect(view.$('li')).to.have.length.of(3);
     });
 
     it("should allow the caller to send a first message", function(done) {
-      app.port.trigger("talkilla.call-start", "niko", "jb");
+      app.port.trigger("talkilla.call-start", {caller: "niko", callee: "jb"});
       expect(chatApp.textChatView.collection).to.have.length.of(0);
+
       chatApp.textChatView.collection.once("add", function(entry) {
         expect(entry).to.be.an.instanceOf(app.models.TextChatEntry);
         expect(entry.get("nick")).to.equal("niko");
         expect(entry.get("message")).to.equal("plop");
         done();
       });
+
       $('#textchat [name="message"]').val("plop");
       $("#textchat form").trigger("submit");
     });
