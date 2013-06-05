@@ -34,11 +34,12 @@
 
   app.models.WebRTCCall = Backbone.Model.extend({
     pc: undefined, // peer connection
-    dc: undefined, // data channel
+    dcIn: undefined, // data channel in
+    dcOut: undefined, // data channel out
 
     initialize: function() {
       this.pc = new mozRTCPeerConnection();
-      this.dc = this._setupDataChannel(this.pc.createDataChannel('dc', {}));
+      this.dcOut = this._setupDataChannel(this.pc.createDataChannel('dc', {}));
 
       this.pc.onaddstream = function(event) {
         this.set("remoteStream", event.stream);
@@ -46,7 +47,7 @@
 
       // data channel for incoming calls
       this.pc.ondatachannel = function(event) {
-        this.dc = this._setupDataChannel(event.channel);
+        this.dcIn = this._setupDataChannel(event.channel);
         this.trigger('dc.ready', event);
       }.bind(this);
 
@@ -71,9 +72,9 @@
     },
 
     send: function(data) {
-      if (!this.dc)
+      if (!this.dcOut)
         return this._onError('no data channel connection available');
-      this.dc.send(data);
+      this.dcOut.send(data);
     },
 
     hangup: function() {
@@ -132,10 +133,12 @@
       }.bind(this);
 
       channel.onerror = function(event) {
+        console.log('dc.error', JSON.stringify(event));
         this.trigger('dc.error', event);
       }.bind(this);
 
       channel.onclose = function(event) {
+        console.log('dc.close', JSON.stringify(event));
         this.trigger('dc.close', event);
       }.bind(this);
 
