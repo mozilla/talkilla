@@ -24,6 +24,19 @@ describe("AppView", function() {
         app.views.NotificationsView);
     });
 
+    it("should add initialize a login property", function() {
+      var appView = new app.views.AppView();
+
+      expect(appView.login).to.be.an.instanceOf(
+        app.views.LoginView);
+    });
+
+    it("should add initialize a users property", function() {
+      var appView = new app.views.AppView();
+
+      expect(appView.users).to.be.an.instanceOf(app.views.UsersView);
+    });
+
   });
 
 });

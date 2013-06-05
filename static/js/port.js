@@ -60,7 +60,6 @@
 
   app.port.on("talkilla.logout-success", function() {
     app.data.user.clear();
-    app.resetApp();
   });
 
   app.port.on("talkilla.error", function(error) {
@@ -71,7 +70,7 @@
   app.port.on("talkilla.presence-unavailable", function(code) {
     // 1000 is CLOSE_NORMAL
     if (code !== 1000) {
-      app.resetApp();
+      app.data.user.clear();
       app.utils.notifyUI('Sorry, the browser lost communication with ' +
                          'the server. code: ' + code);
     }
