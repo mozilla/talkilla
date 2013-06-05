@@ -104,20 +104,6 @@
     }
   });
 
-  app.models.IncomingCall = Backbone.Model.extend({
-    defaults: {callee: undefined,
-               caller: undefined,
-               offer: {}}
-  });
-
-  app.models.PendingCall = Backbone.Model.extend({
-    defaults: {callee: undefined, caller: undefined}
-  });
-
-  app.models.DeniedCall = Backbone.Model.extend({
-    defaults: {callee: undefined, caller: undefined}
-  });
-
   app.models.Notification = Backbone.Model.extend({
     defaults: {type:    "default",
                message: "empty message"}
