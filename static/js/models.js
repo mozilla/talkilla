@@ -141,11 +141,18 @@
       }.bind(this));
     },
 
+    /**
+     * Returns true if the user is logged in.
+     */
     isLoggedIn: function() {
       return this.get('presence') !== "disconnected" &&
         this.get('nick') !== undefined;
     },
 
+    /**
+     * Returns true if the user was logged in prior to the last change
+     * on the model. Returns false if there have been no changes.
+     */
     wasLoggedIn: function() {
       return this.previous('presence') !== "disconnected" &&
         this.previous('nick') !== undefined;
