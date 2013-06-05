@@ -753,15 +753,6 @@ describe('Text chat', function() {
     });
   });
 
-  describe("app.models.TextChat", function() {
-    it("should be empty by default", function() {
-      var textChat = new app.models.TextChat();
-      expect(textChat).to.have.length.of(0);
-      textChat.add({nick: "jb", message: "hi"});
-      expect(textChat).to.have.length.of(1);
-    });
-  });
-
   describe('chatApp events for text chat', function () {
     var sandbox, chatApp;
 
