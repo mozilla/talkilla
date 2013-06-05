@@ -221,15 +221,13 @@
     initialize: function() {
       app.data.user = new app.models.User();
       app.data.user.on('change', function(model) {
-        if (model.isLoggedIn()) {
+        if (model.isLoggedIn())
           app.trigger('signin', model);
-          app.router.navigate('', {trigger: true});
-          app.router.index();
-          return;
-        }
+        else
+          app.resetApp();
 
-        app.resetApp();
-      });
+        this.render();
+      }.bind(this));
     },
 
     render: function() {
