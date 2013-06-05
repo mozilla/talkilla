@@ -55,11 +55,11 @@
     notifications: [],
 
     initialize: function() {
-      app.on('signin', function() {
+      app.data.user.on('signin', function() {
         this.clear();
       }.bind(this));
 
-      app.on('signout', function() {
+      app.data.user.on('signout', function() {
         this.clear();
       }.bind(this));
     },
