@@ -113,7 +113,6 @@
       var cb = function (localStream) {
         this.pc.addStream(localStream);
         this.set("localStream", localStream);
-        this.trigger('local.media.ready');
         callback();
       }.bind(this);
 
