@@ -131,7 +131,8 @@ var ChatApp = (function($, Backbone, _) {
 
   // Closing the call
   window.addEventListener("unload", function() {
-    window.chatApp.doHangup();
+    if ('chatApp' in this)
+      this.chatApp.doHangup();
   });
 
   return ChatApp;
