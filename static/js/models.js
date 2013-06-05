@@ -176,11 +176,6 @@
   app.models.TextChat = Backbone.Collection.extend({
     model: app.models.TextChatEntry,
 
-    constructor: function() {
-      Backbone.Collection.apply(this, arguments);
-      // XXX: listen to data channel events to update data
-    },
-
     newEntry: function(data) {
       var entry = this.add(data).at(this.length - 1);
       this.trigger('entry.created', entry);
