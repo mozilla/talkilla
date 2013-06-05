@@ -92,9 +92,7 @@
         this.me = data.callee; // If I'm receiving this, I'm the callee
       }, this);
 
-      this.collection.on('add', function() {
-        this.render();
-      }, this);
+      this.collection.on('add', this.render, this);
 
       this.webrtc.on('dc.in.ready', function() {
         this.$('input').removeAttr('disabled');
