@@ -38,17 +38,22 @@ var ChatApp = (function($, Backbone, _) {
     this.port.on('talkilla.call-incoming', this._onIncomingCall.bind(this));
     this.port.on('talkilla.call-establishment',
                  this._onCallEstablishment.bind(this));
-
-    this.port.postEvent('talkilla.chat-window-ready', {});
+    this.port.on('talkilla.call-hangup', this._onCallShutdown.bind(this));
 
     // Outgoing events
     this.webrtc.on('offer-ready', this._onOfferReady.bind(this));
     this.webrtc.on('answer-ready', this._onAnswerReady.bind(this));
+
+    // Internal events
+    window.addEventListener("unload", this._onCallHangup.bind(this));
+
+    this.port.postEvent('talkilla.chat-window-ready', {});
+
   }
 
   // Outgoing calls
   ChatApp.prototype._onStartingCall = function(data) {
-    this.call.set({caller: data.caller, callee: data.callee});
+    this.call.set({id: data.caller, otherUser: data.callee});
     this.call.start();
     // XXX Assume both video and audio call for now
     // Really webrtc and calls should be set up on clicking a button
@@ -63,7 +68,7 @@ var ChatApp = (function($, Backbone, _) {
 
   // Incoming calls
   ChatApp.prototype._onIncomingCall = function(data) {
-    this.call.set({caller: data.caller, callee: data.callee});
+    this.call.set({otherUser: data.caller, id: data.callee});
     this.call.incoming();
     // XXX Assume both video and audio call for now
     // Really webrtc and calls should be set up on clicking a button
@@ -73,8 +78,8 @@ var ChatApp = (function($, Backbone, _) {
 
   ChatApp.prototype._onOfferReady = function(offer) {
     var callData = {
-      caller: this.call.get("caller"),
-      callee: this.call.get("callee"),
+      caller: this.call.get("id"),
+      callee: this.call.get("otherUser"),
       offer: offer
     };
 
@@ -83,12 +88,31 @@ var ChatApp = (function($, Backbone, _) {
 
   ChatApp.prototype._onAnswerReady = function(answer) {
     var callData = {
-      caller: this.call.get("caller"),
-      callee: this.call.get("callee"),
+      caller: this.call.get("otherUser"),
+      callee: this.call.get("id"),
       answer: answer
     };
 
     this.port.postEvent('talkilla.call-answer', callData);
+  };
+
+  // Call Hangup
+  ChatApp.prototype._onCallShutdown = function() {
+    this.call.hangup();
+    this.webrtc.hangup();
+    window.close();
+  };
+
+  ChatApp.prototype._onCallHangup = function(data) {
+    var callState = this.call.state.current;
+    if (callState === "ready" || callState === "terminated")
+      return;
+
+    var other = this.call.get("otherUser");
+    this.call.hangup();
+    this.webrtc.hangup();
+
+    this.port.postEvent('talkilla.call-hangup', {other: other});
   };
 
   return ChatApp;

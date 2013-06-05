@@ -1,4 +1,4 @@
-/* global app, Backbone, _, jQuery*/
+/* global app, Backbone, _, jQuery */
 /**
  * Talkilla Backbone views.
  */
@@ -11,6 +11,10 @@
    */
   app.views.CallView = Backbone.View.extend({
 
+    events: {
+      'click .btn-hangup': 'hangup'
+    },
+
     initialize: function(options) {
       options = options || {};
       if (!options.webrtc)
@@ -21,6 +25,13 @@
       this.webrtc = options.webrtc;
       this.webrtc.on('change:localStream', this._displayLocalVideo, this);
       this.webrtc.on('change:remoteStream', this._displayRemoteVideo, this);
+    },
+
+    hangup: function(event) {
+      if (event)
+        event.preventDefault();
+
+      window.close();
     },
 
     _displayLocalVideo: function() {

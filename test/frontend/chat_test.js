@@ -1,5 +1,5 @@
 /* global app, chai, describe, it, sinon, beforeEach, afterEach,
-   ChatApp, mozRTCSessionDescription, $, mozRTCPeerConnection */
+   ChatApp, mozRTCSessionDescription, $, _, Backbone, mozRTCPeerConnection */
 
 /* jshint expr:true */
 var expect = chai.expect;
@@ -16,7 +16,13 @@ describe("ChatApp", function() {
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
-    sandbox.stub(app.port, "postEvent");
+    app.port = {postEvent: sinon.spy()};
+    _.extend(app.port, Backbone.Events);
+    sandbox.stub(window, "addEventListener");
+    // Although we're not testing it in this set of tests, stub the WebRTCCall
+    // model's initialize function, as creating new media items
+    // (e.g. PeerConnection) takes a lot of time that we don't need to spend.
+    sandbox.stub(app.models.WebRTCCall.prototype, "initialize");
   });
 
   afterEach(function() {
@@ -56,6 +62,11 @@ describe("ChatApp", function() {
       "_onIncomingCall", incomingCallData);
   });
 
+  it("should attach _onCallShutdown to talkilla.call-hangup", function() {
+    assertEventTriggersHandler("talkilla.call-hangup",
+      "_onCallShutdown", { other: "mark" });
+  });
+
   function assertModelEventTriggersHandler(event, handler) {
     "use strict";
 
@@ -85,14 +96,28 @@ describe("ChatApp", function() {
     assertModelEventTriggersHandler("answer-ready", "_onAnswerReady");
   });
 
-  it("should post talkilla.chat-window-ready to the worker",
-    function() {
+  it("should post talkilla.chat-window-ready to the worker", function() {
       chatApp = new ChatApp();
 
       sinon.assert.calledOnce(app.port.postEvent);
       sinon.assert.calledWithExactly(app.port.postEvent,
         "talkilla.chat-window-ready", {});
     });
+
+  it("should attach _onCallHangup to unload on window", function() {
+    var onCallHangup;
+    window.addEventListener.restore();
+    sandbox.stub(window, "addEventListener", function(event, handler) {
+      onCallHangup = handler;
+    });
+    sandbox.stub(ChatApp.prototype, "_onCallHangup");
+    chatApp = new ChatApp();
+
+    onCallHangup();
+
+    sinon.assert.calledOnce(chatApp._onCallHangup);
+    sinon.assert.calledWithExactly(chatApp._onCallHangup);
+  });
 
 
   describe("ChatApp (constructed)", function () {
@@ -106,8 +131,9 @@ describe("ChatApp", function() {
 
       chatApp = new ChatApp();
 
-      // Reset the postEvent spy as this is trigger in the ChatApp
-      // constructor.
+      // Reset the postEvent spy as the ChatApp constructor already
+      // triggered a talkilla.chat-window-ready event. We do not want
+      // this trigger to mess with our following tests.
       app.port.postEvent.reset();
       // Some functions only test a little bit, and don't stub everything, so
       // stub mozGetUserMedia as that tends to let callbacks happen which
@@ -138,8 +164,8 @@ describe("ChatApp", function() {
       it("should set the caller and callee", function() {
         chatApp._onStartingCall(callData);
 
-        expect(chatApp.call.get('caller')).to.equal(callData.caller);
-        expect(chatApp.call.get('callee')).to.equal(callData.callee);
+        expect(chatApp.call.get('id')).to.equal(callData.caller);
+        expect(chatApp.call.get('otherUser')).to.equal(callData.callee);
       });
 
       it("should start the call", function() {
@@ -168,8 +194,8 @@ describe("ChatApp", function() {
       it("should set the caller and callee", function() {
         chatApp._onIncomingCall(incomingCallData);
 
-        expect(chatApp.call.get('caller')).to.equal(incomingCallData.caller);
-        expect(chatApp.call.get('callee')).to.equal(incomingCallData.callee);
+        expect(chatApp.call.get('otherUser')).to.equal(incomingCallData.caller);
+        expect(chatApp.call.get('id')).to.equal(incomingCallData.callee);
       });
 
       it("should set the call as incoming", function() {
@@ -220,6 +246,78 @@ describe("ChatApp", function() {
 
     });
 
+    describe("#_onCallShutdown", function() {
+      beforeEach(function() {
+        sandbox.stub(chatApp.call, "hangup");
+        sandbox.stub(chatApp.webrtc, "hangup");
+        sandbox.stub(window, "close");
+        chatApp._onCallShutdown();
+      });
+
+      it("should hangup the call", function() {
+        sinon.assert.calledOnce(chatApp.call.hangup);
+        sinon.assert.calledWithExactly(chatApp.call.hangup);
+      });
+
+      it("should hangup the webrtc connection", function() {
+        sinon.assert.calledOnce(chatApp.webrtc.hangup);
+        sinon.assert.calledWithExactly(chatApp.webrtc.hangup);
+      });
+
+      it("should close the window", function() {
+        sinon.assert.calledOnce(window.close);
+        sinon.assert.calledWithExactly(window.close);
+      });
+    });
+
+    describe("#_onCallHangup", function() {
+      beforeEach(function() {
+        sandbox.stub(chatApp.call, "hangup");
+        sandbox.stub(chatApp.webrtc, "hangup");
+        chatApp.call.state.current = "ongoing";
+      });
+
+      it("should hangup the call", function() {
+        chatApp._onCallHangup();
+        sinon.assert.calledOnce(chatApp.call.hangup);
+        sinon.assert.calledWithExactly(chatApp.call.hangup);
+      });
+
+      it("should hangup the webrtc connection", function() {
+        chatApp._onCallHangup();
+        sinon.assert.calledOnce(chatApp.webrtc.hangup);
+        sinon.assert.calledWithExactly(chatApp.webrtc.hangup);
+      });
+
+      it("should post a talkilla.call-hangup event to the worker", function() {
+        chatApp.call.set("otherUser", "florian");
+        chatApp._onCallHangup();
+        sinon.assert.calledOnce(app.port.postEvent);
+        sinon.assert.calledWith(app.port.postEvent,
+                                "talkilla.call-hangup", {other: "florian"});
+      });
+
+      it("should do nothing if the call is already terminated", function () {
+        chatApp.call.state.current = "terminated";
+
+        chatApp._onCallHangup();
+
+        sinon.assert.notCalled(chatApp.call.hangup);
+        sinon.assert.notCalled(chatApp.webrtc.hangup);
+        sinon.assert.notCalled(app.port.postEvent);
+      });
+
+      it("should do nothing if the call was not started", function () {
+        chatApp.call.state.current = "ready";
+
+        chatApp._onCallHangup();
+
+        sinon.assert.notCalled(chatApp.call.hangup);
+        sinon.assert.notCalled(chatApp.webrtc.hangup);
+        sinon.assert.notCalled(app.port.postEvent);
+      });
+    });
+
     describe("#_onOfferReady", function() {
       it("should post an event to the worker when offer-ready is triggered",
         function() {
@@ -231,6 +329,7 @@ describe("ChatApp", function() {
           chatApp._onOfferReady(offer);
 
           sinon.assert.calledOnce(app.port.postEvent);
+          sinon.assert.calledWith(app.port.postEvent, "talkilla.call-offer");
         });
     });
 
@@ -245,6 +344,7 @@ describe("ChatApp", function() {
           chatApp._onAnswerReady(answer);
 
           sinon.assert.calledOnce(app.port.postEvent);
+          sinon.assert.calledWith(app.port.postEvent, "talkilla.call-answer");
         });
     });
   });
@@ -313,6 +413,26 @@ describe("Call", function() {
 
   });
 
+  describe("#hangup", function() {
+    it("should change the state from ready to terminated", function() {
+      call.hangup();
+      expect(call.state.current).to.equal('terminated');
+    });
+
+    it("should change the state from pending to terminated", function() {
+      call.start();
+      call.hangup();
+      expect(call.state.current).to.equal('terminated');
+    });
+
+    it("should change the state from ongoing to terminated", function() {
+      call.start();
+      call.accept();
+      call.hangup();
+      expect(call.state.current).to.equal('terminated');
+    });
+  });
+
 });
 
 describe("WebRTCCall", function() {
@@ -323,7 +443,7 @@ describe("WebRTCCall", function() {
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
     webrtc = new app.models.WebRTCCall();
-    sinon.stub(webrtc.pc, "addStream");
+    sandbox.stub(webrtc.pc, "addStream");
   });
 
   afterEach(function() {
@@ -400,6 +520,17 @@ describe("WebRTCCall", function() {
       sinon.assert.calledOnce(webrtc.pc.setRemoteDescription);
       sinon.assert.calledWith(webrtc.pc.setRemoteDescription,
                               new mozRTCSessionDescription(answer));
+    });
+
+  });
+
+  describe("#hangup", function() {
+
+    it("should close the peer connection", function() {
+      webrtc.pc = {close: sinon.spy()};
+      webrtc.hangup();
+
+      sinon.assert.calledOnce(webrtc.pc.close);
     });
 
   });
@@ -535,6 +666,10 @@ describe("CallView", function() {
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
+    // Although we're not testing it in this set of tests, stub the WebRTCCall
+    // model's initialize function, as creating new media items
+    // (e.g. PeerConnection) takes a lot of time that we don't need to spend.
+    sandbox.stub(app.models.WebRTCCall.prototype, "initialize");
     webrtc = new app.models.WebRTCCall();
   });
 
@@ -585,6 +720,36 @@ describe("CallView", function() {
 
         sinon.assert.calledOnce(callView._displayRemoteVideo);
       });
+  });
+
+  describe("events", function() {
+    it("should call hangup() when a click event is fired on the hangup button",
+      function() {
+        var el = $('<div><button class="btn-hangup"/></div>');
+        $("#fixtures").append(el);
+        sandbox.stub(app.views.CallView.prototype, "initialize");
+        sandbox.stub(app.views.CallView.prototype, "hangup");
+        var callView = new app.views.CallView({el: el});
+
+        $(el).find('button').click();
+        sinon.assert.calledOnce(callView.hangup);
+
+        $("#fixtures").empty();
+      });
+  });
+
+  describe("#hangup", function() {
+
+    it('should close the window', function() {
+      var el = $('<div><div id="local-video"></div></div>');
+      $("#fixtures").append(el);
+      var callView = new app.views.CallView({el: el, webrtc: webrtc});
+      sandbox.stub(window, "close");
+
+      callView.hangup();
+
+      sinon.assert.calledOnce(window.close);
+    });
   });
 
   describe("#_displayLocalVideo", function() {

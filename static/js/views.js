@@ -15,13 +15,11 @@
       this.notifications = new app.views.NotificationsView();
       this.login = new app.views.LoginView();
       this.users = new app.views.UsersView();
-      this.call = new app.views.CallView({model: new app.models.Call()});
     },
 
     render: function() {
       this.login.render();
       this.users.render();
-      this.call.render();
       return this;
     }
   });
@@ -49,85 +47,6 @@
   });
 
   /**
-   * Incoming call notification view.
-   */
-  app.views.IncomingCallNotificationView = app.views.NotificationView.extend({
-    template: _.template([
-      '<div class="alert alert-block alert-success">',
-      '  <h4>Incoming call from <strong><%= caller %></strong></h4>',
-      '  <p>Do you want to take the call?',
-      '    <a class="btn btn-success accept" href="">Accept</a>',
-      '    <a class="btn btn-error deny" href="">Deny</a>',
-      '  </p>',
-      '</div>'
-    ].join('')),
-
-    events: {
-      'click .accept': 'accept',
-      'click .deny': 'deny'
-    },
-
-    accept: function(event) {
-      event.preventDefault();
-      var callView = app.router.view.call;
-      callView.offer = this.model.get('offer');
-      callView.callee = app.data.users.findWhere({
-        nick: this.model.get('caller')
-      });
-      callView.render();
-      this.clear();
-    },
-
-    deny: function(event) {
-      event.preventDefault();
-      app.port.postEvent('call_deny', this.model.toJSON());
-      this.clear();
-    }
-  });
-
-  /**
-   * Pending call notification view.
-   */
-  app.views.PendingCallNotificationView = app.views.NotificationView.extend({
-    template: _.template([
-      '<div class="alert alert-block alert-success alert-pending">',
-      '  <a class="close" data-dismiss="alert">&times;</a>',
-      '  <p>Calling <strong><%= callee %>…</strong>',
-      '    <a class="btn btn-cancel" href="">Cancel</a></p>',
-      '</div>'
-    ].join('')),
-
-    events: {
-      'click .btn-cancel': 'cancel'
-    },
-
-    initialize: function() {
-      // app events
-      app.on('hangup_done', function() {
-        this.clear();
-      }.bind(this));
-    },
-
-    cancel: function(event) {
-      event.preventDefault();
-      app.trigger('hangup');
-      this.clear();
-    }
-  });
-
-  /**
-   * Denied call notification view.
-   */
-  app.views.DeniedCallNotificationView = app.views.NotificationView.extend({
-    template: _.template([
-      '<div class="alert alert-block alert-error">',
-      '  <a class="close" data-dismiss="alert">&times;</a>',
-      '  <h4><strong><%= callee %></strong> declined the call</h4>',
-      '</div>'
-    ].join(''))
-  });
-
-  /**
    * Notifications list view.
    */
   app.views.NotificationsView = Backbone.View.extend({
@@ -136,33 +55,6 @@
     notifications: [],
 
     initialize: function() {
-      // service events
-      app.port.on('incoming_call', function(data) {
-        var notification = new app.views.IncomingCallNotificationView({
-          model: new app.models.IncomingCall(data)
-        });
-        this.addNotification(notification);
-      }.bind(this));
-
-      app.port.on('call_offer', function(data) {
-        var notification = new app.views.PendingCallNotificationView({
-          model: new app.models.PendingCall(data)
-        });
-        this.addNotification(notification);
-      }.bind(this));
-
-      app.port.on('call_denied', function(data) {
-        var notification = new app.views.DeniedCallNotificationView({
-          model: new app.models.DeniedCall(data)
-        });
-        this.addNotification(notification);
-      }.bind(this));
-
-      // app events
-      app.on('hangup_done', function() {
-        this.render();
-      }.bind(this));
-
       app.on('signin', function() {
         this.clear();
       }.bind(this));
@@ -177,23 +69,10 @@
      * @param {app.views.NotificationView} notification
      */
     addNotification: function(notification) {
-      var DeniedCallNotificationView = app.views.DeniedCallNotificationView;
-      var PendingCallNotificationView = app.views.PendingCallNotificationView;
       var el = notification.render().el;
 
       this.notifications.push(notification);
       this.$el.append(el);
-
-      // A denied call notification replace a pending call notification
-      if (notification instanceof DeniedCallNotificationView)
-        this.notifications = this.notifications.filter(function(notif) {
-          var isPending = (notif instanceof PendingCallNotificationView);
-
-          if (isPending)
-            notif.clear();
-
-          return !isPending;
-        });
 
       return this;
     },
@@ -267,18 +146,6 @@
       // purge the list on sign out
       app.on('signout', function() {
         this.collection.reset();
-        this.callee = undefined;
-        this.render();
-      }.bind(this));
-
-      // highlight callee's username on call
-      app.on('call', function(call) {
-        this.callee = call && call.callee;
-        this.render();
-      }.bind(this));
-
-      // unhighlight all usernames on hang up done
-      app.on('hangup_done', function() {
         this.callee = undefined;
         this.render();
       }.bind(this));
@@ -399,129 +266,6 @@
     signout: function(event) {
       event.preventDefault();
       app.port.logout();
-    }
-  });
-
-  /**
-   * Main video conversation view.
-   */
-  app.views.CallView = Backbone.View.extend({
-    el: '#call',
-
-    // video objects
-    local: undefined,
-    remote: undefined,
-
-    // The call's peer connection.
-    pc: undefined,
-
-    events: {
-      'click .btn-hangup': 'hangup'
-    },
-
-    initialize: function(options) {
-      this.callee = options && options.callee;
-
-      if (!(options && ('model' in options))) {
-        throw new Error('No model passed to CallView.initialize()');
-      }
-
-      app.trigger('hangup');
-      this.local = $('#local-video').get(0);
-      this.remote = $('#remote-video').get(0);
-
-      // service events
-      app.port.on('call_accepted', function(data) {
-        app.media.addAnswerToPeerConnection(
-          this.pc,
-
-          data.answer,
-
-          // Nothing to do on success
-          function () {},
-
-          function onError(err) {
-            app.utils.log(err);
-            app.utils.notifyUI('Unable to initiate call', 'error');
-          }
-        );
-      }.bind(this));
-
-      // app events
-      app.on('hangup', function () {
-        this.hangup();
-        this.render();
-      }.bind(this));
-
-      app.on('signout', function() {
-        // ensure a call is always terminated on user signout
-        app.trigger('hangup');
-        this.render();
-      }.bind(this));
-
-      app.on('add_local_stream', function(stream) {
-        this.local.mozSrcObject = stream;
-        this.local.play();
-      }.bind(this));
-
-      app.on('add_remote_stream', function(stream) {
-        this.remote.mozSrcObject = stream;
-        this.remote.play();
-      }.bind(this));
-    },
-
-    /**
-     * Initiates the call.
-     */
-    initiate: function() {
-      app.trigger('call', {callee: this.callee});
-      app.media.startPeerConnection(
-        this.callee,
-
-        this.offer,
-
-        function onSuccess(pc) {
-          this.pc = pc;
-          this.$('.btn-hangup').removeClass('disabled');
-        }.bind(this),
-
-        function onError(err) {
-          app.utils.log(err);
-          app.utils.notifyUI('Unable to initiate call', 'error');
-        });
-    },
-
-    /**
-     * Hangs up the call.
-     */
-    hangup: function(event) {
-      if (event)
-        event.preventDefault();
-
-      // Stop the media elements running
-      if (this.local && this.local.mozSrcObject) {
-        this.local.mozSrcObject.stop();
-        this.local.mozSrcObject = null;
-      }
-      if (this.remote) {
-        this.remote.pause();
-        this.remote.mozSrcObject = null;
-      }
-
-      // XXX trigger "hangup" event on model here
-
-      app.router.navigate('', {trigger: true});
-    },
-
-    render: function() {
-      if (!app.data.user || !this.callee) {
-        this.$el.hide();
-        return this;
-      }
-      this.$('.callee').text(this.callee.get('nick'));
-      this.initiate();
-      this.$el.show();
-      return this;
     }
   });
 })(app, Backbone, _, jQuery);
