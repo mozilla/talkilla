@@ -58,7 +58,10 @@ describe("Chat Window Tests", function() {
     driver2.switchTo().frame("//chatbox");
 
     // Check that a #call element exists
-    driver2.findElement(By.id("call")).then(function() {
+    driver2.findElement(By.id("call"));
+
+    // Close the chat window
+    driver2.close().then(function() {
       done();
     });
   });
