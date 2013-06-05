@@ -59,10 +59,9 @@
    * Text chat entry view.
    */
   app.views.TextChatEntryView = Backbone.View.extend({
-    template: _.template([
-      '<dt><%= nick %></dt>',
-      '<dd><%= message %></dd>'
-    ].join('')),
+    tag: 'li',
+
+    template: _.template('<strong><%= nick %>:</strong> <%= message %>'),
 
     render: function() {
       this.$el.html(this.template(this.model.toJSON()));
@@ -98,7 +97,7 @@
         this.render();
       }, this);
 
-      this.webrtc.on('dc.ready', function() {
+      this.webrtc.on('dc.in.ready', function() {
         this.$('input').removeAttr('disabled');
       }, this);
     },
@@ -115,10 +114,10 @@
     },
 
     render: function() {
-      var $dl = this.$('dl').empty();
+      var $ul = this.$('ul').empty();
       this.collection.each(function(entry) {
         var view = new app.views.TextChatEntryView({model: entry});
-        $dl.append(view.render().$el);
+        $ul.append(view.render().$el);
       });
       return this;
     }

@@ -39,7 +39,7 @@
 
     initialize: function() {
       this.pc = new mozRTCPeerConnection();
-      this.dcOut = this._setupDataChannel(this.pc.createDataChannel('dc', {}));
+      this.dcOut = this.pc.createDataChannel('dc', {});
 
       this.pc.onaddstream = function(event) {
         this.set("remoteStream", event.stream);
@@ -47,8 +47,8 @@
 
       // data channel for incoming calls
       this.pc.ondatachannel = function(event) {
-        this.dcIn = this._setupDataChannel(event.channel);
-        this.trigger('dc.ready', event);
+        this.dcIn = this._setupDataChannelIn(event.channel);
+        this.trigger('dc.in.ready', event);
       }.bind(this);
 
       this._onError = this._onError.bind(this);
@@ -107,8 +107,7 @@
     _getMedia: function(callback, errback) {
       var constraints = {
         video: this.get('video'),
-        audio: this.get('audio'),
-        fake: true
+        audio: this.get('audio')
       };
 
       var cb = function (localStream) {
@@ -121,25 +120,23 @@
       navigator.mozGetUserMedia(constraints, cb, errback);
     },
 
-    _setupDataChannel: function(channel) {
+    _setupDataChannelIn: function(channel) {
       channel.binaryType = 'blob';
 
       channel.onopen = function(event) {
-        this.trigger('dc.open', event);
+        this.trigger('dc.in.open', event);
       }.bind(this);
 
       channel.onmessage = function(event) {
-        this.trigger('dc.message', event);
+        this.trigger('dc.in.message', event);
       }.bind(this);
 
       channel.onerror = function(event) {
-        console.log('dc.error', JSON.stringify(event));
-        this.trigger('dc.error', event);
+        this.trigger('dc.in.error', event);
       }.bind(this);
 
       channel.onclose = function(event) {
-        console.log('dc.close', JSON.stringify(event));
-        this.trigger('dc.close', event);
+        this.trigger('dc.in.close', event);
       }.bind(this);
 
       return channel;

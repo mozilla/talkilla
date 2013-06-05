@@ -54,7 +54,7 @@ var ChatApp = (function($, Backbone, _) {
     this.webrtc.on('answer-ready', this._onAnswerReady.bind(this));
 
     // Data channels
-    this.webrtc.on('dc.message', function(event) {
+    this.webrtc.on('dc.in.message', function(event) {
       this.textChat.add(JSON.parse(event.data));
     }, this);
 
