@@ -450,6 +450,89 @@ describe("WebRTCCall", function() {
     sandbox.restore();
   });
 
+  describe("#constructor", function() {
+
+    it("should set the remoteStream", function() {
+      sandbox.stub(window, "mozRTCPeerConnection");
+      var fakeRemoteStream = "fakeRemoteStream";
+      var event = {stream: fakeRemoteStream};
+      var fakePC = {createDataChannel: function() {}};
+      mozRTCPeerConnection.returns(fakePC);
+      webrtc = new app.models.WebRTCCall();
+
+      fakePC.onaddstream(event);
+
+      expect(webrtc.get("remoteStream")).to.equal(fakeRemoteStream);
+    });
+
+    it("should create a peer connection and configure a received data channel",
+      function() {
+        var fakePC = {createDataChannel: function() {}};
+        var fakeChannel = {};
+        sandbox.stub(window, "mozRTCPeerConnection").returns(fakePC);
+        var _setupDataChannelIn = sandbox.stub(app.models.WebRTCCall.prototype,
+                                               "_setupDataChannelIn");
+        new app.models.WebRTCCall();
+
+        fakePC.ondatachannel({channel: fakeChannel});
+
+        sinon.assert.calledOnce(_setupDataChannelIn);
+        sinon.assert.calledWithExactly(_setupDataChannelIn, fakeChannel);
+      });
+
+    it("should configure data channel to trigger the dc.in.open event",
+      function(done) {
+        var rtcCall = new app.models.WebRTCCall();
+        var fakeChannel = {};
+        rtcCall.on('dc.in.open', function() {
+          done();
+        });
+
+        rtcCall.pc.ondatachannel({channel: fakeChannel});
+
+        rtcCall.dcIn.onopen();
+      });
+
+    it("should configure data channel to trigger the dc.in.close event",
+      function(done) {
+        var rtcCall = new app.models.WebRTCCall();
+        var fakeChannel = {};
+        rtcCall.on('dc.in.close', function() {
+          done();
+        });
+
+        rtcCall.pc.ondatachannel({channel: fakeChannel});
+
+        rtcCall.dcIn.onclose();
+      });
+
+    it("should configure data channel to trigger the dc.in.message event",
+      function(done) {
+        var rtcCall = new app.models.WebRTCCall();
+        var fakeChannel = {};
+        rtcCall.on('dc.in.message', function() {
+          done();
+        });
+
+        rtcCall.pc.ondatachannel({channel: fakeChannel});
+
+        rtcCall.dcIn.onmessage();
+      });
+
+    it("should configure data channel to trigger the dc.in.error event",
+      function(done) {
+        var rtcCall = new app.models.WebRTCCall();
+        var fakeChannel = {};
+        rtcCall.on('dc.in.error', function() {
+          done();
+        });
+
+        rtcCall.pc.ondatachannel({channel: fakeChannel});
+
+        rtcCall.dcIn.onerror();
+      });
+  });
+
   describe("#offer", function() {
 
     it("should call getUserMedia", function() {
@@ -641,33 +724,7 @@ describe("WebRTCCall", function() {
       });
   });
 
-  it("should set the remoteStream", function() {
-    sandbox.stub(window, "mozRTCPeerConnection");
-    var fakeRemoteStream = "fakeRemoteStream";
-    var event = {stream: fakeRemoteStream};
-    var fakePC = {createDataChannel: function() {}};
-    mozRTCPeerConnection.returns(fakePC);
-    webrtc = new app.models.WebRTCCall();
-
-    fakePC.onaddstream(event);
-
-    expect(webrtc.get("remoteStream")).to.equal(fakeRemoteStream);
-  });
-
-  describe("#_setupDataChannelIn", function() {
-    it("should be called when receiving a data channel event", function() {
-      var fakePC = {createDataChannel: function() {}};
-      var fakeChannel = {};
-      sandbox.stub(window, "mozRTCPeerConnection").returns(fakePC);
-      var _setupDataChannelIn = sandbox.stub(app.models.WebRTCCall.prototype,
-                                             "_setupDataChannelIn");
-      new app.models.WebRTCCall();
-
-      fakePC.ondatachannel({channel: fakeChannel});
-
-      sinon.assert.calledOnce(_setupDataChannelIn);
-      sinon.assert.calledWithExactly(_setupDataChannelIn, fakeChannel);
-    });
+  describe('_setupDataChannelIn()', function() {
 
     it("should setup a data channel", function() {
       var rtcCall = new app.models.WebRTCCall();
@@ -675,63 +732,11 @@ describe("WebRTCCall", function() {
 
       rtcCall._setupDataChannelIn(fakeDC);
 
-      expect(fakeDC).to.be.a('object');
       expect(fakeDC.binaryType).to.equal('blob');
       expect(fakeDC).to.include.keys(
         ['onopen', 'onmessage', 'onerror', 'onclose']);
     });
 
-    it("should configure data channel to trigger the dc.in.open event",
-      function(done) {
-        var rtcCall = new app.models.WebRTCCall();
-        var fakeChannel = {};
-        rtcCall.on('dc.in.open', function() {
-          done();
-        });
-
-        rtcCall.pc.ondatachannel({channel: fakeChannel});
-
-        rtcCall.dcIn.onopen();
-      });
-
-    it("should configure data channel to trigger the dc.in.close event",
-      function(done) {
-        var rtcCall = new app.models.WebRTCCall();
-        var fakeChannel = {};
-        rtcCall.on('dc.in.close', function() {
-          done();
-        });
-
-        rtcCall.pc.ondatachannel({channel: fakeChannel});
-
-        rtcCall.dcIn.onclose();
-      });
-
-    it("should configure data channel to trigger the dc.in.message event",
-      function(done) {
-        var rtcCall = new app.models.WebRTCCall();
-        var fakeChannel = {};
-        rtcCall.on('dc.in.message', function() {
-          done();
-        });
-
-        rtcCall.pc.ondatachannel({channel: fakeChannel});
-
-        rtcCall.dcIn.onmessage();
-      });
-
-    it("should configure data channel to trigger the dc.in.error event",
-      function(done) {
-        var rtcCall = new app.models.WebRTCCall();
-        var fakeChannel = {};
-        rtcCall.on('dc.in.error', function() {
-          done();
-        });
-
-        rtcCall.pc.ondatachannel({channel: fakeChannel});
-
-        rtcCall.dcIn.onerror();
-      });
   });
 
 });
