@@ -48,29 +48,8 @@
   <script src="js/models.js"></script>
   <script src="js/chat/views.js"></script>
   <script>
-    function localConfiguration(config) {
-      if (!config || !config.DEBUG || 'mozSocial' in navigator) {
-        return;
-      }
-      // mozSocial fake object, for local manual testing
-      navigator.mozSocial = {
-        getWorker: function() {
-          return {
-            port: {
-              postMessage: function(data) {
-                try {
-                  console.log('port message:', data.topic, data.data);
-                } catch (e) {}
-              }
-            }
-          };
-        }
-      };
-    }
-
     jQuery(function($) {
       $.getJSON('/config.json', function(config) {
-        localConfiguration(config);
         app.start(config);
         window.chatApp = new ChatApp();
       });
