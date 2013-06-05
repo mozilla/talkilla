@@ -35,22 +35,15 @@ var SidebarApp = (function($, Backbone, _) {
 
   function SidebarApp() {
     this.view = new app.views.AppView();
+
+    app.data.user.on("signout", function () {
+      // Reset all app data apart from the user model, as the views rely
+      // on it for change notifications, and this saves re-initializing those
+      // hooks.
+      var user = app.data.user;
+      app.data = { user: user };
+    });
   }
-
-  /**
-   * Resets the app to the signed out state.
-   */
-  app.resetApp = function() {
-    // Reset all app data apart from the user model, as the views rely
-    // on it for change notifications, and this saves re-initializing those
-    // hooks.
-    var user = app.data.user;
-    app.data = { user: user };
-
-    user.clear();
-
-    app.trigger('signout');
-  };
 
   // window event listeners
   window.onbeforeunload = function() {

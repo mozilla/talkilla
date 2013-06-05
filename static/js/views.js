@@ -144,10 +144,9 @@
       }.bind(this));
 
       // purge the list on sign out
-      app.on('signout', function() {
+      app.data.user.on('signout', function() {
         this.collection.reset();
         this.callee = undefined;
-        this.render();
       }.bind(this));
     },
 
@@ -219,11 +218,7 @@
     },
 
     initialize: function() {
-      app.data.user = new app.models.User();
-      app.data.user.on('change', function(model) {
-        if (!model.isLoggedIn())
-          app.resetApp();
-
+      app.data.user.on('change', function() {
         this.render();
       }.bind(this));
     },
