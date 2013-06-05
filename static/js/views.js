@@ -104,7 +104,6 @@
 
     initialize: function(options) {
       this.model = options && options.model;
-      this.active = options && options.active;
     },
 
     call: function(event) {
@@ -117,8 +116,6 @@
 
     render: function() {
       this.$el.html(this.template(this.model.toJSON()));
-      if (this.active)
-        this.$('a').addClass('active');
       return this;
     }
   });
@@ -146,7 +143,6 @@
       // purge the list on sign out
       app.data.user.on('signout', function() {
         this.collection.reset();
-        this.callee = undefined;
       }.bind(this));
     },
 
@@ -157,7 +153,6 @@
     initViews: function() {
       if (!this.collection)
         return;
-      var callee = this.callee;
       this.views = [];
       this.collection.chain().reject(function(user) {
         // filter out current signed in user, if any
@@ -167,9 +162,7 @@
       }).each(function(user) {
         // create a dedicated list entry for each user
         this.views.push(new app.views.UserEntryView({
-          model:  user,
-          active: !!(callee &&
-                     callee.get('nick') === user.get('nick'))
+          model:  user
         }));
       }.bind(this));
     },

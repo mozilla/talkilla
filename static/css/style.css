@@ -34,8 +34,7 @@
       line-height: 36px;
       border-bottom: 1px solid #ccc;
     }
-    .sidebar .users li a:hover,
-    .sidebar .users li .active {
+    .sidebar .users li a:hover {
       background: #eee url('../img/video-icon.png') no-repeat 2px 15px;
     }
 
