@@ -1,4 +1,5 @@
-/* global app, describe, it, beforeEach, afterEach, sinon */
+/* global app, chai, describe, it, beforeEach, afterEach, sinon */
+var expect = chai.expect;
 
 describe("UsersView", function() {
   describe("#initialize", function() {
