@@ -48,23 +48,29 @@ video {
 .video-area {
   position: relative;
   background: #eee;
+  overflow: hidden;
 }
 #controls {
+  background-color: #ccc;
+  border-bottom: 1px solid #aaa;
   float: right;
+  position: absolute;
+  top: 0;
+  width: 100%;
 }
 .remote-video {
-  width: 100%;
-  max-height: 300px;
+  height: 193px;
+  margin: -35px 0;
+  padding-top: 20px;
   z-index: 0;
 }
 .local-video {
   position: absolute;
-  right: 0;
   bottom: 0;
-  width: 50%;
-  height: 50%;
+  height: 25%;
+  right: -11px;
+  width: 25%;
   z-index: 1;
-  background: #777;
 }
 
 /**
@@ -80,3 +86,24 @@ video {
     padding-left: 0;
   }
 }
+
+/* Text chat window */
+
+#textchat {
+  font-size: 80%;
+}
+  #textchat ul {
+    height: 74px;
+    overflow: scroll;
+    padding-left: 0;
+    margin-left: 5px;
+  }
+  #textchat form {
+    position: fixed;
+    bottom: -29px;
+  }
+    #textchat form input[type="text"] {
+      border: none;
+      border-radius: 0;
+      width: 244px;
+    }
