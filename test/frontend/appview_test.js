@@ -34,8 +34,7 @@ describe("AppView", function() {
     it("should add initialize a users property", function() {
       var appView = new app.views.AppView();
 
-      expect(appView.users).to.be.an.instanceOf(
-        app.views.UsersView);
+      expect(appView.users).to.be.an.instanceOf(app.views.UsersView);
     });
 
   });

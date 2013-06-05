@@ -22,9 +22,12 @@ describe("SidebarApp", function() {
   });
 
   describe("#constructor", function() {
+    var userData;
+
     beforeEach(function() {
       sandbox.stub(app.views, "AppView");
-      app.data.user.on = sandbox.spy();
+      userData = app.data.user;
+      userData.on = sandbox.spy();
     });
 
     it("should create an AppView", function() {
@@ -36,24 +39,24 @@ describe("SidebarApp", function() {
     it("should listen to the user model for signout", function() {
       new SidebarApp();
 
-      sinon.assert.calledOnce(app.data.user.on);
-      sinon.assert.calledWith(app.data.user.on, "signout");
+      sinon.assert.calledOnce(userData.on);
+      sinon.assert.calledWith(userData.on, "signout");
     });
 
     it("should reset all data apart from user data on signout", function() {
-      app.data.user.clear = sandbox.spy();
+      userData.clear = sandbox.spy();
 
       // Save the current user data.
-      var userData = app.data.user;
+      var savedUserData = userData;
 
       // Add some extra data.
       app.data.random = true;
 
       // Create the app and call the signout callback function.
       new SidebarApp();
-      app.data.user.on.args[0][1]();
+      userData.on.args[0][1]();
 
-      expect(app.data).to.deep.equal({user: userData});
+      expect(app.data).to.deep.equal({user: savedUserData});
     });
   });
 });

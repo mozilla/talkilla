@@ -46,6 +46,7 @@ describe("app.models", function() {
 
     describe("#wasLoggedIn", function() {
       var user;
+
       beforeEach(function() {
         user = new app.models.User();
       });
