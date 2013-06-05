@@ -130,9 +130,25 @@
   app.models.User = Backbone.Model.extend({
     defaults: {nick: undefined, presence: "disconnected"},
 
+    initialize: function() {
+      // If the user has signed in or out, trigger the appropraite
+      // change
+      this.on("change", function() {
+        if (this.isLoggedIn() && !this.wasLoggedIn())
+          this.trigger('signin');
+        else if (!this.isLoggedIn() && this.wasLoggedIn())
+          this.trigger('signout');
+      }.bind(this));
+    },
+
     isLoggedIn: function() {
       return this.get('presence') !== "disconnected" &&
         this.get('nick') !== undefined;
+    },
+
+    wasLoggedIn: function() {
+      return this.previous('presence') !== "disconnected" &&
+        this.previous('nick') !== undefined;
     }
   });
 
