@@ -480,7 +480,8 @@ describe("WebRTCCall", function() {
         sinon.assert.calledWithExactly(_setupDataChannelIn, fakeChannel);
       });
 
-    it("should configure data channel to trigger the dc.in.open event",
+    it("should configure a received data channel then trigger the " +
+       "`dc.in.open` event",
       function(done) {
         var rtcCall = new app.models.WebRTCCall();
         var fakeChannel = {};
