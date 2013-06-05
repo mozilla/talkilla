@@ -753,6 +753,21 @@ describe('Text chat', function() {
     });
   });
 
+  describe("app.models.TextChat", function() {
+    it("#newEntry should add an entry and trigger the `entry.created` event",
+      function(done) {
+        var textChat = new app.models.TextChat();
+        var entry = new app.models.TextChatEntry({nick: "niko", message: "hi"});
+
+        textChat.on('entry.created', function(receivedEntry) {
+          expect(receivedEntry.toJSON()).to.deep.equal(entry.toJSON());
+          done();
+        });
+
+        textChat.newEntry(entry);
+      });
+  });
+
   describe('chatApp events for text chat', function () {
     var sandbox, chatApp;
 
@@ -784,13 +799,19 @@ describe('Text chat', function() {
       });
 
     it('should listen to `entry.created` to send an entry over data channel',
-      function() {
+      function(done) {
+        // the chat app listens to the TextChat collection `entry.created` event
+        var textChat = chatApp.textChat;
         var sendStub = sandbox.stub(app.models.WebRTCCall.prototype, "send");
         var entry = new app.models.TextChatEntry({nick: "niko", message: "hi"});
 
-        chatApp.textChat.newEntry(entry);
+        textChat.on('entry.created', function(receivedEntry) {
+          expect(receivedEntry.toJSON()).to.deep.equal(entry.toJSON());
+          sinon.assert.calledWith(sendStub, JSON.stringify(entry.toJSON()));
+          done();
+        });
 
-        sinon.assert.calledWith(sendStub, JSON.stringify(entry.toJSON()));
+        textChat.newEntry(entry);
       });
   });
 
