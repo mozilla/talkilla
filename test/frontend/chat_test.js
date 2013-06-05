@@ -762,7 +762,6 @@ describe('Text chat', function() {
 
     beforeEach(function() {
       sandbox = sinon.sandbox.create();
-      sandbox.stub(app.port, "postEvent");
       chatApp = new ChatApp();
     });
 
@@ -810,7 +809,6 @@ describe('Text chat', function() {
         '</div>'
       ].join(''));
       sandbox = sinon.sandbox.create();
-      sandbox.stub(app.port, "postEvent");
       chatApp = new ChatApp();
     });
 
