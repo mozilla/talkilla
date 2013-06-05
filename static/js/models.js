@@ -33,10 +33,22 @@
   });
 
   app.models.WebRTCCall = Backbone.Model.extend({
+    pc: undefined, // peer connection
+    dcIn: undefined, // data channel in
+    dcOut: undefined, // data channel out
+
     initialize: function() {
       this.pc = new mozRTCPeerConnection();
-      this.pc.onaddstream = function (event) {
+      this.dcOut = this.pc.createDataChannel('dc', {});
+
+      this.pc.onaddstream = function(event) {
         this.set("remoteStream", event.stream);
+      }.bind(this);
+
+      // data channel for incoming calls
+      this.pc.ondatachannel = function(event) {
+        this.dcIn = this._setupDataChannelIn(event.channel);
+        this.trigger('dc.in.ready', event);
       }.bind(this);
 
       this._onError = this._onError.bind(this);
@@ -57,6 +69,12 @@
       var callback = this.trigger.bind(this, "answer-ready");
       var createAnswer = this._createAnswer.bind(this, offer, callback);
       this._getMedia(createAnswer, this._onError);
+    },
+
+    send: function(data) {
+      if (!this.dcOut)
+        return this._onError('no data channel connection available');
+      this.dcOut.send(data);
     },
 
     hangup: function() {
@@ -87,7 +105,10 @@
     },
 
     _getMedia: function(callback, errback) {
-      var constraints = {video: this.get('video'), audio: this.get('audio')};
+      var constraints = {
+        video: this.get('video'),
+        audio: this.get('audio')
+      };
 
       var cb = function (localStream) {
         this.pc.addStream(localStream);
@@ -98,9 +119,31 @@
       navigator.mozGetUserMedia(constraints, cb, errback);
     },
 
+    _setupDataChannelIn: function(channel) {
+      channel.binaryType = 'blob';
+
+      channel.onopen = function(event) {
+        this.trigger('dc.in.open', event);
+      }.bind(this);
+
+      channel.onmessage = function(event) {
+        this.trigger('dc.in.message', event);
+      }.bind(this);
+
+      channel.onerror = function(event) {
+        this.trigger('dc.in.error', event);
+      }.bind(this);
+
+      channel.onclose = function(event) {
+        this.trigger('dc.in.close', event);
+      }.bind(this);
+
+      return channel;
+    },
+
     _onError: function(error) {
       // XXX Better error logging and handling
-      console.log("WebRTCCall error: " + error);
+      console.error("WebRTCCall error: " + error);
     }
   });
 
@@ -118,12 +161,9 @@
   app.models.TextChat = Backbone.Collection.extend({
     model: app.models.TextChatEntry,
 
-    constructor: function() {
-      Backbone.Collection.apply(this, arguments);
-      // register the talkilla.text-message event
-      app.port.on('talkilla.text-message', function(entry) {
-        this.add(entry);
-      }.bind(this));
+    newEntry: function(data) {
+      var entry = this.add(data).at(this.length - 1);
+      this.trigger('entry.created', entry);
     }
   });
 
