@@ -1,9 +1,9 @@
 /*global jQuery, Backbone, _*/
 /* jshint unused: false */
 /**
- * Talkilla application.
+ * Sidebar application.
  */
-var Talkilla = (function($, Backbone, _) {
+var SidebarApp = (function($, Backbone, _) {
   "use strict";
 
   /**
@@ -23,48 +23,27 @@ var Talkilla = (function($, Backbone, _) {
     views: {},
 
     start: function(options) {
+      // Create the current user model instance, as we'll always need that.
+      this.data.user = new app.models.User();
+
       _.extend(this.options, options || {});
-      this.router = new app.Router();
-      Backbone.history.start();
     }
   };
 
   // Add event support to the app
   _.extend(app, Backbone.Events);
 
-  /**
-   * Main app router, responsible for handling app URLs.
-   */
-  app.Router = Backbone.Router.extend({
-    routes: {
-      '*actions':   'index'
-    },
+  function SidebarApp() {
+    this.view = new app.views.AppView();
 
-    initialize: function() {
-      this.view = new app.views.AppView();
-    },
-
-    index: function() {
-      this.view.render();
-    }
-  });
-
-  /**
-   * Resets the app to the signed out state.
-   */
-  app.resetApp = function() {
-    // Reset all app data apart from the user model, as the views rely
-    // on it for change notifications, and this saves re-initializing those
-    // hooks.
-    var user = app.data.user;
-    app.data = { user: user };
-
-    user.clear();
-
-    app.trigger('signout');
-    app.router.navigate('', {trigger: true});
-    app.router.index();
-  };
+    app.data.user.on("signout", function () {
+      // Reset all app data apart from the user model, as the views rely
+      // on it for change notifications, and this saves re-initializing those
+      // hooks.
+      var user = app.data.user;
+      app.data = { user: user };
+    });
+  }
 
   // window event listeners
   window.onbeforeunload = function() {
@@ -76,5 +55,5 @@ var Talkilla = (function($, Backbone, _) {
     });
   };
 
-  return app;
+  return SidebarApp;
 })(jQuery, Backbone, _);
