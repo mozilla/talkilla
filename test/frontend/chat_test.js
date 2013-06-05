@@ -677,8 +677,8 @@ describe("WebRTCCall", function() {
 
       expect(fakeDC).to.be.a('object');
       expect(fakeDC.binaryType).to.equal('blob');
-      expect(fakeDC).to.include.keys([
-        'onopen', 'onmessage', 'onerror', 'onclose']);
+      expect(fakeDC).to.include.keys(
+        ['onopen', 'onmessage', 'onerror', 'onclose']);
     });
 
     it("should configure data channel to trigger the dc.in.open event",
