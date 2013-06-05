@@ -799,7 +799,7 @@ describe('Text chat', function() {
   });
 
   describe('app.views.TextChatView', function() {
-    var chatApp, sandbox;
+    var chatApp, webrtc, sandbox;
 
     beforeEach(function() {
       $('body').append([
@@ -809,6 +809,11 @@ describe('Text chat', function() {
         '</div>'
       ].join(''));
       sandbox = sinon.sandbox.create();
+      sandbox.stub(navigator, "mozGetUserMedia");
+      sandbox.stub(window, "mozRTCPeerConnection").returns({
+        createDataChannel: function() {}
+      });
+      webrtc = new app.models.WebRTCCall();
       chatApp = new ChatApp();
     });
 
@@ -816,11 +821,12 @@ describe('Text chat', function() {
       $('#textchat').remove();
       app.port.off();
       sandbox.restore();
+      webrtc = null;
     });
 
     it("should be empty by default", function() {
       var view = new app.views.TextChatView({
-        webrtc: {on: function(){}},
+        webrtc: webrtc,
         collection: new app.models.TextChat()
       });
       expect(view.collection).to.have.length.of(0);
@@ -830,7 +836,7 @@ describe('Text chat', function() {
 
     it("should update rendering when its collection is updated", function() {
       var view = new app.views.TextChatView({
-        webrtc: {on: function(){}},
+        webrtc: webrtc,
         collection: new app.models.TextChat([
           {nick: "niko", message: "plop"},
           {nick: "jb", message: "hello"}
@@ -850,10 +856,11 @@ describe('Text chat', function() {
     });
 
     it("should allow the caller to send a first message", function(done) {
+      var textChat = chatApp.textChatView.collection;
       app.port.trigger("talkilla.call-start", {caller: "niko", callee: "jb"});
-      expect(chatApp.textChatView.collection).to.have.length.of(0);
+      expect(textChat).to.have.length.of(0);
 
-      chatApp.textChatView.collection.once("add", function(entry) {
+      textChat.once("add", function(entry) {
         expect(entry).to.be.an.instanceOf(app.models.TextChatEntry);
         expect(entry.get("nick")).to.equal("niko");
         expect(entry.get("message")).to.equal("plop");
