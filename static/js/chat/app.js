@@ -33,6 +33,13 @@ var ChatApp = (function($, Backbone, _) {
     this.callView = new app.views.CallView(
      { webrtc: this.webrtc, el: $("#call") });
 
+    // Text chat
+    this.textChat = new app.models.TextChat();
+    this.textChatView = new app.views.TextChatView({
+      collection: this.textChat,
+      webrtc: this.webrtc
+    });
+
     // Incoming events
     this.port.on('talkilla.call-start', this._onStartingCall.bind(this));
     this.port.on('talkilla.call-incoming', this._onIncomingCall.bind(this));
@@ -44,11 +51,19 @@ var ChatApp = (function($, Backbone, _) {
     this.webrtc.on('offer-ready', this._onOfferReady.bind(this));
     this.webrtc.on('answer-ready', this._onAnswerReady.bind(this));
 
+    // Data channels
+    this.webrtc.on('dc.in.message', function(event) {
+      this.textChat.add(JSON.parse(event.data));
+    }, this);
+
+    this.textChat.on('entry.created', function(entry) {
+      this.webrtc.send(JSON.stringify(entry));
+    }, this);
+
     // Internal events
     window.addEventListener("unload", this._onCallHangup.bind(this));
 
     this.port.postEvent('talkilla.chat-window-ready', {});
-
   }
 
   // Outgoing calls
