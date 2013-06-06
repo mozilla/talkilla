@@ -12,7 +12,7 @@ var helpers = require('./helpers');
 
 var driver, driver2;
 
-describe("browser tests", function() {
+describe("Sidebar Tests", function() {
   this.timeout(600000);
 
   before(function(done) {
@@ -109,24 +109,6 @@ describe("browser tests", function() {
     });
     driver2.findElement(By.id("signout")).isDisplayed().then(function(res) {
       expect(res).to.equal(false);
-      done();
-    });
-  });
-
-  it("should open a chat window when clicking a nick", function(done) {
-    helpers.signInUser(driver, "bob", {refresh: true});
-    helpers.signInUser(driver2, "larry", {refresh: true});
-
-    // Click a nick
-    driver2.manage().timeouts().implicitlyWait(2000);
-    driver2.findElement(By.css("ul.nav-list>li>a")).click();
-    driver2.manage().timeouts().implicitlyWait(0);
-
-    // Check that we have a chat window
-    driver2.switchTo().frame("//chatbox");
-
-    // Check that a #call element exists
-    driver2.findElement(By.id("call")).then(function() {
       done();
     });
   });
