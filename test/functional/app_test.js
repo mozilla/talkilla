@@ -88,7 +88,7 @@ describe("browser tests", function() {
     });
 
     // Sign out user 1
-    driver.findElement(By.css('#signout button')).click();
+    helpers.signOutUser(driver);
     driver.findElements(By.css("div.alert-info")).then(function(res) {
       expect(res).to.deep.equal([]);
     });
@@ -103,7 +103,7 @@ describe("browser tests", function() {
     });
 
     // Now sign out user 2
-    driver2.findElement(By.css('#signout button')).click();
+    helpers.signOutUser(driver2);
     driver2.findElements(By.css("div.alert-info")).then(function(res) {
       expect(res).to.deep.equal([]);
     });

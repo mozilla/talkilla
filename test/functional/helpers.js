@@ -9,3 +9,9 @@ function signInUser(driver, user, options) {
   driver.findElement(By.id("submit")).click();
 }
 exports.signInUser = signInUser;
+
+function signOutUser(driver) {
+  driver.switchTo().frame("//#social-sidebar-browser");
+  driver.findElement(By.css('#signout button')).click();
+}
+exports.signOutUser = signOutUser;
