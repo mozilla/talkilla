@@ -64,7 +64,8 @@
   <script>
     $(function() {
       $.getJSON('/config.json', function(config) {
-        Talkilla.start(config);
+        app.start(config);
+        window.sidebarApp = new SidebarApp();
       });
     });
   </script>

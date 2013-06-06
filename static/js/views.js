@@ -1,4 +1,4 @@
-/* global app, Backbone, _, jQuery*/
+/* global app, Backbone, _, jQuery */
 /**
  * Talkilla Backbone views.
  */
@@ -55,11 +55,11 @@
     notifications: [],
 
     initialize: function() {
-      app.on('signin', function() {
+      app.data.user.on('signin', function() {
         this.clear();
       }.bind(this));
 
-      app.on('signout', function() {
+      app.data.user.on('signout', function() {
         this.clear();
       }.bind(this));
     },
@@ -144,10 +144,9 @@
       }.bind(this));
 
       // purge the list on sign out
-      app.on('signout', function() {
+      app.data.user.on('signout', function() {
         this.collection.reset();
         this.callee = undefined;
-        this.render();
       }.bind(this));
     },
 
@@ -219,17 +218,9 @@
     },
 
     initialize: function() {
-      app.data.user = new app.models.User();
-      app.data.user.on('change', function(model) {
-        if (model.isLoggedIn()) {
-          app.trigger('signin', model);
-          app.router.navigate('', {trigger: true});
-          app.router.index();
-          return;
-        }
-
-        app.resetApp();
-      });
+      app.data.user.on('change', function() {
+        this.render();
+      }.bind(this));
     },
 
     render: function() {

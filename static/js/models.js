@@ -32,33 +32,111 @@
     }
   });
 
+  /**
+   * WebRTC call model
+   *
+   * @class WebRTCCall
+   * @constructor
+   *
+   * Fired when a SDP offer is available (see #offer).
+   * @event offer-ready
+   * @param {Object} offer An SDP offer
+   *
+   * Fired when a SDP answer is available (see #answer).
+   * @event answer-ready
+   * @param {Object} answer An SDP answer
+   *
+   *
+   * Example:
+   *
+   * var webrtc = new app.models.WebRTCCall();
+   *
+   * // Caller side
+   * webrtc.on('offer-ready', function(offer) {
+   *   sendOffer(offer);
+   * });
+   * webrtc.offer()
+   *
+   * // Callee side
+   * webrtc.on('answer-ready', function(answer) {
+   *   sendAnswer(answer);
+   * }
+   * webrtc.answer(offer);
+   *
+   * // Once the caller receive the answer
+   * webrtc.establish(answer)
+   *
+   * // Both sides
+   * webrtc.on("change:localStream", function() {
+   *   localVideo.mozSrcObject = webrtc.get("localStream");
+   *   localVideo.play();
+   * });
+   * webrtc.on("change:remoteStream", function() {
+   *   remoteVideo.mozSrcObject = webrtc.get("remoteStream");
+   *   remoteVideo.play();
+   * });
+   */
   app.models.WebRTCCall = Backbone.Model.extend({
+    pc: undefined, // peer connection
+    dcIn: undefined, // data channel in
+    dcOut: undefined, // data channel out
+
     initialize: function() {
       this.pc = new mozRTCPeerConnection();
-      this.pc.onaddstream = function (event) {
+      this.dcOut = this.pc.createDataChannel('dc', {});
+
+      this.pc.onaddstream = function(event) {
         this.set("remoteStream", event.stream);
+      }.bind(this);
+
+      // data channel for incoming calls
+      this.pc.ondatachannel = function(event) {
+        this.dcIn = this._setupDataChannelIn(event.channel);
+        this.trigger('dc.in.ready', event);
       }.bind(this);
 
       this._onError = this._onError.bind(this);
     },
 
+    /**
+     * Create a SDP offer after calling getUserMedia. In case of
+     * success, it triggers an offer-ready event with the created offer.
+     */
     offer: function() {
       var callback = this.trigger.bind(this, "offer-ready");
       this._getMedia(this._createOffer.bind(this, callback), this._onError);
     },
 
+    /**
+     * Establish a WebRTC p2p connection.
+     * @param {Object} answer
+     */
     establish: function(answer) {
       var answerDescription = new mozRTCSessionDescription(answer);
       var cb = function() {};
       this.pc.setRemoteDescription(answerDescription, cb, this._onError);
     },
 
+    /**
+     * Create a SDP answer after calling getUserMedia. In case of
+     * success, it triggers an answer-ready event with the created answer.
+     * @param {Object} the offer to respond to
+     */
     answer: function(offer) {
       var callback = this.trigger.bind(this, "answer-ready");
       var createAnswer = this._createAnswer.bind(this, offer, callback);
       this._getMedia(createAnswer, this._onError);
     },
 
+    send: function(data) {
+      if (!this.dcOut)
+        return this._onError('no data channel connection available');
+      this.dcOut.send(data);
+    },
+
+    /**
+     * Close the p2p connection.
+     */
     hangup: function() {
       this.pc.close();
     },
@@ -87,7 +165,10 @@
     },
 
     _getMedia: function(callback, errback) {
-      var constraints = {video: this.get('video'), audio: this.get('audio')};
+      var constraints = {
+        video: this.get('video'),
+        audio: this.get('audio')
+      };
 
       var cb = function (localStream) {
         this.pc.addStream(localStream);
@@ -98,9 +179,31 @@
       navigator.mozGetUserMedia(constraints, cb, errback);
     },
 
+    _setupDataChannelIn: function(channel) {
+      channel.binaryType = 'blob';
+
+      channel.onopen = function(event) {
+        this.trigger('dc.in.open', event);
+      }.bind(this);
+
+      channel.onmessage = function(event) {
+        this.trigger('dc.in.message', event);
+      }.bind(this);
+
+      channel.onerror = function(event) {
+        this.trigger('dc.in.error', event);
+      }.bind(this);
+
+      channel.onclose = function(event) {
+        this.trigger('dc.in.close', event);
+      }.bind(this);
+
+      return channel;
+    },
+
     _onError: function(error) {
       // XXX Better error logging and handling
-      console.log("WebRTCCall error: " + error);
+      console.error("WebRTCCall error: " + error);
     }
   });
 
@@ -118,21 +221,41 @@
   app.models.TextChat = Backbone.Collection.extend({
     model: app.models.TextChatEntry,
 
-    constructor: function() {
-      Backbone.Collection.apply(this, arguments);
-      // register the talkilla.text-message event
-      app.port.on('talkilla.text-message', function(entry) {
-        this.add(entry);
-      }.bind(this));
+    newEntry: function(data) {
+      var entry = this.add(data).at(this.length - 1);
+      this.trigger('entry.created', entry);
     }
   });
 
   app.models.User = Backbone.Model.extend({
     defaults: {nick: undefined, presence: "disconnected"},
 
+    initialize: function() {
+      // If the user has signed in or out, trigger the appropraite
+      // change
+      this.on("change", function() {
+        if (this.isLoggedIn() && !this.wasLoggedIn())
+          this.trigger('signin');
+        else if (!this.isLoggedIn() && this.wasLoggedIn())
+          this.trigger('signout');
+      }.bind(this));
+    },
+
+    /**
+     * Returns true if the user is logged in.
+     */
     isLoggedIn: function() {
       return this.get('presence') !== "disconnected" &&
         this.get('nick') !== undefined;
+    },
+
+    /**
+     * Returns true if the user was logged in prior to the last change
+     * on the model. Returns false if there have been no changes.
+     */
+    wasLoggedIn: function() {
+      return this.previous('presence') !== "disconnected" &&
+        this.previous('nick') !== undefined;
     }
   });
 
