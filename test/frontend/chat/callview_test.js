@@ -1,5 +1,4 @@
-/* global app, chai, describe, it, sinon, beforeEach, afterEach,
-   ChatApp, mozRTCSessionDescription, $, _, Backbone, mozRTCPeerConnection */
+/* global app, chai, describe, it, sinon, beforeEach, afterEach, $ */
 
 /* jshint expr:true */
 var expect = chai.expect;
