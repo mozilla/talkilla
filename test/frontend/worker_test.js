@@ -466,7 +466,8 @@ describe('Worker', function() {
 
     it("should post a success message if the server accepted login",
       function() {
-        handlers.postEvent = sinon.spy();
+        var port = {id: "tests", postEvent: sandbox.spy()};
+        ports.add(port);
         handlers['talkilla.login']({
           topic: "talkilla.login",
           data: {username: "jb"}
@@ -476,8 +477,9 @@ describe('Worker', function() {
         requests[0].respond(200, { 'Content-Type': 'application/json' },
           '{"nick":"jb"}' );
 
-        sinon.assert.calledTwice(handlers.postEvent);
-        sinon.assert.calledWith(handlers.postEvent, "talkilla.login-success");
+        sinon.assert.calledOnce(port.postEvent);
+        sinon.assert.calledWith(port.postEvent, "talkilla.login-success");
+        ports.remove(port);
       });
 
     it("should store the username if the server accepted login",
@@ -570,7 +572,8 @@ describe('Worker', function() {
 
     it("should post a success message",
       function() {
-        handlers.postEvent = sandbox.spy();
+        var port = {id: "tests", postEvent: sandbox.spy()};
+        ports.add(port);
         handlers['talkilla.logout']({
           topic: 'talkilla.logout'
         });
@@ -578,8 +581,9 @@ describe('Worker', function() {
         requests[0].respond(200, { 'Content-Type': 'text/plain' },
           'OK' );
 
-        sinon.assert.calledOnce(handlers.postEvent);
-        sinon.assert.calledWith(handlers.postEvent, 'talkilla.logout-success');
+        sinon.assert.calledOnce(port.postEvent);
+        sinon.assert.calledWith(port.postEvent, 'talkilla.logout-success');
+        ports.remove(port);
       });
 
     it("should post a social.user-profile message", function() {
