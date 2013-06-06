@@ -23,7 +23,7 @@ selenium_all:
 	@env NO_LOCAL_CONFIG=true NODE_ENV=development bin/run_selenium_test.sh test/functional/ test/frontend/run_tests.js
 
 selenium:
-	@env NO_LOCAL_CONFIG=true NODE_ENV=development bin/run_selenium_test.sh test/functional/
+	@env NO_LOCAL_CONFIG=true NODE_ENV=development bin/run_selenium_test.sh test/functional/$(SOLO_FILE)
 
 frontend:
 	@env NO_LOCAL_CONFIG=true NODE_ENV=development bin/run_selenium_test.sh test/frontend/run_tests.js

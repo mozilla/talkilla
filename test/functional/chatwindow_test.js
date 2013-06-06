@@ -3,6 +3,7 @@
 
 var presence = require("../../presence"),
     app = presence.app;
+var expect = require("chai").expect;
 
 var serverPort = 3000;
 var webdriver = require('selenium-webdriver'),
@@ -41,9 +42,7 @@ describe("Chat Window Tests", function() {
     helpers.signInUser(driver2, "larry", {refresh: true});
 
     // Click a nick
-    var firstUser = By.css("ul.nav-list>li>a");
-    helpers.waitForSelector(driver2, firstUser);
-    driver2.findElement(firstUser).click();
+    helpers.waitForElement(driver2, By.css("ul.nav-list>li>a")).click();
 
     // Check that we have a chat window
     driver2.switchTo().frame("//chatbox");
@@ -53,5 +52,28 @@ describe("Chat Window Tests", function() {
       done();
     });
   });
+
+  it("should allow text chat over data channel bewteen two signed in users",
+    function(done) {
+      helpers.signInUser(driver, "bob", {refresh: true});
+      helpers.signInUser(driver2, "larry", {refresh: true});
+
+      // Larry calls Bob
+      helpers.waitForElement(driver2, By.css("ul.nav-list>li>a")).click();
+
+      // Larry sends "hi" to Bob
+      driver2.switchTo().frame("//chatbox");
+      helpers.waitForElement(driver2, By.css("input:not([disabled])"))
+             .sendKeys("hi");
+
+      // Check if Bob has received Larry's message
+      driver.switchTo().frame("//chatbox");
+      helpers
+        .waitForElement(driver, By.css("#textchat ul li"))
+        .getText().then(function(text) {
+          expect(text).to.equal("hi");
+          done();
+        });
+    });
 
 });
