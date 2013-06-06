@@ -1,4 +1,4 @@
-/* global app*/
+/* global app, sidebarApp*/
 /**
  * Talkilla utilities.
  */
@@ -31,7 +31,7 @@
         message: message
       })
     });
-    app.router.view.notifications.addNotification(notification);
+    sidebarApp.view.notifications.addNotification(notification);
     return notification;
   };
 })(app);
