@@ -48,9 +48,7 @@ function signInUser(driver, user, options) {
   driver.switchTo().frame("//#social-sidebar-browser");
   if (options && options.refresh === true)
     driver.navigate().refresh();
-  var inputSelector = By.name("nick");
-  waitForSelector(driver, inputSelector);
-  driver.findElement(inputSelector).sendKeys(user);
+  waitForElement(driver, By.name("nick")).sendKeys(user);
   driver.findElement(By.id("submit")).click();
   return driver;
 }
