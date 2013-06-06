@@ -32,6 +32,50 @@
     }
   });
 
+  /**
+   * WebRTC call model
+   *
+   * @class WebRTCCall
+   * @constructor
+   *
+   * Fired when a SDP offer is available (see #offer).
+   * @event offer-ready
+   * @param {Object} offer An SDP offer
+   *
+   * Fired when a SDP answer is available (see #answer).
+   * @event answer-ready
+   * @param {Object} answer An SDP answer
+   *
+   *
+   * Example:
+   *
+   * var webrtc = new app.models.WebRTCCall();
+   *
+   * // Caller side
+   * webrtc.on('offer-ready', function(offer) {
+   *   sendOffer(offer);
+   * });
+   * webrtc.offer()
+   *
+   * // Callee side
+   * webrtc.on('answer-ready', function(answer) {
+   *   sendAnswer(answer);
+   * }
+   * webrtc.answer(offer);
+   *
+   * // Once the caller receive the answer
+   * webrtc.establish(answer)
+   *
+   * // Both sides
+   * webrtc.on("change:localStream", function() {
+   *   localVideo.mozSrcObject = webrtc.get("localStream");
+   *   localVideo.play();
+   * });
+   * webrtc.on("change:remoteStream", function() {
+   *   remoteVideo.mozSrcObject = webrtc.get("remoteStream");
+   *   remoteVideo.play();
+   * });
+   */
   app.models.WebRTCCall = Backbone.Model.extend({
     pc: undefined, // peer connection
     dcIn: undefined, // data channel in
@@ -54,17 +98,30 @@
       this._onError = this._onError.bind(this);
     },
 
+    /**
+     * Create a SDP offer after calling getUserMedia. In case of
+     * success, it triggers an offer-ready event with the created offer.
+     */
     offer: function() {
       var callback = this.trigger.bind(this, "offer-ready");
       this._getMedia(this._createOffer.bind(this, callback), this._onError);
     },
 
+    /**
+     * Establish a WebRTC p2p connection.
+     * @param {Object} answer
+     */
     establish: function(answer) {
       var answerDescription = new mozRTCSessionDescription(answer);
       var cb = function() {};
       this.pc.setRemoteDescription(answerDescription, cb, this._onError);
     },
 
+    /**
+     * Create a SDP answer after calling getUserMedia. In case of
+     * success, it triggers an answer-ready event with the created answer.
+     * @param {Object} the offer to respond to
+     */
     answer: function(offer) {
       var callback = this.trigger.bind(this, "answer-ready");
       var createAnswer = this._createAnswer.bind(this, offer, callback);
@@ -77,6 +134,9 @@
       this.dcOut.send(data);
     },
 
+    /**
+     * Close the p2p connection.
+     */
     hangup: function() {
       this.pc.close();
     },
