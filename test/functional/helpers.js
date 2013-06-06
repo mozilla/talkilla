@@ -6,6 +6,7 @@ var webdriver = require('selenium-webdriver'),
  *
  * Options:
  * - timeout: time until an error is raised if no matching element is found
+ *            (default: 10000)
  *
  * @param  {WebDriver} driver
  * @param  {By|Object} expectedSelector
@@ -36,6 +37,7 @@ exports.waitForElement = waitForElement;
  *
  * Options:
  * - refresh: will refresh the sidebar before signing in if true
+ *            (default: false)
  *
  * @param  {WebDriver} driver
  * @param  {String} user

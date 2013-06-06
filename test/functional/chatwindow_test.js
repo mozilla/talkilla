@@ -38,40 +38,61 @@ describe("Chat Window Tests", function() {
   });
 
   it("should open a chat window when clicking a nick", function(done) {
-    helpers.signInUser(driver, "bob", {refresh: true});
-    helpers.signInUser(driver2, "larry", {refresh: true});
+    var bob = helpers.signInUser(driver, "bob", {refresh: true});
+    var larry = helpers.signInUser(driver2, "larry", {refresh: true});
 
     // Click a nick
-    helpers.waitForElement(driver2, By.css("ul.nav-list>li>a")).click();
+    helpers.waitForElement(larry, By.css("ul.nav-list>li>a")).click();
 
     // Check that we have a chat window
-    driver2.switchTo().frame("//chatbox");
+    larry.switchTo().frame("//chatbox");
 
     // Check that a #call element exists
-    helpers.waitForSelector(driver2, By.id("call")).then(function() {
+    helpers.waitForSelector(larry, By.id("call")).then(function() {
       done();
     });
   });
 
   it("should allow text chat over data channel bewteen two signed in users",
     function(done) {
-      helpers.signInUser(driver, "bob", {refresh: true});
-      helpers.signInUser(driver2, "larry", {refresh: true});
+      var bob = helpers.signInUser(driver, "bob", {refresh: true});
+      var larry = helpers.signInUser(driver2, "larry", {refresh: true});
 
       // Larry calls Bob
-      helpers.waitForElement(driver2, By.css("ul.nav-list>li>a")).click();
+      helpers.waitForElement(larry, By.css("ul.nav-list>li>a")).click();
 
       // Larry sends "hi" to Bob
-      driver2.switchTo().frame("//chatbox");
-      helpers.waitForElement(driver2, By.css("input:not([disabled])"))
+      larry.switchTo().frame("//chatbox");
+      helpers.waitForElement(larry, By.css("form input:not([disabled])"))
              .sendKeys("hi");
+      larry.findElement(By.css("form")).submit();
+      helpers.waitForElement(larry, By.css("#textchat ul li"))
+        .getText().then(function(text) {
+          expect(text).to.contain("hi");
+        });
 
       // Check if Bob has received Larry's message
-      driver.switchTo().frame("//chatbox");
+      bob.switchTo().frame("//chatbox");
       helpers
-        .waitForElement(driver, By.css("#textchat ul li"))
+        .waitForElement(bob, By.css("#textchat ul li"))
         .getText().then(function(text) {
-          expect(text).to.equal("hi");
+          expect(text).to.contain("hi");
+        });
+
+      // Bob replies
+      helpers.waitForElement(bob, By.css("form input:not([disabled])"))
+             .sendKeys("how are you");
+      bob.findElement(By.css("form")).submit();
+      helpers.waitForElement(bob, By.css("#textchat ul li:nth-child(2)"))
+        .getText().then(function(text) {
+          expect(text).to.contain("how are you");
+        });
+
+      // Check if Larry has received Bob's message
+      helpers
+        .waitForElement(larry, By.css("#textchat ul li:nth-child(2)"))
+        .getText().then(function(text) {
+          expect(text).to.contain("how are you");
           done();
         });
     });
