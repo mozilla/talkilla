@@ -93,6 +93,7 @@ function _presenceSocketOnClose(event) {
 
   // XXX: this will need future work to handle retrying presence connections
   ports.broadcastEvent('talkilla.presence-unavailable', event.code);
+  currentUsers = undefined;
 }
 
 function createPresenceSocket(nickname) {
@@ -164,6 +165,7 @@ function _signoutCallback(err, responseText) {
 
   _currentUserData.reset();
   browserPort.postEvent('social.user-profile', _currentUserData);
+  currentUsers = undefined;
   ports.broadcastEvent('talkilla.logout-success');
 }
 
@@ -223,7 +225,8 @@ var handlers = {
     this.postEvent('talkilla.login-success', {
       username: _currentUserData.userName
     });
-    this.postEvent('talkilla.users', currentUsers);
+    if (currentUsers)
+      this.postEvent('talkilla.users', currentUsers);
   },
 
   /**
