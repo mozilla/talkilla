@@ -1,5 +1,5 @@
 /* global app, chai, describe, it, sinon, beforeEach, afterEach,
-   ChatApp, $, _, Backbone */
+   ChatApp, $ */
 
 /* jshint expr:true */
 var expect = chai.expect;
