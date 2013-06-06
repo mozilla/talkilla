@@ -7,7 +7,10 @@
   "use strict";
 
   app.models.Call = Backbone.Model.extend({
-    initialize: function() {
+    media: undefined,
+
+    initialize: function(media) {
+      this.media = media;
       this.state = StateMachine.create({
         initial: 'ready',
         events: [
@@ -24,11 +27,49 @@
         ]
       });
 
-      this.start     = this.state.start.bind(this.state);
-      this.incoming  = this.state.incoming.bind(this.state);
       this.accept    = this.state.accept.bind(this.state);
-      this.establish = this.state.establish.bind(this.state);
-      this.hangup    = this.state.hangup.bind(this.state);
+
+      this.media.on("offer-ready", function(offer) {
+        var callData = {
+          caller: this.get("id"),
+          callee: this.get("otherUser"),
+          offer: offer
+        };
+
+        this.trigger("send-offer", callData);
+      }.bind(this));
+
+      this.media.on("answer-ready", function(answer) {
+        var callData = {
+          caller: this.get("otherUser"),
+          callee: this.get("id"),
+          answer: answer
+        };
+
+        this.trigger("send-answer", callData);
+      }.bind(this));
+    },
+
+    start: function(options) {
+      this.set({id: options.caller, otherUser: options.callee});
+      this.state.start();
+      this.media.offer(options);
+    },
+
+    incoming: function(options) {
+      this.set({otherUser: options.caller, id: options.callee});
+      this.state.incoming();
+      this.media.answer(options);
+    },
+
+    establish: function(options) {
+      this.state.establish();
+      this.media.establish(options.answer);
+    },
+
+    hangup: function() {
+      this.state.hangup();
+      this.media.hangup();
     }
   });
 
@@ -102,7 +143,8 @@
      * Create a SDP offer after calling getUserMedia. In case of
      * success, it triggers an offer-ready event with the created offer.
      */
-    offer: function() {
+    offer: function(options) {
+      this.set({video: options.video, audio: options.audio});
       var callback = this.trigger.bind(this, "offer-ready");
       this._getMedia(this._createOffer.bind(this, callback), this._onError);
     },
@@ -122,9 +164,10 @@
      * success, it triggers an answer-ready event with the created answer.
      * @param {Object} the offer to respond to
      */
-    answer: function(offer) {
+    answer: function(options) {
+      this.set({video: options.video, audio: options.audio});
       var callback = this.trigger.bind(this, "answer-ready");
-      var createAnswer = this._createAnswer.bind(this, offer, callback);
+      var createAnswer = this._createAnswer.bind(this, options.offer, callback);
       this._getMedia(createAnswer, this._onError);
     },
 

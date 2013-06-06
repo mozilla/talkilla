@@ -6,8 +6,9 @@ var expect = chai.expect;
 
 describe("WebRTCCall", function() {
   var sandbox, webrtc;
-  var fakeOffer = {type: "offer", sdp: "fake"};
-  var fakeAnswer = {type: "answer", sdp: "fake"};
+  var fakeOffer = {type: "offer", sdp: "fake", video: true, audio: true};
+  var fakeAnswer = {type: "answer", sdp: "fake", video: true, audio: true};
+  var gumOptions = {video: true, audio: true};
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
@@ -108,8 +109,7 @@ describe("WebRTCCall", function() {
     it("should call getUserMedia", function() {
       sandbox.stub(navigator, "mozGetUserMedia");
 
-      webrtc.set({video: true, audio: true});
-      webrtc.offer();
+      webrtc.offer(gumOptions);
 
       sinon.assert.calledOnce(navigator.mozGetUserMedia);
       sinon.assert.calledWith(navigator.mozGetUserMedia,
@@ -130,7 +130,7 @@ describe("WebRTCCall", function() {
         done();
       });
 
-      webrtc.offer();
+      webrtc.offer(gumOptions);
     });
 
   });
@@ -193,12 +193,10 @@ describe("WebRTCCall", function() {
     it("should call getUserMedia", function() {
       sandbox.stub(navigator, "mozGetUserMedia");
 
-      webrtc.set({video: true, audio: true});
       webrtc.answer(fakeAnswer);
 
       sinon.assert.calledOnce(navigator.mozGetUserMedia);
-      sinon.assert.calledWith(navigator.mozGetUserMedia,
-                              {video: true, audio: true});
+      sinon.assert.calledWith(navigator.mozGetUserMedia, gumOptions);
     });
 
     it("should trigger an answer-ready event with an answer", function(done) {

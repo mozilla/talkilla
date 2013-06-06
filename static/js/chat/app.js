@@ -28,8 +28,8 @@ var ChatApp = (function($, Backbone, _) {
 
   function ChatApp() {
     this.port = app.port;
-    this.call = new app.models.Call();
     this.webrtc = new app.models.WebRTCCall();
+    this.call = new app.models.Call(this.webrtc);
     this.callView = new app.views.CallView(
      { webrtc: this.webrtc, el: $("#call") });
 
@@ -48,8 +48,8 @@ var ChatApp = (function($, Backbone, _) {
     this.port.on('talkilla.call-hangup', this._onCallShutdown.bind(this));
 
     // Outgoing events
-    this.webrtc.on('offer-ready', this._onOfferReady.bind(this));
-    this.webrtc.on('answer-ready', this._onAnswerReady.bind(this));
+    this.call.on('send-offer', this._onSendOffer.bind(this));
+    this.call.on('send-answer', this._onSendAnswer.bind(this));
 
     // Data channels
     this.webrtc.on('dc.in.message', function(event) {
@@ -68,53 +68,36 @@ var ChatApp = (function($, Backbone, _) {
 
   // Outgoing calls
   ChatApp.prototype._onStartingCall = function(data) {
-    this.call.set({id: data.caller, otherUser: data.callee});
-    this.call.start();
     // XXX Assume both video and audio call for now
     // Really webrtc and calls should be set up on clicking a button
-    this.webrtc.set({video: true, audio: true});
-    this.webrtc.offer();
+    data.video = true;
+    data.audio = true;
+    this.call.start(data);
   };
 
   ChatApp.prototype._onCallEstablishment = function(data) {
-    this.call.establish();
-    this.webrtc.establish(data.answer);
+    this.call.establish(data);
   };
 
   // Incoming calls
   ChatApp.prototype._onIncomingCall = function(data) {
-    this.call.set({otherUser: data.caller, id: data.callee});
-    this.call.incoming();
     // XXX Assume both video and audio call for now
-    // Really webrtc and calls should be set up on clicking a button
-    this.webrtc.set({video: true, audio: true});
-    this.webrtc.answer(data.offer);
+    data.video = true;
+    data.audio = true;
+    this.call.incoming(data);
   };
 
-  ChatApp.prototype._onOfferReady = function(offer) {
-    var callData = {
-      caller: this.call.get("id"),
-      callee: this.call.get("otherUser"),
-      offer: offer
-    };
-
-    this.port.postEvent('talkilla.call-offer', callData);
+  ChatApp.prototype._onSendOffer = function(data) {
+    this.port.postEvent('talkilla.call-offer', data);
   };
 
-  ChatApp.prototype._onAnswerReady = function(answer) {
-    var callData = {
-      caller: this.call.get("otherUser"),
-      callee: this.call.get("id"),
-      answer: answer
-    };
-
-    this.port.postEvent('talkilla.call-answer', callData);
+  ChatApp.prototype._onSendAnswer = function(data) {
+    this.port.postEvent('talkilla.call-answer', data);
   };
 
   // Call Hangup
   ChatApp.prototype._onCallShutdown = function() {
     this.call.hangup();
-    this.webrtc.hangup();
     window.close();
   };
 
@@ -125,7 +108,6 @@ var ChatApp = (function($, Backbone, _) {
 
     var other = this.call.get("otherUser");
     this.call.hangup();
-    this.webrtc.hangup();
 
     this.port.postEvent('talkilla.call-hangup', {other: other});
   };
