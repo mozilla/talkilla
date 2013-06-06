@@ -38,7 +38,7 @@ describe("Chat Window Tests", function() {
   });
 
   it("should open a chat window when clicking a nick", function(done) {
-    var bob = helpers.signInUser(driver, "bob", {refresh: true});
+    helpers.signInUser(driver, "bob", {refresh: true});
     var larry = helpers.signInUser(driver2, "larry", {refresh: true});
 
     // Click a nick
