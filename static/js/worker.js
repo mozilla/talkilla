@@ -222,11 +222,14 @@ var handlers = {
   },
 
   'talkilla.sidebar-ready': function() {
-    this.postEvent('talkilla.login-success', {
-      username: _currentUserData.userName
-    });
-    if (currentUsers)
-      this.postEvent('talkilla.users', currentUsers);
+    if (_currentUserData.userName) {
+      // If there's currenty a logged in user,
+      this.postEvent('talkilla.login-success', {
+        username: _currentUserData.userName
+      });
+      if (currentUsers)
+        this.postEvent('talkilla.users', currentUsers);
+    }
   },
 
   /**

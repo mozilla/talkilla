@@ -496,6 +496,29 @@ describe('Worker', function() {
         expect(_currentUserData.userName).to.equal('jb');
       });
 
+    it("should notify new sidebars of the logged in user",
+      function() {
+        _currentUserData.userName = "jb";
+        handlers.postEvent = sinon.spy();
+        handlers['talkilla.sidebar-ready']({
+          topic: "talkilla.sidebar-ready",
+          data: {}
+        });
+
+        sinon.assert.calledWith(handlers.postEvent, "talkilla.login-success");
+      });
+
+    it("should notify new sidebars only if there's a logged in user",
+      function() {
+        handlers.postEvent = sinon.spy();
+        handlers['talkilla.sidebar-ready']({
+          topic: "talkilla.sidebar-ready",
+          data: {}
+        });
+
+        sinon.assert.notCalled(handlers.postEvent);
+      });
+
     it("should post a fail message if the server rejected login",
       function() {
         handlers.postEvent = sinon.spy();
