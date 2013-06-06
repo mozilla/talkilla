@@ -41,19 +41,17 @@ describe("Chat Window Tests", function() {
     helpers.signInUser(driver2, "larry", {refresh: true});
 
     // Click a nick
-    driver2.manage().timeouts().implicitlyWait(2000);
-    driver2.findElement(By.css("ul.nav-list>li>a")).click();
-    driver2.manage().timeouts().implicitlyWait(0);
+    var firstUser = By.css("ul.nav-list>li>a");
+    helpers.waitForSelector(driver2, firstUser);
+    driver2.findElement(firstUser).click();
 
     // Check that we have a chat window
     driver2.switchTo().frame("//chatbox");
 
     // Check that a #call element exists
-    driver2.findElement(By.id("call"));
-
-    // Close the chat window
-    driver2.close().then(function() {
+    helpers.waitForSelector(driver2, By.id("call")).then(function() {
       done();
     });
   });
+
 });
