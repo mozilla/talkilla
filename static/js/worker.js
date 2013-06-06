@@ -7,6 +7,10 @@ var ports;
 var browserPort;
 var currentCall;
 
+function openChatWindow() {
+  browserPort.postEvent('social.request-chat', 'chat.html');
+}
+
 /**
  * Social API user profile data storage.
  * @param {Object|undefined}  initial  Initial data
@@ -44,7 +48,7 @@ UserData.prototype = {
 var serverHandlers = {
   'incoming_call': function(data) {
     currentCall = {port: undefined, data: data};
-    browserPort.postEvent('social.request-chat', 'chat.html');
+    openChatWindow();
   },
 
   'call_accepted': function(data) {
@@ -198,7 +202,7 @@ var handlers = {
     // XXX Temporarily work around to only allow one call at a time.
     if (!currentCall) {
       currentCall = {port: undefined, data: event.data};
-      browserPort.postEvent("social.request-chat", 'chat.html');
+      openChatWindow();
     }
   },
 
