@@ -40,11 +40,11 @@
 
     Fired when a SDP offer is available (see #offer).
     @event offer-ready
-    @param {SDP offer}
+    @param {Object} offer An SDP offer
 
     Fired when a SDP answer is available (see #answer).
     @event answer-ready
-    @param {SDP answer}
+    @param {Object} answer An SDP answer
 
 
     Example:
@@ -98,7 +98,7 @@
 
     /*
       Establish a WebRTC p2p connection.
-      @param {SDP Answer} answer
+      @param {Object} answer
     */
     establish: function(answer) {
       var answerDescription = new mozRTCSessionDescription(answer);
@@ -109,7 +109,7 @@
     /*
       Create a SDP answer after calling getUserMedia. In case of
       success, it triggers an answer-ready event with the created answer.
-      @param {SDP Offer} the offer to respond to
+      @param {Object} the offer to respond to
     */
     answer: function(offer) {
       var callback = this.trigger.bind(this, "answer-ready");
