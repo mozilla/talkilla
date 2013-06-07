@@ -7,7 +7,10 @@
   "use strict";
 
   app.models.Call = Backbone.Model.extend({
-    initialize: function() {
+    media: undefined,
+
+    initialize: function(media) {
+      this.media = media;
       this.state = StateMachine.create({
         initial: 'ready',
         events: [
@@ -24,11 +27,76 @@
         ]
       });
 
-      this.start     = this.state.start.bind(this.state);
-      this.incoming  = this.state.incoming.bind(this.state);
       this.accept    = this.state.accept.bind(this.state);
-      this.establish = this.state.establish.bind(this.state);
-      this.hangup    = this.state.hangup.bind(this.state);
+
+      this.media.on("offer-ready", function(offer) {
+        this.trigger("send-offer", {
+          caller: this.get("id"),
+          callee: this.get("otherUser"),
+          offer: offer
+        });
+      }.bind(this));
+
+      this.media.on("answer-ready", function(answer) {
+        this.trigger("send-answer", {
+          caller: this.get("otherUser"),
+          callee: this.get("id"),
+          answer: answer
+        });
+      }.bind(this));
+    },
+
+    /**
+     * Starts an outbound call call
+     * @param {Object} options object containing:
+     *
+     * - caller: The id of the user logged in
+     * - callee: The id of the user to be called
+     * - video: set to true to enable video
+     * - audio: set to true to enable audio
+     */
+    start: function(options) {
+      this.set({id: options.caller, otherUser: options.callee});
+      this.state.start();
+      this.media.offer(options);
+    },
+
+    /**
+     * Starts a call based on an incoming call request
+     * @param {Object} options object containing:
+     *
+     * - caller: The id of the other user
+     * - callee: The id of the user logged in
+     * - video: set to true to enable video
+     * - audio: set to true to enable audio
+     *
+     * Other items may be set according to the requirements for the particular
+     * media.
+     */
+    incoming: function(options) {
+      this.set({otherUser: options.caller, id: options.callee});
+      this.state.incoming();
+      this.media.answer(options);
+    },
+
+    /**
+     * Completes the connection for an outbound call
+     * @param {Object} options object containing:
+     *
+     * Other items may be set according to the requirements for the particular
+     * media.
+     */
+    establish: function(options) {
+      this.state.establish();
+      this.media.establish(options);
+    },
+
+    /**
+     * Hangs up a call
+     */
+    hangup: function() {
+      this.state.hangup();
+      this.media.hangup();
     }
   });
 
@@ -101,18 +169,25 @@
     /**
      * Create a SDP offer after calling getUserMedia. In case of
      * success, it triggers an offer-ready event with the created offer.
+     * @param {Object} options object containing:
+     *
+     * - video: set to true to enable video
+     * - audio: set to true to enable audio
      */
-    offer: function() {
+    offer: function(options) {
+      this.set({video: options.video, audio: options.audio});
       var callback = this.trigger.bind(this, "offer-ready");
       this._getMedia(this._createOffer.bind(this, callback), this._onError);
     },
 
     /**
      * Establish a WebRTC p2p connection.
-     * @param {Object} answer
+     * @param {Object} options object containing:
+     *
+     * - answer: the answer (sdp) to add to the peer connection
      */
-    establish: function(answer) {
-      var answerDescription = new mozRTCSessionDescription(answer);
+    establish: function(options) {
+      var answerDescription = new mozRTCSessionDescription(options.answer);
       var cb = function() {};
       this.pc.setRemoteDescription(answerDescription, cb, this._onError);
     },
@@ -120,11 +195,16 @@
     /**
      * Create a SDP answer after calling getUserMedia. In case of
      * success, it triggers an answer-ready event with the created answer.
-     * @param {Object} the offer to respond to
+     * @param {Object} options object containing:
+     *
+     * - video: set to true to enable video
+     * - audio: set to true to enable audio
+     * - offer: the offer (sdp) to respond to.
      */
-    answer: function(offer) {
+    answer: function(options) {
+      this.set({video: options.video, audio: options.audio});
       var callback = this.trigger.bind(this, "answer-ready");
-      var createAnswer = this._createAnswer.bind(this, offer, callback);
+      var createAnswer = this._createAnswer.bind(this, options.offer, callback);
       this._getMedia(createAnswer, this._onError);
     },
 
