@@ -9,6 +9,8 @@ describe("Call", function() {
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
+    // XXX This should probably be a mock, but sinon mocks don't seem to want
+    // to work with Backbone.
     media = {
       answer: sandbox.stub(),
       establish: sandbox.stub(),
