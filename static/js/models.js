@@ -182,10 +182,12 @@
 
     /**
      * Establish a WebRTC p2p connection.
-     * @param {Object} answer
+     * @param {Object} options object containing:
+     *
+     * - answer: the answer (sdp) to add to the peer connection
      */
-    establish: function(answer) {
-      var answerDescription = new mozRTCSessionDescription(answer);
+    establish: function(options) {
+      var answerDescription = new mozRTCSessionDescription(options.answer);
       var cb = function() {};
       this.pc.setRemoteDescription(answerDescription, cb, this._onError);
     },

@@ -165,7 +165,7 @@ describe("WebRTCCall", function() {
   describe("#establish", function() {
 
     it("should set the given answer as a remote description", function() {
-      var answer = {};
+      var answer = {answer: {}};
 
       webrtc.pc = {setRemoteDescription: sinon.spy()};
       webrtc.establish(answer);

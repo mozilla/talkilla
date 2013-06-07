@@ -111,7 +111,7 @@ describe("Call", function() {
   });
 
   describe("#establish", function() {
-    var answer = {anwser: {type: "type", sdp: "sdp"}};
+    var answer = {answer: {type: "type", sdp: "sdp"}};
 
     it("should change the state from pending to ongoing", function() {
       call.start({});
@@ -124,7 +124,7 @@ describe("Call", function() {
       call.establish(answer);
 
       sinon.assert.calledOnce(media.establish);
-      sinon.assert.calledWithExactly(media.establish, answer.answer);
+      sinon.assert.calledWithExactly(media.establish, answer);
     });
 
   });
