@@ -30,23 +30,19 @@
       this.accept    = this.state.accept.bind(this.state);
 
       this.media.on("offer-ready", function(offer) {
-        var callData = {
+        this.trigger("send-offer", {
           caller: this.get("id"),
           callee: this.get("otherUser"),
           offer: offer
-        };
-
-        this.trigger("send-offer", callData);
+        });
       }.bind(this));
 
       this.media.on("answer-ready", function(answer) {
-        var callData = {
+        this.trigger("send-answer", {
           caller: this.get("otherUser"),
           callee: this.get("id"),
           answer: answer
-        };
-
-        this.trigger("send-answer", callData);
+        });
       }.bind(this));
     },
 
@@ -142,6 +138,10 @@
     /**
      * Create a SDP offer after calling getUserMedia. In case of
      * success, it triggers an offer-ready event with the created offer.
+     * @param {Object} options object containing:
+     *
+     * - video: set to true to enable video
+     * - audio: set to true to enable audio
      */
     offer: function(options) {
       this.set({video: options.video, audio: options.audio});
@@ -162,7 +162,11 @@
     /**
      * Create a SDP answer after calling getUserMedia. In case of
      * success, it triggers an answer-ready event with the created answer.
-     * @param {Object} the offer to respond to
+     * @param {Object} options object containing:
+     *
+     * - video: set to true to enable video
+     * - audio: set to true to enable audio
+     * - offer: the offer (sdp) to respond to.
      */
     answer: function(options) {
       this.set({video: options.video, audio: options.audio});
