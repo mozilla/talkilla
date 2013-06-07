@@ -2,18 +2,20 @@ var webdriver = require('selenium-webdriver'),
     By = webdriver.By;
 
 /**
- * Waits for a given selector to exist in the current page.
+ * Waits for a given selector to exist in the current page and returns a
+ * promise.
  *
  * Options:
  * - timeout: time until an error is raised if no matching element is found
  *            (default: 10000)
  *
- * @param  {WebDriver} driver
+ * @param  {webdriver.webdriver.WebDriver} driver
  * @param  {By|Object} expectedSelector
  * @param  {Object} options
- * @return {WebDriver}
+ * @return {webdriver.promise.Promise}
  */
 function waitForSelector(driver, expectedSelector, options) {
+  "use strict";
   return driver.wait(function() {
     return driver.isElementPresent(expectedSelector);
   }, options && options.timeout || 10000);
@@ -21,12 +23,13 @@ function waitForSelector(driver, expectedSelector, options) {
 exports.waitForSelector = waitForSelector;
 
 /**
- * Waits for an element to become available and return its promise object.
- * @param  {WebDriver} driver
+ * Waits for an element to become available and return a promise.
+ * @param  {webdriver.webdriver.WebDriver} driver
  * @param  {By|Object} selector
- * @return {WebDriver}
+ * @return {webdriver.promise.Promise}
  */
 function waitForElement(driver, selector) {
+  "use strict";
   waitForSelector(driver, selector);
   return driver.findElement(selector);
 }
@@ -39,12 +42,13 @@ exports.waitForElement = waitForElement;
  * - refresh: will refresh the sidebar before signing in if true
  *            (default: false)
  *
- * @param  {WebDriver} driver
+ * @param  {webdriver.webdriver.WebDriver} driver
  * @param  {String} user
  * @param  {Object} options
- * @return {WebDriver}
+ * @return {webdriver.webdriver.WebDriver}
  */
 function signInUser(driver, user, options) {
+  "use strict";
   driver.switchTo().frame("//#social-sidebar-browser");
   if (options && options.refresh === true)
     driver.navigate().refresh();
@@ -56,10 +60,11 @@ exports.signInUser = signInUser;
 
 /**
  * Signs a user out.
- * @param  {WebDriver} driver
- * @return {WebDriver}
+ * @param  {webdriver.webdriver.WebDriver} driver
+ * @return {webdriver.webdriver.WebDriver}
  */
 function signOutUser(driver) {
+  "use strict";
   driver.switchTo().frame("//#social-sidebar-browser");
   driver.findElement(By.css('#signout button')).click();
   return driver;
