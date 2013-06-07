@@ -9,7 +9,7 @@ describe("CallView", function() {
   var fakeLocalStream = "fakeLocalStream";
   var fakeRemoteStream = "fakeRemoteStream";
   var el = 'fakeDom';
-  var sandbox, webrtc;
+  var sandbox, media, call;
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
@@ -17,33 +17,35 @@ describe("CallView", function() {
     // model's initialize function, as creating new media items
     // (e.g. PeerConnection) takes a lot of time that we don't need to spend.
     sandbox.stub(app.models.WebRTCCall.prototype, "initialize");
-    webrtc = new app.models.WebRTCCall();
+    media = new app.models.WebRTCCall();
+    call = new app.models.Call(media);
   });
 
   afterEach(function() {
     sandbox.restore();
-    webrtc = null;
+    media = null;
+    call = null;
     $("#fixtures").empty();
   });
 
   describe("#initialize", function() {
 
-    it("should attach a given webrtc model", function() {
-      var callView = new app.views.CallView({el: el, webrtc: webrtc});
+    it("should attach a given call model", function() {
+      var callView = new app.views.CallView({el: el, call: call});
 
-      expect(callView.webrtc).to.equal(webrtc);
+      expect(callView.call).to.equal(call);
     });
 
-    it("should throw an error when no webrtc model is given", function() {
+    it("should throw an error when no call model is given", function() {
       function shouldExplode() {
         new app.views.CallView({el: 'fakeDom'});
       }
-      expect(shouldExplode).to.Throw(Error, /missing parameter: webrtc/);
+      expect(shouldExplode).to.Throw(Error, /missing parameter: call/);
     });
 
     it("should throw an error when no el parameter is given", function() {
       function shouldExplode() {
-        new app.views.CallView({webrtc: 'fakeWebrtc'});
+        new app.views.CallView({call: 'fakeWebrtc'});
       }
       expect(shouldExplode).to.Throw(Error, /missing parameter: el/);
     });
@@ -51,9 +53,9 @@ describe("CallView", function() {
     it("should call #_displayLocalVideo when the webrtc model sets localStream",
       function () {
         sandbox.stub(app.views.CallView.prototype, "_displayLocalVideo");
-        var callView = new app.views.CallView({el: el, webrtc: webrtc});
+        var callView = new app.views.CallView({el: el, call: call});
 
-        webrtc.set("localStream", fakeLocalStream);
+        call.media.set("localStream", fakeLocalStream);
 
         sinon.assert.calledOnce(callView._displayLocalVideo);
       });
@@ -61,9 +63,9 @@ describe("CallView", function() {
     it("should call #_displayRemoteVideo when webrtc model sets remoteStream",
       function () {
         sandbox.stub(app.views.CallView.prototype, "_displayRemoteVideo");
-        var callView = new app.views.CallView({el: el, webrtc: webrtc});
+        var callView = new app.views.CallView({el: el, call: call});
 
-        webrtc.set("remoteStream", fakeRemoteStream);
+        call.media.set("remoteStream", fakeRemoteStream);
 
         sinon.assert.calledOnce(callView._displayRemoteVideo);
       });
@@ -90,7 +92,7 @@ describe("CallView", function() {
     it('should close the window', function() {
       var el = $('<div><div id="local-video"></div></div>');
       $("#fixtures").append(el);
-      var callView = new app.views.CallView({el: el, webrtc: webrtc});
+      var callView = new app.views.CallView({el: el, call: call});
       sandbox.stub(window, "close");
 
       callView.hangup();
@@ -105,8 +107,8 @@ describe("CallView", function() {
     beforeEach(function() {
       el = $('<div><div id="local-video"></div></div>');
       $("#fixtures").append(el);
-      callView = new app.views.CallView({el: el, webrtc: webrtc});
-      webrtc.set("localStream", fakeLocalStream, {silent: true});
+      callView = new app.views.CallView({el: el, call: call});
+      call.media.set("localStream", fakeLocalStream, {silent: true});
 
       videoElement = el.find('#local-video')[0];
       videoElement.play = sandbox.spy();
@@ -133,8 +135,8 @@ describe("CallView", function() {
     beforeEach(function() {
       el = $('<div><div id="remote-video"></div></div>');
       $("#fixtures").append(el);
-      callView = new app.views.CallView({el: el, webrtc: webrtc});
-      webrtc.set("remoteStream", fakeRemoteStream, {silent: true});
+      callView = new app.views.CallView({el: el, call: call});
+      call.media.set("remoteStream", fakeRemoteStream, {silent: true});
 
       videoElement = el.find('#remote-video')[0];
       videoElement.play = sandbox.spy();
