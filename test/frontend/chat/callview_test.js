@@ -50,6 +50,40 @@ describe("CallView", function() {
       expect(shouldExplode).to.Throw(Error, /missing parameter: el/);
     });
 
+    describe("Change events", function() {
+      var el;
+
+      beforeEach(function() {
+        sandbox.stub(call, "on");
+        // XXX Mocks aren't working, so we'll have to spy it.
+        el = {
+          show: sandbox.spy(),
+          hide: sandbox.spy()
+        };
+
+        new app.views.CallView({el: el, call: call});
+      });
+
+      it("should attach to change:state events on the call model", function() {
+        sinon.assert.calledOnce(call.on);
+        sinon.assert.calledWith(call.on, 'change:state');
+      });
+
+      it("should show the element when change:state goes to the pending state",
+        function() {
+          call.on.args[0][1]("pending");
+
+          sinon.assert.calledOnce(el.show);
+        });
+
+      it("should hide the element when change:state goes to the terminated " +
+        "state", function() {
+          call.on.args[0][1]("terminated");
+
+          sinon.assert.calledOnce(el.hide);
+        });
+    });
+
     it("should call #_displayLocalVideo when the webrtc model sets localStream",
       function () {
         sandbox.stub(app.views.CallView.prototype, "_displayLocalVideo");
@@ -69,6 +103,7 @@ describe("CallView", function() {
 
         sinon.assert.calledOnce(callView._displayRemoteVideo);
       });
+
   });
 
   describe("events", function() {

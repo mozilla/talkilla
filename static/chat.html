@@ -12,8 +12,18 @@
     <div class="row-fluid">
       <div>
 
+        <!-- Call Offer -->
+        <div id="offer" class="hide">
+          <div id="incoming text">
+            <img src="/img/video-icon.png"> Incoming video call...
+          </div>
+          <div id="controls">
+            <a class="btn btn-accept">Accept</a>
+         </div>
+        </div>
+
         <!-- Call view -->
-        <div id="call">
+        <div id="call" class="hide">
           <div class="video-area">
             <strong class="callee"></strong>
             <video id="remote-video" class="remote-video"></video>
@@ -26,7 +36,7 @@
         <!-- /Call view -->
 
         <!-- TextChat view -->
-        <div id="textchat">
+        <div id="textchat" class="hide">
           <ul></ul>
           <form>
             <input type="text" name="message" placeholder="Type something to start chatting" disabled>

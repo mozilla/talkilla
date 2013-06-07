@@ -25,7 +25,12 @@
 
           // Call hangup
           {name: 'hangup',    from: '*',        to: 'terminated'}
-        ]
+        ],
+        callbacks: {
+          onenterstate: function(event, from, to) {
+            this.trigger("change:state", to, from, event);
+          }.bind(this)
+        }
       });
 
       this.media.on("offer-ready", function(offer) {
@@ -43,7 +48,6 @@
           answer: answer
         });
 
-        this.trigger("send-answer", callData);
         // XXX Change transition to complete/ongoing here as
         // this is the best place we've got currently to know that
         // the incoming call is now ongoing. When WebRTC platform
@@ -87,8 +91,6 @@
         incomingData: options
       });
       this.state.incoming();
-      // XXX this should come from the UI
-      this.accept();
     },
 
     /**
