@@ -31,7 +31,7 @@ var ChatApp = (function($, Backbone, _) {
     this.webrtc = new app.models.WebRTCCall();
     this.call = new app.models.Call(this.webrtc);
     this.callView = new app.views.CallView(
-     { webrtc: this.webrtc, el: $("#call") });
+     { call: this.call, el: $("#call") });
 
     // Text chat
     this.textChat = new app.models.TextChat();
