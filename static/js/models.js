@@ -66,7 +66,7 @@
      * @param {Object} options object containing:
      *
      * - caller: The id of the other user
-     * - otherUser: The id of the user logged in
+     * - callee: The id of the user logged in
      * - video: set to true to enable video
      * - audio: set to true to enable audio
      *
