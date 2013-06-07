@@ -9,25 +9,29 @@
   app.models.Call = Backbone.Model.extend({
     media: undefined,
 
-    initialize: function(media) {
+    initialize: function(options, media) {
       this.media = media;
       this.state = StateMachine.create({
         initial: 'ready',
         events: [
           // Call initiation scenario
-          {name: 'start',     from: 'ready',   to: 'pending'},
-          {name: 'establish', from: 'pending', to: 'ongoing'},
+          {name: 'start',     from: 'ready',    to: 'pending'},
+          {name: 'establish', from: 'pending',  to: 'ongoing'},
 
           // Incoming call scenario
-          {name: 'incoming',  from: 'ready',   to: 'pending'},
-          {name: 'accept',    from: 'pending', to: 'ongoing'},
+          {name: 'incoming',  from: 'ready',    to: 'incoming'},
+          {name: 'accept',    from: 'incoming', to: 'pending'},
+          {name: 'complete',  from: 'pending',  to: 'ongoing'},
 
           // Call hangup
-          {name: 'hangup',    from: '*',       to: 'terminated'}
-        ]
+          {name: 'hangup',    from: '*',        to: 'terminated'}
+        ],
+        callbacks: {
+          onenterstate: function(event, from, to) {
+            this.trigger("change:state", to, from, event);
+          }.bind(this)
+        }
       });
-
-      this.accept    = this.state.accept.bind(this.state);
 
       this.media.on("offer-ready", function(offer) {
         this.trigger("send-offer", {
@@ -43,6 +47,13 @@
           callee: this.get("id"),
           answer: answer
         });
+
+        // XXX Change transition to complete/ongoing here as
+        // this is the best place we've got currently to know that
+        // the incoming call is now ongoing. When WebRTC platform
+        // support comes for connection notifications, we'll want
+        // to handle this differently.
+        this.state.complete();
       }.bind(this));
     },
 
@@ -74,9 +85,12 @@
      * media.
      */
     incoming: function(options) {
-      this.set({otherUser: options.caller, id: options.callee});
+      this.set({
+        otherUser: options.caller,
+        id: options.callee,
+        incomingData: options
+      });
       this.state.incoming();
-      this.media.answer(options);
     },
 
     /**
@@ -89,6 +103,14 @@
     establish: function(options) {
       this.state.establish();
       this.media.establish(options);
+    },
+
+    /**
+     * Accepts a pending incoming call.
+     */
+    accept: function() {
+      this.media.answer(this.get('incomingData'));
+      this.state.accept();
     },
 
     /**

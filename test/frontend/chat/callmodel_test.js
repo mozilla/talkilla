@@ -18,7 +18,7 @@ describe("Call", function() {
       offer: sandbox.stub(),
       on: sandbox.stub()
     };
-    call = new app.models.Call(media);
+    call = new app.models.Call({}, media);
   });
 
   afterEach(function() {
@@ -79,9 +79,9 @@ describe("Call", function() {
   describe("#incoming", function() {
     var callData = {caller: "bob", callee: "larry"};
 
-    it("should change the state from ready to pending", function() {
+    it("should change the state from ready to incoming", function() {
       call.incoming({});
-      expect(call.state.current).to.equal('pending');
+      expect(call.state.current).to.equal('incoming');
     });
 
     it("should store the id and otherUser", function() {
@@ -91,23 +91,30 @@ describe("Call", function() {
       expect(call.get('otherUser')).to.equal('bob');
     });
 
-    it("should pass the call data to the media", function() {
+    it("should store the call data", function() {
       call.incoming(callData);
 
-      sinon.assert.calledOnce(media.answer);
-      sinon.assert.calledWithExactly(media.answer, callData);
+      expect(call.get("incomingData")).to.equal(callData);
     });
 
   });
 
   describe("#accept", function() {
+    var callData = {caller: "bob", callee: "larry"};
 
-    it("should change the state from pending to ongoing", function() {
-      call.start({});
-      call.accept({});
-      expect(call.state.current).to.equal('ongoing');
+    it("should change the state from incoming to pending", function() {
+      call.state.incoming();
+      call.accept();
+      expect(call.state.current).to.equal('pending');
     });
 
+    it("should pass the call data to the media", function() {
+      call.incoming(callData);
+      call.accept();
+
+      sinon.assert.calledOnce(media.answer);
+      sinon.assert.calledWithExactly(media.answer, callData);
+    });
   });
 
   describe("#establish", function() {
@@ -143,7 +150,7 @@ describe("Call", function() {
 
     it("should change the state from ongoing to terminated", function() {
       call.start({});
-      call.accept();
+      call.establish({});
       call.hangup();
       expect(call.state.current).to.equal('terminated');
     });
@@ -184,20 +191,37 @@ describe("Call", function() {
     });
 
     describe("#answer-ready", function() {
-      it("should trigger send-offer with transport data", function() {
+      var expectedData;
+
+      beforeEach(function() {
+        call.state.incoming();
+        call.state.accept();
+
+        // the state changes above, may activate the trigger, so reset it.
+        call.trigger.reset();
+
         // Set up the data
-        var expectedData = {
+        expectedData = {
           caller: "larry",
           callee: "bob",
           answer: fakeSdp
         };
+      });
 
+      it("should trigger send-offer with transport data", function() {
         // [1] gives the answer-ready call, [1] is the callback
         media.on.args[1][1](fakeSdp);
 
-        sinon.assert.calledOnce(call.trigger);
-        sinon.assert.calledWithExactly(call.trigger, "send-answer",
+        sinon.assert.called(call.trigger);
+        sinon.assert.calledWith(call.trigger, "send-answer",
           expectedData);
+      });
+
+      it("should change the state to ongoing", function() {
+        // [1] gives the answer-ready call, [1] is the callback
+        media.on.args[1][1](fakeSdp);
+
+        expect(call.state.current).to.be.equal("ongoing");
       });
     });
   });

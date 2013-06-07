@@ -6,7 +6,7 @@ var expect = chai.expect;
 
 describe('TextChatView', function() {
   "use strict";
-  var chatApp, webrtc, sandbox;
+  var chatApp, webrtc, sandbox, call;
 
   beforeEach(function() {
     $('body').append([
@@ -21,19 +21,19 @@ describe('TextChatView', function() {
       createDataChannel: function() {}
     });
     webrtc = new app.models.WebRTCCall();
+    call = new app.models.Call({}, webrtc);
     chatApp = new ChatApp();
   });
 
   afterEach(function() {
     $('#textchat').remove();
-    app.port.off();
     sandbox.restore();
     webrtc = null;
   });
 
   it("should be empty by default", function() {
     var view = new app.views.TextChatView({
-      webrtc: webrtc,
+      call: call,
       collection: new app.models.TextChat()
     });
     expect(view.collection).to.have.length.of(0);
@@ -43,7 +43,7 @@ describe('TextChatView', function() {
 
   it("should update rendering when its collection is updated", function() {
     var view = new app.views.TextChatView({
-      webrtc: webrtc,
+      call: call,
       collection: new app.models.TextChat([
         {nick: "niko", message: "plop"},
         {nick: "jb", message: "hello"}
@@ -76,5 +76,37 @@ describe('TextChatView', function() {
 
     $('#textchat [name="message"]').val("plop");
     $("#textchat form").trigger("submit");
+  });
+
+  describe("Change events", function() {
+    var textChatView;
+
+    beforeEach(function() {
+      sandbox.stub(call, "on");
+
+      textChatView = new app.views.TextChatView({
+        call: call,
+        collection: new app.models.TextChat()
+      });
+    });
+
+    it("should attach to change:state events on the call model", function() {
+      sinon.assert.calledOnce(call.on);
+      sinon.assert.calledWith(call.on, 'change:state');
+    });
+
+    it("should show the element when change:state goes to the pending state",
+      function() {
+        call.on.args[0][1]("pending");
+
+        expect(textChatView.$el.is(":visible")).to.be.equal(true);
+      });
+
+    it("should hide the element when change:state goes to the terminated " +
+      "state", function() {
+        call.on.args[0][1]("terminated");
+
+        expect(textChatView.$el.is(":visible")).to.be.equal(false);
+      });
   });
 });
