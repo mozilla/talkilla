@@ -2,7 +2,7 @@
    handlers, it, sinon, Port, PortCollection, _config:true, _presenceSocket,
    loadconfig, ports:true, _presenceSocketOnMessage, _presenceSocketOnError,
    _presenceSocketOnClose, _presenceSocketSendMessage:true,
-   _presenceSocketOnOpen, _signinCallback, _presenceSocket, _currentUserData,
+   _presenceSocketOnOpen, _signinCallback, _presenceSocket, currentUsers:true,
    browserPort:true, _currentUserData:true, UserData, currentCall:true,
    serverHandlers */
 /* jshint expr:true */
@@ -466,7 +466,8 @@ describe('Worker', function() {
 
     it("should post a success message if the server accepted login",
       function() {
-        handlers.postEvent = sinon.spy();
+        var port = {id: "tests", postEvent: sandbox.spy()};
+        ports.add(port);
         handlers['talkilla.login']({
           topic: "talkilla.login",
           data: {username: "jb"}
@@ -476,8 +477,9 @@ describe('Worker', function() {
         requests[0].respond(200, { 'Content-Type': 'application/json' },
           '{"nick":"jb"}' );
 
-        sinon.assert.calledTwice(handlers.postEvent);
-        sinon.assert.calledWith(handlers.postEvent, "talkilla.login-success");
+        sinon.assert.calledOnce(port.postEvent);
+        sinon.assert.calledWith(port.postEvent, "talkilla.login-success");
+        ports.remove(port);
       });
 
     it("should store the username if the server accepted login",
@@ -492,6 +494,42 @@ describe('Worker', function() {
           '{"nick":"jb"}' );
 
         expect(_currentUserData.userName).to.equal('jb');
+      });
+
+    it("should notify new sidebars of the logged in user",
+      function() {
+        _currentUserData.userName = "jb";
+        handlers.postEvent = sinon.spy();
+        handlers['talkilla.sidebar-ready']({
+          topic: "talkilla.sidebar-ready",
+          data: {}
+        });
+
+        sinon.assert.calledWith(handlers.postEvent, "talkilla.login-success");
+      });
+
+    it("should notify new sidebars of current users",
+      function() {
+        _currentUserData.userName = "jb";
+        currentUsers = {};
+        handlers.postEvent = sinon.spy();
+        handlers['talkilla.sidebar-ready']({
+          topic: "talkilla.sidebar-ready",
+          data: {}
+        });
+
+        sinon.assert.calledWith(handlers.postEvent, "talkilla.users");
+      });
+
+    it("should notify new sidebars only if there's a logged in user",
+      function() {
+        handlers.postEvent = sinon.spy();
+        handlers['talkilla.sidebar-ready']({
+          topic: "talkilla.sidebar-ready",
+          data: {}
+        });
+
+        sinon.assert.notCalled(handlers.postEvent);
       });
 
     it("should post a fail message if the server rejected login",
@@ -570,7 +608,8 @@ describe('Worker', function() {
 
     it("should post a success message",
       function() {
-        handlers.postEvent = sandbox.spy();
+        var port = {id: "tests", postEvent: sandbox.spy()};
+        ports.add(port);
         handlers['talkilla.logout']({
           topic: 'talkilla.logout'
         });
@@ -578,8 +617,9 @@ describe('Worker', function() {
         requests[0].respond(200, { 'Content-Type': 'text/plain' },
           'OK' );
 
-        sinon.assert.calledOnce(handlers.postEvent);
-        sinon.assert.calledWith(handlers.postEvent, 'talkilla.logout-success');
+        sinon.assert.calledOnce(port.postEvent);
+        sinon.assert.calledWith(port.postEvent, 'talkilla.logout-success');
+        ports.remove(port);
       });
 
     it("should post a social.user-profile message", function() {

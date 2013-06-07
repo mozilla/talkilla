@@ -241,10 +241,12 @@
      */
     signin: function(event) {
       event.preventDefault();
-      var nick = $.trim($(event.currentTarget).find('[name="nick"]').val());
+      var field = $(event.currentTarget).find('[name="nick"]');
+      var nick = $.trim(field.val());
       if (!nick)
         return app.utils.notifyUI('please enter a nickname');
       app.port.login(nick);
+      field.val('');
     },
 
     /**

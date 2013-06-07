@@ -27,6 +27,8 @@ var SidebarApp = (function($, Backbone, _) {
       this.data.user = new app.models.User();
 
       _.extend(this.options, options || {});
+
+      this.port.postEvent('talkilla.sidebar-ready', {});
     }
   };
 
