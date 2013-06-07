@@ -21,7 +21,7 @@ describe('TextChatView', function() {
       createDataChannel: function() {}
     });
     webrtc = new app.models.WebRTCCall();
-    call = new app.models.Call(webrtc);
+    call = new app.models.Call({}, webrtc);
     chatApp = new ChatApp();
   });
 

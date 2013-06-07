@@ -125,6 +125,7 @@
 
       this.collection = options.collection;
       this.call = options.call;
+      this.media = options.call.media;
 
       app.port.on('talkilla.call-start', function(data) {
         this.me = data.caller; // If I'm receiving this, I'm the caller
@@ -136,11 +137,11 @@
 
       this.collection.on('add', this.render, this);
 
-      options.call.media.on('dc.in.ready', function() {
+      this.media.on('dc.in.ready', function() {
         this.$('input').removeAttr('disabled');
       }, this);
 
-      options.call.on('change:state', function(to) {
+      this.call.on('change:state', function(to) {
         if (to === "pending")
           this.$el.show();
         else if (to === "terminated")

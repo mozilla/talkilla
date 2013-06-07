@@ -29,7 +29,7 @@ var ChatApp = (function($, Backbone, _) {
   function ChatApp() {
     this.port = app.port;
     this.webrtc = new app.models.WebRTCCall();
-    this.call = new app.models.Call(this.webrtc);
+    this.call = new app.models.Call({}, this.webrtc);
     this.callView = new app.views.CallView(
      { call: this.call, el: $("#call") });
     this.callOfferView = new app.views.CallOfferView(

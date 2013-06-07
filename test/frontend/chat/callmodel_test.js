@@ -18,7 +18,7 @@ describe("Call", function() {
       offer: sandbox.stub(),
       on: sandbox.stub()
     };
-    call = new app.models.Call(media);
+    call = new app.models.Call({}, media);
   });
 
   afterEach(function() {
