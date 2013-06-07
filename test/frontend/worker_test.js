@@ -2,7 +2,7 @@
    handlers, it, sinon, Port, PortCollection, _config:true, _presenceSocket,
    loadconfig, ports:true, _presenceSocketOnMessage, _presenceSocketOnError,
    _presenceSocketOnClose, _presenceSocketSendMessage:true,
-   _presenceSocketOnOpen, _signinCallback, _presenceSocket, _currentUserData,
+   _presenceSocketOnOpen, _signinCallback, _presenceSocket, currentUsers:true,
    browserPort:true, _currentUserData:true, UserData, currentCall:true,
    serverHandlers */
 /* jshint expr:true */
@@ -506,6 +506,19 @@ describe('Worker', function() {
         });
 
         sinon.assert.calledWith(handlers.postEvent, "talkilla.login-success");
+      });
+
+    it("should notify new sidebars of current users",
+      function() {
+        _currentUserData.userName = "jb";
+        currentUsers = {};
+        handlers.postEvent = sinon.spy();
+        handlers['talkilla.sidebar-ready']({
+          topic: "talkilla.sidebar-ready",
+          data: {}
+        });
+
+        sinon.assert.calledWith(handlers.postEvent, "talkilla.users");
       });
 
     it("should notify new sidebars only if there's a logged in user",
