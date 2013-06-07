@@ -102,10 +102,10 @@ describe("Call", function() {
 
   describe("#accept", function() {
 
-    it("should change the state from pending to ongoing", function() {
-      call.start({});
+    it("should change the state from incoming to pending", function() {
+      call.state.incoming();
       call.accept({});
-      expect(call.state.current).to.equal('ongoing');
+      expect(call.state.current).to.equal('pending');
     });
 
   });
@@ -143,7 +143,7 @@ describe("Call", function() {
 
     it("should change the state from ongoing to terminated", function() {
       call.start({});
-      call.accept();
+      call.establish({});
       call.hangup();
       expect(call.state.current).to.equal('terminated');
     });
@@ -184,20 +184,35 @@ describe("Call", function() {
     });
 
     describe("#answer-ready", function() {
-      it("should trigger send-offer with transport data", function() {
+      var expectedData;
+
+      beforeEach(function() {
+        call.state.incoming();
+        call.state.accept();
+
         // Set up the data
-        var expectedData = {
+        expectedData = {
           caller: "larry",
           callee: "bob",
           answer: fakeSdp
         };
 
+      });
+
+      it("should trigger send-offer with transport data", function() {
         // [1] gives the answer-ready call, [1] is the callback
         media.on.args[1][1](fakeSdp);
 
         sinon.assert.calledOnce(call.trigger);
         sinon.assert.calledWithExactly(call.trigger, "send-answer",
           expectedData);
+      });
+
+      it("should change the state to ongoing", function() {
+        // [1] gives the answer-ready call, [1] is the callback
+        media.on.args[1][1](fakeSdp);
+
+        expect(call.state.current).to.be.equal("ongoing");
       });
     });
   });
