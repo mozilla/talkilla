@@ -12,18 +12,39 @@
     <div class="row-fluid">
       <div>
 
+        <!-- Call Offer -->
+        <div id="offer" class="hide">
+          <div id="incoming text">
+            <img src="/img/video-icon.png"> Incoming video call...
+          </div>
+          <div id="controls">
+            <a class="btn btn-accept">Accept</a>
+          </div>
+        </div>
+        <!-- /Call Offer -->
+
         <!-- Call view -->
-        <div id="call">
+        <div id="call" class="hide">
           <div class="video-area">
             <strong class="callee"></strong>
-            <div id="controls">
-              <a class="btn btn-hangup"><i class="icon-stop"></i> End call</a>
-            </div>
             <video id="remote-video" class="remote-video"></video>
             <video id="local-video" class="local-video" muted></video>
+            <div id="controls">
+              <a class="btn btn-hangup"><i class="icon-stop"></i></a>
+            </div>
           </div>
         </div>
         <!-- /Call view -->
+
+        <!-- TextChat view -->
+        <div id="textchat" class="hide">
+          <ul></ul>
+          <form>
+            <input type="text" name="message" placeholder="Type something to start chatting" disabled>
+            <button type="submit" class="hide">Send</button>
+          </form>
+        </div>
+        <!-- /TextChat view -->
 
       </div>
     </div>
@@ -38,7 +59,7 @@
   <script src="js/models.js"></script>
   <script src="js/chat/views.js"></script>
   <script>
-    $(function() {
+    jQuery(function($) {
       $.getJSON('/config.json', function(config) {
         app.start(config);
         window.chatApp = new ChatApp();

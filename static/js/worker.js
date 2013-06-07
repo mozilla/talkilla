@@ -6,6 +6,11 @@ var _presenceSocket;
 var ports;
 var browserPort;
 var currentCall;
+var currentUsers;
+
+function openChatWindow() {
+  browserPort.postEvent('social.request-chat', 'chat.html');
+}
 
 /**
  * Social API user profile data storage.
@@ -42,9 +47,14 @@ UserData.prototype = {
 };
 
 var serverHandlers = {
+  'users': function(data) {
+    currentUsers = data;
+    ports.broadcastEvent("talkilla.users", data);
+  },
+
   'incoming_call': function(data) {
     currentCall = {port: undefined, data: data};
-    browserPort.postEvent('social.request-chat', 'chat.html');
+    openChatWindow();
   },
 
   'call_accepted': function(data) {
@@ -87,6 +97,7 @@ function _presenceSocketOnClose(event) {
 
   // XXX: this will need future work to handle retrying presence connections
   ports.broadcastEvent('talkilla.presence-unavailable', event.code);
+  currentUsers = undefined;
 }
 
 function createPresenceSocket(nickname) {
@@ -143,7 +154,7 @@ function _signinCallback(err, responseText) {
     _currentUserData.userName = _currentUserData.displayName = username;
     _currentUserData.portrait = "test.png";
 
-    this.postEvent('talkilla.login-success', {
+    ports.broadcastEvent('talkilla.login-success', {
       username: username
     });
 
@@ -158,7 +169,8 @@ function _signoutCallback(err, responseText) {
 
   _currentUserData.reset();
   browserPort.postEvent('social.user-profile', _currentUserData);
-  this.postEvent('talkilla.logout-success');
+  currentUsers = undefined;
+  ports.broadcastEvent('talkilla.logout-success');
 }
 
 var handlers = {
@@ -198,7 +210,7 @@ var handlers = {
     // XXX Temporarily work around to only allow one call at a time.
     if (!currentCall) {
       currentCall = {port: undefined, data: event.data};
-      browserPort.postEvent("social.request-chat", 'chat.html');
+      openChatWindow();
     }
   },
 
@@ -211,6 +223,17 @@ var handlers = {
       "talkilla.call-start";
 
     this.postEvent(topic, currentCall.data);
+  },
+
+  'talkilla.sidebar-ready': function() {
+    if (_currentUserData.userName) {
+      // If there's currenty a logged in user,
+      this.postEvent('talkilla.login-success', {
+        username: _currentUserData.userName
+      });
+      if (currentUsers)
+        this.postEvent('talkilla.users', currentUsers);
+    }
   },
 
   /**

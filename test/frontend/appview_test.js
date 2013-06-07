@@ -11,18 +11,30 @@ describe("AppView", function() {
       sandbox.stub(app.views, "NotificationsView");
       sandbox.stub(app.views, "LoginView");
       sandbox.stub(app.views, "UsersView");
-      sandbox.stub(app.views, "CallView");
-      sandbox.stub(app.models, "Call");
     });
 
     afterEach(function() {
       sandbox.restore();
     });
 
-    it("should add initialize a call property", function() {
+    it("should add initialize a notifications property", function() {
       var appView = new app.views.AppView();
 
-      expect(appView.call).to.be.an.instanceOf(app.views.CallView);
+      expect(appView.notifications).to.be.an.instanceOf(
+        app.views.NotificationsView);
+    });
+
+    it("should add initialize a login property", function() {
+      var appView = new app.views.AppView();
+
+      expect(appView.login).to.be.an.instanceOf(
+        app.views.LoginView);
+    });
+
+    it("should add initialize a users property", function() {
+      var appView = new app.views.AppView();
+
+      expect(appView.users).to.be.an.instanceOf(app.views.UsersView);
     });
 
   });

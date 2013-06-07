@@ -58,14 +58,14 @@
   <script src="vendor/state-machine-2.2.0.js"></script>
   <script src="js/app.js"></script>
   <script src="js/port.js"></script>
-  <script src="js/media.js"></script>
   <script src="js/models.js"></script>
   <script src="js/utils.js"></script>
   <script src="js/views.js"></script>
   <script>
     $(function() {
       $.getJSON('/config.json', function(config) {
-        Talkilla.start(config);
+        app.start(config);
+        window.sidebarApp = new SidebarApp();
       });
     });
   </script>

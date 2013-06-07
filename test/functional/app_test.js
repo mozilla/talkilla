@@ -8,10 +8,11 @@ var expect = require("chai").expect;
 var serverPort = 3000;
 var webdriver = require('selenium-webdriver'),
     By = webdriver.By;
+var helpers = require('./helpers');
 
 var driver, driver2;
 
-describe("browser tests", function() {
+describe("Sidebar Tests", function() {
   this.timeout(600000);
 
   before(function(done) {
@@ -46,9 +47,7 @@ describe("browser tests", function() {
 
   it("should sign users in", function(done) {
     // Sign in user 1
-    driver.switchTo().frame("//#social-sidebar-browser");
-    driver.findElement(By.name("nick")).sendKeys("bob");
-    driver.findElement(By.id("submit")).click();
+    helpers.signInUser(driver, "bob");
     driver.findElement(By.css("strong.nick")).getText().then(function(nick) {
       expect(nick).to.equal('bob');
     });
@@ -60,9 +59,7 @@ describe("browser tests", function() {
     });
 
     // Sign in user 2
-    driver2.switchTo().frame("//#social-sidebar-browser");
-    driver2.findElement(By.name("nick")).sendKeys("larry");
-    driver2.findElement(By.id("submit")).click();
+    helpers.signInUser(driver2, "larry");
     driver2.findElement(By.css("strong.nick")).getText().then(function(nick) {
       expect(nick).to.equal('larry');
     });
@@ -79,25 +76,19 @@ describe("browser tests", function() {
 
   it("should sign users out", function(done) {
     // Sign in user 1
-    driver.switchTo().frame("//#social-sidebar-browser");
-    driver.navigate().refresh();
-    driver.findElement(By.name("nick")).sendKeys("bob");
-    driver.findElement(By.id("submit")).click();
+    helpers.signInUser(driver, "bob", {refresh: true});
     driver.findElement(By.id("signout")).isDisplayed().then(function(res) {
       expect(res).to.equal(true);
     });
 
     // Sign in user 2
-    driver2.switchTo().frame("//#social-sidebar-browser");
-    driver2.navigate().refresh();
-    driver2.findElement(By.name("nick")).sendKeys("larry");
-    driver2.findElement(By.id("submit")).click();
+    helpers.signInUser(driver2, "larry", {refresh: true});
     driver2.findElement(By.css("strong.nick")).getText().then(function(nick) {
       expect(nick).to.equal('larry');
     });
 
     // Sign out user 1
-    driver.findElement(By.css('#signout button')).click();
+    helpers.signOutUser(driver);
     driver.findElements(By.css("div.alert-info")).then(function(res) {
       expect(res).to.deep.equal([]);
     });
@@ -112,7 +103,7 @@ describe("browser tests", function() {
     });
 
     // Now sign out user 2
-    driver2.findElement(By.css('#signout button')).click();
+    helpers.signOutUser(driver2);
     driver2.findElements(By.css("div.alert-info")).then(function(res) {
       expect(res).to.deep.equal([]);
     });
@@ -122,38 +113,9 @@ describe("browser tests", function() {
     });
   });
 
-  it("should open a chat window when clicking a nick", function(done) {
-    // Sign in user 1
-    driver.switchTo().frame("//#social-sidebar-browser");
-    driver.navigate().refresh();
-    driver.findElement(By.name("nick")).sendKeys("bob");
-    driver.findElement(By.id("submit")).click();
-
-    // Sign in user 2
-    driver2.switchTo().frame("//#social-sidebar-browser");
-    driver2.navigate().refresh();
-    driver2.findElement(By.name("nick")).sendKeys("larry");
-    driver2.findElement(By.id("submit")).click();
-
-    // Click a nick
-    driver2.manage().timeouts().implicitlyWait(2000);
-    driver2.findElement(By.css("ul.nav-list>li>a")).click();
-    driver2.manage().timeouts().implicitlyWait(0);
-
-    // Check that we have a chat window
-    driver2.switchTo().frame("//chatbox");
-
-    // Check that a #call element exists
-    driver2.findElement(By.id("call")).then(function() {
-      done();
-    });
-  });
-
   it("should handle an interuppted websocket connection", function(done) {
-    driver.switchTo().frame("//#social-sidebar-browser");
-    driver.navigate().refresh();
-    driver.findElement(By.name("nick")).sendKeys("bob");
-    driver.findElement(By.id("submit")).click();
+    helpers.signInUser(driver, "bob", {refresh: true});
+
     driver.findElement(By.css("strong.nick")).getText().then(function(nick) {
       expect(nick).to.equal('bob');
     }).then(function() {
@@ -166,4 +128,5 @@ describe("browser tests", function() {
       });
     });
   });
+
 });
