@@ -46,23 +46,54 @@
       }.bind(this));
     },
 
+    /**
+     * Starts an outbound call call
+     * @param {Object} options object containing:
+     *
+     * - caller: The id of the user logged in
+     * - callee: The id of the user to be called
+     * - video: set to true to enable video
+     * - audio: set to true to enable audio
+     */
     start: function(options) {
       this.set({id: options.caller, otherUser: options.callee});
       this.state.start();
       this.media.offer(options);
     },
 
+    /**
+     * Starts a call based on an incoming call request
+     * @param {Object} options object containing:
+     *
+     * - caller: The id of the other user
+     * - otherUser: The id of the user logged in
+     * - video: set to true to enable video
+     * - audio: set to true to enable audio
+     *
+     * Other items may be set according to the requirements for the particular
+     * media.
+     */
     incoming: function(options) {
       this.set({otherUser: options.caller, id: options.callee});
       this.state.incoming();
       this.media.answer(options);
     },
 
+    /**
+     * Completes the connection for an outbound call
+     * @param {Object} options object containing:
+     *
+     * Other items may be set according to the requirements for the particular
+     * media.
+     */
     establish: function(options) {
       this.state.establish();
-      this.media.establish(options.answer);
+      this.media.establish(options);
     },
 
+    /**
+     * Hangs up a call
+     */
     hangup: function() {
       this.state.hangup();
       this.media.hangup();
