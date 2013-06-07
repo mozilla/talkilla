@@ -17,14 +17,14 @@
 
     initialize: function(options) {
       options = options || {};
-      if (!options.webrtc)
-        throw new Error("missing parameter: webrtc");
+      if (!options.call)
+        throw new Error("missing parameter: call");
       if (!options.el)
         throw new Error("missing parameter: el");
 
-      this.webrtc = options.webrtc;
-      this.webrtc.on('change:localStream', this._displayLocalVideo, this);
-      this.webrtc.on('change:remoteStream', this._displayRemoteVideo, this);
+      this.call = options.call;
+      this.call.media.on('change:localStream', this._displayLocalVideo, this);
+      this.call.media.on('change:remoteStream', this._displayRemoteVideo, this);
     },
 
     hangup: function(event) {
@@ -38,7 +38,7 @@
       var localVideo = this.$('#local-video')[0];
       if (!localVideo)
         return this;
-      var localStream = this.webrtc.get("localStream");
+      var localStream = this.call.media.get("localStream");
       localVideo.mozSrcObject = localStream;
       localVideo.play();
       return this;
@@ -46,7 +46,7 @@
 
     _displayRemoteVideo: function() {
       var remoteVideo = this.$('#remote-video')[0];
-      var remoteStream = this.webrtc.get("remoteStream");
+      var remoteStream = this.call.media.get("remoteStream");
 
       remoteVideo.mozSrcObject = remoteStream;
       remoteVideo.play();

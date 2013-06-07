@@ -6,7 +6,6 @@ var expect = chai.expect;
 
 describe("ChatApp", function() {
   var sandbox, chatApp;
-  var fakeAnswer = {answer: {type: "answer", sdp: "fake"}};
   var callData = {caller: "alice", callee: "bob"};
   var incomingCallData = {
     caller: "alice",
@@ -80,20 +79,20 @@ describe("ChatApp", function() {
       type: 'type'
     };
 
-    chatApp.webrtc.trigger(event, offer);
+    chatApp.call.trigger(event, offer);
 
     sinon.assert.calledOnce(chatApp[handler]);
     sinon.assert.calledWithExactly(chatApp[handler], offer);
   }
 
-  it("should attach _onOfferReady to offer-ready on the webrtc model",
+  it("should attach _onSendOffer to send-offer on the call model",
     function() {
-    assertModelEventTriggersHandler("offer-ready", "_onOfferReady");
+    assertModelEventTriggersHandler("send-offer", "_onSendOffer");
   });
 
-  it("should attach _onAnswerReady to answer-ready on the webrtc model",
+  it("should attach _onSendAnswer to send-answer on the webrtc model",
     function() {
-    assertModelEventTriggersHandler("answer-ready", "_onAnswerReady");
+    assertModelEventTriggersHandler("send-answer", "_onSendAnswer");
   });
 
   it("should post talkilla.chat-window-ready to the worker", function() {
@@ -174,20 +173,8 @@ describe("ChatApp", function() {
         chatApp._onStartingCall(callData);
 
         sinon.assert.calledOnce(chatApp.call.start);
-        sinon.assert.calledWithExactly(chatApp.call.start);
+        sinon.assert.calledWithExactly(chatApp.call.start, callData);
       });
-
-      it("should create a webrtc offer", function() {
-        sandbox.stub(chatApp.call, "set");
-        sandbox.stub(chatApp.call, "start");
-        sandbox.stub(chatApp.webrtc, "offer");
-
-        chatApp._onStartingCall(callData);
-
-        sinon.assert.calledOnce(chatApp.webrtc.offer);
-        sinon.assert.calledWithExactly(chatApp.webrtc.offer);
-      });
-
     });
 
     describe("#_onIncomingCall", function() {
@@ -204,19 +191,7 @@ describe("ChatApp", function() {
         chatApp._onIncomingCall(incomingCallData);
 
         sinon.assert.calledOnce(chatApp.call.incoming);
-        sinon.assert.calledWithExactly(chatApp.call.incoming);
-      });
-
-      it("should create a webrtc offer", function() {
-        sandbox.stub(chatApp.call, "set");
-        sandbox.stub(chatApp.call, "start");
-        sandbox.stub(chatApp.webrtc, "answer");
-
-        chatApp._onIncomingCall(incomingCallData);
-
-        sinon.assert.calledOnce(chatApp.webrtc.answer);
-        sinon.assert.calledWithExactly(chatApp.webrtc.answer,
-                                       incomingCallData.offer);
+        sinon.assert.calledWithExactly(chatApp.call.incoming, incomingCallData);
       });
     });
 
@@ -225,31 +200,17 @@ describe("ChatApp", function() {
       it("should set the call as established", function() {
         var answer = {};
         sandbox.stub(chatApp.call, "establish");
-        sandbox.stub(chatApp.webrtc, "establish");
 
         chatApp._onCallEstablishment(answer);
 
         sinon.assert.calledOnce(chatApp.call.establish);
-        sinon.assert.calledWithExactly(chatApp.call.establish);
+        sinon.assert.calledWithExactly(chatApp.call.establish, answer);
       });
-
-      it("should establish the webrtc call", function() {
-        sandbox.stub(chatApp.call, "establish");
-        sandbox.stub(chatApp.webrtc, "establish");
-
-        chatApp._onCallEstablishment(fakeAnswer);
-
-        sinon.assert.calledOnce(chatApp.webrtc.establish);
-        sinon.assert.calledWithExactly(chatApp.webrtc.establish,
-                                       fakeAnswer.answer);
-      });
-
     });
 
     describe("#_onCallShutdown", function() {
       beforeEach(function() {
         sandbox.stub(chatApp.call, "hangup");
-        sandbox.stub(chatApp.webrtc, "hangup");
         sandbox.stub(window, "close");
         chatApp._onCallShutdown();
       });
@@ -257,11 +218,6 @@ describe("ChatApp", function() {
       it("should hangup the call", function() {
         sinon.assert.calledOnce(chatApp.call.hangup);
         sinon.assert.calledWithExactly(chatApp.call.hangup);
-      });
-
-      it("should hangup the webrtc connection", function() {
-        sinon.assert.calledOnce(chatApp.webrtc.hangup);
-        sinon.assert.calledWithExactly(chatApp.webrtc.hangup);
       });
 
       it("should close the window", function() {
@@ -273,7 +229,6 @@ describe("ChatApp", function() {
     describe("#_onCallHangup", function() {
       beforeEach(function() {
         sandbox.stub(chatApp.call, "hangup");
-        sandbox.stub(chatApp.webrtc, "hangup");
         chatApp.call.state.current = "ongoing";
       });
 
@@ -281,12 +236,6 @@ describe("ChatApp", function() {
         chatApp._onCallHangup();
         sinon.assert.calledOnce(chatApp.call.hangup);
         sinon.assert.calledWithExactly(chatApp.call.hangup);
-      });
-
-      it("should hangup the webrtc connection", function() {
-        chatApp._onCallHangup();
-        sinon.assert.calledOnce(chatApp.webrtc.hangup);
-        sinon.assert.calledWithExactly(chatApp.webrtc.hangup);
       });
 
       it("should post a talkilla.call-hangup event to the worker", function() {
@@ -303,7 +252,6 @@ describe("ChatApp", function() {
         chatApp._onCallHangup();
 
         sinon.assert.notCalled(chatApp.call.hangup);
-        sinon.assert.notCalled(chatApp.webrtc.hangup);
         sinon.assert.notCalled(app.port.postEvent);
       });
 
@@ -313,35 +261,34 @@ describe("ChatApp", function() {
         chatApp._onCallHangup();
 
         sinon.assert.notCalled(chatApp.call.hangup);
-        sinon.assert.notCalled(chatApp.webrtc.hangup);
         sinon.assert.notCalled(app.port.postEvent);
       });
     });
 
-    describe("#_onOfferReady", function() {
-      it("should post an event to the worker when offer-ready is triggered",
+    describe("#_onSendOffer", function() {
+      it("should post an event to the worker when onSendOffer is called",
         function() {
           var offer = {
             sdp: 'sdp',
             type: 'type'
           };
 
-          chatApp._onOfferReady(offer);
+          chatApp._onSendOffer(offer);
 
           sinon.assert.calledOnce(app.port.postEvent);
           sinon.assert.calledWith(app.port.postEvent, "talkilla.call-offer");
         });
     });
 
-    describe("#_onAnswerReady", function() {
-      it("should post an event to the worker when answer-ready is triggered",
+    describe("#_onSendAnswer", function() {
+      it("should post an event to the worker when onSendAnsweris triggered",
         function() {
           var answer = {
             sdp: 'sdp',
             type: 'type'
           };
 
-          chatApp._onAnswerReady(answer);
+          chatApp._onSendAnswer(answer);
 
           sinon.assert.calledOnce(app.port.postEvent);
           sinon.assert.calledWith(app.port.postEvent, "talkilla.call-answer");
