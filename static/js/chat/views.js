@@ -9,7 +9,8 @@
   /**
    * Call offer view
    */
-  app.views.CallOffer = Backbone.View.extend({
+  app.views.CallOfferView = Backbone.View.extend({
+    el: "#offer",
 
     events: {
       'click .btn-accept': 'accept'
@@ -19,19 +20,19 @@
       options = options || {};
       if (!options.call)
         throw new Error("missing parameter: call");
-      if (!options.el)
-        throw new Error("missing parameter: el");
+
+      this.call = options.call;
 
       options.call.on('change:state', function(to, from) {
         if (to === "incoming")
-          options.el.show();
+          this.$el.show();
         else if (from === "incoming")
-          options.el.hide();
-      });
+          this.$el.hide();
+      }.bind(this));
     },
 
     accept: function(options) {
-      app.call.accept();
+      this.call.accept();
     }
   });
 

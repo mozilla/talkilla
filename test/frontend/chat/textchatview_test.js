@@ -79,17 +79,15 @@ describe('TextChatView', function() {
   });
 
   describe("Change events", function() {
-    var el;
+    var textChatView;
 
     beforeEach(function() {
       sandbox.stub(call, "on");
-      // XXX Mocks aren't working, so we'll have to spy it.
-      el = {
-        show: sandbox.spy(),
-        hide: sandbox.spy()
-      };
 
-      new app.views.CallView({el: el, call: call});
+      textChatView = new app.views.TextChatView({
+        call: call,
+        collection: new app.models.TextChat()
+      });
     });
 
     it("should attach to change:state events on the call model", function() {
@@ -101,14 +99,14 @@ describe('TextChatView', function() {
       function() {
         call.on.args[0][1]("pending");
 
-        sinon.assert.calledOnce(el.show);
+        expect(textChatView.$el.is(":visible")).to.be.equal(true);
       });
 
     it("should hide the element when change:state goes to the terminated " +
       "state", function() {
         call.on.args[0][1]("terminated");
 
-        sinon.assert.calledOnce(el.hide);
+        expect(textChatView.$el.is(":visible")).to.be.equal(false);
       });
   });
 });
