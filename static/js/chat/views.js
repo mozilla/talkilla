@@ -7,7 +7,37 @@
   "use strict";
 
   /**
-   * Global app view.
+   * Call offer view
+   */
+  app.views.CallOfferView = Backbone.View.extend({
+    el: "#offer",
+
+    events: {
+      'click .btn-accept': 'accept'
+    },
+
+    initialize: function(options) {
+      options = options || {};
+      if (!options.call)
+        throw new Error("missing parameter: call");
+
+      this.call = options.call;
+
+      options.call.on('change:state', function(to, from) {
+        if (to === "incoming")
+          this.$el.show();
+        else if (from === "incoming")
+          this.$el.hide();
+      }.bind(this));
+    },
+
+    accept: function(options) {
+      this.call.accept();
+    }
+  });
+
+  /**
+   * Video/Audio Call View
    */
   app.views.CallView = Backbone.View.extend({
 
@@ -25,6 +55,13 @@
       this.call = options.call;
       this.call.media.on('change:localStream', this._displayLocalVideo, this);
       this.call.media.on('change:remoteStream', this._displayRemoteVideo, this);
+
+      options.call.on('change:state', function(to) {
+        if (to === "pending")
+          options.el.show();
+        else if (to === "terminated")
+          options.el.hide();
+      });
     },
 
     hangup: function(event) {
@@ -81,8 +118,14 @@
     },
 
     initialize: function(options) {
+      if (!options.call)
+        throw new Error("missing parameter: call");
+      if (!options.collection)
+        throw new Error("missing parameter: collection");
+
       this.collection = options.collection;
-      this.webrtc = options.webrtc;
+      this.call = options.call;
+      this.media = options.call.media;
 
       app.port.on('talkilla.call-start', function(data) {
         this.me = data.caller; // If I'm receiving this, I'm the caller
@@ -94,9 +137,16 @@
 
       this.collection.on('add', this.render, this);
 
-      this.webrtc.on('dc.in.ready', function() {
+      this.media.on('dc.in.ready', function() {
         this.$('input').removeAttr('disabled');
       }, this);
+
+      this.call.on('change:state', function(to) {
+        if (to === "pending")
+          this.$el.show();
+        else if (to === "terminated")
+          this.$el.hide();
+      }.bind(this));
     },
 
     send: function(event) {
