@@ -69,6 +69,27 @@
     }
 
 /**
+ * Offer window
+ */
+#offer {
+  padding: 40px 10px 0 10px;
+  text-align: center;
+}
+  #offer .avatar {
+    text-align: center;
+  }
+    #offer .avatar img {
+      width: 64px;
+      height: 64px;
+    }
+  #offer .incoming-text {
+    color: #555;
+    font-size: 90%;
+  }
+  #offer .actions {
+  }
+
+/**
  * Chat window
  */
 #call video {
