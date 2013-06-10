@@ -232,10 +232,12 @@ function httpUpgradeHandler(req, socket, upgradeHead) {
   var nick = url.parse(req.url, true).query.nick;
   var res = new http.ServerResponse(req);
 
+  // XXX: need a test for that
   if (!(nick in users)) {
     res.assignSocket(socket);
     res.statusCode = 400;
     res.end();
+    return;
   }
 
   module.exports._wss.handleUpgrade(req, socket, upgradeHead, function(ws) {
