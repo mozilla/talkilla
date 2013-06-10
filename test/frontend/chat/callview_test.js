@@ -55,15 +55,10 @@ describe("CallView", function() {
 
       beforeEach(function() {
         sandbox.stub(call, "on");
-        // XXX Mocks aren't working, so we'll have to spy it.
-        el = {
-          show: sandbox.spy(),
-          hide: sandbox.spy()
-        };
 
         sandbox.stub(app.views.CallView.prototype, "pending");
         sandbox.stub(app.views.CallView.prototype, "terminated");
-        callView = new app.views.CallView({el: el, call: call});
+        callView = new app.views.CallView({el: {}, call: call});
       });
 
       it("should attach to change:state events on the call model", function() {
@@ -135,6 +130,30 @@ describe("CallView", function() {
       callView.hangup();
 
       sinon.assert.calledOnce(window.close);
+    });
+  });
+
+  describe("#pending", function() {
+    it("should show this widget", function() {
+      var el = $('<div><div id="foo"></div></div>');
+      $("#fixtures").append(el);
+      var callView = new app.views.CallView({el: el, call: call});
+
+      callView.pending();
+
+      expect(callView.$el.is(':visible')).to.equal(true);
+    });
+  });
+
+  describe("#terminated", function() {
+    it("should hide this widget", function() {
+      var el = $('<div><div id="foo"></div></div>');
+      $("#fixtures").append(el);
+      var callView = new app.views.CallView({el: el, call: call});
+
+      callView.terminated();
+
+      expect(callView.$el.is(':visible')).to.equal(false);
     });
   });
 
