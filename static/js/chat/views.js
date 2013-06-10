@@ -49,9 +49,9 @@
     },
 
     render: function() {
-      this.$('#other-user').html(this.call.get('otherUser'));
-      if (this.call.get('avatar'))
-        this.$('#avatar').attr('src', this.call.get('avatar'));
+      this.$('#other-user').text(this.call.get('otherUser'));
+      // XXX: update caller's avatar, though we'd need to access otherUser
+      //      as a User model instance
       return this;
     }
   });

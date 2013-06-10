@@ -9,7 +9,9 @@
   app.models.Call = Backbone.Model.extend({
     media: undefined,
 
-    initialize: function(options, media) {
+    initialize: function(attributes, media) {
+      if (attributes)
+        this.set(attributes);
       this.media = media;
       this.state = StateMachine.create({
         initial: 'ready',

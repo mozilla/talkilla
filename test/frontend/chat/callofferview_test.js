@@ -10,9 +10,12 @@ describe('Call Offer View', function() {
   beforeEach(function() {
     $('body').append([
       '<div id="offer">',
-      '  <div id="controls">',
+      '  <p class="avatar"><img src="" id="avatar"></p>',
+      '  <p class="incoming-text"><strong id="other-user"></strong></p>',
+      '  <p class="actions">',
       '    <a class="btn btn-accept">Accept</a>',
-      '  </div>',
+      '    <a class="btn btn-reject">Reject</a>',
+      '  </p>',
       '</div>'
     ].join(''));
     sandbox = sinon.sandbox.create();
@@ -85,4 +88,17 @@ describe('Call Offer View', function() {
       sinon.assert.calledOnce(call.accept);
     });
   });
+
+  describe("#render", function() {
+    it("should render with call attributes", function() {
+      var call = new app.models.Call({otherUser: "larry"}, media);
+      var offerView = new app.views.CallOfferView({call: call});
+      expect(call.get('otherUser')).to.equal('larry');
+
+      offerView.render();
+
+      expect(offerView.$('#other-user').text()).to.equal("larry");
+    });
+  });
+
 });
