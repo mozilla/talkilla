@@ -42,7 +42,9 @@
   app.views.CallView = Backbone.View.extend({
 
     events: {
-      'click .btn-hangup': 'hangup'
+      'click .btn-video a': 'videoCall',
+      'click .btn-audio a': 'audioCall',
+      'click .btn-hangup a': 'hangup'
     },
 
     initialize: function(options) {
@@ -58,17 +60,42 @@
 
       options.call.on('change:state', function(to) {
         if (to === "pending")
-          options.el.show();
+          this.pending();
         else if (to === "terminated")
-          options.el.hide();
-      });
+          this.terminated();
+      }, this);
     },
 
     hangup: function(event) {
       if (event)
         event.preventDefault();
 
-      window.close();
+      window.close(); // XXX: actually terminate the call and leave the
+                      // conversation window open (eg. for text chat)
+    },
+
+    pending: function() {
+      this.$el.show();
+      this.$('.btn-video').hide();
+      this.$('.btn-audio').hide();
+      this.$('.btn-hangup').show();
+    },
+
+    terminated: function() {
+      this.$el.hide();
+      this.$('.btn-video').show();
+      this.$('.btn-audio').show();
+      this.$('.btn-hangup').hide();
+    },
+
+    videoCall: function(event) {
+      event.preventDefault();
+      alert('not implemented yet');
+    },
+
+    audioCall: function(event) {
+      event.preventDefault();
+      alert('not implemented yet');
     },
 
     _displayLocalVideo: function() {
