@@ -47,6 +47,8 @@
           position: relative;
         }
           .sidebar .users li a img {
+            width: 24px;
+            height: 24px;
           }
       .sidebar .users li a .username {
         padding-left: 10px;
