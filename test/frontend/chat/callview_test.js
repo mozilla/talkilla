@@ -117,7 +117,6 @@ describe("CallView", function() {
         sandbox.stub(app.views.CallView.prototype, "initialize");
         sandbox.stub(app.views.CallView.prototype, "hangup");
         var callView = new app.views.CallView({el: el});
-        callView.pending();
 
         $(el).find('a').trigger("click");
 
