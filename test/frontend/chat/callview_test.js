@@ -51,7 +51,7 @@ describe("CallView", function() {
     });
 
     describe("Change events", function() {
-      var callView, el;
+      var callView;
 
       beforeEach(function() {
         sandbox.stub(call, "on");
