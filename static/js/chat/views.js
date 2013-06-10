@@ -13,7 +13,8 @@
     el: "#offer",
 
     events: {
-      'click .btn-accept': 'accept'
+      'click .btn-accept': 'accept',
+      'click .btn-reject': 'reject'
     },
 
     initialize: function(options) {
@@ -28,11 +29,30 @@
           this.$el.show();
         else if (from === "incoming")
           this.$el.hide();
+
+        this.render();
       }.bind(this));
     },
 
-    accept: function(options) {
+    accept: function(event) {
+      if (event)
+        event.preventDefault();
+
       this.call.accept();
+    },
+
+    reject: function(event) {
+      if (event)
+        event.preventDefault();
+
+      window.close(); // XXX: implement real call rejection
+    },
+
+    render: function() {
+      this.$('#other-user').html(this.call.get('otherUser'));
+      if (this.call.get('avatar'))
+        this.$('#avatar').attr('src', this.call.get('avatar'));
+      return this;
     }
   });
 
