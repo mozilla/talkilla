@@ -330,7 +330,9 @@
   });
 
   app.models.User = Backbone.Model.extend({
-    defaults: {nick: undefined, presence: "disconnected"},
+    defaults: {nick: undefined,
+               avatar: "img/default-avatar.png",
+               presence: "disconnected"},
 
     initialize: function() {
       // If the user has signed in or out, trigger the appropraite
