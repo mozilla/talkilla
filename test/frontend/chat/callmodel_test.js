@@ -55,10 +55,9 @@ describe("Call", function() {
       expect(call.state.current).to.equal('pending');
     });
 
-    it("should store the id and otherUser", function() {
+    it("should store the otherUser", function() {
       call.start(callData);
 
-      expect(call.get('id')).to.equal('bob');
       expect(call.get('otherUser')).to.equal('larry');
     });
 
@@ -84,10 +83,9 @@ describe("Call", function() {
       expect(call.state.current).to.equal('incoming');
     });
 
-    it("should store the id and otherUser", function() {
+    it("should store the otherUser", function() {
       call.incoming(callData);
 
-      expect(call.get('id')).to.equal('larry');
       expect(call.get('otherUser')).to.equal('bob');
     });
 
@@ -165,11 +163,18 @@ describe("Call", function() {
   });
 
   describe("ready event handling", function() {
-    var fakeSdp = {type: "fake", sdp: "sdp"};
+    var fakeSdp = {type: "fake", sdp: "sdp"}, userModel;
 
     beforeEach(function() {
       call.set({id: "bob", otherUser: "larry"});
       call.trigger = sandbox.stub();
+      app.data.user = userModel = new app.models.User();
+      app.data.user.set("nick", "bob");
+    });
+
+    afterEach(function() {
+      delete app.data.user;
+      userModel = undefined;
     });
 
     describe("#offer-ready", function() {

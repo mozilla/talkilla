@@ -681,7 +681,7 @@ describe('Worker', function() {
       });
   });
 
-  describe("talkilla.call-window-ready", function() {
+  describe("talkilla.chat-window-ready", function() {
     var sandbox;
 
     beforeEach(function() {
@@ -693,6 +693,23 @@ describe('Worker', function() {
       browserPort = undefined;
       sandbox.restore();
     });
+
+    it("should post a talkilla.login-success event when " +
+      "receiving a talkilla.chat-window-ready",
+      function () {
+        var chatAppPort = {postEvent: sinon.spy()};
+        _currentUserData.userName = "bob";
+
+        handlers['talkilla.chat-window-ready'].bind(chatAppPort)({
+          topic: "talkilla.chat-window-ready",
+          data: {}
+        });
+
+        sinon.assert.called(chatAppPort.postEvent);
+        sinon.assert.calledWithExactly(chatAppPort.postEvent,
+          'talkilla.login-success', {username: "bob"});
+      });
+
 
     it("should post a talkilla.call-start event when " +
       "receiving a talkilla.chat-window-ready for an outgoing call",
@@ -711,7 +728,7 @@ describe('Worker', function() {
           data: {}
         });
 
-        sinon.assert.calledOnce(chatAppPort.postEvent);
+        sinon.assert.called(chatAppPort.postEvent);
         sinon.assert.calledWithExactly(chatAppPort.postEvent,
           'talkilla.call-start', currentCall.data);
       });
@@ -734,7 +751,7 @@ describe('Worker', function() {
           data: {}
         });
 
-        sinon.assert.calledOnce(chatAppPort.postEvent);
+        sinon.assert.called(chatAppPort.postEvent);
         sinon.assert.calledWithExactly(chatAppPort.postEvent,
           'talkilla.call-incoming', currentCall.data);
       });

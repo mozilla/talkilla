@@ -6,10 +6,9 @@ var expect = chai.expect;
 
 describe("ChatApp", function() {
   var sandbox, chatApp;
-  var callData = {caller: "alice", callee: "bob"};
+  var callData = {callee: "bob"};
   var incomingCallData = {
     caller: "alice",
-    callee: "bob",
     offer: {type: "answer", sdp: "fake"}
   };
 
@@ -163,7 +162,6 @@ describe("ChatApp", function() {
       it("should set the caller and callee", function() {
         chatApp._onStartingCall(callData);
 
-        expect(chatApp.call.get('id')).to.equal(callData.caller);
         expect(chatApp.call.get('otherUser')).to.equal(callData.callee);
       });
 
@@ -182,7 +180,6 @@ describe("ChatApp", function() {
         chatApp._onIncomingCall(incomingCallData);
 
         expect(chatApp.call.get('otherUser')).to.equal(incomingCallData.caller);
-        expect(chatApp.call.get('id')).to.equal(incomingCallData.callee);
       });
 
       it("should set the call as incoming", function() {
