@@ -22,6 +22,9 @@ describe("ChatApp", function() {
     // model's initialize function, as creating new media items
     // (e.g. PeerConnection) takes a lot of time that we don't need to spend.
     sandbox.stub(app.models.WebRTCCall.prototype, "initialize");
+
+    // This stops us changing the document's title unnecessarily
+    sandbox.stub(app.views.ChatView.prototype, "initialize");
   });
 
   afterEach(function() {
@@ -143,6 +146,10 @@ describe("ChatApp", function() {
     afterEach(function() {
       "use strict";
       $("#fixtures").empty();
+    });
+
+    it("should have a chat view" , function() {
+      expect(chatApp.view).to.be.an.instanceOf(app.views.ChatView);
     });
 
     it("should have a call model" , function() {
