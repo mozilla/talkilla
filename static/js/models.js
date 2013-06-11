@@ -6,6 +6,8 @@
 (function(app, Backbone, StateMachine) {
   "use strict";
 
+  var PENDING_CALL_TIMEOUT = 10000;
+
   /**
    * Call model.
    *
@@ -15,6 +17,7 @@
    * - {Object} incomingData
    */
   app.models.Call = Backbone.Model.extend({
+    timer: undefined,
     media: undefined,
 
     initialize: function(attributes, media) {
@@ -70,7 +73,7 @@
     },
 
     /**
-     * Starts an outbound call call
+     * Starts an outbound call.
      * @param {Object} options object containing:
      *
      * - caller: The id of the user logged in
@@ -79,6 +82,11 @@
      * - audio: set to true to enable audio
      */
     start: function(options) {
+      this.timer = setTimeout(function() {
+        this.trigger('offer-timeout');
+        app.port.postEvent('talkilla.offer-timeout', options);
+      }.bind(this), PENDING_CALL_TIMEOUT);
+
       this.set({id: options.caller, otherUser: options.callee});
       this.state.start();
       this.media.offer(options);
@@ -113,6 +121,7 @@
      * media.
      */
     establish: function(options) {
+      clearTimeout(this.timer);
       this.state.establish();
       this.media.establish(options);
     },
@@ -129,7 +138,6 @@
      * Ignores an incoming call.
      */
     ignore: function() {
-      // XXX: perform any media operation?
       this.state.ignore();
     },
 
@@ -137,6 +145,7 @@
      * Hangs up a call
      */
     hangup: function() {
+      clearTimeout(this.timer);
       this.state.hangup();
       this.media.hangup();
     }
@@ -260,7 +269,8 @@
      * Close the p2p connection.
      */
     hangup: function() {
-      this.pc.close();
+      if (this.pc && this.pc.signalingState !== "closed")
+        this.pc.close();
     },
 
     _createOffer: function(callback) {

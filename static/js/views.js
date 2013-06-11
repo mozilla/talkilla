@@ -62,6 +62,11 @@
       app.data.user.on('signout', function() {
         this.clear();
       }.bind(this));
+
+      app.port.on('talkilla.offer-timeout', function(offerData) {
+        app.utils.notifyUI("Your call to " + offerData.data.callee +
+                           " did not go through", "error");
+      });
     },
 
     /**

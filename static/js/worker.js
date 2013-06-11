@@ -225,6 +225,10 @@ var handlers = {
     this.postEvent(topic, currentCall.data);
   },
 
+  'talkilla.offer-timeout': function(offerData) {
+    ports.broadcastEvent("talkilla.offer-timeout", offerData);
+  },
+
   'talkilla.sidebar-ready': function() {
     if (_currentUserData.userName) {
       // If there's currenty a logged in user,

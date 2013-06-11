@@ -20,6 +20,12 @@
       this.call.on('change:otherUser', function(to) {
         document.title = to.get("otherUser");
       });
+
+      this.call.on('offer-timeout', function() {
+        // outgoing call did go not through, close the window
+        // note: caller notification is sent from the model
+        window.close();
+      });
     }
   });
 
@@ -63,6 +69,8 @@
         event.preventDefault();
 
       this.call.ignore();
+
+      window.close();
     },
 
     render: function() {
