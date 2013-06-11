@@ -52,15 +52,5 @@ var SidebarApp = (function($, Backbone, _) {
     this.port.postEvent("talkilla.sidebar-ready", {nick: options.nick});
   }
 
-  // window event listeners
-  window.onbeforeunload = function() {
-    if (!app.data.user || !app.data.user.get("nick"))
-      return;
-    app.port.logout(function(err) {
-      if (err)
-        app.utils.log('Error occured while signing out:', err);
-    });
-  };
-
   return SidebarApp;
 })(jQuery, Backbone, _);
