@@ -180,7 +180,7 @@ describe("Call", function() {
   });
 
   describe("#_onOfferTimeout", function() {
-    it("trigger the `offer-timeout` event", function(done) {
+    it("should trigger the `offer-timeout` event", function(done) {
       var callData = {foo: "bar"};
       call.on("offer-timeout", function(data) {
         expect(data).to.deep.equal(callData);
@@ -190,15 +190,16 @@ describe("Call", function() {
       call._onOfferTimeout(callData);
     });
 
-    it("post the `talkilla.offer-timeout` event to the worker", function() {
-      var callData = {foo: "bar"};
+    it("should post the `talkilla.offer-timeout` event to the worker",
+      function() {
+        var callData = {foo: "bar"};
 
-      call._onOfferTimeout(callData);
+        call._onOfferTimeout(callData);
 
-      sinon.assert.calledOnce(app.port.postEvent);
-      sinon.assert.calledWithExactly(app.port.postEvent,
-        "talkilla.offer-timeout", callData);
-    });
+        sinon.assert.calledOnce(app.port.postEvent);
+        sinon.assert.calledWithExactly(app.port.postEvent,
+          "talkilla.offer-timeout", callData);
+      });
   });
 
   describe("#_startTimer", function() {

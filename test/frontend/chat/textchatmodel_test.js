@@ -7,16 +7,6 @@ var expect = chai.expect;
 describe('Text chat models', function() {
   "use strict";
 
-  var sandbox;
-
-  beforeEach(function() {
-    sandbox = sinon.sandbox.create();
-  });
-
-  afterEach(function() {
-    sandbox.restore();
-  });
-
   describe("app.models.TextChatEntry", function() {
     it("should be initialized with defaults", function() {
       var entry = new app.models.TextChatEntry();
