@@ -45,6 +45,11 @@ describe("Call", function() {
     it("should listen to answer-ready from the media", function() {
       sinon.assert.calledWith(media.on, "answer-ready");
     });
+
+    it("should set instance attributes", function() {
+      var call = new app.models.Call({otherUser: "larry"}, media);
+      expect(call.get("otherUser")).to.equal("larry");
+    });
   });
 
   describe("#start", function() {

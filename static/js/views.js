@@ -96,7 +96,15 @@
   app.views.UserEntryView = Backbone.View.extend({
     tagName: 'li',
 
-    template: _.template('<a href="#" rel="<%= nick %>"><%= nick %></a>'),
+    template: _.template([
+      '<a href="#" rel="<%= nick %>">',
+      '  <div class="avatar">',
+      '    <img src="<%= avatar %>">',
+      '    <span class="status status-<%= presence %>"></span>',
+      '  </div>',
+      '  <span class="username"><%= nick %></span>',
+      '</a>'
+    ].join('')),
 
     events: {
       'click a': 'call'

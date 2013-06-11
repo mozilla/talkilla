@@ -22,6 +22,9 @@ describe("ChatApp", function() {
     // model's initialize function, as creating new media items
     // (e.g. PeerConnection) takes a lot of time that we don't need to spend.
     sandbox.stub(app.models.WebRTCCall.prototype, "initialize");
+
+    // This stops us changing the document's title unnecessarily
+    sandbox.stub(app.views.ChatView.prototype, "initialize");
   });
 
   afterEach(function() {
@@ -143,6 +146,10 @@ describe("ChatApp", function() {
     afterEach(function() {
       "use strict";
       $("#fixtures").empty();
+    });
+
+    it("should have a chat view" , function() {
+      expect(chatApp.view).to.be.an.instanceOf(app.views.ChatView);
     });
 
     it("should have a call model" , function() {
@@ -294,5 +301,32 @@ describe("ChatApp", function() {
           sinon.assert.calledWith(app.port.postEvent, "talkilla.call-answer");
         });
     });
+
+    describe("#_onDataChannelMessageIn", function() {
+      it("should append received data to the current text chat", function() {
+        var stub = sandbox.stub(app.models.TextChat.prototype, "add");
+        chatApp = new ChatApp();
+        var event = {data: JSON.stringify({foo: "bar"})};
+
+        chatApp._onDataChannelMessageIn(event);
+
+        sinon.assert.calledOnce(stub);
+        sinon.assert.calledWithExactly(stub, {foo: "bar"});
+      });
+    });
+
+    describe("#_onTextChatEntryCreated", function() {
+      it("should send data over data channel", function() {
+        var stub = sandbox.stub(app.models.WebRTCCall.prototype, "send");
+        chatApp = new ChatApp();
+        var entry = {foo: "bar"};
+
+        chatApp._onTextChatEntryCreated(entry);
+
+        sinon.assert.calledOnce(stub);
+        sinon.assert.calledWithExactly(stub, JSON.stringify(entry));
+      });
+    });
+
   });
 });

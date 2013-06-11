@@ -9,8 +9,11 @@
   app.models.Call = Backbone.Model.extend({
     media: undefined,
 
-    initialize: function(options, media) {
+    initialize: function(attributes, media) {
+      this.set(attributes || {});
+
       this.media = media;
+
       this.state = StateMachine.create({
         initial: 'ready',
         events: [
@@ -330,7 +333,9 @@
   });
 
   app.models.User = Backbone.Model.extend({
-    defaults: {nick: undefined, presence: "disconnected"},
+    defaults: {nick: undefined,
+               avatar: "img/default-avatar.png",
+               presence: "disconnected"},
 
     initialize: function() {
       // If the user has signed in or out, trigger the appropraite

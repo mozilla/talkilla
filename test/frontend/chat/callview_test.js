@@ -51,17 +51,14 @@ describe("CallView", function() {
     });
 
     describe("Change events", function() {
-      var el;
+      var callView;
 
       beforeEach(function() {
         sandbox.stub(call, "on");
-        // XXX Mocks aren't working, so we'll have to spy it.
-        el = {
-          show: sandbox.spy(),
-          hide: sandbox.spy()
-        };
 
-        new app.views.CallView({el: el, call: call});
+        sandbox.stub(app.views.CallView.prototype, "pending");
+        sandbox.stub(app.views.CallView.prototype, "terminated");
+        callView = new app.views.CallView({el: {}, call: call});
       });
 
       it("should attach to change:state events on the call model", function() {
@@ -69,18 +66,21 @@ describe("CallView", function() {
         sinon.assert.calledWith(call.on, 'change:state');
       });
 
-      it("should show the element when change:state goes to the pending state",
+      it("should call CallView#pending() when change:state goes to the " +
+         "pending state",
         function() {
-          call.on.args[0][1]("pending");
+          var changeStateCallback = call.on.args[0][1].bind(callView);
+          changeStateCallback("pending");
 
-          sinon.assert.calledOnce(el.show);
+          sinon.assert.calledOnce(callView.pending);
         });
 
-      it("should hide the element when change:state goes to the terminated " +
-        "state", function() {
-          call.on.args[0][1]("terminated");
+      it("should call CallView#terminated() when change:state goes to the " +
+         "terminated state", function() {
+          var changeStateCallback = call.on.args[0][1].bind(callView);
+          changeStateCallback("terminated");
 
-          sinon.assert.calledOnce(el.hide);
+          sinon.assert.calledOnce(callView.terminated);
         });
     });
 
@@ -109,16 +109,15 @@ describe("CallView", function() {
   describe("events", function() {
     it("should call hangup() when a click event is fired on the hangup button",
       function() {
-        var el = $('<div><button class="btn-hangup"/></div>');
+        var el = $('<ul><li class="btn-hangup"><a href="#"></a></li></li>');
         $("#fixtures").append(el);
         sandbox.stub(app.views.CallView.prototype, "initialize");
         sandbox.stub(app.views.CallView.prototype, "hangup");
         var callView = new app.views.CallView({el: el});
 
-        $(el).find('button').click();
-        sinon.assert.calledOnce(callView.hangup);
+        $(el).find('a').trigger("click");
 
-        $("#fixtures").empty();
+        sinon.assert.calledOnce(callView.hangup);
       });
   });
 
@@ -133,6 +132,30 @@ describe("CallView", function() {
       callView.hangup();
 
       sinon.assert.calledOnce(window.close);
+    });
+  });
+
+  describe("#pending", function() {
+    it("should show this widget", function() {
+      var el = $('<div><div id="foo"></div></div>');
+      $("#fixtures").append(el);
+      var callView = new app.views.CallView({el: el, call: call});
+
+      callView.pending();
+
+      expect(callView.$el.is(':visible')).to.equal(true);
+    });
+  });
+
+  describe("#terminated", function() {
+    it("should hide this widget", function() {
+      var el = $('<div><div id="foo"></div></div>');
+      $("#fixtures").append(el);
+      var callView = new app.views.CallView({el: el, call: call});
+
+      callView.terminated();
+
+      expect(callView.$el.is(':visible')).to.equal(false);
     });
   });
 
