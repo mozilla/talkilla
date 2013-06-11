@@ -8,49 +8,39 @@
   <link rel="stylesheet" media="all" href="css/style.css">
 </head>
 <body class="sidebar">
-  <div class="container-fluid">
-    <div class="row-fluid">
+  <!-- Login view -->
+  <header id="login">
+    <h1 class="title">Welcome to Talkilla</h1>
 
-      <!-- Sidebar -->
-      <div class="span3">
-
-        <!-- Login view -->
-        <header id="login">
-          <h1 class="title">Welcome to Talkilla</h1>
-
-          <form action="signin" method="post" id="signin" class="form-inline">
-            <div class="input-prepend">
-              <span class="add-on"><i class="icon-user"></i></span>
-              <input class="input-medium" placeholder="What's your name?" id="nick" name="nick" type="text" required>
-            </div>
-
-            <input class="btn" id="submit" type="submit" value="Join">
-          </form>
-
-          <form action="/signout" id="signout" method="post" class="hide">
-            <p>
-              Joined as <strong class="nick"></strong>
-              <button class="btn" type="submit">sign out</button>
-            </p>
-          </form>
-        </header>
-        <!-- /Login view -->
-
-        <!-- User notifications -->
-        <div id="messages"></div>
-        <!-- /User notifications -->
-
-        <!-- Users view -->
-        <nav id="users" class="users">
-          <ul class="nav nav-list"></ul>
-        </nav>
-        <!-- /Users view -->
-
+    <form action="signin" method="post" id="signin" class="form-inline">
+      <div class="input-prepend">
+        <span class="add-on"><i class="icon-user"></i></span>
+        <input class="input-medium" placeholder="What's your name?" id="nick"
+          name="nick" type="text" required>
       </div>
-      <!-- /Sidebar -->
 
-    </div>
-  </div>
+      <input class="btn" id="submit" type="submit" value="Join">
+    </form>
+
+    <form action="/signout" id="signout" method="post" class="hide">
+      <p>
+        Joined as <strong class="nick"></strong>
+        <button class="btn" type="submit">sign out</button>
+      </p>
+    </form>
+  </header>
+  <!-- /Login view -->
+
+  <!-- User notifications -->
+  <div id="messages"></div>
+  <!-- /User notifications -->
+
+  <!-- Users view -->
+  <nav id="users" class="users">
+    <ul class="nav nav-list"></ul>
+  </nav>
+  <!-- /Users view -->
+
   <script src="vendor/jquery-1.9.1.js"></script>
   <script src="vendor/underscore-1.4.4.js"></script>
   <script src="vendor/backbone-1.0.0.js"></script>
