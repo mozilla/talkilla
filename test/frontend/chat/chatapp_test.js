@@ -14,7 +14,6 @@ describe("ChatApp", function() {
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
-    sandbox.stub(app.models.Call.prototype, "_startTimer");
     app.port = {postEvent: sinon.spy()};
     _.extend(app.port, Backbone.Events);
     sandbox.stub(window, "addEventListener");

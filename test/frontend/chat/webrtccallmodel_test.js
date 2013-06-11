@@ -12,7 +12,6 @@ describe("WebRTCCall", function() {
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
-    sandbox.stub(app.models.Call.prototype, "_startTimer");
     webrtc = new app.models.WebRTCCall();
     sandbox.stub(webrtc.pc, "addStream");
   });

@@ -10,7 +10,6 @@ describe("ChatView", function() {
 
     beforeEach(function() {
       sandbox = sinon.sandbox.create();
-      sandbox.stub(app.models.Call.prototype, "_startTimer");
       sandbox.stub(window, "close");
       oldtitle = document.title;
 

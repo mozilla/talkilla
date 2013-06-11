@@ -15,7 +15,6 @@ describe('Call Offer View', function() {
       '</div>'
     ].join(''));
     sandbox = sinon.sandbox.create();
-    sandbox.stub(app.models.Call.prototype, "_startTimer");
     // Although we're not testing it in this set of tests, stub the WebRTCCall
     // model's initialize function, as creating new media items
     // (e.g. PeerConnection) takes a lot of time that we don't need to spend.

@@ -11,7 +11,6 @@ describe('Text chat models', function() {
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
-    sandbox.stub(app.models.Call.prototype, "_startTimer");
   });
 
   afterEach(function() {
