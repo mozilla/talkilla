@@ -7,6 +7,23 @@
   "use strict";
 
   /**
+   * Chat View (overall)
+   */
+  app.views.ChatView = Backbone.View.extend({
+    initialize: function(options) {
+      options = options || {};
+      if (!options.call)
+        throw new Error("missing parameter: call");
+
+      this.call = options.call;
+
+      this.call.on('change:otherUser', function(to) {
+        document.title = to.get("otherUser");
+      });
+    }
+  });
+
+  /**
    * Call offer view
    */
   app.views.CallOfferView = Backbone.View.extend({
