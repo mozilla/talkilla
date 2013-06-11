@@ -15,6 +15,7 @@ var ChatApp = (function($, Backbone, _) {
     options: {},
 
     // app modules
+    data: {},
     models: {},
     port: {},
     media: {},
@@ -28,6 +29,7 @@ var ChatApp = (function($, Backbone, _) {
 
   function ChatApp() {
     this.port = app.port;
+    app.data.user = new app.models.User();
     this.webrtc = new app.models.WebRTCCall();
     this.call = new app.models.Call({}, this.webrtc);
     this.view = new app.views.ChatView(
