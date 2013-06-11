@@ -10,9 +10,8 @@ describe('Call Offer View', function() {
   beforeEach(function() {
     $('body').append([
       '<div id="offer">',
-      '  <div id="controls">',
-      '    <a class="btn btn-accept">Accept</a>',
-      '  </div>',
+      '  <p class="avatar"><img src="" id="avatar"></p>',
+      '  <p class="actions"><a class="btn btn-accept">Accept</a></p>',
       '</div>'
     ].join(''));
     sandbox = sinon.sandbox.create();
@@ -85,4 +84,11 @@ describe('Call Offer View', function() {
       sinon.assert.calledOnce(call.accept);
     });
   });
+
+  describe("#render", function() {
+    it("should render with the caller's avatar");
+    // XXX: needs to have the Call model having its otherUser set as a User
+    // model instance so we can actually get the avatar
+  });
+
 });

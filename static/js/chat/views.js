@@ -45,11 +45,22 @@
           this.$el.show();
         else if (from === "incoming")
           this.$el.hide();
+
+        this.render();
       }.bind(this));
     },
 
-    accept: function(options) {
+    accept: function(event) {
+      if (event)
+        event.preventDefault();
+
       this.call.accept();
+    },
+
+    render: function() {
+      // XXX: update caller's avatar, though we'd need to access otherUser
+      //      as a User model instance
+      return this;
     }
   });
 
@@ -59,7 +70,7 @@
   app.views.CallView = Backbone.View.extend({
 
     events: {
-      'click .btn-hangup': 'hangup'
+      'click .btn-hangup a': 'hangup'
     },
 
     initialize: function(options) {
@@ -75,17 +86,32 @@
 
       options.call.on('change:state', function(to) {
         if (to === "pending")
-          options.el.show();
+          this.pending();
         else if (to === "terminated")
-          options.el.hide();
-      });
+          this.terminated();
+      }, this);
     },
 
     hangup: function(event) {
       if (event)
         event.preventDefault();
 
-      window.close();
+      window.close(); // XXX: actually terminate the call and leave the
+                      // conversation window open (eg. for text chat)
+    },
+
+    pending: function() {
+      this.$el.show();
+      this.$('.btn-video').hide();
+      this.$('.btn-audio').hide();
+      this.$('.btn-hangup').show();
+    },
+
+    terminated: function() {
+      this.$el.hide();
+      this.$('.btn-video').show();
+      this.$('.btn-audio').show();
+      this.$('.btn-hangup').hide();
     },
 
     _displayLocalVideo: function() {

@@ -8,47 +8,48 @@
   <link rel="stylesheet" media="all" href="css/style.css">
 </head>
 <body>
-  <div class="container-fluid">
-    <div class="row-fluid">
-      <div>
+  <!-- Call Offer -->
+  <div id="offer" class="hide">
+    <p class="avatar">
+      <img src="img/default-avatar.png" id="avatar">
+    </p>
+    <p class="incoming-text">
+      <img src="/img/video-icon.png"> Incoming video call…
+    </p>
+    <p class="actions">
+      <a class="btn btn-success btn-accept">Accept</a>
+    </p>
+  </div>
+  <!-- /Call Offer -->
 
-        <!-- Call Offer -->
-        <div id="offer" class="hide">
-          <div id="incoming text">
-            <img src="/img/video-icon.png"> Incoming video call...
-          </div>
-          <div id="controls">
-            <a class="btn btn-accept">Accept</a>
-          </div>
-        </div>
-        <!-- /Call Offer -->
-
-        <!-- Call view -->
-        <div id="call" class="hide">
-          <div class="video-area">
-            <strong class="callee"></strong>
-            <video id="remote-video" class="remote-video"></video>
-            <video id="local-video" class="local-video" muted></video>
-            <div id="controls">
-              <a class="btn btn-hangup"><i class="icon-stop"></i></a>
-            </div>
-          </div>
-        </div>
-        <!-- /Call view -->
-
-        <!-- TextChat view -->
-        <div id="textchat" class="hide">
-          <ul></ul>
-          <form>
-            <input type="text" name="message" placeholder="Type something to start chatting" disabled>
-            <button type="submit" class="hide">Send</button>
-          </form>
-        </div>
-        <!-- /TextChat view -->
-
-      </div>
+  <!-- Call view -->
+  <div id="call" class="hide">
+    <div class="video-area">
+      <strong class="callee"></strong>
+      <video id="remote-video" class="remote-video"></video>
+      <video id="local-video" class="local-video" muted></video>
+      <ul class="controls">
+        <li class="btn-video"><a href="#" title="Start a video call">
+          <img src="../img/btn-video.png"></a></li>
+        <li class="btn-audio"><a href="#" title="Start an audio call">
+          <img src="../img/btn-audio.png"></a></li>
+        <li class="btn-hangup"><a href="#" title="Hang up">
+          <img src="../img/btn-hangup.png"></a></li>
+      </ul>
     </div>
   </div>
+  <!-- /Call view -->
+
+  <!-- TextChat view -->
+  <div id="textchat" class="hide">
+    <ul></ul>
+    <form>
+      <input type="text" name="message" placeholder="Type something to start chatting" disabled>
+      <button type="submit" class="hide">Send</button>
+    </form>
+  </div>
+  <!-- /TextChat view -->
+
   <script src="vendor/jquery-1.9.1.js"></script>
   <script src="vendor/underscore-1.4.4.js"></script>
   <script src="vendor/backbone-1.0.0.js"></script>
