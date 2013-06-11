@@ -27,6 +27,7 @@ describe('TextChatView', function() {
     webrtc = new app.models.WebRTCCall();
     call = new app.models.Call({}, webrtc);
     chatApp = new ChatApp();
+    app.data.user.set("nick", "niko");
   });
 
   afterEach(function() {

@@ -217,7 +217,14 @@ var handlers = {
   'talkilla.chat-window-ready': function() {
     currentCall.port = this;
 
-    // If this is an incoming call, we won't have the port yet.
+    if (_currentUserData.userName) {
+      // If there's currenty a logged in user,
+      this.postEvent('talkilla.login-success', {
+        username: _currentUserData.userName
+      });
+    }
+
+   // If this is an incoming call, we won't have the port yet.
     var topic = currentCall.data.offer ?
       "talkilla.call-incoming" :
       "talkilla.call-start";

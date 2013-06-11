@@ -154,8 +154,6 @@
   app.views.TextChatView = Backbone.View.extend({
     el: '#textchat', // XXX: uncouple the selector from this view
 
-    me: undefined,
-
     events: {
       'submit form': 'send'
     },
@@ -169,14 +167,6 @@
       this.collection = options.collection;
       this.call = options.call;
       this.media = options.call.media;
-
-      app.port.on('talkilla.call-start', function(data) {
-        this.me = data.caller; // If I'm receiving this, I'm the caller
-      }, this);
-
-      app.port.on('talkilla.call-incoming', function(data) {
-        this.me = data.callee; // If I'm receiving this, I'm the callee
-      }, this);
 
       this.collection.on('add', this.render, this);
 
@@ -198,7 +188,7 @@
       var message = $input.val().trim();
       $input.val('');
       this.collection.newEntry({
-        nick: this.me,
+        nick: app.data.user.get("nick"),
         message: message
       });
     },
