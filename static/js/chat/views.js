@@ -53,8 +53,6 @@
   app.views.CallView = Backbone.View.extend({
 
     events: {
-      'click .btn-video a': 'videoCall',
-      'click .btn-audio a': 'audioCall',
       'click .btn-hangup a': 'hangup'
     },
 
@@ -97,16 +95,6 @@
       this.$('.btn-video').show();
       this.$('.btn-audio').show();
       this.$('.btn-hangup').hide();
-    },
-
-    videoCall: function(event) {
-      event.preventDefault();
-      alert('not implemented yet');
-    },
-
-    audioCall: function(event) {
-      event.preventDefault();
-      alert('not implemented yet');
     },
 
     _displayLocalVideo: function() {
