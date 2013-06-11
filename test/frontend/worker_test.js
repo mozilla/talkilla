@@ -885,37 +885,25 @@ describe('Worker', function() {
       sinon.assert.calledWithExactly(window.WebSocket, url);
     });
 
-    it("should attach _presenceSocketOnOpen to the open event", function() {
-      var fakeWS = {addEventListener: function () {}};
+    it("should attach _presenceSocketReAttached to the open event", function() {
+      var nbCall = 1;
+
+      var fakeWS = {
+        addEventListener: function(eventname, callback) {
+          if (nbCall === 1) {
+            expect(eventname).to.equal("open");
+            callback();
+            sinon.assert.calledOnce(_presenceSocketReAttached);
+            sinon.assert.calledWithExactly(_presenceSocketReAttached, "toto");
+          }
+          nbCall += 1;
+        }
+      };
       sandbox.stub(window, "WebSocket").returns(fakeWS);
-      sandbox.stub(window, "_presenceSocketOnOpen");
+      sandbox.stub(window, "_presenceSocketReAttached");
+      sandbox.stub(window.ports, "broadcastEvent");
 
       tryPresenceSocket("toto");
-      fakeWS.onopen();
-
-      sinon.assert.calledOnce(_presenceSocketOnOpen);
-    });
-
-    it("should attach _presenceSocketOnMessage to the message event", function() {
-      var fakeWS = {addEventListener: function () {}};
-      sandbox.stub(window, "WebSocket").returns(fakeWS);
-      sandbox.stub(window, "_presenceSocketOnMessage");
-
-      tryPresenceSocket("toto");
-      fakeWS.onmessage();
-
-      sinon.assert.calledOnce(_presenceSocketOnMessage);
-    });
-
-    it("should attach _presenceSocketOnClose to the close event", function() {
-      var fakeWS = {addEventListener: function () {}};
-      sandbox.stub(window, "WebSocket").returns(fakeWS);
-      sandbox.stub(window, "_presenceSocketOnClose");
-
-      tryPresenceSocket("toto");
-      fakeWS.onclose();
-
-      sinon.assert.calledOnce(_presenceSocketOnClose);
     });
 
     it("should attach _loginExpired to the error event", function() {
@@ -925,7 +913,7 @@ describe('Worker', function() {
 
       tryPresenceSocket("toto");
 
-      sinon.assert.calledOnce(fakeWS.addEventListener);
+      sinon.assert.called(fakeWS.addEventListener);
       sinon.assert.calledWithExactly(fakeWS.addEventListener, "error", _loginExpired);
     });
 
@@ -941,24 +929,105 @@ describe('Worker', function() {
     });
   });
 
+  describe("#_setupWebSocket", function() {
+
+    it("should attach _presenceSocketOnOpen to the open event", function() {
+      var fakeWS = {};
+
+      setupWebSocket(fakeWS);
+
+      expect(fakeWS.onopen).to.equal(_presenceSocketOnOpen);
+    });
+
+    it("should attach _presenceSocketOnMessage to the message event", function() {
+      var fakeWS = {};
+
+      setupWebSocket(fakeWS);
+
+      expect(fakeWS.onmessage).to.equal(_presenceSocketOnMessage);
+    });
+
+    it("should attach _presenceSocketOnError to the error event", function() {
+      var fakeWS = {};
+
+      setupWebSocket(fakeWS);
+
+      expect(fakeWS.onerror).to.equal(_presenceSocketOnError);
+    });
+
+    it("should attach _presenceSocketOnClose to the close event", function() {
+      var fakeWS = {};
+
+      setupWebSocket(fakeWS);
+
+      expect(fakeWS.onclose).to.equal(_presenceSocketOnClose);
+    });
+  });
+
   describe("#_loginExpired", function() {
 
-    it("should remove itself from the listeners", function () {
+    beforeEach(function () {
       _presenceSocket = {removeEventListener: sinon.spy()};
+    });
 
+    it("should remove itself from the listeners", function () {
       _loginExpired();
 
       sinon.assert.calledOnce(_presenceSocket.removeEventListener);
       sinon.assert.calledWithExactly(_presenceSocket.removeEventListener, "error", _loginExpired);
     });
 
-    it("should broadcast a talkilla.presence-pending event", function () {
+    it("should broadcast a talkilla.logout-success event", function () {
       sandbox.stub(window.ports, "broadcastEvent");
 
       _loginExpired();
 
       sinon.assert.calledOnce(ports.broadcastEvent);
       sinon.assert.calledWithExactly(ports.broadcastEvent, "talkilla.logout-success", {});
+    });
+
+  });
+
+  describe("#_presenceSocketReAttached", function () {
+
+    beforeEach(function () {
+      _presenceSocket = {removeEventListener: sinon.spy()};
+    });
+
+    it("should remove itself from the listeners", function () {
+      _presenceSocketReAttached("toto");
+
+      sinon.assert.calledOnce(_presenceSocket.removeEventListener);
+      sinon.assert.calledWithExactly(_presenceSocket.removeEventListener, "open", _presenceSocketReAttached);
+    });
+
+    it("should setup the websocket", function () {
+      sandbox.stub(window, "setupWebSocket");
+      sandbox.stub(window, "_setUserProfile");
+      sandbox.stub(window, "_presenceSocketOnOpen");
+
+      _presenceSocketReAttached();
+
+      sinon.assert.calledOnce(setupWebSocket);
+    });
+
+    it("should call _presenceSocketOnOpen forwarding the given event", function () {
+      sandbox.stub(window, "_presenceSocketOnOpen");
+
+      _presenceSocketReAttached("nickname", "event");
+
+      sinon.assert.calledOnce(_presenceSocketOnOpen);
+      sinon.assert.calledWithExactly(_presenceSocketOnOpen, "event");
+    });
+
+    it("should broadcast a talkilla.login-success event", function () {
+      sandbox.stub(window.ports, "broadcastEvent");
+      sandbox.stub(window, "_presenceSocketOnOpen");
+
+      _presenceSocketReAttached("toto");
+
+      sinon.assert.calledOnce(ports.broadcastEvent);
+      sinon.assert.calledWithExactly(ports.broadcastEvent, "talkilla.login-success", {username: "toto"});
     });
 
   });
