@@ -66,6 +66,7 @@ describe("ChatView", function() {
 
         call.trigger('offer-timeout');
 
+        // offer-timeout is the second event triggered
         call.on.args[1][1]();
 
         sinon.assert.calledOnce(window.close);
