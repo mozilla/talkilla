@@ -164,19 +164,23 @@ function loadconfig(cb) {
   });
 }
 
+function _setUserProfile(username) {
+  _currentUserData.userName = _currentUserData.displayName = username;
+  _currentUserData.portrait = "test.png";
+  browserPort.postEvent('social.user-profile', _currentUserData);
+}
+
 function _signinCallback(err, responseText) {
   if (err)
     return this.postEvent('talkilla.login-failure', err);
   var username = JSON.parse(responseText).nick;
   if (username) {
-    _currentUserData.userName = _currentUserData.displayName = username;
-    _currentUserData.portrait = "test.png";
+    _setUserProfile(username);
 
     ports.broadcastEvent('talkilla.login-success', {
       username: username
     });
 
-    browserPort.postEvent('social.user-profile', _currentUserData);
     createPresenceSocket(username);
   }
 }

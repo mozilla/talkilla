@@ -963,6 +963,16 @@ describe('Worker', function() {
 
   });
 
+  describe("#_setUserProfile", function() {
+
+    it("should send a social.user-profile event to the browser", function () {
+      _setUserProfile("toto");
+
+      sinon.assert.calledOnce(browserPort.postEvent);
+      sinon.assert.calledWithExactly(browserPort.postEvent, "social.user-profile", _currentUserData);
+    });
+  });
+
   describe("talkilla.sidebar-ready", function() {
 
     it("should call tryPresenceSocket when receiving a talkilla.sidebar-ready event", function () {
