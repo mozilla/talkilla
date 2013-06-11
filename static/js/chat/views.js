@@ -209,6 +209,8 @@
         var view = new app.views.TextChatEntryView({model: entry});
         $ul.append(view.render().$el);
       });
+      var ul = $ul.get(0);
+      ul.scrollTop = ul.scrollTopMax;
       return this;
     }
   });
