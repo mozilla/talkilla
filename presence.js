@@ -215,10 +215,10 @@ function configureWs(ws, nick) {
       var user = users[nick];
 
       if (user.ws === ws)
-        delete users[nick];
-
-      user.ws.send(JSON.stringify({users: _usersToArray(users)}),
-                   function(error) {});
+        delete user.ws;
+      else
+        user.ws.send(JSON.stringify({users: _usersToArray(users)}),
+                     function(error) {});
     });
 
     app.set('users', users);
