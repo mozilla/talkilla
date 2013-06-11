@@ -962,4 +962,30 @@ describe('Worker', function() {
 
   });
 
+  describe("talkilla.sidebar-ready", function() {
+
+    it("should call createPresenceSocket when receiving a talkilla.sidebar-ready event", function () {
+      sandbox.stub(window, "tryPresenceSocket");
+
+      handlers['talkilla.sidebar-ready']({
+        topic: "talkilla.sidebar-ready",
+        data: {nick: "toto"}
+      });
+
+      sinon.assert.calledOnce(tryPresenceSocket);
+      sinon.assert.calledWithExactly(tryPresenceSocket, "toto");
+    });
+
+    it("should NOT call createPresenceSocket if there is no nick provided", function () {
+      sandbox.stub(window, "tryPresenceSocket");
+
+      handlers['talkilla.sidebar-ready']({
+        topic: "talkilla.sidebar-ready",
+        data: {}
+      });
+
+      sinon.assert.notCalled(tryPresenceSocket);
+    });
+  });
+
 });

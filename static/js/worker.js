@@ -291,6 +291,11 @@ var handlers = {
   'talkilla.call-hangup': function (event) {
     _presenceSocketSendMessage(JSON.stringify({ 'call_hangup': event.data }));
     currentCall = undefined;
+  },
+
+  'talkilla.sidebar-ready': function (event) {
+    if (event.data.nick)
+      tryPresenceSocket(event.data.nick);
   }
 };
 
