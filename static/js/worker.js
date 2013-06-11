@@ -250,14 +250,17 @@ var handlers = {
     this.postEvent(topic, currentCall.data);
   },
 
-  'talkilla.sidebar-ready': function() {
+  'talkilla.sidebar-ready': function(event) {
     if (_currentUserData.userName) {
-      // If there's currenty a logged in user,
+      // If there's currently a logged in user,
       this.postEvent('talkilla.login-success', {
         username: _currentUserData.userName
       });
       if (currentUsers)
         this.postEvent('talkilla.users', currentUsers);
+    } else if (event.data.nick) {
+      // No user data available, may still be logged in
+      tryPresenceSocket(event.data.nick);
     }
   },
 

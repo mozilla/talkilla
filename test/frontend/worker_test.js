@@ -482,6 +482,7 @@ describe('Worker', function() {
           data: {}
         });
 
+        sinon.assert.calledOnce(handlers.postEvent);
         sinon.assert.calledWith(handlers.postEvent, "talkilla.login-success");
       });
 
@@ -964,8 +965,9 @@ describe('Worker', function() {
 
   describe("talkilla.sidebar-ready", function() {
 
-    it("should call createPresenceSocket when receiving a talkilla.sidebar-ready event", function () {
+    it("should call tryPresenceSocket when receiving a talkilla.sidebar-ready event", function () {
       sandbox.stub(window, "tryPresenceSocket");
+      _currentUserData.userName = null;
 
       handlers['talkilla.sidebar-ready']({
         topic: "talkilla.sidebar-ready",
@@ -976,7 +978,7 @@ describe('Worker', function() {
       sinon.assert.calledWithExactly(tryPresenceSocket, "toto");
     });
 
-    it("should NOT call createPresenceSocket if there is no nick provided", function () {
+    it("should NOT call tryPresenceSocket if there is no nick provided", function () {
       sandbox.stub(window, "tryPresenceSocket");
 
       handlers['talkilla.sidebar-ready']({
