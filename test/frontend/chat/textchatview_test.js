@@ -20,6 +20,10 @@ describe('TextChatView', function() {
     sandbox.stub(window, "mozRTCPeerConnection").returns({
       createDataChannel: function() {}
     });
+
+    // This stops us changing the document's title unnecessarily
+    sandbox.stub(app.views.ChatView.prototype, "initialize");
+
     webrtc = new app.models.WebRTCCall();
     call = new app.models.Call({}, webrtc);
     chatApp = new ChatApp();
