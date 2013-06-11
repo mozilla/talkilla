@@ -112,6 +112,24 @@ function createPresenceSocket(nickname) {
   ports.broadcastEvent("talkilla.presence-pending", {});
 }
 
+function _loginExpired() {
+  _presenceSocket.removeEventListener("error", _loginExpired);
+  _presenceSocket.onerror = _presenceSocketOnError;
+  ports.broadcastEvent("talkilla.logout-success", {});
+}
+
+function tryPresenceSocket(nickname) {
+  "use strict";
+
+  _presenceSocket = new WebSocket(_config.WSURL + "?nick=" + nickname);
+  _presenceSocket.onopen = _presenceSocketOnOpen;
+  _presenceSocket.onmessage = _presenceSocketOnMessage;
+  _presenceSocket.addEventListener("error", _loginExpired);
+  _presenceSocket.onclose = _presenceSocketOnClose;
+
+  ports.broadcastEvent("talkilla.presence-pending", {});
+}
+
 function sendAjax(url, method, data, cb) {
   var xhr = new XMLHttpRequest();
 

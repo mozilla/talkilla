@@ -864,4 +864,102 @@ describe('Worker', function() {
       expect(currentCall).to.be.equal(undefined);
     });
   });
+
+  describe("#tryPresenceSocket", function() {
+    var wsurl = "ws://example.com/";
+
+    beforeEach(function() {
+      _config.WSURL = wsurl;
+    });
+
+    it("should create a websocket and attach it to _presenceSocket", function() {
+      var fakeWS = {addEventListener: function () {}};
+      var url = wsurl + "?nick=toto";
+      sandbox.stub(window, "WebSocket").returns(fakeWS);
+
+      tryPresenceSocket("toto");
+
+      expect(_presenceSocket).to.equal(fakeWS);
+      sinon.assert.calledOnce(window.WebSocket);
+      sinon.assert.calledWithExactly(window.WebSocket, url);
+    });
+
+    it("should attach _presenceSocketOnOpen to the open event", function() {
+      var fakeWS = {addEventListener: function () {}};
+      sandbox.stub(window, "WebSocket").returns(fakeWS);
+      sandbox.stub(window, "_presenceSocketOnOpen");
+
+      tryPresenceSocket("toto");
+      fakeWS.onopen();
+
+      sinon.assert.calledOnce(_presenceSocketOnOpen);
+    });
+
+    it("should attach _presenceSocketOnMessage to the message event", function() {
+      var fakeWS = {addEventListener: function () {}};
+      sandbox.stub(window, "WebSocket").returns(fakeWS);
+      sandbox.stub(window, "_presenceSocketOnMessage");
+
+      tryPresenceSocket("toto");
+      fakeWS.onmessage();
+
+      sinon.assert.calledOnce(_presenceSocketOnMessage);
+    });
+
+    it("should attach _presenceSocketOnClose to the close event", function() {
+      var fakeWS = {addEventListener: function () {}};
+      sandbox.stub(window, "WebSocket").returns(fakeWS);
+      sandbox.stub(window, "_presenceSocketOnClose");
+
+      tryPresenceSocket("toto");
+      fakeWS.onclose();
+
+      sinon.assert.calledOnce(_presenceSocketOnClose);
+    });
+
+    it("should attach _loginExpired to the error event", function() {
+      var fakeWS = {addEventListener: sinon.spy()};
+      sandbox.stub(window, "WebSocket").returns(fakeWS);
+      sandbox.stub(window.ports, "broadcastEvent");
+
+      tryPresenceSocket("toto");
+
+      sinon.assert.calledOnce(fakeWS.addEventListener);
+      sinon.assert.calledWithExactly(fakeWS.addEventListener, "error", _loginExpired);
+    });
+
+    it("should send a talkilla.presence-pending event", function() {
+      var fakeWS = {addEventListener: function() {}};
+      sandbox.stub(window, "WebSocket").returns(fakeWS);
+      sandbox.stub(window.ports, "broadcastEvent");
+
+      tryPresenceSocket("toto");
+
+      sinon.assert.calledOnce(ports.broadcastEvent);
+      sinon.assert.calledWithExactly(ports.broadcastEvent, "talkilla.presence-pending", {});
+    });
+  });
+
+  describe("#_loginExpired", function() {
+
+    it("should remove itself from the listeners", function () {
+      _presenceSocket = {removeEventListener: sinon.spy()};
+
+      _loginExpired();
+
+      sinon.assert.calledOnce(_presenceSocket.removeEventListener);
+      sinon.assert.calledWithExactly(_presenceSocket.removeEventListener, "error", _loginExpired);
+    });
+
+    it("should broadcast a talkilla.presence-pending event", function () {
+      sandbox.stub(window.ports, "broadcastEvent");
+
+      _loginExpired();
+
+      sinon.assert.calledOnce(ports.broadcastEvent);
+      sinon.assert.calledWithExactly(ports.broadcastEvent, "talkilla.logout-success", {});
+    });
+
+  });
+
 });
