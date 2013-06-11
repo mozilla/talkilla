@@ -154,7 +154,7 @@
      * @param  {Object} callData Call data
      */
     _onOfferTimeout: function(callData) {
-      this.trigger('offer-timeout');
+      this.trigger('offer-timeout', callData);
       app.port.postEvent('talkilla.offer-timeout', callData);
     },
 

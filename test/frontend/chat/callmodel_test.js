@@ -5,11 +5,13 @@ var expect = chai.expect;
 
 describe("Call", function() {
 
-  var sandbox, call, media;
+  var sandbox, call, media, oldPort;
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
     sandbox.stub(app.models.Call.prototype, "_startTimer");
+    oldPort = app.port;
+    app.port = {postEvent: sinon.spy()};
     // XXX This should probably be a mock, but sinon mocks don't seem to want
     // to work with Backbone.
     media = {
@@ -24,6 +26,7 @@ describe("Call", function() {
 
   afterEach(function() {
     sandbox.restore();
+    app.port = oldPort;
   });
 
   describe("#initialize", function() {
@@ -140,6 +143,14 @@ describe("Call", function() {
 
   });
 
+  describe("#ignore", function() {
+    it("should change the state from incoming to terminated", function() {
+      call.incoming({});
+      call.ignore();
+      expect(call.state.current).to.equal('terminated');
+    });
+  });
+
   describe("#hangup", function() {
     it("should change the state from ready to terminated", function() {
       call.hangup();
@@ -165,6 +176,28 @@ describe("Call", function() {
 
       sinon.assert.calledOnce(media.hangup);
       sinon.assert.calledWithExactly(media.hangup);
+    });
+  });
+
+  describe("#_onOfferTimeout", function() {
+    it("trigger the `offer-timeout` event", function(done) {
+      var callData = {foo: "bar"};
+      call.on("offer-timeout", function(data) {
+        expect(data).to.deep.equal(callData);
+        done();
+      });
+
+      call._onOfferTimeout(callData);
+    });
+
+    it("post the `talkilla.offer-timeout` event to the worker", function() {
+      var callData = {foo: "bar"};
+
+      call._onOfferTimeout(callData);
+
+      sinon.assert.calledOnce(app.port.postEvent);
+      sinon.assert.calledWithExactly(app.port.postEvent,
+        "talkilla.offer-timeout", callData);
     });
   });
 
