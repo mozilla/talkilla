@@ -86,7 +86,7 @@
      * - audio: set to true to enable audio
      */
     start: function(options) {
-      this._startTimer();
+      this._startTimer(app.options.PENDING_CALL_TIMEOUT);
       this.set({otherUser: options.callee});
       this.state.start();
       this.media.offer(options);
@@ -160,10 +160,10 @@
 
     /**
      * Starts the pending call timer.
+     * @param {Number} timeout Timeout in ms
      */
-    _startTimer: function() {
-      this.timer = setTimeout(this._onOfferTimeout.bind(this),
-                              app.options.PENDING_CALL_TIMEOUT);
+    _startTimer: function(timeout) {
+      this.timer = setTimeout(this._onOfferTimeout.bind(this), timeout);
     }
   });
 

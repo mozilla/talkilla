@@ -9,7 +9,7 @@ describe("Call", function() {
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
-    sandbox.stub(app.models.Call.prototype, "_startTimer");
+    sandbox.useFakeTimers();
     oldPort = app.port;
     app.port = {postEvent: sinon.spy()};
     // XXX This should probably be a mock, but sinon mocks don't seem to want
@@ -198,6 +198,17 @@ describe("Call", function() {
       sinon.assert.calledOnce(app.port.postEvent);
       sinon.assert.calledWithExactly(app.port.postEvent,
         "talkilla.offer-timeout", callData);
+    });
+  });
+
+  describe("#_startTimer", function() {
+    it("should setup a timer", function(done) {
+      expect(call.timer).to.be.a("undefined");
+      call._startTimer(3000);
+      expect(call.timer).to.be.a("number");
+
+      sandbox.clock.tick(3000);
+      done();
     });
   });
 
