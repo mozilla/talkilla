@@ -50,7 +50,7 @@
 
       this.media.on("offer-ready", function(offer) {
         this.trigger("send-offer", {
-          caller: this.get("id"),
+          caller: app.data.user.get('nick'),
           callee: this.get("otherUser"),
           offer: offer
         });
@@ -59,7 +59,7 @@
       this.media.on("answer-ready", function(answer) {
         this.trigger("send-answer", {
           caller: this.get("otherUser"),
-          callee: this.get("id"),
+          callee: app.data.user.get('nick'),
           answer: answer
         });
 
@@ -87,7 +87,7 @@
         app.port.postEvent('talkilla.offer-timeout', options);
       }.bind(this), PENDING_CALL_TIMEOUT);
 
-      this.set({id: options.caller, otherUser: options.callee});
+      this.set({otherUser: options.callee});
       this.state.start();
       this.media.offer(options);
     },
@@ -107,7 +107,6 @@
     incoming: function(options) {
       this.set({
         otherUser: options.caller,
-        id: options.callee,
         incomingData: options
       });
       this.state.incoming();

@@ -6,10 +6,9 @@ var expect = chai.expect;
 
 describe("ChatApp", function() {
   var sandbox, chatApp;
-  var callData = {caller: "alice", callee: "bob"};
+  var callData = {callee: "bob"};
   var incomingCallData = {
     caller: "alice",
-    callee: "bob",
     offer: {type: "answer", sdp: "fake"}
   };
 
@@ -170,7 +169,6 @@ describe("ChatApp", function() {
       it("should set the caller and callee", function() {
         chatApp._onStartingCall(callData);
 
-        expect(chatApp.call.get('id')).to.equal(callData.caller);
         expect(chatApp.call.get('otherUser')).to.equal(callData.callee);
       });
 
@@ -189,7 +187,6 @@ describe("ChatApp", function() {
         chatApp._onIncomingCall(incomingCallData);
 
         expect(chatApp.call.get('otherUser')).to.equal(incomingCallData.caller);
-        expect(chatApp.call.get('id')).to.equal(incomingCallData.callee);
       });
 
       it("should set the call as incoming", function() {
@@ -301,5 +298,32 @@ describe("ChatApp", function() {
           sinon.assert.calledWith(app.port.postEvent, "talkilla.call-answer");
         });
     });
+
+    describe("#_onDataChannelMessageIn", function() {
+      it("should append received data to the current text chat", function() {
+        var stub = sandbox.stub(app.models.TextChat.prototype, "add");
+        chatApp = new ChatApp();
+        var event = {data: JSON.stringify({foo: "bar"})};
+
+        chatApp._onDataChannelMessageIn(event);
+
+        sinon.assert.calledOnce(stub);
+        sinon.assert.calledWithExactly(stub, {foo: "bar"});
+      });
+    });
+
+    describe("#_onTextChatEntryCreated", function() {
+      it("should send data over data channel", function() {
+        var stub = sandbox.stub(app.models.WebRTCCall.prototype, "send");
+        chatApp = new ChatApp();
+        var entry = {foo: "bar"};
+
+        chatApp._onTextChatEntryCreated(entry);
+
+        sinon.assert.calledOnce(stub);
+        sinon.assert.calledWithExactly(stub, JSON.stringify(entry));
+      });
+    });
+
   });
 });
