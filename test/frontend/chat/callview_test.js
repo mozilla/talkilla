@@ -69,14 +69,16 @@ describe("CallView", function() {
       it("should call CallView#pending() when change:state goes to the " +
          "pending state",
         function() {
-          call.on.args[0][1].call(callView, "pending");
+          var changeStateCallback = call.on.args[0][1].bind(callView);
+          changeStateCallback("pending");
 
           sinon.assert.calledOnce(callView.pending);
         });
 
       it("should call CallView#terminated() when change:state goes to the " +
          "terminated state", function() {
-          call.on.args[0][1].call(callView, "terminated");
+          var changeStateCallback = call.on.args[0][1].bind(callView);
+          changeStateCallback("terminated");
 
           sinon.assert.calledOnce(callView.terminated);
         });
