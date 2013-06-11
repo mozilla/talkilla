@@ -233,8 +233,8 @@ var handlers = {
     this.postEvent(topic, currentCall.data);
   },
 
-  'talkilla.offer-timeout': function(offerData) {
-    ports.broadcastEvent("talkilla.offer-timeout", offerData);
+  'talkilla.offer-timeout': function(callData) {
+    ports.broadcastEvent("talkilla.offer-timeout", callData);
   },
 
   'talkilla.sidebar-ready': function() {

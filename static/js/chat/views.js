@@ -22,7 +22,7 @@
       });
 
       this.call.on('offer-timeout', function() {
-        // outgoing call did go not through, close the window
+        // outgoing call didn't go through, close the window
         // note: caller notification is sent from the model
         window.close();
       });

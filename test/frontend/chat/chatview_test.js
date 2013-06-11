@@ -10,6 +10,8 @@ describe("ChatView", function() {
 
     beforeEach(function() {
       sandbox = sinon.sandbox.create();
+      sandbox.stub(app.models.Call.prototype, "_startTimer");
+      sandbox.stub(window, "close");
       oldtitle = document.title;
 
       // Although we're not testing it in this set of tests, stub the WebRTCCall
@@ -43,7 +45,7 @@ describe("ChatView", function() {
     it("should attach to the app user model", function() {
       new app.views.ChatView({call: call});
 
-      sinon.assert.calledOnce(call.on);
+      sinon.assert.called(call.on);
       sinon.assert.calledWith(call.on, "change:otherUser");
     });
 
@@ -56,6 +58,17 @@ describe("ChatView", function() {
         call.on.args[0][1](call);
 
         expect(document.title).to.be.equal("nick");
+      });
+
+    it("should close the window when the call `offer-timeout` event is " +
+       "triggered", function() {
+        new app.views.ChatView({call: call});
+
+        call.trigger('offer-timeout');
+
+        call.on.args[1][1]();
+
+        sinon.assert.calledOnce(window.close);
       });
   });
 });

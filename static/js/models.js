@@ -86,11 +86,7 @@
      * - audio: set to true to enable audio
      */
     start: function(options) {
-      this.timer = setTimeout(function() {
-        this.trigger('offer-timeout');
-        app.port.postEvent('talkilla.offer-timeout', options);
-      }.bind(this), app.options.PENDING_CALL_TIMEOUT);
-
+      this._startTimer();
       this.set({otherUser: options.callee});
       this.state.start();
       this.media.offer(options);
@@ -151,6 +147,23 @@
       clearTimeout(this.timer);
       this.state.hangup();
       this.media.hangup();
+    },
+
+    /**
+     * Called when a call offer did not go through.
+     * @param  {Object} callData Call data
+     */
+    _onOfferTimeout: function(callData) {
+      this.trigger('offer-timeout');
+      app.port.postEvent('talkilla.offer-timeout', callData);
+    },
+
+    /**
+     * Starts the pending call timer.
+     */
+    _startTimer: function() {
+      this.timer = setTimeout(this._onOfferTimeout.bind(this),
+                              app.options.PENDING_CALL_TIMEOUT);
     }
   });
 

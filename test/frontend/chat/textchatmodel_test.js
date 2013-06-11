@@ -4,8 +4,19 @@
 /* jshint expr:true */
 var expect = chai.expect;
 
-describe('Text chat', function() {
+describe('Text chat models', function() {
   "use strict";
+
+  var sandbox;
+
+  beforeEach(function() {
+    sandbox = sinon.sandbox.create();
+    sandbox.stub(app.models.Call.prototype, "_startTimer");
+  });
+
+  afterEach(function() {
+    sandbox.restore();
+  });
 
   describe("app.models.TextChatEntry", function() {
     it("should be initialized with defaults", function() {

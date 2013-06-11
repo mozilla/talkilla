@@ -16,6 +16,7 @@ describe('TextChatView', function() {
       '</div>'
     ].join(''));
     sandbox = sinon.sandbox.create();
+    sandbox.stub(app.models.Call.prototype, "_startTimer");
     sandbox.stub(navigator, "mozGetUserMedia");
     sandbox.stub(window, "mozRTCPeerConnection").returns({
       createDataChannel: function() {}
