@@ -11,11 +11,7 @@ describe('Call Offer View', function() {
     $('body').append([
       '<div id="offer">',
       '  <p class="avatar"><img src="" id="avatar"></p>',
-      '  <p class="incoming-text"><strong id="other-user"></strong></p>',
-      '  <p class="actions">',
-      '    <a class="btn btn-accept">Accept</a>',
-      '    <a class="btn btn-reject">Reject</a>',
-      '  </p>',
+      '  <p class="actions"><a class="btn btn-accept">Accept</a></p>',
       '</div>'
     ].join(''));
     sandbox = sinon.sandbox.create();
@@ -90,15 +86,9 @@ describe('Call Offer View', function() {
   });
 
   describe("#render", function() {
-    it("should render with call attributes", function() {
-      var call = new app.models.Call({otherUser: "larry"}, media);
-      var offerView = new app.views.CallOfferView({call: call});
-      expect(call.get('otherUser')).to.equal('larry');
-
-      offerView.render();
-
-      expect(offerView.$('#other-user').text()).to.equal("larry");
-    });
+    it("should render with the caller's avatar");
+    // XXX: needs to have the Call model having its otherUser set as a User
+    // model instance so we can actually get the avatar
   });
 
 });

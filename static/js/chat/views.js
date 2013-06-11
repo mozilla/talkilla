@@ -13,8 +13,7 @@
     el: "#offer",
 
     events: {
-      'click .btn-accept': 'accept',
-      'click .btn-reject': 'reject'
+      'click .btn-accept': 'accept'
     },
 
     initialize: function(options) {
@@ -41,15 +40,7 @@
       this.call.accept();
     },
 
-    reject: function(event) {
-      if (event)
-        event.preventDefault();
-
-      window.close(); // XXX: implement real call rejection
-    },
-
     render: function() {
-      this.$('#other-user').text(this.call.get('otherUser'));
       // XXX: update caller's avatar, though we'd need to access otherUser
       //      as a User model instance
       return this;
