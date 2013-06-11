@@ -30,7 +30,8 @@
     el: "#offer",
 
     events: {
-      'click .btn-accept': 'accept'
+      'click .btn-accept': 'accept',
+      'click .btn-ignore': 'ignore'
     },
 
     initialize: function(options) {
@@ -55,6 +56,13 @@
         event.preventDefault();
 
       this.call.accept();
+    },
+
+    ignore: function(event) {
+      if (event)
+        event.preventDefault();
+
+      this.call.ignore();
     },
 
     render: function() {

@@ -6,6 +6,14 @@
 (function(app, Backbone, StateMachine) {
   "use strict";
 
+  /**
+   * Call model.
+   *
+   * Attributes:
+   * - {String} id
+   * - {String} otherUser
+   * - {Object} incomingData
+   */
   app.models.Call = Backbone.Model.extend({
     media: undefined,
 
@@ -24,6 +32,7 @@
           // Incoming call scenario
           {name: 'incoming',  from: 'ready',    to: 'incoming'},
           {name: 'accept',    from: 'incoming', to: 'pending'},
+          {name: 'ignore',    from: 'incoming', to: 'terminated'},
           {name: 'complete',  from: 'pending',  to: 'ongoing'},
 
           // Call hangup
@@ -114,6 +123,14 @@
     accept: function() {
       this.media.answer(this.get('incomingData'));
       this.state.accept();
+    },
+
+    /**
+     * Ignores an incoming call.
+     */
+    ignore: function() {
+      // XXX: perform any media operation?
+      this.state.ignore();
     },
 
     /**
