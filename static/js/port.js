@@ -50,7 +50,7 @@
   };
 
   app.port.on("talkilla.login-success", function(data) {
-    $.cookie('nick', data.username);
+    $.cookie('nick', data.username, {expires: 1});
     app.data.user.set({nick: data.username, presence: "connected"});
   });
 
