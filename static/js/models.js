@@ -13,6 +13,11 @@
    * - {String} id
    * - {String} otherUser
    * - {Object} incomingData
+   *
+   * Fired when `PENDING_CALL_TIMEOUT` is reached with no response from the
+   * other side.
+   * @event offer-timeout
+   * @param {Object} options Current call start options (see #start)
    */
   app.models.Call = Backbone.Model.extend({
     timer: undefined,
@@ -72,6 +77,7 @@
 
     /**
      * Starts an outbound call.
+     *
      * @param {Object} options object containing:
      *
      * - caller: The id of the user logged in
