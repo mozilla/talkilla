@@ -35,7 +35,10 @@ var SidebarApp = (function($, Backbone, _) {
   // Add event support to the app
   _.extend(app, Backbone.Events);
 
-  function SidebarApp() {
+  function SidebarApp(options) {
+    options = options || {};
+
+    this.port = app.port;
     this.view = new app.views.AppView();
 
     app.data.user.on("signout", function () {
@@ -45,6 +48,8 @@ var SidebarApp = (function($, Backbone, _) {
       var user = app.data.user;
       app.data = { user: user };
     });
+
+    this.port.postEvent("talkilla.sidebar-ready", {nick: options.nick});
   }
 
   // window event listeners
