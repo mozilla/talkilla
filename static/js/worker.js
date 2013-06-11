@@ -1,3 +1,4 @@
+/* global dump */
 /* jshint unused:false */
 
 var _config = {DEBUG: false};
@@ -314,7 +315,11 @@ Port.prototype = {
    * @param  {Mixed}  data
    */
   postEvent: function(topic, data) {
-    this.port.postMessage({topic: topic, data: data});
+    try {
+      this.port.postMessage({topic: topic, data: data});
+    } catch (e) {
+      dump('port error: ' + e);
+    }
   }
 };
 

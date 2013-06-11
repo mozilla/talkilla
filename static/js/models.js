@@ -6,8 +6,6 @@
 (function(app, Backbone, StateMachine) {
   "use strict";
 
-  var PENDING_CALL_TIMEOUT = 10000;
-
   /**
    * Call model.
    *
@@ -85,7 +83,7 @@
       this.timer = setTimeout(function() {
         this.trigger('offer-timeout');
         app.port.postEvent('talkilla.offer-timeout', options);
-      }.bind(this), PENDING_CALL_TIMEOUT);
+      }.bind(this), app.options.PENDING_CALL_TIMEOUT);
 
       this.set({otherUser: options.callee});
       this.state.start();
