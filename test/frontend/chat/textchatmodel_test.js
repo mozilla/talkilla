@@ -38,6 +38,8 @@ describe('Text chat', function() {
       sandbox = sinon.sandbox.create();
       app.port = {postEvent: sinon.spy()};
       _.extend(app.port, Backbone.Events);
+      sandbox.stub(ChatApp.prototype, "_onDataChannelMessageIn");
+      sandbox.stub(ChatApp.prototype, "_onTextChatEntryCreated");
       chatApp = new ChatApp();
     });
 
@@ -46,37 +48,23 @@ describe('Text chat', function() {
       sandbox.restore();
     });
 
-    it('should update text chat when a dc.in.message event is received',
-      function() {
-        chatApp.webrtc.trigger('dc.in.message', {
-          data: JSON.stringify({nick: "niko", message: "hi"})
-        });
-        expect(chatApp.textChat).to.have.length.of(1);
-        expect(chatApp.textChat.at(0).get('nick')).to.equal("niko");
-        expect(chatApp.textChat.at(0).get('message')).to.equal("hi");
+    it('should listen to the data channel `dc.in.message` event', function() {
+      var event = {data: JSON.stringify({nick: "niko", message: "hi"})};
 
-        chatApp.webrtc.trigger('dc.in.message', {
-          data: JSON.stringify({nick: "jb", message: "hi niko"})
-        });
-        expect(chatApp.textChat).to.have.length.of(2);
-        expect(chatApp.textChat.at(1).get('nick')).to.equal("jb");
-        expect(chatApp.textChat.at(1).get('message')).to.equal("hi niko");
-      });
+      chatApp.webrtc.trigger('dc.in.message', event);
 
-    it('should listen to `entry.created` to send an entry over data channel',
-      function(done) {
-        // the chat app listens to the TextChat collection `entry.created` event
-        var textChat = chatApp.textChat;
-        var sendStub = sandbox.stub(app.models.WebRTCCall.prototype, "send");
-        var entry = new app.models.TextChatEntry({nick: "niko", message: "hi"});
+      sinon.assert.calledOnce(chatApp._onDataChannelMessageIn);
+      sinon.assert.calledWithExactly(chatApp._onDataChannelMessageIn, event);
+    });
 
-        textChat.on('entry.created', function(receivedEntry) {
-          expect(receivedEntry.toJSON()).to.deep.equal(entry.toJSON());
-          sinon.assert.calledWith(sendStub, JSON.stringify(entry.toJSON()));
-          done();
-        });
+    it('should listen to the text chat `entry.created` event', function() {
+      var entry = new app.models.TextChatEntry({nick: "niko", message: "hi"});
 
-        textChat.newEntry(entry);
-      });
+      chatApp.textChat.trigger('entry.created', entry.toJSON());
+
+      sinon.assert.calledOnce(chatApp._onTextChatEntryCreated);
+      sinon.assert.calledWithExactly(chatApp._onTextChatEntryCreated,
+                                     entry.toJSON());
+    });
   });
 });
