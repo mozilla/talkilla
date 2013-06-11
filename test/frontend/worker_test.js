@@ -13,12 +13,23 @@ var expect = chai.expect;
 describe('Worker', function() {
   "use strict";
 
+  var sandbox;
+
+  beforeEach(function () {
+    sandbox = sinon.sandbox.create();
+    browserPort = {postEvent: sandbox.spy()};
+  });
+
+  afterEach(function () {
+    browserPort = null;
+    sandbox.restore();
+  });
+
   describe("#loadconfig", function() {
-    var oldConfig, xhr, requests, sandbox;
+    var oldConfig, xhr, requests;
 
     beforeEach(function() {
       oldConfig = _config;
-      sandbox = sinon.sandbox.create();
       // XXX For some reason, sandbox.useFakeXMLHttpRequest doesn't want to work
       // nicely so we have to manually xhr.restore for now.
       xhr = sinon.useFakeXMLHttpRequest();
@@ -30,7 +41,6 @@ describe('Worker', function() {
     afterEach(function() {
       _config = oldConfig;
       xhr.restore();
-      sandbox.restore();
     });
 
     it("should populate the _config object from using AJAX load",
@@ -94,17 +104,11 @@ describe('Worker', function() {
     });
 
     describe('#createPresenceSocket', function() {
-      var sandbox;
       var wsurl = "ws://example.com/";
 
       beforeEach(function() {
-        sandbox = sinon.sandbox.create();
         _config.WSURL = wsurl;
         sandbox.stub(window, "WebSocket");
-      });
-
-      afterEach(function() {
-        sandbox.restore();
       });
 
       it("should configure a socket with a URL from the nick and _config.WSURL",
@@ -147,15 +151,6 @@ describe('Worker', function() {
     });
 
     describe('#_presenceSocketOnMessage', function() {
-      var sandbox;
-
-      beforeEach(function() {
-        sandbox = sinon.sandbox.create();
-      });
-
-      afterEach(function() {
-        sandbox.restore();
-      });
 
       it("should call postMessage with a JSON version of the received message",
         function() {
@@ -184,18 +179,13 @@ describe('Worker', function() {
     });
 
     describe('#_presenceSocketSendMessage', function() {
-      var sandbox, dummySocket;
+      var dummySocket;
       var wsurl = "ws://example.com/";
 
       beforeEach(function() {
-        sandbox = sinon.sandbox.create();
         _config.WSURL = wsurl;
         dummySocket = { send: sandbox.spy() };
         sandbox.stub(window, "WebSocket").returns(dummySocket);
-      });
-
-      afterEach(function() {
-        sandbox.restore();
       });
 
       it("should send a message to the WebSocket with the supplied string",
@@ -350,23 +340,17 @@ describe('Worker', function() {
   });
 
   describe("#_signinCallback", function() {
-    var sandbox, socketStub, wsurl = 'ws://fake', testableCallback;
+    var socketStub, wsurl = 'ws://fake', testableCallback;
 
     beforeEach(function() {
-      sandbox = sinon.sandbox.create();
       sandbox.stub(window, "WebSocket");
       socketStub = sinon.stub(window, "createPresenceSocket");
-      browserPort = {
-        postEvent: sandbox.spy()
-      };
       _config.WSURL = wsurl;
       _currentUserData = new UserData({});
       testableCallback = _signinCallback.bind({postEvent: function(){}});
     });
 
     afterEach(function() {
-      browserPort = undefined;
-      sandbox.restore();
       socketStub.restore();
     });
 
@@ -387,20 +371,15 @@ describe('Worker', function() {
   });
 
   describe("#login", function() {
-    var xhr, rootURL, socketStub, requests, sandbox;
+    var xhr, rootURL, socketStub, requests;
 
     beforeEach(function() {
-      sandbox = sinon.sandbox.create();
       socketStub = sinon.stub(window, "createPresenceSocket");
       // XXX For some reason, sandbox.useFakeXMLHttpRequest doesn't want to work
       // nicely so we have to manually xhr.restore for now.
       xhr = sinon.useFakeXMLHttpRequest();
       requests = [];
       xhr.onCreate = function (req) { requests.push(req); };
-
-      browserPort = {
-        postEvent: sandbox.spy()
-      };
 
       rootURL = 'http://fake';
       _currentUserData = new UserData({}, {
@@ -409,13 +388,11 @@ describe('Worker', function() {
     });
 
     afterEach(function() {
-      browserPort = undefined;
       xhr.restore();
-      sandbox.restore();
       socketStub.restore();
     });
 
-    it("should call postEvent with a failure message if i pass in bad data",
+    it("should call postEvent with a failure message if I pass in bad data",
       function() {
         handlers.postEvent = sandbox.spy();
         handlers['talkilla.login']({topic: "talkilla.login", data: null});
@@ -550,10 +527,9 @@ describe('Worker', function() {
   });
 
   describe("#logout", function() {
-    var sandbox, xhr, requests;
+    var xhr, requests;
 
     beforeEach(function() {
-      sandbox = sinon.sandbox.create();
       // XXX For some reason, sandbox.useFakeXMLHttpRequest doesn't want to work
       // nicely so we have to manually xhr.restore for now.
       xhr = sinon.useFakeXMLHttpRequest();
@@ -562,16 +538,10 @@ describe('Worker', function() {
 
       _currentUserData.userName = 'romain';
       _presenceSocket.close = sandbox.stub();
-
-      browserPort = {
-        postEvent: sandbox.spy()
-      };
     });
 
     afterEach(function() {
-      browserPort = undefined;
       xhr.restore();
-      sandbox.restore();
     });
 
     it('should post an error message if not logged in', function() {
@@ -655,17 +625,6 @@ describe('Worker', function() {
   });
 
   describe("talkilla.call-start", function() {
-    var sandbox;
-
-    beforeEach(function() {
-      sandbox = sinon.sandbox.create();
-      browserPort = {postEvent: sandbox.spy()};
-    });
-
-    afterEach(function() {
-      browserPort = undefined;
-      sandbox.restore();
-    });
 
     it("should open a chat window when receiving a talkilla.call-start event",
       function() {
@@ -681,18 +640,7 @@ describe('Worker', function() {
       });
   });
 
-  describe("talkilla.chat-window-ready", function() {
-    var sandbox;
-
-    beforeEach(function() {
-      sandbox = sinon.sandbox.create();
-      browserPort = {postEvent: sandbox.spy()};
-    });
-
-    afterEach(function() {
-      browserPort = undefined;
-      sandbox.restore();
-    });
+  describe("talkilla.call-window-ready", function() {
 
     it("should post a talkilla.login-success event when " +
       "receiving a talkilla.chat-window-ready",
@@ -772,17 +720,6 @@ describe('Worker', function() {
   });
 
   describe("Call offers and answers", function() {
-    var sandbox;
-
-    beforeEach(function() {
-      sandbox = sinon.sandbox.create();
-      browserPort = {postEvent: sandbox.spy()};
-    });
-
-    afterEach(function() {
-      browserPort = undefined;
-      sandbox.restore();
-    });
 
     it("should send a websocket message when receiving talkilla.call-offer",
       function() {
@@ -860,17 +797,6 @@ describe('Worker', function() {
   });
 
   describe("#incoming_call", function() {
-    var sandbox;
-
-    beforeEach(function() {
-      sandbox = sinon.sandbox.create();
-      browserPort = {postEvent: sandbox.spy()};
-    });
-
-    afterEach(function() {
-      browserPort = undefined;
-      sandbox.restore();
-    });
 
     it("should store the current call data", function() {
       var data = {
@@ -893,15 +819,6 @@ describe('Worker', function() {
   });
 
   describe("#call_accepted", function() {
-    var sandbox;
-
-    beforeEach(function() {
-      sandbox = sinon.sandbox.create();
-    });
-
-    afterEach(function() {
-      sandbox.restore();
-    });
 
     it("should post talkilla.call-establishment to the chat window",
       function() {
@@ -923,21 +840,14 @@ describe('Worker', function() {
   });
 
   describe("#call_hangup", function() {
-    var sandbox, callData;
+    var callData;
 
     beforeEach(function() {
-      sandbox = sinon.sandbox.create();
-      browserPort = {postEvent: sandbox.spy()};
       handlers.postEvent = sandbox.spy();
       callData = {
         other: "bob"
       };
       currentCall = {port: {postEvent: handlers.postEvent}, data: callData};
-    });
-
-    afterEach(function() {
-      browserPort = undefined;
-      sandbox.restore();
     });
 
     it("should notify the chat window", function() {
