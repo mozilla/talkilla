@@ -233,10 +233,21 @@ var handlers = {
     this.postEvent(topic, currentCall.data);
   },
 
-  'talkilla.offer-timeout': function(callData) {
-    ports.broadcastEvent("talkilla.offer-timeout", callData);
+  /**
+   * The data for talkilla.offer-timeout is:
+   *
+   * - caller: The id of the user logged in
+   * - callee: The id of the user to be called
+   * - video: set to true to enable video
+   * - audio: set to true to enable audio
+   */
+  'talkilla.offer-timeout': function(event) {
+    ports.broadcastEvent("talkilla.offer-timeout", event.data);
   },
 
+  /**
+   * Called when the sidebar is ready.
+   */
   'talkilla.sidebar-ready': function() {
     if (_currentUserData.userName) {
       // If there's currenty a logged in user,

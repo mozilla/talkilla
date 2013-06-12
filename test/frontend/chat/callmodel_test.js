@@ -205,7 +205,7 @@ describe("Call", function() {
   describe("#_startTimer", function() {
     it("should setup a timer", function(done) {
       expect(call.timer).to.be.a("undefined");
-      call._startTimer(3000);
+      call._startTimer({timeout: 3000});
       expect(call.timer).to.be.a("number");
 
       sandbox.clock.tick(3000);
