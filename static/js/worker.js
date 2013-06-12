@@ -263,6 +263,11 @@ var handlers = {
     this.postEvent(topic, currentCall.data);
   },
 
+  /**
+   * The data for talkilla.sidebar-ready is:
+   *
+   * - nick: an optional previous nickname
+   */
   'talkilla.sidebar-ready': function(event) {
     if (_currentUserData.userName) {
       // If there's currently a logged in user,
