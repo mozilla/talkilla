@@ -934,7 +934,7 @@ describe('Worker', function() {
     it("should attach _presenceSocketOnOpen to the open event", function() {
       var fakeWS = {};
 
-      setupWebSocket(fakeWS);
+      _setupWebSocket(fakeWS);
 
       expect(fakeWS.onopen).to.equal(_presenceSocketOnOpen);
     });
@@ -942,7 +942,7 @@ describe('Worker', function() {
     it("should attach _presenceSocketOnMessage to the message event", function() {
       var fakeWS = {};
 
-      setupWebSocket(fakeWS);
+      _setupWebSocket(fakeWS);
 
       expect(fakeWS.onmessage).to.equal(_presenceSocketOnMessage);
     });
@@ -950,7 +950,7 @@ describe('Worker', function() {
     it("should attach _presenceSocketOnError to the error event", function() {
       var fakeWS = {};
 
-      setupWebSocket(fakeWS);
+      _setupWebSocket(fakeWS);
 
       expect(fakeWS.onerror).to.equal(_presenceSocketOnError);
     });
@@ -958,7 +958,7 @@ describe('Worker', function() {
     it("should attach _presenceSocketOnClose to the close event", function() {
       var fakeWS = {};
 
-      setupWebSocket(fakeWS);
+      _setupWebSocket(fakeWS);
 
       expect(fakeWS.onclose).to.equal(_presenceSocketOnClose);
     });
@@ -1002,13 +1002,13 @@ describe('Worker', function() {
     });
 
     it("should setup the websocket", function () {
-      sandbox.stub(window, "setupWebSocket");
+      sandbox.stub(window, "_setupWebSocket");
       sandbox.stub(window, "_setUserProfile");
       sandbox.stub(window, "_presenceSocketOnOpen");
 
       _presenceSocketReAttached();
 
-      sinon.assert.calledOnce(setupWebSocket);
+      sinon.assert.calledOnce(_setupWebSocket);
     });
 
     it("should call _presenceSocketOnOpen forwarding the given event", function () {
