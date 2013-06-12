@@ -56,6 +56,7 @@ var ChatApp = (function($, Backbone, _) {
     // Outgoing events
     this.call.on('send-offer', this._onSendOffer.bind(this));
     this.call.on('send-answer', this._onSendAnswer.bind(this));
+    this.call.on('offer-timeout', this._onCallOfferTimout.bind(this));
 
     // Data channels
     this.webrtc.on('dc.in.message', this._onDataChannelMessageIn.bind(this));
@@ -78,6 +79,10 @@ var ChatApp = (function($, Backbone, _) {
 
   ChatApp.prototype._onCallEstablishment = function(data) {
     this.call.establish(data);
+  };
+
+  ChatApp.prototype._onCallOfferTimout = function(callData) {
+    this.port.postEvent('talkilla.offer-timeout', callData);
   };
 
   // Incoming calls

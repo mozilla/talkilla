@@ -644,7 +644,45 @@ describe('Worker', function() {
       });
   });
 
-  describe("talkilla.call-window-ready", function() {
+  describe("talkilla.offer-timeout", function() {
+    var sandbox;
+
+    beforeEach(function() {
+      sandbox = sinon.sandbox.create();
+      sandbox.stub(ports, "broadcastEvent");
+    });
+
+    afterEach(function() {
+      browserPort = undefined;
+      sandbox.restore();
+    });
+
+    it("should notify the caller that an outgoing call did not go through",
+      function() {
+        var fakeCallData = {foo: "bar"};
+        handlers['talkilla.offer-timeout']({
+          topic: "talkilla.offer-timeout",
+          data: fakeCallData
+        });
+
+        sinon.assert.calledOnce(ports.broadcastEvent);
+        sinon.assert.calledWithExactly(ports.broadcastEvent,
+          "talkilla.offer-timeout", fakeCallData);
+      });
+  });
+
+  describe("talkilla.chat-window-ready", function() {
+    var sandbox;
+
+    beforeEach(function() {
+      sandbox = sinon.sandbox.create();
+      browserPort = {postEvent: sandbox.spy()};
+    });
+
+    afterEach(function() {
+      browserPort = undefined;
+      sandbox.restore();
+    });
 
     it("should post a talkilla.login-success event when " +
       "receiving a talkilla.chat-window-ready",
