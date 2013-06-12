@@ -61,7 +61,7 @@ describe("SidebarApp", function() {
     });
 
     it("should post talkilla.sidebar-ready to the worker", function() {
-      var sidebar = new SidebarApp({nick: "toto"});
+      new SidebarApp({nick: "toto"});
 
       sinon.assert.calledOnce(app.port.postEvent);
       sinon.assert.calledWithExactly(app.port.postEvent,

@@ -1,5 +1,5 @@
 /* jshint camelcase:false */
-/* global app, Backbone, _ */
+/* global app, $, Backbone, _ */
 /**
  * Social API Worker Port wrapper & message events listener/dispatcher.
  */

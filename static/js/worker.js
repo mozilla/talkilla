@@ -121,6 +121,12 @@ function _loginExpired() {
   ports.broadcastEvent("talkilla.logout-success", {});
 }
 
+function _setUserProfile(username) {
+  _currentUserData.userName = _currentUserData.displayName = username;
+  _currentUserData.portrait = "test.png";
+  browserPort.postEvent('social.user-profile', _currentUserData);
+}
+
 function _presenceSocketReAttached(username, event) {
   _presenceSocket.removeEventListener("open", _presenceSocketReAttached);
   _setupWebSocket(_presenceSocket);
@@ -133,7 +139,8 @@ function tryPresenceSocket(nickname) {
   "use strict";
 
   _presenceSocket = new WebSocket(_config.WSURL + "?nick=" + nickname);
-  _presenceSocket.addEventListener("open", _presenceSocketReAttached.bind(this, nickname));
+  _presenceSocket.addEventListener(
+    "open", _presenceSocketReAttached.bind(this, nickname));
   _presenceSocket.addEventListener("error", _loginExpired);
   ports.broadcastEvent("talkilla.presence-pending", {});
 }
@@ -170,12 +177,6 @@ function loadconfig(cb) {
     }
     cb(null, config);
   });
-}
-
-function _setUserProfile(username) {
-  _currentUserData.userName = _currentUserData.displayName = username;
-  _currentUserData.portrait = "test.png";
-  browserPort.postEvent('social.user-profile', _currentUserData);
 }
 
 function _signinCallback(err, responseText) {
@@ -300,16 +301,6 @@ var handlers = {
 
   /**
    * Ends a call. The expected data is:
-   *
-   * - other: the person you are talking to.
-   */
-  'talkilla.call-hangup': function (event) {
-    _presenceSocketSendMessage(JSON.stringify({ 'call_hangup': event.data }));
-    currentCall = undefined;
-  },
-
-  /**
-   * . The expected data is:
    *
    * - other: the person you are talking to.
    */

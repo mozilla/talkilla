@@ -219,7 +219,7 @@ function configureWs(ws, nick) {
       var user = users[nick];
       if (user.ws === ws)
         delete user.ws;
-    })
+    });
 
     Object.keys(users).forEach(function(nick) {
       var user = users[nick];

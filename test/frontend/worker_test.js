@@ -1,10 +1,13 @@
 /* global afterEach, beforeEach, chai, createPresenceSocket, describe,
-   handlers, it, sinon, Port, PortCollection, _config:true, _presenceSocket,
-   loadconfig, ports:true, _presenceSocketOnMessage, _presenceSocketOnError,
+   handlers, it, sinon, Port, PortCollection, _config:true,
+   _presenceSocket:true, loadconfig, ports:true,
+   _presenceSocketOnMessage, _presenceSocketOnError,
    _presenceSocketOnClose, _presenceSocketSendMessage:true,
-   _presenceSocketOnOpen, _signinCallback, _presenceSocket, currentUsers:true,
-   browserPort:true, _currentUserData:true, UserData, currentCall:true,
-   serverHandlers */
+   _presenceSocketOnOpen, _signinCallback, _presenceSocket,
+   currentUsers:true, browserPort:true, _currentUserData:true,
+   UserData, currentCall:true, serverHandlers, tryPresenceSocket,
+   _presenceSocketReAttached, _loginExpired, _setupWebSocket,
+   _setUserProfile */
 /* jshint expr:true */
 /* Needed due to the use of non-camelcase in the websocket topics */
 /* jshint camelcase:false */
@@ -873,38 +876,41 @@ describe('Worker', function() {
       _config.WSURL = wsurl;
     });
 
-    it("should create a websocket and attach it to _presenceSocket", function() {
-      var fakeWS = {addEventListener: function () {}};
-      var url = wsurl + "?nick=toto";
-      sandbox.stub(window, "WebSocket").returns(fakeWS);
+    it("should create a websocket and attach it to _presenceSocket",
+      function() {
+        var fakeWS = {addEventListener: function () {}};
+        var url = wsurl + "?nick=toto";
+        sandbox.stub(window, "WebSocket").returns(fakeWS);
 
-      tryPresenceSocket("toto");
+        tryPresenceSocket("toto");
 
-      expect(_presenceSocket).to.equal(fakeWS);
-      sinon.assert.calledOnce(window.WebSocket);
-      sinon.assert.calledWithExactly(window.WebSocket, url);
-    });
+        expect(_presenceSocket).to.equal(fakeWS);
+        sinon.assert.calledOnce(window.WebSocket);
+        sinon.assert.calledWithExactly(window.WebSocket, url);
+      });
 
-    it("should attach _presenceSocketReAttached to the open event", function() {
-      var nbCall = 1;
+    it("should attach _presenceSocketReAttached to the open event",
+      function() {
+        var nbCall = 1;
 
-      var fakeWS = {
-        addEventListener: function(eventname, callback) {
-          if (nbCall === 1) {
-            expect(eventname).to.equal("open");
-            callback();
-            sinon.assert.calledOnce(_presenceSocketReAttached);
-            sinon.assert.calledWithExactly(_presenceSocketReAttached, "toto");
+        var fakeWS = {
+          addEventListener: function(eventname, callback) {
+            if (nbCall === 1) {
+              expect(eventname).to.equal("open");
+              callback();
+              sinon.assert.calledOnce(_presenceSocketReAttached);
+              sinon.assert.calledWithExactly(_presenceSocketReAttached, "toto");
+            }
+            nbCall += 1;
           }
-          nbCall += 1;
-        }
-      };
-      sandbox.stub(window, "WebSocket").returns(fakeWS);
-      sandbox.stub(window, "_presenceSocketReAttached");
-      sandbox.stub(window.ports, "broadcastEvent");
+        };
 
-      tryPresenceSocket("toto");
-    });
+        sandbox.stub(window, "WebSocket").returns(fakeWS);
+        sandbox.stub(window, "_presenceSocketReAttached");
+        sandbox.stub(window.ports, "broadcastEvent");
+
+        tryPresenceSocket("toto");
+      });
 
     it("should attach _loginExpired to the error event", function() {
       var fakeWS = {addEventListener: sinon.spy()};
@@ -914,7 +920,8 @@ describe('Worker', function() {
       tryPresenceSocket("toto");
 
       sinon.assert.called(fakeWS.addEventListener);
-      sinon.assert.calledWithExactly(fakeWS.addEventListener, "error", _loginExpired);
+      sinon.assert.calledWithExactly(
+        fakeWS.addEventListener, "error", _loginExpired);
     });
 
     it("should send a talkilla.presence-pending event", function() {
@@ -925,7 +932,8 @@ describe('Worker', function() {
       tryPresenceSocket("toto");
 
       sinon.assert.calledOnce(ports.broadcastEvent);
-      sinon.assert.calledWithExactly(ports.broadcastEvent, "talkilla.presence-pending", {});
+      sinon.assert.calledWithExactly(
+        ports.broadcastEvent, "talkilla.presence-pending", {});
     });
   });
 
@@ -939,13 +947,14 @@ describe('Worker', function() {
       expect(fakeWS.onopen).to.equal(_presenceSocketOnOpen);
     });
 
-    it("should attach _presenceSocketOnMessage to the message event", function() {
-      var fakeWS = {};
+    it("should attach _presenceSocketOnMessage to the message event",
+      function() {
+        var fakeWS = {};
 
-      _setupWebSocket(fakeWS);
+        _setupWebSocket(fakeWS);
 
-      expect(fakeWS.onmessage).to.equal(_presenceSocketOnMessage);
-    });
+        expect(fakeWS.onmessage).to.equal(_presenceSocketOnMessage);
+      });
 
     it("should attach _presenceSocketOnError to the error event", function() {
       var fakeWS = {};
@@ -974,7 +983,8 @@ describe('Worker', function() {
       _loginExpired();
 
       sinon.assert.calledOnce(_presenceSocket.removeEventListener);
-      sinon.assert.calledWithExactly(_presenceSocket.removeEventListener, "error", _loginExpired);
+      sinon.assert.calledWithExactly(
+        _presenceSocket.removeEventListener, "error", _loginExpired);
     });
 
     it("should broadcast a talkilla.logout-success event", function () {
@@ -983,7 +993,8 @@ describe('Worker', function() {
       _loginExpired();
 
       sinon.assert.calledOnce(ports.broadcastEvent);
-      sinon.assert.calledWithExactly(ports.broadcastEvent, "talkilla.logout-success", {});
+      sinon.assert.calledWithExactly(
+        ports.broadcastEvent, "talkilla.logout-success", {});
     });
 
   });
@@ -998,7 +1009,8 @@ describe('Worker', function() {
       _presenceSocketReAttached("toto");
 
       sinon.assert.calledOnce(_presenceSocket.removeEventListener);
-      sinon.assert.calledWithExactly(_presenceSocket.removeEventListener, "open", _presenceSocketReAttached);
+      sinon.assert.calledWithExactly(
+        _presenceSocket.removeEventListener, "open", _presenceSocketReAttached);
     });
 
     it("should setup the websocket", function () {
@@ -1011,14 +1023,15 @@ describe('Worker', function() {
       sinon.assert.calledOnce(_setupWebSocket);
     });
 
-    it("should call _presenceSocketOnOpen forwarding the given event", function () {
-      sandbox.stub(window, "_presenceSocketOnOpen");
+    it("should call _presenceSocketOnOpen forwarding the given event",
+      function () {
+        sandbox.stub(window, "_presenceSocketOnOpen");
 
-      _presenceSocketReAttached("nickname", "event");
+        _presenceSocketReAttached("nickname", "event");
 
-      sinon.assert.calledOnce(_presenceSocketOnOpen);
-      sinon.assert.calledWithExactly(_presenceSocketOnOpen, "event");
-    });
+        sinon.assert.calledOnce(_presenceSocketOnOpen);
+        sinon.assert.calledWithExactly(_presenceSocketOnOpen, "event");
+      });
 
     it("should broadcast a talkilla.login-success event", function () {
       sandbox.stub(window.ports, "broadcastEvent");
@@ -1027,7 +1040,8 @@ describe('Worker', function() {
       _presenceSocketReAttached("toto");
 
       sinon.assert.calledOnce(ports.broadcastEvent);
-      sinon.assert.calledWithExactly(ports.broadcastEvent, "talkilla.login-success", {username: "toto"});
+      sinon.assert.calledWithExactly(
+        ports.broadcastEvent, "talkilla.login-success", {username: "toto"});
     });
 
   });
@@ -1038,13 +1052,15 @@ describe('Worker', function() {
       _setUserProfile("toto");
 
       sinon.assert.calledOnce(browserPort.postEvent);
-      sinon.assert.calledWithExactly(browserPort.postEvent, "social.user-profile", _currentUserData);
+      sinon.assert.calledWithExactly(
+        browserPort.postEvent, "social.user-profile", _currentUserData);
     });
   });
 
   describe("talkilla.sidebar-ready", function() {
 
-    it("should call tryPresenceSocket when receiving a talkilla.sidebar-ready event", function () {
+    it("should call tryPresenceSocket when receiving" +
+       "a talkilla.sidebar-ready event", function () {
       sandbox.stub(window, "tryPresenceSocket");
       _currentUserData.userName = null;
 
@@ -1057,16 +1073,17 @@ describe('Worker', function() {
       sinon.assert.calledWithExactly(tryPresenceSocket, "toto");
     });
 
-    it("should NOT call tryPresenceSocket if there is no nick provided", function () {
-      sandbox.stub(window, "tryPresenceSocket");
+    it("should NOT call tryPresenceSocket if there is no nick provided",
+      function () {
+        sandbox.stub(window, "tryPresenceSocket");
 
-      handlers['talkilla.sidebar-ready']({
-        topic: "talkilla.sidebar-ready",
-        data: {}
+        handlers['talkilla.sidebar-ready']({
+          topic: "talkilla.sidebar-ready",
+          data: {}
+        });
+
+        sinon.assert.notCalled(tryPresenceSocket);
       });
-
-      sinon.assert.notCalled(tryPresenceSocket);
-    });
   });
 
 });
