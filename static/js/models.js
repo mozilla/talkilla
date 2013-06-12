@@ -13,15 +13,17 @@
     /**
      * Call model constructor.
      * @param  {Object}  attributes  Model attributes
-     * @param  {WebRTCCall}  media  Media object
-     * @param  {Audio}  ringtone  Audio element
+     * @param  {Object}  options     Model options
+     *
+     * Options:
+     * - {WebRTCCall}  media     Media object
+     * - {Audio}       ringtone  Audio element
      */
-    initialize: function(attributes, media, ringtone) {
+    initialize: function(attributes, options) {
       this.set(attributes || {});
 
-      this.media = media;
-
-      this.ringtone = ringtone;
+      this.media = options && options.media;
+      this.ringtone = options && options.ringtone;
 
       this.state = StateMachine.create({
         initial: 'ready',

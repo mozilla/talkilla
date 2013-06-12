@@ -24,7 +24,10 @@ describe("Call", function() {
       pause: sandbox.stub()
     };
 
-    call = new app.models.Call({}, media, ringtone);
+    call = new app.models.Call({}, {
+      media: media,
+      ringtone: ringtone
+    });
   });
 
   afterEach(function() {
@@ -53,7 +56,7 @@ describe("Call", function() {
     });
 
     it("should set instance attributes", function() {
-      var call = new app.models.Call({otherUser: "larry"}, media);
+      var call = new app.models.Call({otherUser: "larry"}, {media: media});
       expect(call.get("otherUser")).to.equal("larry");
     });
   });

@@ -30,15 +30,27 @@ var ChatApp = (function($, Backbone, _) {
   function ChatApp() {
     this.port = app.port;
     app.data.user = new app.models.User();
+
     this.webrtc = new app.models.WebRTCCall();
-    this.call = new app.models.Call({}, this.webrtc,
-      new Audio("/snd/incoming_call_ring.opus"));
-    this.view = new app.views.ChatView(
-     { call: this.call });
-    this.callView = new app.views.CallView(
-     { call: this.call, el: $("#call") });
-    this.callOfferView = new app.views.CallOfferView(
-     { call: this.call, el: $("#offer") });
+
+    this.call = new app.models.Call({}, {
+      media: this.webrtc,
+      ringtone: new Audio("/snd/incoming_call_ring.opus")
+    });
+
+    this.view = new app.views.ChatView({
+      call: this.call
+    });
+
+    this.callView = new app.views.CallView({
+      call: this.call,
+      el: $("#call")
+    });
+
+    this.callOfferView = new app.views.CallOfferView({
+      call: this.call,
+      el: $("#offer")
+    });
 
     // Text chat
     this.textChat = new app.models.TextChat();
