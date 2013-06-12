@@ -15,6 +15,15 @@ var expect = chai.expect;
 
 describe('Worker', function() {
   "use strict";
+  var sandbox;
+
+  beforeEach(function() {
+    sandbox = sinon.sandbox.create();
+  });
+
+  afterEach(function() {
+    sandbox.restore();
+  });
 
   var sandbox;
 
@@ -73,10 +82,10 @@ describe('Worker', function() {
       expect(userData.displayName).to.equal("foo");
     });
 
-    it("should accept a configuration object and update defaults accordingly",
+    it("should accept a configuration object and update settings accordingly",
       function() {
         var userData = new UserData({}, {ROOTURL: "http://fake"});
-        expect(userData.iconURL).to.equal("http://fake/talkilla16.png");
+        expect(userData._rootURL).to.equal("http://fake");
       });
 
     it("should reset to defaults", function() {
@@ -85,6 +94,44 @@ describe('Worker', function() {
       userData.reset();
       expect(userData).to.include.keys(Object.keys(userData.defaults));
       expect(userData.displayName).to.equal(undefined);
+    });
+
+    // This may change in future, but for now they should be the same.
+    it("should return the same value for userName as it does displayName",
+      function() {
+        var userData = new UserData({displayName: "foo"});
+        expect(userData.userName).to.equal("foo");
+      });
+
+    describe("#send", function() {
+      var oldBrowserPort;
+
+      beforeEach(function() {
+        oldBrowserPort = browserPort;
+        browserPort = {
+          postEvent: sandbox.spy()
+        };
+      });
+
+      afterEach(function() {
+        browserPort = oldBrowserPort;
+      });
+
+      it("should send a social.user-profile message", function () {
+        var userData = new UserData({}, {ROOTURL: "http://fake"});
+        userData.userName = 'jb';
+
+        userData.send();
+
+        sinon.assert.calledOnce(browserPort.postEvent);
+
+        var data = browserPort.postEvent.args[0][1];
+        expect(data.userName).to.be.equal('jb');
+        expect(data.displayName).to.be.equal('jb');
+        expect(data.portrait).to.be.equal('http://fake/img/default-avatar.png');
+        expect(data.iconURL).to.be.equal('http://fake/img/talkilla16.png');
+        expect(data.profileURL).to.be.equal('http://fake/user.html');
+      });
     });
   });
 
@@ -350,6 +397,7 @@ describe('Worker', function() {
       socketStub = sinon.stub(window, "createPresenceSocket");
       _config.WSURL = wsurl;
       _currentUserData = new UserData({});
+      sandbox.stub(_currentUserData, "send");
       testableCallback = _signinCallback.bind({postEvent: function(){}});
     });
 
@@ -388,6 +436,7 @@ describe('Worker', function() {
       _currentUserData = new UserData({}, {
         ROOTURL: rootURL
       });
+      sandbox.stub(_currentUserData, "send");
     });
 
     afterEach(function() {
@@ -426,8 +475,13 @@ describe('Worker', function() {
         expect(requests[0].requestBody).to.be.equal('{"nick":"jb"}');
       });
 
-    it("should post a social.user-profile message if the server accepted " +
-       "login", function() {
+    describe("Accepted Login", function() {
+      var port;
+
+      beforeEach(function() {
+        port = {id: "tests", postEvent: sandbox.spy()};
+        ports.add(port);
+
         handlers['talkilla.login']({
           topic: "talkilla.login",
           data: {username: "jb"}
@@ -436,45 +490,33 @@ describe('Worker', function() {
 
         requests[0].respond(200, { 'Content-Type': 'application/json' },
           '{"nick":"jb"}' );
-
-        sinon.assert.calledOnce(browserPort.postEvent);
-        var args = browserPort.postEvent.args;
-        expect(args[0][1].userName).to.be.equal('jb');
-        expect(args[0][1].iconURL).to.contain(rootURL + '/talkilla16.png');
-        expect(args[0][1].profileURL).to.contain(rootURL + '/user.html');
       });
 
-    it("should post a success message if the server accepted login",
-      function() {
-        var port = {id: "tests", postEvent: sandbox.spy()};
-        ports.add(port);
-        handlers['talkilla.login']({
-          topic: "talkilla.login",
-          data: {username: "jb"}
-        });
-        expect(requests.length).to.equal(1);
-
-        requests[0].respond(200, { 'Content-Type': 'application/json' },
-          '{"nick":"jb"}' );
-
-        sinon.assert.calledOnce(port.postEvent);
-        sinon.assert.calledWith(port.postEvent, "talkilla.login-success");
+      afterEach(function() {
         ports.remove(port);
       });
 
-    it("should store the username if the server accepted login",
-      function() {
-        handlers['talkilla.login']({
-          topic: 'talkilla.login',
-          data: {username: 'jb'}
-        });
-        expect(requests.length).to.equal(1);
-
-        requests[0].respond(200, { 'Content-Type': 'application/json' },
-          '{"nick":"jb"}' );
-
-        expect(_currentUserData.userName).to.equal('jb');
+      it("should store the userName if the server accepted login", function() {
+        expect(_currentUserData.userName).to.be.equal("jb");
       });
+
+      it("should send the current user data if the server accepted login",
+        function() {
+          sinon.assert.calledOnce(_currentUserData.send);
+        });
+
+      it("should post a success message if the server accepted login",
+        function() {
+          sinon.assert.calledOnce(port.postEvent);
+          sinon.assert.calledWith(port.postEvent, "talkilla.login-success");
+          ports.remove(port);
+        });
+
+      it("should store the username if the server accepted login",
+        function() {
+          expect(_currentUserData.userName).to.equal('jb');
+        });
+    });
 
     it("should notify new sidebars of the logged in user",
       function() {
@@ -580,35 +622,43 @@ describe('Worker', function() {
         expect(requests[0].requestBody).to.be.equal('{"nick":"romain"}');
       });
 
-    it("should post a success message",
-      function() {
-        var port = {id: "tests", postEvent: sandbox.spy()};
+    describe("Success logout", function() {
+      var port;
+
+      beforeEach(function () {
+        port = {id: "tests", postEvent: sandbox.spy()};
         ports.add(port);
+
+        sandbox.stub(_currentUserData, "reset");
+        sandbox.stub(_currentUserData, "send");
+
         handlers['talkilla.logout']({
           topic: 'talkilla.logout'
         });
 
         requests[0].respond(200, { 'Content-Type': 'text/plain' },
           'OK' );
+      });
 
-        sinon.assert.calledOnce(port.postEvent);
-        sinon.assert.calledWith(port.postEvent, 'talkilla.logout-success');
+      afterEach(function() {
         ports.remove(port);
       });
 
-    it("should post a social.user-profile message", function() {
-        handlers['talkilla.logout']({
-          topic: 'talkilla.logout'
+      it("should post a success message",
+        function() {
+          sinon.assert.calledOnce(port.postEvent);
+          sinon.assert.calledWith(port.postEvent, 'talkilla.logout-success');
+          ports.remove(port);
         });
-        expect(requests.length).to.equal(1);
 
-        requests[0].respond(200, { 'Content-Type': 'text/plain' },
-          'OK' );
-
-        var spy = browserPort.postEvent;
-        sinon.assert.calledOnce(spy);
-        expect(spy.args[0][1].userName).to.be.equal(undefined);
+      it("should reset the current user data", function() {
+        sinon.assert.calledOnce(_currentUserData.reset);
       });
+
+      it("should send the current user data", function() {
+        sinon.assert.calledOnce(_currentUserData.send);
+      });
+    });
 
 
     it("should log failure, if the server failed to sign the user out",
@@ -629,6 +679,13 @@ describe('Worker', function() {
   });
 
   describe("talkilla.call-start", function() {
+    beforeEach(function() {
+      browserPort = {postEvent: sandbox.spy()};
+    });
+
+    afterEach(function() {
+      browserPort = undefined;
+    });
 
     it("should open a chat window when receiving a talkilla.call-start event",
       function() {
@@ -672,16 +729,12 @@ describe('Worker', function() {
   });
 
   describe("talkilla.chat-window-ready", function() {
-    var sandbox;
-
     beforeEach(function() {
-      sandbox = sinon.sandbox.create();
       browserPort = {postEvent: sandbox.spy()};
     });
 
     afterEach(function() {
       browserPort = undefined;
-      sandbox.restore();
     });
 
     it("should post a talkilla.login-success event when " +
@@ -762,6 +815,13 @@ describe('Worker', function() {
   });
 
   describe("Call offers and answers", function() {
+    beforeEach(function() {
+      browserPort = {postEvent: sandbox.spy()};
+    });
+
+    afterEach(function() {
+      browserPort = undefined;
+    });
 
     it("should send a websocket message when receiving talkilla.call-offer",
       function() {
@@ -839,6 +899,13 @@ describe('Worker', function() {
   });
 
   describe("#incoming_call", function() {
+    beforeEach(function() {
+      browserPort = {postEvent: sandbox.spy()};
+    });
+
+    afterEach(function() {
+      browserPort = undefined;
+    });
 
     it("should store the current call data", function() {
       var data = {

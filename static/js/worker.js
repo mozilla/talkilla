@@ -18,14 +18,10 @@ function openChatWindow() {
  * @param {Object|undefined}  config   Environment configuration
  */
 function UserData(initial, config) {
-  var rootURL = config ? config.ROOTURL : '';
+  this._rootURL = config ? config.ROOTURL : '';
 
   this.defaults = {
-    iconURL: rootURL + "/talkilla16.png",
-    portrait: undefined,
-    userName: undefined,
-    displayName: undefined,
-    profileURL: rootURL + "/user.html"
+    userName: undefined
   };
 
   this.reset();
@@ -37,12 +33,38 @@ function UserData(initial, config) {
 }
 
 UserData.prototype = {
+  /*jshint es5: true */
+  // Currently userName === displayName, so make them the same here.
+  get displayName() {
+    return this.userName;
+  },
+
+  set displayName(displayName) {
+    this.userName = displayName;
+  },
+
   /**
    * Resets current properties to default ones.
    */
   reset: function() {
     for (var key in this.defaults)
       this[key] = this.defaults[key];
+  },
+
+  /**
+   * Sends the current user data to Social
+   */
+  send: function() {
+    var userData = {
+      iconURL: this._rootURL + "/img/talkilla16.png",
+      // XXX for now, we just hard-code the default avatar image.
+      portrait: this._rootURL + "/img/default-avatar.png",
+      userName: this.userName,
+      displayName: this.displayName,
+      profileURL: this._rootURL + "/user.html"
+    };
+
+    browserPort.postEvent('social.user-profile', userData);
   }
 };
 
@@ -125,20 +147,13 @@ function _loginExpired() {
   ports.broadcastEvent("talkilla.logout-success", {});
 }
 
-function _setUserProfile(username) {
-  "use strict";
-
-  _currentUserData.userName = _currentUserData.displayName = username;
-  _currentUserData.portrait = "test.png";
-  browserPort.postEvent('social.user-profile', _currentUserData);
-}
-
 function _presenceSocketReAttached(username, event) {
   "use strict";
 
   _presenceSocket.removeEventListener("open", _presenceSocketReAttached);
   _setupWebSocket(_presenceSocket);
-  _setUserProfile(username);
+  _currentUserData.userName = username;
+  _currentUserData.send();
   _presenceSocketOnOpen(event);
   ports.broadcastEvent("talkilla.login-success", {username: username});
 }
@@ -193,12 +208,13 @@ function _signinCallback(err, responseText) {
     return this.postEvent('talkilla.login-failure', err);
   var username = JSON.parse(responseText).nick;
   if (username) {
-    _setUserProfile(username);
+    _currentUserData.userName = _currentUserData.displayName = username;
 
     ports.broadcastEvent('talkilla.login-success', {
       username: username
     });
 
+    _currentUserData.send();
     createPresenceSocket(username);
   }
 }
@@ -208,7 +224,7 @@ function _signoutCallback(err, responseText) {
     return this.postEvent('talkilla.error', 'Bad signout:' + err);
 
   _currentUserData.reset();
-  browserPort.postEvent('social.user-profile', _currentUserData);
+  _currentUserData.send();
   currentUsers = undefined;
   ports.broadcastEvent('talkilla.logout-success');
 }
