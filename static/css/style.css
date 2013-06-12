@@ -83,23 +83,23 @@
 }
 
 /**
- * Offer window
+ * Pending (i.e. offer & establish) views in the chat window
  */
-#offer {
+.pending {
   padding: 40px 10px 0 10px;
   text-align: center;
 }
 
-#offer .avatar {
+.pending .avatar {
   text-align: center;
 }
 
-#offer .avatar img {
+.pending .avatar img {
   width: 64px;
   height: 64px;
 }
 
-#offer .incoming-text {
+.pending .incoming-text {
   color: #555;
   font-size: 90%;
 }

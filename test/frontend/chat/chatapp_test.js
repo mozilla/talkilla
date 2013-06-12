@@ -120,6 +120,17 @@ describe("ChatApp", function() {
     sinon.assert.calledWithExactly(chatApp._onCallHangup);
   });
 
+  it("should initialize the callEstablishView property", function() {
+    "use strict";
+    sandbox.stub(app.views, "CallEstablishView");
+    chatApp = new ChatApp();
+    expect(chatApp.callEstablishView).
+      to.be.an.instanceOf(app.views.CallEstablishView);
+
+    sinon.assert.calledOnce(app.views.CallEstablishView);
+    sinon.assert.calledWithExactly(app.views.CallEstablishView,
+      { call: chatApp.call, el: $("#establish") });
+  });
 
   describe("ChatApp (constructed)", function () {
     var callFixture;
