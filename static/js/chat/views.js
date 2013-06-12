@@ -86,7 +86,7 @@
     el: "#establish",
 
     events: {
-      'click .btn-accept': 'accept'
+      'click .btn-abort': '_abort'
     },
 
     initialize: function(options) {
@@ -109,11 +109,12 @@
       this.render();
     },
 
-    accept: function(event) {
-      if (event)
+    _abort: function(event) {
+      if (event) {
         event.preventDefault();
+      }
 
-      this.call.accept();
+      window.close();
     },
 
     render: function() {

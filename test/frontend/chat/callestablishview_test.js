@@ -11,7 +11,7 @@ describe('Call Establish View', function() {
     $('body').append([
       '<div id="establish">',
       '  <p class="avatar"><img src="" id="avatar"></p>',
-      '  <p class="actions"><a class="btn btn-accept">Accept</a></p>',
+      '  <p class="actions"><a class="btn btn-abort">End Call</a></p>',
       '</div>'
     ].join(''));
     sandbox = sinon.sandbox.create();
@@ -85,6 +85,32 @@ describe('Call Establish View', function() {
 
         expect(establishView.$el.is(":visible")).to.be.equal(false);
       });
+  });
+
+  describe("#_abort", function() {
+    var establishView, event;
+
+    beforeEach(function() {
+      establishView = new app.views.CallEstablishView({call: call});
+      event = { preventDefault: sinon.spy() };
+      sandbox.stub(window, "close");
+    });
+
+    it("should call preventDefault on any event passed", function() {
+
+      establishView._abort(event);
+
+      sinon.assert.calledOnce(event.preventDefault);
+      sinon.assert.calledWithExactly(event.preventDefault);
+    });
+
+    it("should call window.close", function() {
+      establishView._abort(event);
+
+      sinon.assert.calledOnce(window.close);
+      sinon.assert.calledWithExactly(window.close);
+    });
+
   });
 
   describe("#render", function() {
