@@ -234,9 +234,9 @@
       }, this);
 
       this.call.on('change:state', function(to) {
-        if (to === "pending")
+        if (to === "ongoing")
           this.$el.show();
-        else if (to === "terminated")
+        else if (to !== "ongoing")
           this.$el.hide();
       }.bind(this));
     },
