@@ -17,6 +17,10 @@ describe("ChatApp", function() {
     app.port = {postEvent: sinon.spy()};
     _.extend(app.port, Backbone.Events);
     sandbox.stub(window, "addEventListener");
+    sandbox.stub(window, "Audio").returns({
+      play: sandbox.stub(),
+      pause: sandbox.stub()
+    });
     // Although we're not testing it in this set of tests, stub the WebRTCCall
     // model's initialize function, as creating new media items
     // (e.g. PeerConnection) takes a lot of time that we don't need to spend.

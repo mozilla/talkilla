@@ -31,7 +31,8 @@ var ChatApp = (function($, Backbone, _) {
     this.port = app.port;
     app.data.user = new app.models.User();
     this.webrtc = new app.models.WebRTCCall();
-    this.call = new app.models.Call({}, this.webrtc);
+    this.call = new app.models.Call({}, this.webrtc,
+      new Audio("/snd/incoming_call_ring.opus"));
     this.view = new app.views.ChatView(
      { call: this.call });
     this.callView = new app.views.CallView(

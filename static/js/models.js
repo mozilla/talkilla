@@ -8,11 +8,20 @@
 
   app.models.Call = Backbone.Model.extend({
     media: undefined,
+    ringtone: undefined,
 
-    initialize: function(attributes, media) {
+    /**
+     * Call model constructor.
+     * @param  {Object}  attributes  Model attributes
+     * @param  {WebRTCCall}  media  Media object
+     * @param  {Audio}  ringtone  Audio element
+     */
+    initialize: function(attributes, media, ringtone) {
       this.set(attributes || {});
 
       this.media = media;
+
+      this.ringtone = ringtone;
 
       this.state = StateMachine.create({
         initial: 'ready',
@@ -93,6 +102,7 @@
         incomingData: options
       });
       this.state.incoming();
+      this._ringStart();
     },
 
     /**
@@ -113,6 +123,7 @@
     accept: function() {
       this.media.answer(this.get('incomingData'));
       this.state.accept();
+      this._ringStop();
     },
 
     /**
@@ -121,6 +132,26 @@
     hangup: function() {
       this.state.hangup();
       this.media.hangup();
+      this._ringStop();
+    },
+
+    /**
+     * Starts the ringtone.
+     */
+    _ringStart: function() {
+      if (!this.ringtone)
+        return;
+      this.ringtone.play();
+    },
+
+    /**
+     * Stops the ringtone.
+     */
+    _ringStop: function() {
+      if (!this.ringtone)
+        return;
+      this.ringtone.pause();
+      this.ringtone.currentTime = 0;
     }
   });
 

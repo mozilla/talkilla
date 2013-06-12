@@ -5,11 +5,11 @@ var expect = chai.expect;
 
 describe("Call", function() {
 
-  var sandbox, call, media;
+  var sandbox, call, media, ringtone;
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
-    // XXX This should probably be a mock, but sinon mocks don't seem to want
+    // XXX These should probably be mocks, but sinon mocks don't seem to want
     // to work with Backbone.
     media = {
       answer: sandbox.stub(),
@@ -18,7 +18,13 @@ describe("Call", function() {
       offer: sandbox.stub(),
       on: sandbox.stub()
     };
-    call = new app.models.Call({}, media);
+
+    ringtone = {
+      play: sandbox.stub(),
+      pause: sandbox.stub()
+    };
+
+    call = new app.models.Call({}, media, ringtone);
   });
 
   afterEach(function() {
@@ -100,6 +106,12 @@ describe("Call", function() {
       expect(call.get("incomingData")).to.equal(callData);
     });
 
+    it("should start ringing", function() {
+      call.incoming(callData);
+
+      sinon.assert.calledOnce(call.ringtone.play);
+    });
+
   });
 
   describe("#accept", function() {
@@ -117,6 +129,13 @@ describe("Call", function() {
 
       sinon.assert.calledOnce(media.answer);
       sinon.assert.calledWithExactly(media.answer, callData);
+    });
+
+    it("should stop ringing", function() {
+      call.incoming(callData);
+      call.accept();
+
+      sinon.assert.calledOnce(call.ringtone.pause);
     });
   });
 
@@ -164,6 +183,13 @@ describe("Call", function() {
 
       sinon.assert.calledOnce(media.hangup);
       sinon.assert.calledWithExactly(media.hangup);
+    });
+
+    it("should ensure to stop any ongoing ringtone", function() {
+      call.start({});
+      call.hangup();
+
+      sinon.assert.calledOnce(call.ringtone.pause);
     });
   });
 
