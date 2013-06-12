@@ -6,7 +6,20 @@
 (function(app, Backbone, StateMachine) {
   "use strict";
 
+  /**
+   * Call model.
+   *
+   * Attributes:
+   * - {String} otherUser
+   * - {Object} incomingData
+   *
+   * Fired when #start() is called and the pending call timeout is reached with
+   * no response from the other side.
+   * @event offer-timeout
+   * @param {Object} options Current call start options (see #start)
+   */
   app.models.Call = Backbone.Model.extend({
+    timer: undefined,
     media: undefined,
     ringtone: undefined,
 
@@ -35,6 +48,7 @@
           // Incoming call scenario
           {name: 'incoming',  from: 'ready',    to: 'incoming'},
           {name: 'accept',    from: 'incoming', to: 'pending'},
+          {name: 'ignore',    from: 'incoming', to: 'terminated'},
           {name: 'complete',  from: 'pending',  to: 'ongoing'},
 
           // Call hangup
@@ -72,7 +86,8 @@
     },
 
     /**
-     * Starts an outbound call call
+     * Starts an outbound call.
+     *
      * @param {Object} options object containing:
      *
      * - caller: The id of the user logged in
@@ -81,6 +96,10 @@
      * - audio: set to true to enable audio
      */
     start: function(options) {
+      this._startTimer({
+        callData: options,
+        timeout: app.options.PENDING_CALL_TIMEOUT
+      });
       this.set({otherUser: options.callee});
       this.state.start();
       this.media.offer(options);
@@ -115,6 +134,7 @@
      * media.
      */
     establish: function(options) {
+      clearTimeout(this.timer);
       this.state.establish();
       this.media.establish(options);
     },
@@ -129,9 +149,17 @@
     },
 
     /**
+     * Ignores an incoming call.
+     */
+    ignore: function() {
+      this.state.ignore();
+    },
+
+    /**
      * Hangs up a call
      */
     hangup: function() {
+      clearTimeout(this.timer);
       this.state.hangup();
       this.media.hangup();
       this._ringStop();
@@ -154,6 +182,23 @@
         return;
       this.ringtone.pause();
       this.ringtone.currentTime = 0;
+    },
+
+    /**
+     * Starts the outgoing pending call timer.
+     * @param {Object} options:
+     *      - {Number} timeout   Timeout in ms
+     *      - {Object} callData  Current outgoing pending call data
+     */
+    _startTimer: function(options) {
+      if (!options || !options.timeout)
+        return;
+
+      var onTimeout = function() {
+        this.trigger('offer-timeout', options.callData);
+      }.bind(this);
+
+      this.timer = setTimeout(onTimeout, options.timeout);
     }
   });
 
@@ -275,7 +320,8 @@
      * Close the p2p connection.
      */
     hangup: function() {
-      this.pc.close();
+      if (this.pc && this.pc.signalingState !== "closed")
+        this.pc.close();
     },
 
     _createOffer: function(callback) {
