@@ -177,10 +177,16 @@ var handlers = {
   // SocialAPI events
   'social.port-closing': function() {
     ports.remove(this);
+    if (browserPort === this)
+      browserPort = undefined;
   },
 
   'social.initialize': function() {
+    // Save the browserPort
     browserPort = this;
+    // Don't have it in the main list of ports, as we don't need
+    // to broadcast all our talkilla.* messages to the social api.
+    ports.remove(this);
   },
 
   // Talkilla events
