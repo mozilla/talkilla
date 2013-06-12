@@ -238,6 +238,21 @@ var handlers = {
     this.postEvent(topic, currentCall.data);
   },
 
+  /**
+   * The data for talkilla.offer-timeout is:
+   *
+   * - caller: The id of the user logged in
+   * - callee: The id of the user to be called
+   * - video: set to true to enable video
+   * - audio: set to true to enable audio
+   */
+  'talkilla.offer-timeout': function(event) {
+    ports.broadcastEvent("talkilla.offer-timeout", event.data);
+  },
+
+  /**
+   * Called when the sidebar is ready.
+   */
   'talkilla.sidebar-ready': function() {
     if (_currentUserData.userName) {
       // If there's currenty a logged in user,
@@ -316,6 +331,8 @@ Port.prototype = {
    * @param  {Mixed}  data
    */
   postEvent: function(topic, data) {
+    // FIXME: for no obvious reason, this may eventually fail if the port is
+    //        closed, while it should never be the case
     this.port.postMessage({topic: topic, data: data});
   }
 };
