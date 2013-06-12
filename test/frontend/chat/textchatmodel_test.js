@@ -4,7 +4,7 @@
 /* jshint expr:true */
 var expect = chai.expect;
 
-describe('Text chat', function() {
+describe('Text chat models', function() {
   "use strict";
 
   describe("app.models.TextChatEntry", function() {

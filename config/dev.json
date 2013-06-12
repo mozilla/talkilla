@@ -1,3 +1,4 @@
 {
-  "DEBUG": true
+  "DEBUG": true,
+  "PENDING_CALL_TIMEOUT": 10000
 }

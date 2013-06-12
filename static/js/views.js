@@ -62,6 +62,11 @@
       app.data.user.on('signout', function() {
         this.clear();
       }.bind(this));
+
+      app.port.on('talkilla.offer-timeout', function(callData) {
+        app.utils.notifyUI("The other party, " + callData.callee +
+                           ", did not respond", "error");
+      });
     },
 
     /**

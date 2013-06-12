@@ -20,6 +20,11 @@
       this.call.on('change:otherUser', function(to) {
         document.title = to.get("otherUser");
       });
+
+      this.call.on('offer-timeout', function() {
+        // outgoing call didn't go through, close the window
+        window.close();
+      });
     }
   });
 
@@ -30,7 +35,8 @@
     el: "#offer",
 
     events: {
-      'click .btn-accept': 'accept'
+      'click .btn-accept': 'accept',
+      'click .btn-ignore': 'ignore'
     },
 
     initialize: function(options) {
@@ -55,6 +61,15 @@
         event.preventDefault();
 
       this.call.accept();
+    },
+
+    ignore: function(event) {
+      if (event)
+        event.preventDefault();
+
+      this.call.ignore();
+
+      window.close();
     },
 
     render: function() {
