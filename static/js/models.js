@@ -13,8 +13,8 @@
    * - {String} otherUser
    * - {Object} incomingData
    *
-   * Fired when `PENDING_CALL_TIMEOUT` is reached with no response from the
-   * other side.
+   * Fired when #start() is called and the pending call timeout is reached with
+   * no response from the other side.
    * @event offer-timeout
    * @param {Object} options Current call start options (see #start)
    */

@@ -64,7 +64,6 @@
       }.bind(this));
 
       app.port.on('talkilla.offer-timeout', function(callData) {
-        console.log(callData);
         app.utils.notifyUI("The other party, " + callData.callee +
                            ", did not respond", "error");
       });
