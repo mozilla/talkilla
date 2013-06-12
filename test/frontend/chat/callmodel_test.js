@@ -179,38 +179,23 @@ describe("Call", function() {
     });
   });
 
-  describe("#_onOfferTimeout", function() {
-    it("should trigger the `offer-timeout` event", function(done) {
-      var callData = {foo: "bar"};
-      call.on("offer-timeout", function(data) {
-        expect(data).to.deep.equal(callData);
+  describe("#_startTimer", function() {
+    it("should setup a timer and trigger the `offer-timeout` event on timeout",
+      function(done) {
+        var callData = {foo: "bar"};
+        sandbox.stub(call, "trigger");
+        expect(call.timer).to.be.a("undefined");
+
+        call._startTimer({timeout: 3000, callData: callData});
+
+        expect(call.timer).to.be.a("number");
+
+        sandbox.clock.tick(3000);
+
+        sinon.assert.calledOnce(call.trigger);
+        sinon.assert.calledWithExactly(call.trigger, "offer-timeout", callData);
         done();
       });
-
-      call._onOfferTimeout(callData);
-    });
-
-    it("should post the `talkilla.offer-timeout` event to the worker",
-      function() {
-        var callData = {foo: "bar"};
-
-        call._onOfferTimeout(callData);
-
-        sinon.assert.calledOnce(app.port.postEvent);
-        sinon.assert.calledWithExactly(app.port.postEvent,
-          "talkilla.offer-timeout", callData);
-      });
-  });
-
-  describe("#_startTimer", function() {
-    it("should setup a timer", function(done) {
-      expect(call.timer).to.be.a("undefined");
-      call._startTimer({timeout: 3000});
-      expect(call.timer).to.be.a("number");
-
-      sandbox.clock.tick(3000);
-      done();
-    });
   });
 
   describe("ready event handling", function() {

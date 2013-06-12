@@ -10,7 +10,6 @@
    * Call model.
    *
    * Attributes:
-   * - {String} id
    * - {String} otherUser
    * - {Object} incomingData
    *
@@ -153,15 +152,6 @@
     },
 
     /**
-     * Called when a call offer did not go through.
-     * @param  {Object} callData Call data
-     */
-    _onOfferTimeout: function(callData) {
-      this.trigger('offer-timeout', callData);
-      app.port.postEvent('talkilla.offer-timeout', callData);
-    },
-
-    /**
      * Starts the outgoing pending call timer.
      * @param {Object} options:
      *      - {Number} timeout   Timeout in ms
@@ -170,7 +160,11 @@
     _startTimer: function(options) {
       if (!options || !options.timeout)
         return;
-      var onTimeout = this._onOfferTimeout.bind(this, options.callData);
+
+      var onTimeout = function() {
+        this.trigger('offer-timeout', options.callData);
+      }.bind(this);
+
       this.timer = setTimeout(onTimeout, options.timeout);
     }
   });
