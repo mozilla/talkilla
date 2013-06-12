@@ -145,8 +145,8 @@
       this.call.media.on('change:remoteStream', this._displayRemoteVideo, this);
 
       options.call.on('change:state', function(to) {
-        if (to === "pending")
-          this.pending();
+        if (to === "ongoing")
+          this.ongoing();
         else if (to === "terminated")
           this.terminated();
       }, this);
@@ -160,7 +160,7 @@
                       // conversation window open (eg. for text chat)
     },
 
-    pending: function() {
+    ongoing: function() {
       this.$el.show();
       this.$('.btn-video').hide();
       this.$('.btn-audio').hide();
