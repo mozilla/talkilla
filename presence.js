@@ -215,7 +215,7 @@ function configureWs(ws, nick) {
   ws.on('close', function() {
     var users = app.get('users');
 
-    Object.keys(users).map(function(nick) {
+    Object.keys(users).forEach(function(nick) {
       var user = users[nick];
       if (user.ws === ws)
         delete user.ws;

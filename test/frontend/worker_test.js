@@ -3,11 +3,11 @@
    _presenceSocket:true, loadconfig, ports:true,
    _presenceSocketOnMessage, _presenceSocketOnError,
    _presenceSocketOnClose, _presenceSocketSendMessage:true,
-   _presenceSocketOnOpen, _signinCallback, _presenceSocket,
-   currentUsers:true, browserPort:true, _currentUserData:true,
-   UserData, currentCall:true, serverHandlers, tryPresenceSocket,
+   _presenceSocketOnOpen, _signinCallback, currentUsers:true,
+   browserPort:true, _currentUserData:true, UserData,
+   currentCall:true, serverHandlers, tryPresenceSocket,
    _presenceSocketReAttached, _loginExpired, _setupWebSocket,
-   _setUserProfile */
+   _setUserProfile, _ */
 /* jshint expr:true */
 /* Needed due to the use of non-camelcase in the websocket topics */
 /* jshint camelcase:false */
@@ -32,7 +32,7 @@ describe('Worker', function() {
     var oldConfig, xhr, requests;
 
     beforeEach(function() {
-      oldConfig = _config;
+      oldConfig = _.clone(_config);
       // XXX For some reason, sandbox.useFakeXMLHttpRequest doesn't want to work
       // nicely so we have to manually xhr.restore for now.
       xhr = sinon.useFakeXMLHttpRequest();
@@ -870,10 +870,15 @@ describe('Worker', function() {
   });
 
   describe("#tryPresenceSocket", function() {
-    var wsurl = "ws://example.com/";
+    var wsurl = "ws://example.com/", oldConfig;
 
     beforeEach(function() {
+      oldConfig = _.clone(_config);
       _config.WSURL = wsurl;
+    });
+
+    afterEach(function() {
+      _config = oldConfig;
     });
 
     it("should create a websocket and attach it to _presenceSocket",

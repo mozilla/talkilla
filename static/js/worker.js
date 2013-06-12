@@ -101,6 +101,8 @@ function _presenceSocketOnClose(event) {
 }
 
 function _setupWebSocket(ws) {
+  "use strict";
+
   ws.onopen = _presenceSocketOnOpen;
   ws.onmessage = _presenceSocketOnMessage;
   ws.onerror = _presenceSocketOnError;
@@ -117,17 +119,23 @@ function createPresenceSocket(nickname) {
 }
 
 function _loginExpired() {
+  "use strict";
+
   _presenceSocket.removeEventListener("error", _loginExpired);
   ports.broadcastEvent("talkilla.logout-success", {});
 }
 
 function _setUserProfile(username) {
+  "use strict";
+
   _currentUserData.userName = _currentUserData.displayName = username;
   _currentUserData.portrait = "test.png";
   browserPort.postEvent('social.user-profile', _currentUserData);
 }
 
 function _presenceSocketReAttached(username, event) {
+  "use strict";
+
   _presenceSocket.removeEventListener("open", _presenceSocketReAttached);
   _setupWebSocket(_presenceSocket);
   _setUserProfile(username);
@@ -137,6 +145,7 @@ function _presenceSocketReAttached(username, event) {
 
 function tryPresenceSocket(nickname) {
   "use strict";
+  /*jshint validthis:true */
 
   _presenceSocket = new WebSocket(_config.WSURL + "?nick=" + nickname);
   _presenceSocket.addEventListener(
