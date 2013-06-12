@@ -23,7 +23,6 @@
 
       this.call.on('offer-timeout', function() {
         // outgoing call didn't go through, close the window
-        // note: caller notification is sent from the model
         window.close();
       });
     }
