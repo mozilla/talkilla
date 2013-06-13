@@ -20,15 +20,14 @@
    */
   function AudioLibrary(sounds) {
     this.sounds = {};
-    for (var name in (sounds || {})) {
+    for (var name in (sounds || {}))
       this.sounds[name] = new Audio(sounds[name]);
-    }
   }
   app.utils.AudioLibrary = AudioLibrary;
 
   /**
    * Starts playing one or more registered sounds.
-   * @return {*args} list of registered sounds to play
+   * @param {*args} list of registered sounds to play
    */
   AudioLibrary.prototype.play = function() {
     [].slice.call(arguments).forEach(function(name) {
@@ -39,7 +38,7 @@
 
   /**
    * Stops playing one or more registered sounds.
-   * @return {*args} list of registered sounds to stop
+   * @param {*args} list of registered sounds to stop
    */
   AudioLibrary.prototype.stop = function() {
     [].slice.call(arguments).forEach(function(name) {
