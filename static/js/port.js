@@ -1,5 +1,5 @@
 /* jshint camelcase:false */
-/* global app, Backbone, _ */
+/* global app, $, Backbone, _ */
 /**
  * Social API Worker Port wrapper & message events listener/dispatcher.
  */
@@ -50,6 +50,7 @@
   };
 
   app.port.on("talkilla.login-success", function(data) {
+    $.cookie('nick', data.username, {expires: 10});
     app.data.user.set({nick: data.username, presence: "connected"});
   });
 

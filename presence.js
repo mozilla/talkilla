@@ -93,6 +93,15 @@ function _usersToArray(users) {
   });
 }
 
+function _presentUsers(users) {
+  return Object.keys(users)
+    .filter(function(nick) {
+      return !!users[nick].ws;
+    }).map(function(nick) {
+      return {nick: nick};
+    });
+}
+
 app.get('/config.json', function(req, res) {
   res.header('Content-Type', 'application/json');
   res.send(200, JSON.stringify(app.get('config')));
@@ -123,11 +132,6 @@ app.post('/signout', function(req, res) {
 
   delete users[req.body.nick];
   app.set('users', users);
-
-  Object.keys(users).forEach(function(nick) {
-    var ws = users[nick].ws;
-    ws.send(JSON.stringify({users: _usersToArray(users)}), function(error) {});
-  });
 
   res.send(200, JSON.stringify(true));
 });
@@ -213,12 +217,15 @@ function configureWs(ws, nick) {
 
     Object.keys(users).forEach(function(nick) {
       var user = users[nick];
-
       if (user.ws === ws)
-        delete users[nick];
+        delete user.ws;
+    });
 
-      user.ws.send(JSON.stringify({users: _usersToArray(users)}),
-                   function(error) {});
+    Object.keys(users).forEach(function(nick) {
+      var user = users[nick];
+      if (user.ws)
+        user.ws.send(JSON.stringify({users: _presentUsers(users)}),
+                     function(error) {});
     });
 
     app.set('users', users);
@@ -232,10 +239,12 @@ function httpUpgradeHandler(req, socket, upgradeHead) {
   var nick = url.parse(req.url, true).query.nick;
   var res = new http.ServerResponse(req);
 
+  // XXX: need a test for that
   if (!(nick in users)) {
     res.assignSocket(socket);
     res.statusCode = 400;
     res.end();
+    return;
   }
 
   module.exports._wss.handleUpgrade(req, socket, upgradeHead, function(ws) {
@@ -248,7 +257,7 @@ function httpUpgradeHandler(req, socket, upgradeHead) {
     Object.keys(users).forEach(function(nick) {
       var user = users[nick];
       if (user.ws)
-        user.ws.send(JSON.stringify({users: _usersToArray(users)}));
+        user.ws.send(JSON.stringify({users: _presentUsers(users)}));
     });
   });
 }
@@ -312,6 +321,7 @@ app.shutdown = function(callback) {
 module.exports.app = app;
 module.exports.findNewNick = findNewNick;
 module.exports._usersToArray = _usersToArray;
+module.exports._presentUsers = _presentUsers;
 module.exports._configureWebSocketServer = _configureWebSocketServer;
 module.exports._createWebSocketServer = _createWebSocketServer;
 module.exports._destroyWebSocketServer = _destroyWebSocketServer;

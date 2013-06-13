@@ -42,6 +42,7 @@
   <!-- /Users view -->
 
   <script src="vendor/jquery-1.9.1.js"></script>
+  <script src="vendor/jquery.cookie-1.3.1.js"></script>
   <script src="vendor/underscore-1.4.4.js"></script>
   <script src="vendor/backbone-1.0.0.js"></script>
   <script src="vendor/bootstrap-2.1.1/js/bootstrap.js"></script>
@@ -53,9 +54,10 @@
   <script src="js/views.js"></script>
   <script>
     $(function() {
+      var nick = $.cookie("nick");
       $.getJSON('/config.json', function(config) {
         app.start(config);
-        window.sidebarApp = new SidebarApp();
+        window.sidebarApp = new SidebarApp({nick: nick});
       });
     });
   </script>

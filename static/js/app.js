@@ -27,15 +27,16 @@ var SidebarApp = (function($, Backbone, _) {
       this.data.user = new app.models.User();
 
       _.extend(this.options, options || {});
-
-      this.port.postEvent('talkilla.sidebar-ready', {});
     }
   };
 
   // Add event support to the app
   _.extend(app, Backbone.Events);
 
-  function SidebarApp() {
+  function SidebarApp(options) {
+    options = options || {};
+
+    this.port = app.port;
     this.view = new app.views.AppView();
 
     app.data.user.on("signout", function () {
@@ -45,17 +46,9 @@ var SidebarApp = (function($, Backbone, _) {
       var user = app.data.user;
       app.data = { user: user };
     });
-  }
 
-  // window event listeners
-  window.onbeforeunload = function() {
-    if (!app.data.user || !app.data.user.get("nick"))
-      return;
-    app.port.logout(function(err) {
-      if (err)
-        app.utils.log('Error occured while signing out:', err);
-    });
-  };
+    this.port.postEvent("talkilla.sidebar-ready", {nick: options.nick});
+  }
 
   return SidebarApp;
 })(jQuery, Backbone, _);

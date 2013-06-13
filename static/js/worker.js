@@ -100,15 +100,57 @@ function _presenceSocketOnClose(event) {
   currentUsers = undefined;
 }
 
+function _setupWebSocket(ws) {
+  "use strict";
+
+  ws.onopen = _presenceSocketOnOpen;
+  ws.onmessage = _presenceSocketOnMessage;
+  ws.onerror = _presenceSocketOnError;
+  ws.onclose = _presenceSocketOnClose;
+}
+
 function createPresenceSocket(nickname) {
   "use strict";
 
   _presenceSocket = new WebSocket(_config.WSURL + "?nick=" + nickname);
-  _presenceSocket.onopen = _presenceSocketOnOpen;
-  _presenceSocket.onmessage = _presenceSocketOnMessage;
-  _presenceSocket.onerror = _presenceSocketOnError;
-  _presenceSocket.onclose = _presenceSocketOnClose;
+  _setupWebSocket(_presenceSocket);
 
+  ports.broadcastEvent("talkilla.presence-pending", {});
+}
+
+function _loginExpired() {
+  "use strict";
+
+  _presenceSocket.removeEventListener("error", _loginExpired);
+  ports.broadcastEvent("talkilla.logout-success", {});
+}
+
+function _setUserProfile(username) {
+  "use strict";
+
+  _currentUserData.userName = _currentUserData.displayName = username;
+  _currentUserData.portrait = "test.png";
+  browserPort.postEvent('social.user-profile', _currentUserData);
+}
+
+function _presenceSocketReAttached(username, event) {
+  "use strict";
+
+  _presenceSocket.removeEventListener("open", _presenceSocketReAttached);
+  _setupWebSocket(_presenceSocket);
+  _setUserProfile(username);
+  _presenceSocketOnOpen(event);
+  ports.broadcastEvent("talkilla.login-success", {username: username});
+}
+
+function tryPresenceSocket(nickname) {
+  "use strict";
+  /*jshint validthis:true */
+
+  _presenceSocket = new WebSocket(_config.WSURL + "?nick=" + nickname);
+  _presenceSocket.addEventListener(
+    "open", _presenceSocketReAttached.bind(this, nickname));
+  _presenceSocket.addEventListener("error", _loginExpired);
   ports.broadcastEvent("talkilla.presence-pending", {});
 }
 
@@ -151,14 +193,12 @@ function _signinCallback(err, responseText) {
     return this.postEvent('talkilla.login-failure', err);
   var username = JSON.parse(responseText).nick;
   if (username) {
-    _currentUserData.userName = _currentUserData.displayName = username;
-    _currentUserData.portrait = "test.png";
+    _setUserProfile(username);
 
     ports.broadcastEvent('talkilla.login-success', {
       username: username
     });
 
-    browserPort.postEvent('social.user-profile', _currentUserData);
     createPresenceSocket(username);
   }
 }
@@ -252,15 +292,21 @@ var handlers = {
 
   /**
    * Called when the sidebar is ready.
+   * The data for talkilla.sidebar-ready is:
+   *
+   * - nick: an optional previous nickname
    */
-  'talkilla.sidebar-ready': function() {
+  'talkilla.sidebar-ready': function(event) {
     if (_currentUserData.userName) {
-      // If there's currenty a logged in user,
+      // If there's currently a logged in user,
       this.postEvent('talkilla.login-success', {
         username: _currentUserData.userName
       });
       if (currentUsers)
         this.postEvent('talkilla.users', currentUsers);
+    } else if (event.data.nick) {
+      // No user data available, may still be logged in
+      tryPresenceSocket(event.data.nick);
     }
   },
 
