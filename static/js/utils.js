@@ -32,7 +32,8 @@
    */
   AudioLibrary.prototype.play = function() {
     [].slice.call(arguments).forEach(function(name) {
-      this.sounds[name].play();
+      if (name in this.sounds)
+        this.sounds[name].play();
     }.bind(this));
   };
 
@@ -42,8 +43,10 @@
    */
   AudioLibrary.prototype.stop = function() {
     [].slice.call(arguments).forEach(function(name) {
-      this.sounds[name].pause();
-      this.sounds[name].currentTime = 0;
+      if (name in this.sounds) {
+        this.sounds[name].pause();
+        this.sounds[name].currentTime = 0;
+      }
     }.bind(this));
   };
 
