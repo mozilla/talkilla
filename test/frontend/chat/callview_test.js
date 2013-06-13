@@ -18,7 +18,7 @@ describe("CallView", function() {
     // (e.g. PeerConnection) takes a lot of time that we don't need to spend.
     sandbox.stub(app.models.WebRTCCall.prototype, "initialize");
     media = new app.models.WebRTCCall();
-    call = new app.models.Call({}, media);
+    call = new app.models.Call({}, {media: media});
   });
 
   afterEach(function() {

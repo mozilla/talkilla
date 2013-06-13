@@ -22,10 +22,18 @@
     timer: undefined,
     media: undefined,
 
-    initialize: function(attributes, media) {
+    /**
+     * Call model constructor.
+     * @param  {Object}  attributes  Model attributes
+     * @param  {Object}  options     Model options
+     *
+     * Options:
+     * - {app.models.WebRTCCall}  media      Media object
+     */
+    initialize: function(attributes, options) {
       this.set(attributes || {});
 
-      this.media = media;
+      this.media = options && options.media;
 
       this.state = StateMachine.create({
         initial: 'ready',
@@ -46,6 +54,7 @@
         callbacks: {
           onenterstate: function(event, from, to) {
             this.trigger("change:state", to, from, event);
+            this.trigger("state:" + event);
           }.bind(this)
         }
       });
