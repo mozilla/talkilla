@@ -1,4 +1,4 @@
-/* global describe, it, before, after */
+/* global describe, it, before, after, beforeEach, afterEach */
 /* jshint expr:true */
 
 var presence = require("../../presence"),
@@ -36,10 +36,17 @@ describe("Chat Window Tests", function() {
     app.shutdown(done);
   });
 
-  it("should open a chat window when clicking a nick", function(done) {
+  beforeEach(function() {
     helpers.signInUser(driver, "bob", {refresh: true});
     helpers.signInUser(driver2, "larry", {refresh: true});
+  });
 
+  afterEach(function() {
+    helpers.signOutUser(driver2);
+    helpers.signOutUser(driver);
+  });
+
+  it("should open a chat window when clicking a nick", function(done) {
     // Click a nick
     var firstUser = By.css("ul.nav-list>li>a");
     helpers.waitForSelector(driver2, firstUser);
