@@ -38,6 +38,8 @@ var ChatApp = (function($, Backbone, _) {
      { call: this.call, el: $("#call") });
     this.callOfferView = new app.views.CallOfferView(
      { call: this.call, el: $("#offer") });
+    this.callEstablishView = new app.views.CallEstablishView(
+     { call: this.call, el: $("#establish") });
 
     // Text chat
     this.textChat = new app.models.TextChat();

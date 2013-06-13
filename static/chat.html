@@ -9,9 +9,9 @@
 </head>
 <body>
   <!-- Call Offer -->
-  <div id="offer" class="hide">
+  <div id="offer" class="pending hide">
     <p class="avatar">
-      <img src="img/default-avatar.png" id="avatar">
+      <img src="img/default-avatar.png" id="offerAvatar">
     </p>
     <p class="incoming-text">
       <img src="/img/video-icon.png"> Incoming video call…
@@ -22,6 +22,20 @@
     </p>
   </div>
   <!-- /Call Offer -->
+
+  <!-- Call Establish -->
+  <div id="establish" class="pending hide">
+    <p class="avatar">
+      <img src="img/default-avatar.png" id="establishAvatar">
+    </p>
+    <p class="incoming-text">
+      <img src="/img/video-icon.png"> Calling…
+    </p>
+    <p class="actions">
+      <a class="btn btn-danger btn-abort">End Call</a>
+    </p>
+  </div>
+  <!-- /Call Establish -->
 
   <!-- Call view -->
   <div id="call" class="hide">

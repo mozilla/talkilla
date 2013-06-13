@@ -56,7 +56,7 @@ describe("CallView", function() {
       beforeEach(function() {
         sandbox.stub(call, "on");
 
-        sandbox.stub(app.views.CallView.prototype, "pending");
+        sandbox.stub(app.views.CallView.prototype, "ongoing");
         sandbox.stub(app.views.CallView.prototype, "terminated");
         callView = new app.views.CallView({el: {}, call: call});
       });
@@ -66,13 +66,13 @@ describe("CallView", function() {
         sinon.assert.calledWith(call.on, 'change:state');
       });
 
-      it("should call CallView#pending() when change:state goes to the " +
-         "pending state",
+      it("should call CallView#ongoing() when change:state goes to the " +
+         "ongoing state",
         function() {
           var changeStateCallback = call.on.args[0][1].bind(callView);
-          changeStateCallback("pending");
+          changeStateCallback("ongoing");
 
-          sinon.assert.calledOnce(callView.pending);
+          sinon.assert.calledOnce(callView.ongoing);
         });
 
       it("should call CallView#terminated() when change:state goes to the " +
@@ -135,13 +135,13 @@ describe("CallView", function() {
     });
   });
 
-  describe("#pending", function() {
+  describe("#ongoing", function() {
     it("should show this widget", function() {
       var el = $('<div><div id="foo"></div></div>');
       $("#fixtures").append(el);
       var callView = new app.views.CallView({el: el, call: call});
 
-      callView.pending();
+      callView.ongoing();
 
       expect(callView.$el.is(':visible')).to.equal(true);
     });
