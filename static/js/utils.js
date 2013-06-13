@@ -28,7 +28,7 @@
 
   /**
    * Starts playing one or more registered sounds.
-   * @return {*} list of registered sounds to play
+   * @return {*args} list of registered sounds to play
    */
   AudioLibrary.prototype.play = function() {
     [].slice.call(arguments).forEach(function(name) {
@@ -39,7 +39,7 @@
 
   /**
    * Stops playing one or more registered sounds.
-   * @return {*} list of registered sounds to stop
+   * @return {*args} list of registered sounds to stop
    */
   AudioLibrary.prototype.stop = function() {
     [].slice.call(arguments).forEach(function(name) {
