@@ -75,6 +75,11 @@ describe("Sidebar Tests", function() {
   });
 
   it("should sign users out", function(done) {
+    driver.switchTo().frame("//#social-sidebar-browser");
+    helpers.signOutUser(driver);
+    driver2.switchTo().frame("//#social-sidebar-browser");
+    helpers.signOutUser(driver2);
+
     // Sign in user 1
     helpers.signInUser(driver, "bob", {refresh: true});
     driver.findElement(By.id("signout")).isDisplayed().then(function(res) {
