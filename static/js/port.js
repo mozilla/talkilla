@@ -60,6 +60,7 @@
   });
 
   app.port.on("talkilla.logout-success", function() {
+    $.removeCookie('nick');
     app.data.user.clear();
   });
 
