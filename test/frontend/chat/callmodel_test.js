@@ -21,7 +21,8 @@ describe("Call", function() {
       offer: sandbox.stub(),
       on: sandbox.stub()
     };
-    call = new app.models.Call({}, media);
+
+    call = new app.models.Call({}, {media: media});
   });
 
   afterEach(function() {
@@ -51,7 +52,7 @@ describe("Call", function() {
     });
 
     it("should set instance attributes", function() {
-      var call = new app.models.Call({otherUser: "larry"}, media);
+      var call = new app.models.Call({otherUser: "larry"}, {media: media});
       expect(call.get("otherUser")).to.equal("larry");
     });
   });
@@ -122,6 +123,7 @@ describe("Call", function() {
       sinon.assert.calledOnce(media.answer);
       sinon.assert.calledWithExactly(media.answer, callData);
     });
+
   });
 
   describe("#establish", function() {
@@ -177,6 +179,7 @@ describe("Call", function() {
       sinon.assert.calledOnce(media.hangup);
       sinon.assert.calledWithExactly(media.hangup);
     });
+
   });
 
   describe("#_startTimer", function() {
