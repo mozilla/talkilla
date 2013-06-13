@@ -6,7 +6,7 @@ var expect = chai.expect;
 
 describe('TextChatView', function() {
   "use strict";
-  var chatApp, media, sandbox, call;
+  var chatApp, sandbox, call;
 
   beforeEach(function() {
     $('body').append([
@@ -20,12 +20,15 @@ describe('TextChatView', function() {
     sandbox.stub(window, "mozRTCPeerConnection").returns({
       createDataChannel: function() {}
     });
+    sandbox.stub(window, "Audio").returns({
+      play: sinon.spy(),
+      pause: sinon.spy()
+    });
 
     // This stops us changing the document's title unnecessarily
     sandbox.stub(app.views.ChatView.prototype, "initialize");
 
-    media = new app.models.WebRTCCall();
-    call = new app.models.Call({}, {media: media});
+    call = new app.models.Call({}, {media: new app.models.WebRTCCall()});
     chatApp = new ChatApp();
     app.data.user.set("nick", "niko");
   });
@@ -33,7 +36,6 @@ describe('TextChatView', function() {
   afterEach(function() {
     $('#textchat').remove();
     sandbox.restore();
-    media = null;
   });
 
   it("should be empty by default", function() {
