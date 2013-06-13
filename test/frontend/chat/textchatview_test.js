@@ -102,16 +102,21 @@ describe('TextChatView', function() {
       sinon.assert.calledWith(call.on, 'change:state');
     });
 
-    it("should show the element when change:state goes to the pending state",
+    it("should show the element when change:state goes to ongoing",
       function() {
-        call.on.args[0][1]("pending");
+        textChatView.$el.hide();
+
+        call.on.args[0][1]("ongoing");
 
         expect(textChatView.$el.is(":visible")).to.be.equal(true);
       });
 
-    it("should hide the element when change:state goes to the terminated " +
-      "state", function() {
-        call.on.args[0][1]("terminated");
+
+    it("should hide the element when change:state goes to something != ongoing",
+      function() {
+        textChatView.$el.show();
+
+        call.on.args[0][1]("dummy");
 
         expect(textChatView.$el.is(":visible")).to.be.equal(false);
       });

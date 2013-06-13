@@ -32,7 +32,6 @@ var ChatApp = (function($, Backbone, _) {
     app.data.user = new app.models.User();
 
     this.webrtc = new app.models.WebRTCCall();
-
     this.call = new app.models.Call({}, {
       media: this.webrtc
     });
@@ -49,6 +48,11 @@ var ChatApp = (function($, Backbone, _) {
     this.callOfferView = new app.views.CallOfferView({
       call: this.call,
       el: $("#offer")
+    });
+
+    this.callEstablishView = new app.views.CallEstablishView({
+      call: this.call,
+      el: $("#establish")
     });
 
     // Audio library
