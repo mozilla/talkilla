@@ -43,16 +43,6 @@ function UserData(initial, config) {
 
 UserData.prototype = {
   /*jshint es5: true */
-  // Currently userName === displayName, so make them the same here.
-  get displayName() {
-    return this._userName;
-  },
-
-  set displayName(displayName) {
-    this._userName = displayName;
-    this.send();
-  },
-
   /**
    * Sets the userName of the current user.
    */
@@ -85,7 +75,7 @@ UserData.prototype = {
       // XXX for now, we just hard-code the default avatar image.
       portrait: this._rootURL + "/img/default-avatar.png",
       userName: this._userName,
-      displayName: this.displayName,
+      displayName: this._userName,
       profileURL: this._rootURL + "/user.html"
     };
 

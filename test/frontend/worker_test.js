@@ -68,24 +68,15 @@ describe('Worker', function() {
       });
 
       it("should accept initial values", function() {
-        var userData = new UserData({displayName: "foo"});
+        var userData = new UserData({userName: "foo"});
         expect(userData).to.include.keys(Object.keys(userData.defaults));
-        expect(userData.displayName).to.equal("foo");
+        expect(userData.userName).to.equal("foo");
       });
 
       it("should accept a configuration object and update settings accordingly",
         function() {
           var userData = new UserData({}, {ROOTURL: "http://fake"});
           expect(userData._rootURL).to.equal("http://fake");
-        });
-    });
-
-    describe("#displayName", function() {
-      // This may change in future, but for now they should be the same.
-      it("should return the same value for userName as it does displayName",
-        function() {
-          var userData = new UserData({displayName: "foo"});
-          expect(userData.userName).to.equal("foo");
         });
     });
 
@@ -116,12 +107,12 @@ describe('Worker', function() {
 
     describe("#reset", function() {
       it("should reset to defaults", function() {
-        var userData = new UserData({displayName: "foo"});
+        var userData = new UserData({userName: "foo"});
 
         userData.reset();
 
         expect(userData).to.include.keys(Object.keys(userData.defaults));
-        expect(userData.displayName).to.equal(undefined);
+        expect(userData.userName).to.equal(undefined);
       });
 
       it("should send a message", function() {
