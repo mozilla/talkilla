@@ -5,7 +5,7 @@ var expect = chai.expect;
 
 describe("Call", function() {
 
-  var sandbox, call, media, oldPort, ringtone;
+  var sandbox, call, media, oldPort;
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
@@ -22,15 +22,7 @@ describe("Call", function() {
       on: sandbox.stub()
     };
 
-    ringtone = {
-      play: sandbox.stub(),
-      pause: sandbox.stub()
-    };
-
-    call = new app.models.Call({}, {
-      media: media,
-      ringtone: ringtone
-    });
+    call = new app.models.Call({}, {media: media});
   });
 
   afterEach(function() {
@@ -113,12 +105,6 @@ describe("Call", function() {
       expect(call.get("incomingData")).to.equal(callData);
     });
 
-    it("should start ringing", function() {
-      call.incoming(callData);
-
-      sinon.assert.calledOnce(call.ringtone.play);
-    });
-
   });
 
   describe("#accept", function() {
@@ -138,12 +124,6 @@ describe("Call", function() {
       sinon.assert.calledWithExactly(media.answer, callData);
     });
 
-    it("should stop ringing", function() {
-      call.incoming(callData);
-      call.accept();
-
-      sinon.assert.calledOnce(call.ringtone.pause);
-    });
   });
 
   describe("#establish", function() {
@@ -200,12 +180,6 @@ describe("Call", function() {
       sinon.assert.calledWithExactly(media.hangup);
     });
 
-    it("should ensure to stop any ongoing ringtone", function() {
-      call.start({});
-      call.hangup();
-
-      sinon.assert.calledOnce(call.ringtone.pause);
-    });
   });
 
   describe("#_startTimer", function() {
