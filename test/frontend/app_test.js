@@ -14,6 +14,7 @@ describe("SidebarApp", function() {
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
+    sandbox.stub(app.port, "postEvent");
     app.data.user = new app.models.User();
   });
 
@@ -57,6 +58,14 @@ describe("SidebarApp", function() {
       userData.on.args[0][1]();
 
       expect(app.data).to.deep.equal({user: savedUserData});
+    });
+
+    it("should post talkilla.sidebar-ready to the worker", function() {
+      new SidebarApp({nick: "toto"});
+
+      sinon.assert.calledOnce(app.port.postEvent);
+      sinon.assert.calledWithExactly(app.port.postEvent,
+                                     "talkilla.sidebar-ready", {nick: "toto"});
     });
   });
 });
