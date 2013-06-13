@@ -13,7 +13,14 @@ function openChatWindow() {
 }
 
 /**
- * Social API user profile data storage.
+ * User data and Social API profile data storage.
+ *
+ * This is designed to contain the majority of the user's status and
+ * their current presence.
+ *
+ * When setting an attribute, it will automatically send a message to
+ * the social API giving the new details.
+ *
  * @param {Object|undefined}  initial  Initial data
  * @param {Object|undefined}  config   Environment configuration
  */
@@ -21,34 +28,52 @@ function UserData(initial, config) {
   this._rootURL = config ? config.ROOTURL : '';
 
   this.defaults = {
-    userName: undefined
+    _userName: undefined
   };
 
-  this.reset();
+  this.reset(true);
 
   if (initial) {
     for (var key in initial)
       this[key] = initial[key];
   }
+  // We don't send the social api message here, as we should be
+  // constructed before we get the port set up.
 }
 
 UserData.prototype = {
   /*jshint es5: true */
   // Currently userName === displayName, so make them the same here.
   get displayName() {
-    return this.userName;
+    return this._userName;
   },
 
   set displayName(displayName) {
-    this.userName = displayName;
+    this._userName = displayName;
+    this.send();
+  },
+
+  /**
+   * Sets the userName of the current user.
+   */
+  get userName() {
+    return this._userName;
+  },
+
+  set userName(userName) {
+    this._userName = userName;
+    this.send();
   },
 
   /**
    * Resets current properties to default ones.
    */
-  reset: function() {
+  reset: function(skipSend) {
     for (var key in this.defaults)
       this[key] = this.defaults[key];
+
+    if (!skipSend)
+      this.send();
   },
 
   /**
@@ -59,7 +84,7 @@ UserData.prototype = {
       iconURL: this._rootURL + "/img/talkilla16.png",
       // XXX for now, we just hard-code the default avatar image.
       portrait: this._rootURL + "/img/default-avatar.png",
-      userName: this.userName,
+      userName: this._userName,
       displayName: this.displayName,
       profileURL: this._rootURL + "/user.html"
     };
@@ -153,7 +178,6 @@ function _presenceSocketReAttached(username, event) {
   _presenceSocket.removeEventListener("open", _presenceSocketReAttached);
   _setupWebSocket(_presenceSocket);
   _currentUserData.userName = username;
-  _currentUserData.send();
   _presenceSocketOnOpen(event);
   ports.broadcastEvent("talkilla.login-success", {username: username});
 }
@@ -208,13 +232,12 @@ function _signinCallback(err, responseText) {
     return this.postEvent('talkilla.login-failure', err);
   var username = JSON.parse(responseText).nick;
   if (username) {
-    _currentUserData.userName = _currentUserData.displayName = username;
+    _currentUserData.userName = username;
 
     ports.broadcastEvent('talkilla.login-success', {
       username: username
     });
 
-    _currentUserData.send();
     createPresenceSocket(username);
   }
 }
@@ -224,7 +247,6 @@ function _signoutCallback(err, responseText) {
     return this.postEvent('talkilla.error', 'Bad signout:' + err);
 
   _currentUserData.reset();
-  _currentUserData.send();
   currentUsers = undefined;
   ports.broadcastEvent('talkilla.logout-success');
 }
