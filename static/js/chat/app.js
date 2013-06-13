@@ -96,6 +96,7 @@ var ChatApp = (function($, Backbone, _) {
     data.video = true;
     data.audio = true;
     this.call.start(data);
+    this.audioLibrary.play('outgoing');
   };
 
   ChatApp.prototype._onCallAccepted = function() {
@@ -108,6 +109,7 @@ var ChatApp = (function($, Backbone, _) {
 
   ChatApp.prototype._onCallOfferTimout = function(callData) {
     this.port.postEvent('talkilla.offer-timeout', callData);
+    this.audioLibrary.stop('outgoing');
   };
 
   // Incoming calls
