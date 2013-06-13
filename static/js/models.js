@@ -21,7 +21,6 @@
   app.models.Call = Backbone.Model.extend({
     timer: undefined,
     media: undefined,
-    ringtone: undefined,
 
     /**
      * Call model constructor.
@@ -29,14 +28,12 @@
      * @param  {Object}  options     Model options
      *
      * Options:
-     * - {WebRTCCall}  media     Media object
-     * - {Audio}       ringtone  Audio element
+     * - {app.models.WebRTCCall}  media      Media object
      */
     initialize: function(attributes, options) {
       this.set(attributes || {});
 
       this.media = options && options.media;
-      this.ringtone = options && options.ringtone;
 
       this.state = StateMachine.create({
         initial: 'ready',
@@ -57,6 +54,7 @@
         callbacks: {
           onenterstate: function(event, from, to) {
             this.trigger("change:state", to, from, event);
+            this.trigger("state:" + event);
           }.bind(this)
         }
       });
@@ -123,7 +121,6 @@
         incomingData: options
       });
       this.state.incoming();
-      this._ringStart();
     },
 
     /**
@@ -145,7 +142,6 @@
     accept: function() {
       this.media.answer(this.get('incomingData'));
       this.state.accept();
-      this._ringStop();
     },
 
     /**
@@ -162,26 +158,6 @@
       clearTimeout(this.timer);
       this.state.hangup();
       this.media.hangup();
-      this._ringStop();
-    },
-
-    /**
-     * Starts the ringtone.
-     */
-    _ringStart: function() {
-      if (!this.ringtone)
-        return;
-      this.ringtone.play();
-    },
-
-    /**
-     * Stops the ringtone.
-     */
-    _ringStop: function() {
-      if (!this.ringtone)
-        return;
-      this.ringtone.pause();
-      this.ringtone.currentTime = 0;
     },
 
     /**

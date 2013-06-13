@@ -34,8 +34,7 @@ var ChatApp = (function($, Backbone, _) {
     this.webrtc = new app.models.WebRTCCall();
 
     this.call = new app.models.Call({}, {
-      media: this.webrtc,
-      ringtone: new Audio("/snd/incoming_call_ring.opus")
+      media: this.webrtc
     });
 
     this.view = new app.views.ChatView({
@@ -51,6 +50,13 @@ var ChatApp = (function($, Backbone, _) {
       call: this.call,
       el: $("#offer")
     });
+
+    // Audio library
+    this.audioLibrary = new app.utils.AudioLibrary({
+      incoming: "/snd/incoming_call_ring.opus",
+      outgoing: "/snd/outgoing_call_ring.opus"
+    });
+    this.configureAudioEvents();
 
     // Text chat
     this.textChat = new app.models.TextChat();
@@ -80,6 +86,21 @@ var ChatApp = (function($, Backbone, _) {
 
     this.port.postEvent('talkilla.chat-window-ready', {});
   }
+
+  // Audio library configuration for calls events
+  ChatApp.prototype.configureAudioEvents = function() {
+    this.call.on('state:incoming', function() {
+      this.play('incoming');
+    }, this.audioLibrary);
+
+    this.call.on('state:accept', function() {
+      this.stop('incoming');
+    }, this.audioLibrary);
+
+    this.call.on('state:hangup', function() {
+      this.stop('incoming', 'outgoing');
+    }, this.audioLibrary);
+  };
 
   // Outgoing calls
   ChatApp.prototype._onStartingCall = function(data) {
