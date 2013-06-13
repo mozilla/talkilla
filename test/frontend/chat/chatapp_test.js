@@ -17,6 +17,10 @@ describe("ChatApp", function() {
     app.port = {postEvent: sinon.spy()};
     _.extend(app.port, Backbone.Events);
     sandbox.stub(window, "addEventListener");
+    sandbox.stub(window, "Audio").returns({
+      play: sandbox.stub(),
+      pause: sandbox.stub()
+    });
     // Although we're not testing it in this set of tests, stub the WebRTCCall
     // model's initialize function, as creating new media items
     // (e.g. PeerConnection) takes a lot of time that we don't need to spend.
@@ -141,6 +145,11 @@ describe("ChatApp", function() {
       callFixture = $('<div id="call"></div>');
       $("#fixtures").append(callFixture);
 
+      sandbox.stub(app.utils, "AudioLibrary").returns({
+        play: sandbox.spy(),
+        stop: sandbox.spy()
+      });
+
       chatApp = new ChatApp();
 
       // Reset the postEvent spy as the ChatApp constructor already
@@ -191,6 +200,13 @@ describe("ChatApp", function() {
         sinon.assert.calledOnce(chatApp.call.start);
         sinon.assert.calledWithExactly(chatApp.call.start, callData);
       });
+
+      it("should start the outgoing call sound", function() {
+        chatApp._onStartingCall(callData);
+
+        sinon.assert.calledOnce(chatApp.audioLibrary.play);
+        sinon.assert.calledWithExactly(chatApp.audioLibrary.play, "outgoing");
+      });
     });
 
     describe("#_onIncomingCall", function() {
@@ -207,6 +223,23 @@ describe("ChatApp", function() {
 
         sinon.assert.calledOnce(chatApp.call.incoming);
         sinon.assert.calledWithExactly(chatApp.call.incoming, incomingCallData);
+      });
+
+      it("should play the incoming call sound", function() {
+        chatApp._onIncomingCall(incomingCallData);
+
+        sinon.assert.calledOnce(chatApp.audioLibrary.play);
+        sinon.assert.calledWithExactly(chatApp.audioLibrary.play, "incoming");
+      });
+    });
+
+    describe("#_onCallAccepted", function() {
+
+      it("should stop the incoming call sound", function() {
+        chatApp._onCallAccepted();
+
+        sinon.assert.calledOnce(chatApp.audioLibrary.stop);
+        sinon.assert.calledWithExactly(chatApp.audioLibrary.stop, "incoming");
       });
     });
 
@@ -226,14 +259,21 @@ describe("ChatApp", function() {
     describe("#_onCallOfferTimout", function() {
 
       it("should post the `talkilla.offer-timeout` event to the worker",
-      function() {
-        var callData = {foo: "bar"};
+        function() {
+          var callData = {foo: "bar"};
 
-        chatApp._onCallOfferTimout(callData);
+          chatApp._onCallOfferTimout(callData);
 
-        sinon.assert.calledOnce(chatApp.port.postEvent);
-        sinon.assert.calledWithExactly(chatApp.port.postEvent,
-          "talkilla.offer-timeout", callData);
+          sinon.assert.calledOnce(chatApp.port.postEvent);
+          sinon.assert.calledWithExactly(chatApp.port.postEvent,
+            "talkilla.offer-timeout", callData);
+        });
+
+      it("should stop outgoing call sounds", function() {
+        chatApp._onCallOfferTimout({});
+
+        sinon.assert.calledOnce(chatApp.audioLibrary.stop);
+        sinon.assert.calledWithExactly(chatApp.audioLibrary.stop, "outgoing");
       });
     });
 
@@ -252,6 +292,12 @@ describe("ChatApp", function() {
       it("should close the window", function() {
         sinon.assert.calledOnce(window.close);
         sinon.assert.calledWithExactly(window.close);
+      });
+
+      it("should stop incoming and outgoing call sounds", function() {
+        sinon.assert.calledOnce(chatApp.audioLibrary.stop);
+        sinon.assert.calledWithExactly(chatApp.audioLibrary.stop,
+          "incoming", "outgoing");
       });
     });
 
