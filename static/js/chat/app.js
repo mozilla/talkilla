@@ -56,7 +56,6 @@ var ChatApp = (function($, Backbone, _) {
       incoming: "/snd/incoming_call_ring.opus",
       outgoing: "/snd/outgoing_call_ring.opus"
     });
-    this.configureAudioEvents();
 
     // Text chat
     this.textChat = new app.models.TextChat();
@@ -77,6 +76,9 @@ var ChatApp = (function($, Backbone, _) {
     this.call.on('send-answer', this._onSendAnswer.bind(this));
     this.call.on('offer-timeout', this._onCallOfferTimout.bind(this));
 
+    // Internal events
+    this.call.on('state:accept', this._onCallAccepted.bind(this));
+
     // Data channels
     this.webrtc.on('dc.in.message', this._onDataChannelMessageIn.bind(this));
     this.textChat.on('entry.created', this._onTextChatEntryCreated.bind(this));
@@ -87,21 +89,6 @@ var ChatApp = (function($, Backbone, _) {
     this.port.postEvent('talkilla.chat-window-ready', {});
   }
 
-  // Audio library configuration for calls events
-  ChatApp.prototype.configureAudioEvents = function() {
-    this.call.on('state:incoming', function() {
-      this.play('incoming');
-    }, this.audioLibrary);
-
-    this.call.on('state:accept', function() {
-      this.stop('incoming');
-    }, this.audioLibrary);
-
-    this.call.on('state:hangup', function() {
-      this.stop('incoming', 'outgoing');
-    }, this.audioLibrary);
-  };
-
   // Outgoing calls
   ChatApp.prototype._onStartingCall = function(data) {
     // XXX Assume both video and audio call for now
@@ -109,6 +96,10 @@ var ChatApp = (function($, Backbone, _) {
     data.video = true;
     data.audio = true;
     this.call.start(data);
+  };
+
+  ChatApp.prototype._onCallAccepted = function() {
+    this.audioLibrary.stop('incoming');
   };
 
   ChatApp.prototype._onCallEstablishment = function(data) {
@@ -125,6 +116,7 @@ var ChatApp = (function($, Backbone, _) {
     data.video = true;
     data.audio = true;
     this.call.incoming(data);
+    this.audioLibrary.play('incoming');
   };
 
   ChatApp.prototype._onSendOffer = function(data) {
@@ -137,6 +129,7 @@ var ChatApp = (function($, Backbone, _) {
 
   // Call Hangup
   ChatApp.prototype._onCallShutdown = function() {
+    this.audioLibrary.stop('incoming', 'outgoing');
     this.call.hangup();
     window.close();
   };

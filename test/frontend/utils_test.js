@@ -98,4 +98,4 @@ describe('Utils', function() {
 
   });
 
-})
+});
