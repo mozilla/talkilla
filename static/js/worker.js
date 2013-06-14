@@ -13,36 +13,73 @@ function openChatWindow() {
 }
 
 /**
- * Social API user profile data storage.
+ * User data and Social API profile data storage.
+ *
+ * This is designed to contain the majority of the user's status and
+ * their current presence.
+ *
+ * When setting an attribute, it will automatically send a message to
+ * the social API giving the new details.
+ *
  * @param {Object|undefined}  initial  Initial data
  * @param {Object|undefined}  config   Environment configuration
  */
 function UserData(initial, config) {
-  var rootURL = config ? config.ROOTURL : '';
+  this._rootURL = config ? config.ROOTURL : '';
 
   this.defaults = {
-    iconURL: rootURL + "/talkilla16.png",
-    portrait: undefined,
-    userName: undefined,
-    displayName: undefined,
-    profileURL: rootURL + "/user.html"
+    _userName: undefined
   };
 
-  this.reset();
+  this.reset(true);
 
   if (initial) {
     for (var key in initial)
       this[key] = initial[key];
   }
+  // We don't send the social api message here, as we should be
+  // constructed before we get the port set up.
 }
 
 UserData.prototype = {
+  /*jshint es5: true */
+  /**
+   * Sets the userName of the current user.
+   */
+  get userName() {
+    return this._userName;
+  },
+
+  set userName(userName) {
+    this._userName = userName;
+    this.send();
+  },
+
   /**
    * Resets current properties to default ones.
    */
-  reset: function() {
+  reset: function(skipSend) {
     for (var key in this.defaults)
       this[key] = this.defaults[key];
+
+    if (!skipSend)
+      this.send();
+  },
+
+  /**
+   * Sends the current user data to Social
+   */
+  send: function() {
+    var userData = {
+      iconURL: this._rootURL + "/img/talkilla16.png",
+      // XXX for now, we just hard-code the default avatar image.
+      portrait: this._rootURL + "/img/default-avatar.png",
+      userName: this._userName,
+      displayName: this._userName,
+      profileURL: this._rootURL + "/user.html"
+    };
+
+    browserPort.postEvent('social.user-profile', userData);
   }
 };
 
@@ -100,15 +137,49 @@ function _presenceSocketOnClose(event) {
   currentUsers = undefined;
 }
 
+function _setupWebSocket(ws) {
+  "use strict";
+
+  ws.onopen = _presenceSocketOnOpen;
+  ws.onmessage = _presenceSocketOnMessage;
+  ws.onerror = _presenceSocketOnError;
+  ws.onclose = _presenceSocketOnClose;
+}
+
 function createPresenceSocket(nickname) {
   "use strict";
 
   _presenceSocket = new WebSocket(_config.WSURL + "?nick=" + nickname);
-  _presenceSocket.onopen = _presenceSocketOnOpen;
-  _presenceSocket.onmessage = _presenceSocketOnMessage;
-  _presenceSocket.onerror = _presenceSocketOnError;
-  _presenceSocket.onclose = _presenceSocketOnClose;
+  _setupWebSocket(_presenceSocket);
 
+  ports.broadcastEvent("talkilla.presence-pending", {});
+}
+
+function _loginExpired() {
+  "use strict";
+
+  _presenceSocket.removeEventListener("error", _loginExpired);
+  ports.broadcastEvent("talkilla.logout-success", {});
+}
+
+function _presenceSocketReAttached(username, event) {
+  "use strict";
+
+  _presenceSocket.removeEventListener("open", _presenceSocketReAttached);
+  _setupWebSocket(_presenceSocket);
+  _currentUserData.userName = username;
+  _presenceSocketOnOpen(event);
+  ports.broadcastEvent("talkilla.login-success", {username: username});
+}
+
+function tryPresenceSocket(nickname) {
+  "use strict";
+  /*jshint validthis:true */
+
+  _presenceSocket = new WebSocket(_config.WSURL + "?nick=" + nickname);
+  _presenceSocket.addEventListener(
+    "open", _presenceSocketReAttached.bind(this, nickname));
+  _presenceSocket.addEventListener("error", _loginExpired);
   ports.broadcastEvent("talkilla.presence-pending", {});
 }
 
@@ -151,14 +222,12 @@ function _signinCallback(err, responseText) {
     return this.postEvent('talkilla.login-failure', err);
   var username = JSON.parse(responseText).nick;
   if (username) {
-    _currentUserData.userName = _currentUserData.displayName = username;
-    _currentUserData.portrait = "test.png";
+    _currentUserData.userName = username;
 
     ports.broadcastEvent('talkilla.login-success', {
       username: username
     });
 
-    browserPort.postEvent('social.user-profile', _currentUserData);
     createPresenceSocket(username);
   }
 }
@@ -168,7 +237,6 @@ function _signoutCallback(err, responseText) {
     return this.postEvent('talkilla.error', 'Bad signout:' + err);
 
   _currentUserData.reset();
-  browserPort.postEvent('social.user-profile', _currentUserData);
   currentUsers = undefined;
   ports.broadcastEvent('talkilla.logout-success');
 }
@@ -177,10 +245,16 @@ var handlers = {
   // SocialAPI events
   'social.port-closing': function() {
     ports.remove(this);
+    if (browserPort === this)
+      browserPort = undefined;
   },
 
   'social.initialize': function() {
+    // Save the browserPort
     browserPort = this;
+    // Don't have it in the main list of ports, as we don't need
+    // to broadcast all our talkilla.* messages to the social api.
+    ports.remove(this);
   },
 
   // Talkilla events
@@ -217,7 +291,14 @@ var handlers = {
   'talkilla.chat-window-ready': function() {
     currentCall.port = this;
 
-    // If this is an incoming call, we won't have the port yet.
+    if (_currentUserData.userName) {
+      // If there's currenty a logged in user,
+      this.postEvent('talkilla.login-success', {
+        username: _currentUserData.userName
+      });
+    }
+
+   // If this is an incoming call, we won't have the port yet.
     var topic = currentCall.data.offer ?
       "talkilla.call-incoming" :
       "talkilla.call-start";
@@ -225,14 +306,35 @@ var handlers = {
     this.postEvent(topic, currentCall.data);
   },
 
-  'talkilla.sidebar-ready': function() {
+  /**
+   * The data for talkilla.offer-timeout is:
+   *
+   * - caller: The id of the user logged in
+   * - callee: The id of the user to be called
+   * - video: set to true to enable video
+   * - audio: set to true to enable audio
+   */
+  'talkilla.offer-timeout': function(event) {
+    ports.broadcastEvent("talkilla.offer-timeout", event.data);
+  },
+
+  /**
+   * Called when the sidebar is ready.
+   * The data for talkilla.sidebar-ready is:
+   *
+   * - nick: an optional previous nickname
+   */
+  'talkilla.sidebar-ready': function(event) {
     if (_currentUserData.userName) {
-      // If there's currenty a logged in user,
+      // If there's currently a logged in user,
       this.postEvent('talkilla.login-success', {
         username: _currentUserData.userName
       });
       if (currentUsers)
         this.postEvent('talkilla.users', currentUsers);
+    } else if (event.data.nick) {
+      // No user data available, may still be logged in
+      tryPresenceSocket(event.data.nick);
     }
   },
 
@@ -303,6 +405,8 @@ Port.prototype = {
    * @param  {Mixed}  data
    */
   postEvent: function(topic, data) {
+    // FIXME: for no obvious reason, this may eventually fail if the port is
+    //        closed, while it should never be the case
     this.port.postMessage({topic: topic, data: data});
   }
 };

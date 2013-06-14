@@ -20,6 +20,11 @@
       this.call.on('change:otherUser', function(to) {
         document.title = to.get("otherUser");
       });
+
+      this.call.on('offer-timeout', function() {
+        // outgoing call didn't go through, close the window
+        window.close();
+      });
     }
   });
 
@@ -30,7 +35,8 @@
     el: "#offer",
 
     events: {
-      'click .btn-accept': 'accept'
+      'click .btn-accept': 'accept',
+      'click .btn-ignore': 'ignore'
     },
 
     initialize: function(options) {
@@ -55,6 +61,60 @@
         event.preventDefault();
 
       this.call.accept();
+    },
+
+    ignore: function(event) {
+      if (event)
+        event.preventDefault();
+
+      this.call.ignore();
+
+      window.close();
+    },
+
+    render: function() {
+      // XXX: update caller's avatar, though we'd need to access otherUser
+      //      as a User model instance
+      return this;
+    }
+  });
+
+  /**
+   * Call establish view
+   */
+  app.views.CallEstablishView = Backbone.View.extend({
+    el: "#establish",
+
+    events: {
+      'click .btn-abort': '_abort'
+    },
+
+    initialize: function(options) {
+      options = options || {};
+      if (!options.call)
+        throw new Error("missing parameter: call");
+
+      this.call = options.call;
+
+      this.call.on("change:state", this._handleStateChanges.bind(this));
+    },
+
+    _handleStateChanges: function(to, from) {
+      if (to === "pending" && from === "ready") {
+        this.$el.show();
+      } else if (to !== "pending" && from === "pending") {
+        this.$el.hide();
+      }
+
+      this.render();
+    },
+
+    _abort: function(event) {
+      if (event) {
+        event.preventDefault();
+      }
+
+      window.close();
     },
 
     render: function() {
@@ -85,8 +145,8 @@
       this.call.media.on('change:remoteStream', this._displayRemoteVideo, this);
 
       options.call.on('change:state', function(to) {
-        if (to === "pending")
-          this.pending();
+        if (to === "ongoing")
+          this.ongoing();
         else if (to === "terminated")
           this.terminated();
       }, this);
@@ -100,7 +160,7 @@
                       // conversation window open (eg. for text chat)
     },
 
-    pending: function() {
+    ongoing: function() {
       this.$el.show();
       this.$('.btn-video').hide();
       this.$('.btn-audio').hide();
@@ -154,8 +214,6 @@
   app.views.TextChatView = Backbone.View.extend({
     el: '#textchat', // XXX: uncouple the selector from this view
 
-    me: undefined,
-
     events: {
       'submit form': 'send'
     },
@@ -170,14 +228,6 @@
       this.call = options.call;
       this.media = options.call.media;
 
-      app.port.on('talkilla.call-start', function(data) {
-        this.me = data.caller; // If I'm receiving this, I'm the caller
-      }, this);
-
-      app.port.on('talkilla.call-incoming', function(data) {
-        this.me = data.callee; // If I'm receiving this, I'm the callee
-      }, this);
-
       this.collection.on('add', this.render, this);
 
       this.media.on('dc.in.ready', function() {
@@ -185,9 +235,9 @@
       }, this);
 
       this.call.on('change:state', function(to) {
-        if (to === "pending")
+        if (to === "ongoing")
           this.$el.show();
-        else if (to === "terminated")
+        else if (to !== "ongoing")
           this.$el.hide();
       }.bind(this));
     },
@@ -198,7 +248,7 @@
       var message = $input.val().trim();
       $input.val('');
       this.collection.newEntry({
-        nick: this.me,
+        nick: app.data.user.get("nick"),
         message: message
       });
     },

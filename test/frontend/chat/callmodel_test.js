@@ -5,10 +5,13 @@ var expect = chai.expect;
 
 describe("Call", function() {
 
-  var sandbox, call, media;
+  var sandbox, call, media, oldPort;
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
+    sandbox.useFakeTimers();
+    oldPort = app.port;
+    app.port = {postEvent: sinon.spy()};
     // XXX This should probably be a mock, but sinon mocks don't seem to want
     // to work with Backbone.
     media = {
@@ -18,11 +21,13 @@ describe("Call", function() {
       offer: sandbox.stub(),
       on: sandbox.stub()
     };
-    call = new app.models.Call({}, media);
+
+    call = new app.models.Call({}, {media: media});
   });
 
   afterEach(function() {
     sandbox.restore();
+    app.port = oldPort;
   });
 
   describe("#initialize", function() {
@@ -47,7 +52,7 @@ describe("Call", function() {
     });
 
     it("should set instance attributes", function() {
-      var call = new app.models.Call({otherUser: "larry"}, media);
+      var call = new app.models.Call({otherUser: "larry"}, {media: media});
       expect(call.get("otherUser")).to.equal("larry");
     });
   });
@@ -60,10 +65,9 @@ describe("Call", function() {
       expect(call.state.current).to.equal('pending');
     });
 
-    it("should store the id and otherUser", function() {
+    it("should store the otherUser", function() {
       call.start(callData);
 
-      expect(call.get('id')).to.equal('bob');
       expect(call.get('otherUser')).to.equal('larry');
     });
 
@@ -89,10 +93,9 @@ describe("Call", function() {
       expect(call.state.current).to.equal('incoming');
     });
 
-    it("should store the id and otherUser", function() {
+    it("should store the otherUser", function() {
       call.incoming(callData);
 
-      expect(call.get('id')).to.equal('larry');
       expect(call.get('otherUser')).to.equal('bob');
     });
 
@@ -120,6 +123,7 @@ describe("Call", function() {
       sinon.assert.calledOnce(media.answer);
       sinon.assert.calledWithExactly(media.answer, callData);
     });
+
   });
 
   describe("#establish", function() {
@@ -139,6 +143,14 @@ describe("Call", function() {
       sinon.assert.calledWithExactly(media.establish, answer);
     });
 
+  });
+
+  describe("#ignore", function() {
+    it("should change the state from incoming to terminated", function() {
+      call.incoming({});
+      call.ignore();
+      expect(call.state.current).to.equal('terminated');
+    });
   });
 
   describe("#hangup", function() {
@@ -167,14 +179,41 @@ describe("Call", function() {
       sinon.assert.calledOnce(media.hangup);
       sinon.assert.calledWithExactly(media.hangup);
     });
+
+  });
+
+  describe("#_startTimer", function() {
+    it("should setup a timer and trigger the `offer-timeout` event on timeout",
+      function(done) {
+        var callData = {foo: "bar"};
+        sandbox.stub(call, "trigger");
+        expect(call.timer).to.be.a("undefined");
+
+        call._startTimer({timeout: 3000, callData: callData});
+
+        expect(call.timer).to.be.a("number");
+
+        sandbox.clock.tick(3000);
+
+        sinon.assert.calledOnce(call.trigger);
+        sinon.assert.calledWithExactly(call.trigger, "offer-timeout", callData);
+        done();
+      });
   });
 
   describe("ready event handling", function() {
-    var fakeSdp = {type: "fake", sdp: "sdp"};
+    var fakeSdp = {type: "fake", sdp: "sdp"}, userModel;
 
     beforeEach(function() {
       call.set({id: "bob", otherUser: "larry"});
       call.trigger = sandbox.stub();
+      app.data.user = userModel = new app.models.User();
+      app.data.user.set("nick", "bob");
+    });
+
+    afterEach(function() {
+      delete app.data.user;
+      userModel = undefined;
     });
 
     describe("#offer-ready", function() {

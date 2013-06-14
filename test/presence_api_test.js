@@ -15,6 +15,7 @@ var presence = require("../presence");
 var app = presence.app;
 var findNewNick = presence.findNewNick;
 var _usersToArray = presence._usersToArray;
+var _presentUsers = presence._presentUsers;
 
 /* The "browser" variable predefines for jshint include WebSocket,
  * causes jshint to blow up here.  We should probably structure things
@@ -200,10 +201,25 @@ describe("Server", function() {
       app.shutdown(done);
     });
 
-    it("should transform a map of users into an array", function() {
-      var users = {"foo": {ws: 1}, "bar": {ws: 2}};
-      var expected = [{"nick": "foo"}, {"nick": "bar"}];
-      expect(_usersToArray(users)).to.deep.equal(expected);
+
+    describe("#_usersToArray", function() {
+
+      it("should transform a map of users into an array", function() {
+        var users = {"foo": {ws: 1}, "bar": {ws: 2}};
+        var expected = [{"nick": "foo"}, {"nick": "bar"}];
+        expect(_usersToArray(users)).to.deep.equal(expected);
+      });
+
+    });
+
+    describe("#_presentUsers", function() {
+
+      it("should only return users with a presence", function() {
+        var users = {"foo": {ws: 1}, "bar": {}};
+        var expected = [{"nick": "foo"}];
+        expect(_presentUsers(users)).to.deep.equal(expected);
+      });
+
     });
 
     it("should have no users logged in at startup", function() {
@@ -296,7 +312,7 @@ describe("Server", function() {
       });
 
     it("should send an updated list of signed in users when a new user" +
-       "signs in",
+       "signs in and open a WebSocket",
       function(done) {
         /* jshint unused: vars */
         var nthMessage = 1;
@@ -330,7 +346,8 @@ describe("Server", function() {
 
       });
 
-    it("should send an updated list of signed in users when a user signs out",
+    it("should send an updated list of signed in users when a user close" +
+            "its WebSocket",
       function(done) {
         /* jshint unused: vars */
         var nthMessage = 1;
@@ -350,7 +367,6 @@ describe("Server", function() {
                                                   {nick: "second"}]);
             if (nthMessage === 3) {
               expect(parsed.users).to.deep.equal([{nick: "first"}]);
-              ws.close();
               done();
             }
 
@@ -360,7 +376,7 @@ describe("Server", function() {
           webSocket.on('open', function() {
             signin('second', function() {
               ws = new WebSocket(socketURL('second'));
-              ws.on('open', signout.bind(this, 'second'));
+              ws.on('open', ws.close.bind(ws));
             });
           });
         });

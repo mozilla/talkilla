@@ -6,13 +6,34 @@
 (function(app, Backbone, StateMachine) {
   "use strict";
 
+  /**
+   * Call model.
+   *
+   * Attributes:
+   * - {String} otherUser
+   * - {Object} incomingData
+   *
+   * Fired when #start() is called and the pending call timeout is reached with
+   * no response from the other side.
+   * @event offer-timeout
+   * @param {Object} options Current call start options (see #start)
+   */
   app.models.Call = Backbone.Model.extend({
+    timer: undefined,
     media: undefined,
 
-    initialize: function(attributes, media) {
+    /**
+     * Call model constructor.
+     * @param  {Object}  attributes  Model attributes
+     * @param  {Object}  options     Model options
+     *
+     * Options:
+     * - {app.models.WebRTCCall}  media      Media object
+     */
+    initialize: function(attributes, options) {
       this.set(attributes || {});
 
-      this.media = media;
+      this.media = options && options.media;
 
       this.state = StateMachine.create({
         initial: 'ready',
@@ -24,6 +45,7 @@
           // Incoming call scenario
           {name: 'incoming',  from: 'ready',    to: 'incoming'},
           {name: 'accept',    from: 'incoming', to: 'pending'},
+          {name: 'ignore',    from: 'incoming', to: 'terminated'},
           {name: 'complete',  from: 'pending',  to: 'ongoing'},
 
           // Call hangup
@@ -32,13 +54,14 @@
         callbacks: {
           onenterstate: function(event, from, to) {
             this.trigger("change:state", to, from, event);
+            this.trigger("state:" + event);
           }.bind(this)
         }
       });
 
       this.media.on("offer-ready", function(offer) {
         this.trigger("send-offer", {
-          caller: this.get("id"),
+          caller: app.data.user.get('nick'),
           callee: this.get("otherUser"),
           offer: offer
         });
@@ -47,7 +70,7 @@
       this.media.on("answer-ready", function(answer) {
         this.trigger("send-answer", {
           caller: this.get("otherUser"),
-          callee: this.get("id"),
+          callee: app.data.user.get('nick'),
           answer: answer
         });
 
@@ -61,7 +84,8 @@
     },
 
     /**
-     * Starts an outbound call call
+     * Starts an outbound call.
+     *
      * @param {Object} options object containing:
      *
      * - caller: The id of the user logged in
@@ -70,7 +94,11 @@
      * - audio: set to true to enable audio
      */
     start: function(options) {
-      this.set({id: options.caller, otherUser: options.callee});
+      this._startTimer({
+        callData: options,
+        timeout: app.options.PENDING_CALL_TIMEOUT
+      });
+      this.set({otherUser: options.callee});
       this.state.start();
       this.media.offer(options);
     },
@@ -90,7 +118,6 @@
     incoming: function(options) {
       this.set({
         otherUser: options.caller,
-        id: options.callee,
         incomingData: options
       });
       this.state.incoming();
@@ -104,6 +131,7 @@
      * media.
      */
     establish: function(options) {
+      clearTimeout(this.timer);
       this.state.establish();
       this.media.establish(options);
     },
@@ -117,11 +145,36 @@
     },
 
     /**
+     * Ignores an incoming call.
+     */
+    ignore: function() {
+      this.state.ignore();
+    },
+
+    /**
      * Hangs up a call
      */
     hangup: function() {
+      clearTimeout(this.timer);
       this.state.hangup();
       this.media.hangup();
+    },
+
+    /**
+     * Starts the outgoing pending call timer.
+     * @param {Object} options:
+     *      - {Number} timeout   Timeout in ms
+     *      - {Object} callData  Current outgoing pending call data
+     */
+    _startTimer: function(options) {
+      if (!options || !options.timeout)
+        return;
+
+      var onTimeout = function() {
+        this.trigger('offer-timeout', options.callData);
+      }.bind(this);
+
+      this.timer = setTimeout(onTimeout, options.timeout);
     }
   });
 
@@ -243,7 +296,8 @@
      * Close the p2p connection.
      */
     hangup: function() {
-      this.pc.close();
+      if (this.pc && this.pc.signalingState !== "closed")
+        this.pc.close();
     },
 
     _createOffer: function(callback) {

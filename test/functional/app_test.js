@@ -45,11 +45,14 @@ describe("Sidebar Tests", function() {
     });
   });
 
-  it("should sign users in", function(done) {
+  it("should sign users in and out", function(done) {
     // Sign in user 1
     helpers.signInUser(driver, "bob");
     driver.findElement(By.css("strong.nick")).getText().then(function(nick) {
       expect(nick).to.equal('bob');
+    });
+    driver.findElement(By.id("signout")).isDisplayed().then(function(res) {
+      expect(res).to.equal(true);
     });
 
     // Check there is a message that this is the only person logged in
@@ -70,21 +73,6 @@ describe("Sidebar Tests", function() {
     });
     driver2.findElements(By.css("div.alert-info")).then(function(res) {
       expect(res).to.deep.equal([]);
-      done();
-    });
-  });
-
-  it("should sign users out", function(done) {
-    // Sign in user 1
-    helpers.signInUser(driver, "bob", {refresh: true});
-    driver.findElement(By.id("signout")).isDisplayed().then(function(res) {
-      expect(res).to.equal(true);
-    });
-
-    // Sign in user 2
-    helpers.signInUser(driver2, "larry", {refresh: true});
-    driver2.findElement(By.css("strong.nick")).getText().then(function(nick) {
-      expect(nick).to.equal('larry');
     });
 
     // Sign out user 1

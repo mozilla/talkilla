@@ -10,6 +10,7 @@ describe("ChatView", function() {
 
     beforeEach(function() {
       sandbox = sinon.sandbox.create();
+      sandbox.stub(window, "close");
       oldtitle = document.title;
 
       // Although we're not testing it in this set of tests, stub the WebRTCCall
@@ -17,7 +18,7 @@ describe("ChatView", function() {
       // (e.g. PeerConnection) takes a lot of time that we don't need to spend.
       sandbox.stub(app.models.WebRTCCall.prototype, "initialize");
       var media = new app.models.WebRTCCall();
-      call = new app.models.Call({}, media);
+      call = new app.models.Call({}, {media: media});
 
       sandbox.stub(call, "on");
     });
@@ -43,7 +44,7 @@ describe("ChatView", function() {
     it("should attach to the app user model", function() {
       new app.views.ChatView({call: call});
 
-      sinon.assert.calledOnce(call.on);
+      sinon.assert.called(call.on);
       sinon.assert.calledWith(call.on, "change:otherUser");
     });
 
@@ -56,6 +57,18 @@ describe("ChatView", function() {
         call.on.args[0][1](call);
 
         expect(document.title).to.be.equal("nick");
+      });
+
+    it("should close the window when the call `offer-timeout` event is " +
+       "triggered", function() {
+        new app.views.ChatView({call: call});
+
+        call.trigger('offer-timeout');
+
+        // offer-timeout is the second event triggered
+        call.on.args[1][1]();
+
+        sinon.assert.calledOnce(window.close);
       });
   });
 });

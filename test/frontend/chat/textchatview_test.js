@@ -6,7 +6,7 @@ var expect = chai.expect;
 
 describe('TextChatView', function() {
   "use strict";
-  var chatApp, webrtc, sandbox, call;
+  var chatApp, sandbox, call;
 
   beforeEach(function() {
     $('body').append([
@@ -20,19 +20,22 @@ describe('TextChatView', function() {
     sandbox.stub(window, "mozRTCPeerConnection").returns({
       createDataChannel: function() {}
     });
+    sandbox.stub(window, "Audio").returns({
+      play: sinon.spy(),
+      pause: sinon.spy()
+    });
 
     // This stops us changing the document's title unnecessarily
     sandbox.stub(app.views.ChatView.prototype, "initialize");
 
-    webrtc = new app.models.WebRTCCall();
-    call = new app.models.Call({}, webrtc);
+    call = new app.models.Call({}, {media: new app.models.WebRTCCall()});
     chatApp = new ChatApp();
+    app.data.user.set("nick", "niko");
   });
 
   afterEach(function() {
     $('#textchat').remove();
     sandbox.restore();
-    webrtc = null;
   });
 
   it("should be empty by default", function() {
@@ -99,16 +102,21 @@ describe('TextChatView', function() {
       sinon.assert.calledWith(call.on, 'change:state');
     });
 
-    it("should show the element when change:state goes to the pending state",
+    it("should show the element when change:state goes to ongoing",
       function() {
-        call.on.args[0][1]("pending");
+        textChatView.$el.hide();
+
+        call.on.args[0][1]("ongoing");
 
         expect(textChatView.$el.is(":visible")).to.be.equal(true);
       });
 
-    it("should hide the element when change:state goes to the terminated " +
-      "state", function() {
-        call.on.args[0][1]("terminated");
+
+    it("should hide the element when change:state goes to something != ongoing",
+      function() {
+        textChatView.$el.show();
+
+        call.on.args[0][1]("dummy");
 
         expect(textChatView.$el.is(":visible")).to.be.equal(false);
       });
