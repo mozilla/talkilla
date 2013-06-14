@@ -25,9 +25,10 @@ describe('UserData', function() {
     });
 
     it("should accept initial values", function() {
-      var userData = new UserData({userName: "foo"});
+      var userData = new UserData({userName: "foo", connected: true});
       expect(userData).to.include.keys(Object.keys(userData.defaults));
       expect(userData.userName).to.equal("foo");
+      expect(userData.connected).to.equal(true);
     });
 
     it("should accept a configuration object and update settings accordingly",
@@ -57,6 +58,31 @@ describe('UserData', function() {
       sandbox.stub(UserData.prototype, "send");
 
       userData.userName = "foo";
+
+      sinon.assert.calledOnce(userData.send);
+    });
+  });
+
+  describe("#connected", function() {
+    var userData;
+
+    beforeEach(function() {
+      userData = new UserData();
+      sandbox.stub(UserData.prototype, "send");
+    });
+
+    afterEach(function() {
+      userData = undefined;
+    });
+
+    it("should return the set value", function() {
+      userData.connected = true;
+
+      expect(userData.connected).to.be.equal(true);
+    });
+
+    it("should call send when changed", function() {
+      userData.connected = true;
 
       sinon.assert.calledOnce(userData.send);
     });
