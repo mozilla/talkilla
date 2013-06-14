@@ -79,11 +79,23 @@ UserData.prototype = {
   },
 
   /**
+   * Works out the appropraite image object for our status.
+   */
+  _getIcon: function() {
+    // If we're not connected, then always show the standard
+    // icon, regardless of the user setting.
+    if (!this._connected)
+      return "talkilla16.png";
+
+    return "talkilla16-online.png";
+  },
+
+  /**
    * Sends the current user data to Social
    */
   send: function() {
     var userData = {
-      iconURL: this._rootURL + "/img/talkilla16.png",
+      iconURL: this._rootURL + "/img/" + this._getIcon(),
       // XXX for now, we just hard-code the default avatar image.
       portrait: this._rootURL + "/img/default-avatar.png",
       userName: this._userName,

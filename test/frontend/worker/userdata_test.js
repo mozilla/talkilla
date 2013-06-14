@@ -109,11 +109,17 @@ describe('UserData', function() {
   });
 
   describe("#send", function() {
-    it("should send a social.user-profile message", function () {
-      var userData = new UserData({}, {ROOTURL: "http://fake"});
-      userData.userName = 'jb';
+    var userData;
+    beforeEach(function() {
+      userData = new UserData({userName: 'jb'}, {ROOTURL: "http://fake"});
       browserPort.postEvent.reset();
+    });
 
+    afterEach(function() {
+      userData = undefined;
+    });
+
+    it("should send a social.user-profile message", function () {
       userData.send();
       sinon.assert.calledOnce(browserPort.postEvent);
 
@@ -124,6 +130,14 @@ describe('UserData', function() {
         .equal('http://fake/img/default-avatar.png');
       expect(data.iconURL).to.be.equal('http://fake/img/talkilla16.png');
       expect(data.profileURL).to.be.equal('http://fake/user.html');
+    });
+
+    it("should send an online image url if connected", function() {
+      userData.connected = true;
+      sinon.assert.calledOnce(browserPort.postEvent);
+
+      var data = browserPort.postEvent.args[0][1];
+      expect(data.iconURL).to.contain('online');
     });
   });
 });
