@@ -1,11 +1,11 @@
 /* global afterEach, beforeEach, chai, describe,
-   handlers, it, sinon, _config:true,
+   it, sinon, _config:true,
    _presenceSocket:true, loadconfig, ports:true,
    _presenceSocketOnMessage, _presenceSocketOnError,
-   _presenceSocketOnClose, _presenceSocketSendMessage:true,
+   _presenceSocketOnClose,
    _presenceSocketOnOpen, _signinCallback,
    browserPort:true, _currentUserData:true, UserData,
-   currentCall:true, tryPresenceSocket,
+   tryPresenceSocket,
    _presenceSocketReAttached, _loginExpired, _setupWebSocket,
    _ */
 var expect = chai.expect;
@@ -87,90 +87,6 @@ describe('Worker', function() {
         var nickname;
         testableCallback(null, JSON.stringify({nick: nickname}));
         sinon.assert.notCalled(socketStub);
-      });
-  });
-
-  describe("Call offers and answers", function() {
-    beforeEach(function() {
-      browserPort = {postEvent: sandbox.spy()};
-    });
-
-    afterEach(function() {
-      browserPort = undefined;
-    });
-
-    it("should send a websocket message when receiving talkilla.call-offer",
-      function() {
-        _presenceSocketSendMessage = sandbox.spy();
-        var data = {
-          caller: "fred",
-          callee: "tom",
-          offer: { sdp: "sdp", type: "type" }
-        };
-
-        handlers['talkilla.call-offer']({
-          topic: "talkilla.call-offer",
-          data: data
-        });
-
-        sinon.assert.calledOnce(_presenceSocketSendMessage);
-        sinon.assert.calledWithExactly(_presenceSocketSendMessage,
-         JSON.stringify({'call_offer': data }));
-      });
-
-    it("should send a websocket message when receiving talkilla.call-answer",
-      function() {
-        _presenceSocketSendMessage = sandbox.spy();
-        var data = {
-          caller: "fred",
-          callee: "tom",
-          offer: { sdp: "sdp", type: "type" }
-        };
-
-        handlers['talkilla.call-answer']({
-          topic: "talkilla.call-answer",
-          data: data
-        });
-
-        sinon.assert.calledOnce(_presenceSocketSendMessage);
-        sinon.assert.calledWithExactly(_presenceSocketSendMessage,
-         JSON.stringify({ 'call_accepted': data }));
-      });
-
-    it("should send a websocket message when receiving talkilla.call-hangup",
-      function() {
-        _presenceSocketSendMessage = sandbox.spy();
-        var data = {
-          other: "florian"
-        };
-
-        handlers['talkilla.call-hangup']({
-          topic: "talkilla.call-hangup",
-          data: data
-        });
-
-        sinon.assert.calledOnce(_presenceSocketSendMessage);
-        sinon.assert.calledWithExactly(_presenceSocketSendMessage,
-         JSON.stringify({ 'call_hangup': data }));
-      });
-
-    it("should reset the call data when receiving talkilla.call-hangup",
-      function() {
-        currentCall = {
-          port: {},
-          data: { caller: "romain", callee: "florian" }
-        };
-        _presenceSocketSendMessage = sandbox.spy();
-        var data = {
-          other: "florian"
-        };
-
-        handlers['talkilla.call-hangup']({
-          topic: "talkilla.call-hangup",
-          data: data
-        });
-
-        expect(currentCall).to.be.equal(undefined);
       });
   });
 

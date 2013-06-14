@@ -1,7 +1,7 @@
 /* global afterEach, beforeEach, chai, describe, sinon, it,
    ports:true, Port, PortCollection, handlers, _currentUserData:true,
    currentCall:true, UserData, _presenceSocket:true, tryPresenceSocket,
-   browserPort:true, currentUsers:true */
+   browserPort:true, currentUsers:true, _presenceSocketSendMessage */
 /* jshint expr:true */
 
 var expect = chai.expect;
@@ -445,6 +445,90 @@ describe('handlers', function() {
         });
 
         sinon.assert.notCalled(tryPresenceSocket);
+      });
+  });
+
+  describe("talkilla.call-offer", function() {
+    it("should send a websocket message when receiving talkilla.call-offer",
+      function() {
+        sandbox.stub(window, "_presenceSocketSendMessage");
+        var data = {
+          caller: "fred",
+          callee: "tom",
+          offer: { sdp: "sdp", type: "type" }
+        };
+
+        handlers['talkilla.call-offer']({
+          topic: "talkilla.call-offer",
+          data: data
+        });
+
+        sinon.assert.calledOnce(_presenceSocketSendMessage);
+        sinon.assert.calledWithExactly(_presenceSocketSendMessage,
+         JSON.stringify({'call_offer': data }));
+      });
+  });
+
+  describe("talkilla.call-answer", function() {
+    it("should send a websocket message when receiving talkilla.call-answer",
+      function() {
+        sandbox.stub(window, "_presenceSocketSendMessage");
+        var data = {
+          caller: "fred",
+          callee: "tom",
+          offer: { sdp: "sdp", type: "type" }
+        };
+
+        handlers['talkilla.call-answer']({
+          topic: "talkilla.call-answer",
+          data: data
+        });
+
+        sinon.assert.calledOnce(_presenceSocketSendMessage);
+        sinon.assert.calledWithExactly(_presenceSocketSendMessage,
+         JSON.stringify({ 'call_accepted': data }));
+      });
+  });
+
+  describe("talkilla.call-hangup", function() {
+    afterEach(function() {
+      currentCall = undefined;
+    });
+
+    it("should send a websocket message when receiving talkilla.call-hangup",
+      function() {
+        sandbox.stub(window, "_presenceSocketSendMessage");
+        var data = {
+          other: "florian"
+        };
+
+        handlers['talkilla.call-hangup']({
+          topic: "talkilla.call-hangup",
+          data: data
+        });
+
+        sinon.assert.calledOnce(_presenceSocketSendMessage);
+        sinon.assert.calledWithExactly(_presenceSocketSendMessage,
+         JSON.stringify({ 'call_hangup': data }));
+      });
+
+    it("should reset the call data when receiving talkilla.call-hangup",
+      function() {
+        currentCall = {
+          port: {},
+          data: { caller: "romain", callee: "florian" }
+        };
+        sandbox.stub(window, "_presenceSocketSendMessage");
+        var data = {
+          other: "florian"
+        };
+
+        handlers['talkilla.call-hangup']({
+          topic: "talkilla.call-hangup",
+          data: data
+        });
+
+        expect(currentCall).to.be.equal(undefined);
       });
   });
 
