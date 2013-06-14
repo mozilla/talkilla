@@ -12,6 +12,7 @@ describe("serverHandlers", function() {
   });
 
   afterEach(function() {
+    currentCall = undefined;
     sandbox.restore();
   });
 

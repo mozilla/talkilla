@@ -1,6 +1,6 @@
 /* global afterEach, beforeEach, chai, describe,
    it, sinon, _config:true, loadconfig, _signinCallback,
-   browserPort:true, _currentUserData:true, UserData,
+   _currentUserData:true, UserData,
    _ */
 var expect = chai.expect;
 
@@ -10,11 +10,9 @@ describe('Miscellaneous', function() {
 
   beforeEach(function () {
     sandbox = sinon.sandbox.create();
-    browserPort = {postEvent: sandbox.spy()};
   });
 
   afterEach(function () {
-    browserPort = null;
     sandbox.restore();
   });
 

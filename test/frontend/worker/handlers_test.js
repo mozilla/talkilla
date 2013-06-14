@@ -374,7 +374,6 @@ describe('handlers', function() {
       "receiving a talkilla.chat-window-ready for an outgoing call",
       function () {
         var port = {postEvent: sinon.spy()};
-        currentCall = {port: undefined, data: {caller: "alice", callee: "bob"}};
 
         handlers['talkilla.chat-window-ready'].bind(port)({
           topic: "talkilla.chat-window-ready",
@@ -386,21 +385,11 @@ describe('handlers', function() {
   });
 
   describe("talkilla.offer-timeout", function() {
-    var sandbox;
-
-    beforeEach(function() {
-      sandbox = sinon.sandbox.create();
-      sandbox.stub(ports, "broadcastEvent");
-    });
-
-    afterEach(function() {
-      browserPort = undefined;
-      sandbox.restore();
-    });
-
     it("should notify the caller that an outgoing call did not go through",
       function() {
         var fakeCallData = {foo: "bar"};
+        sandbox.stub(ports, "broadcastEvent");
+
         handlers['talkilla.offer-timeout']({
           topic: "talkilla.offer-timeout",
           data: fakeCallData
