@@ -1,7 +1,8 @@
 /* global afterEach, beforeEach, chai, describe, sinon, it,
    ports:true, Port, PortCollection, handlers, _currentUserData:true,
    currentCall:true, UserData, _presenceSocket:true, tryPresenceSocket,
-   browserPort:true, currentUsers:true, _presenceSocketSendMessage */
+   browserPort:true, currentUsers:true, _presenceSocketSendMessage,
+   storeContact:true */
 /* jshint expr:true */
 
 var expect = chai.expect;
@@ -315,6 +316,8 @@ describe('handlers', function() {
           callee: "bob"
         }
       };
+      // Avoid touching the contacts db which we haven't initialized.
+      storeContact = function() {};
     });
 
     afterEach(function() {
@@ -381,6 +384,19 @@ describe('handlers', function() {
         });
 
         expect(currentCall.port).to.be.equal(port);
+      });
+
+    it("should store the contact when " +
+      "receiving a talkilla.chat-window-ready notification",
+      function () {
+        storeContact = sinon.spy();
+        var port = {postEvent: function() {}};
+        handlers['talkilla.chat-window-ready'].bind(port)({
+          topic: "talkilla.chat-window-ready",
+          data: {}
+        });
+
+        sinon.assert.calledOnce(storeContact);
       });
   });
 
@@ -522,4 +538,3 @@ describe('handlers', function() {
   });
 
 });
-

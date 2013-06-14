@@ -1,4 +1,8 @@
 /* jshint unused:false */
+/* -W024 tells jshint to not yell at the 'continue' keyword,
+ * as it's part of the indexedDB API: */
+/* jshint -W024 */
+/* global indexedDB */
 
 var _config = {DEBUG: false};
 var _currentUserData;
@@ -7,9 +11,50 @@ var ports;
 var browserPort;
 var currentCall;
 var currentUsers;
+var contacts;
+var contactsDb;
 
 function openChatWindow() {
   browserPort.postEvent('social.request-chat', 'chat.html');
+}
+
+function getAllContacts() {
+  var objectStore = contactsDb.transaction("contacts").objectStore("contacts");
+  contacts = [];
+  objectStore.openCursor().onsuccess = function(event) {
+    var cursor = event.target.result;
+    if (cursor) {
+      contacts.push(cursor.value.username);
+      cursor.continue();
+    }
+  };
+}
+
+function getContactsDatabase() {
+  var request = indexedDB.open("TalkillaContacts", 1);
+  request.onerror = function(event) {
+    contacts = []; // Use an empty contact list if we fail to access the db.
+  };
+  request.onsuccess = function(event) {
+    contactsDb = request.result;
+    getAllContacts();
+  };
+
+  // This event is only implemented in recent browsers
+  request.onupgradeneeded = function(event) {
+    var db = event.target.result;
+    var objectStore = db.createObjectStore("contacts", {keyPath: "username"});
+    objectStore.createIndex("username", "username", {unique: true});
+  };
+}
+
+function storeContact(aUsername) {
+  var transaction = contactsDb.transaction(["contacts"], "readwrite");
+  // happily ignore errors, as adding a contact twice will purposefully fail.
+  var request = transaction.objectStore("contacts").add({username: aUsername});
+  request.onsuccess = function(event) {
+    contacts.push(aUsername);
+  };
 }
 
 /**
@@ -85,8 +130,17 @@ UserData.prototype = {
 
 var serverHandlers = {
   'users': function(data) {
-    currentUsers = data;
-    ports.broadcastEvent("talkilla.users", data);
+    var usersMap = {};
+    var users = data.map(function(u) {
+      usersMap[u.nick] = true;
+      return {nick: u.nick, presence: "connected"};
+    });
+    contacts.forEach(function(name) {
+      if (!Object.prototype.hasOwnProperty.call(usersMap, name))
+        users.push({nick: name, presence: "disconnected"});
+    });
+    currentUsers = users;
+    ports.broadcastEvent("talkilla.users", users);
   },
 
   'incoming_call': function(data) {
@@ -255,6 +309,8 @@ var handlers = {
     // Don't have it in the main list of ports, as we don't need
     // to broadcast all our talkilla.* messages to the social api.
     ports.remove(this);
+
+    getContactsDatabase();
   },
 
   // Talkilla events
@@ -297,6 +353,11 @@ var handlers = {
         username: _currentUserData.userName
       });
     }
+
+    var contactName = currentCall.data.offer ?
+      currentCall.data.caller :
+      currentCall.data.callee;
+    storeContact(contactName);
 
    // If this is an incoming call, we won't have the port yet.
     var topic = currentCall.data.offer ?
