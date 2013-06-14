@@ -4,7 +4,7 @@
    _ */
 var expect = chai.expect;
 
-describe('Worker', function() {
+describe('Miscellaneous', function() {
   "use strict";
   var sandbox;
 
