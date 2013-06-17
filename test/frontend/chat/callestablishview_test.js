@@ -97,7 +97,6 @@ describe('Call Establish View', function() {
     });
 
     it("should call preventDefault on any event passed", function() {
-
       establishView._abort(event);
 
       sinon.assert.calledOnce(event.preventDefault);
