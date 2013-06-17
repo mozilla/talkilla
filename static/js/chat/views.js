@@ -110,9 +110,8 @@
     },
 
     _abort: function(event) {
-      if (event) {
+      if (event)
         event.preventDefault();
-      }
 
       window.close();
     },
