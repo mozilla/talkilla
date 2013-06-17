@@ -57,8 +57,6 @@ describe("Sidebar Tests", function() {
   describe("sign in", function () {
 
     beforeEach(function() {
-      driver.switchTo().frame("//#social-sidebar-browser");
-      driver2.switchTo().frame("//#social-sidebar-browser");
       helpers.signInUser(driver, "bob");
     });
 
@@ -98,7 +96,10 @@ describe("Sidebar Tests", function() {
       helpers.signInUser(driver, "bob");
     });
 
-    it("should remove bob from the list of present users");
+    it("should remove bob from the list of present users", function() {
+      "use strict";
+
+    });
 
   });
 
