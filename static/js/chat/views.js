@@ -28,10 +28,25 @@
     }
   });
 
+  app.views.BasePendingCallView = Backbone.View.extend({
+    initialize: function(options) {
+      options = options || {};
+      if (!options.call)
+        throw new Error("missing parameter: call");
+      this.call = options.call;
+    },
+
+    render: function() {
+      // XXX: update caller's avatar, though we'd need to access otherUser
+      //      as a User model instance
+      return this;
+    }
+  });
+
   /**
    * Call offer view
    */
-  app.views.CallOfferView = Backbone.View.extend({
+  app.views.CallOfferView = app.views.BasePendingCallView.extend({
     el: "#offer",
 
     events: {
@@ -40,11 +55,8 @@
     },
 
     initialize: function(options) {
-      options = options || {};
-      if (!options.call)
-        throw new Error("missing parameter: call");
-
-      this.call = options.call;
+      /* jshint camelcase: false */
+      this.constructor.__super__.initialize.apply(this, [options]);
 
       options.call.on('change:state', function(to, from) {
         if (to === "incoming")
@@ -70,19 +82,13 @@
       this.call.ignore();
 
       window.close();
-    },
-
-    render: function() {
-      // XXX: update caller's avatar, though we'd need to access otherUser
-      //      as a User model instance
-      return this;
     }
   });
 
   /**
    * Call establish view
    */
-  app.views.CallEstablishView = Backbone.View.extend({
+  app.views.CallEstablishView = app.views.BasePendingCallView.extend({
     el: "#establish",
 
     events: {
@@ -90,13 +96,10 @@
     },
 
     initialize: function(options) {
-      options = options || {};
-      if (!options.call)
-        throw new Error("missing parameter: call");
+      /* jshint camelcase: false */
+      this.constructor.__super__.initialize.apply(this, [options]);
 
-      this.call = options.call;
-
-      this.call.on("change:state", this._handleStateChanges.bind(this));
+      options.call.on("change:state", this._handleStateChanges.bind(this));
     },
 
     _handleStateChanges: function(to, from) {
@@ -114,12 +117,6 @@
         event.preventDefault();
 
       window.close();
-    },
-
-    render: function() {
-      // XXX: update caller's avatar, though we'd need to access otherUser
-      //      as a User model instance
-      return this;
     }
   });
 
