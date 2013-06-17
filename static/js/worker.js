@@ -274,6 +274,8 @@ var handlers = {
     ports.remove(this);
     if (browserPort === this)
       browserPort = undefined;
+    if (currentCall && currentCall.port === this)
+      currentCall = undefined;
   },
 
   'social.initialize': function() {
