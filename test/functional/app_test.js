@@ -4,6 +4,7 @@
 var presence = require("../../presence"),
     app = presence.app;
 var expect = require("chai").expect;
+var request = require("request");
 
 var serverPort = 3000;
 var webdriver = require('selenium-webdriver'),
@@ -16,25 +17,34 @@ describe("Sidebar Tests", function() {
   this.timeout(600000);
 
   before(function(done) {
-    app.start(serverPort, function() {
-      driver = new webdriver.Builder().
-        usingServer('http://localhost:4444/wd/hub').
-        withCapabilities({'browserName': 'firefox'}).
-        build();
-
-      driver2 = new webdriver.Builder().
-        usingServer('http://localhost:4444/wd/hub').
-        withCapabilities({'browserName': 'firefox'}).
-        build();
-
-      done();
-    });
+    app.start(serverPort, done);
   });
 
   after(function(done) {
+    app.shutdown(done);
+  });
+
+  beforeEach(function(done) {
+    driver = new webdriver.Builder().
+      usingServer('http://localhost:4444/wd/hub').
+      withCapabilities({'browserName': 'firefox'}).
+      build();
+
+    driver2 = new webdriver.Builder().
+      usingServer('http://localhost:4444/wd/hub').
+      withCapabilities({'browserName': 'firefox'}).
+      build();
+
+    done();
+  });
+
+  afterEach(function(done) {
+    helpers.signOutEveryone(app);
+
     driver2.quit();
     driver.quit();
-    app.shutdown(done);
+
+    done();
   });
 
   it("should open the homepage", function(done) {
@@ -45,60 +55,52 @@ describe("Sidebar Tests", function() {
     });
   });
 
-  it("should sign users in and out", function(done) {
-    // Sign in user 1
-    helpers.signInUser(driver, "bob");
-    driver.findElement(By.css("strong.nick")).getText().then(function(nick) {
-      expect(nick).to.equal('bob');
-    });
-    driver.findElement(By.id("signout")).isDisplayed().then(function(res) {
-      expect(res).to.equal(true);
+  describe("sign in", function () {
+
+    beforeEach(function() {
+      driver.switchTo().frame("//#social-sidebar-browser");
+      driver2.switchTo().frame("//#social-sidebar-browser");
+      helpers.signInUser(driver, "bob");
     });
 
-    // Check there is a message that this is the only person logged in
-    driver.findElement(By.css("div.alert-info")).getText()
-          .then(function(alert) {
-      expect(alert).to.contain('only person');
+    afterEach(function(done) {
+      var doneHelper = helpers.doneAfter(2, done);
+
+      driver.manage().deleteCookie('nick').then(doneHelper);
+      driver2.manage().deleteCookie('nick').then(doneHelper);
     });
 
-    // Sign in user 2
-    helpers.signInUser(driver2, "larry");
-    driver2.findElement(By.css("strong.nick")).getText().then(function(nick) {
-      expect(nick).to.equal('larry');
+    it("should have the good nickname", function(done) {
+      driver.findElement(By.css("strong.nick")).getText().then(function(nick) {
+        expect(nick).to.equal('bob');
+        done();
+      });
     });
 
-    // Check that both pages no longer have the alert on them
-    driver.findElements(By.css("div.alert-info")).then(function(res) {
-      expect(res).to.deep.equal([]);
-    });
-    driver2.findElements(By.css("div.alert-info")).then(function(res) {
-      expect(res).to.deep.equal([]);
-    });
-
-    // Sign out user 1
-    helpers.signOutUser(driver);
-    driver.findElements(By.css("div.alert-info")).then(function(res) {
-      expect(res).to.deep.equal([]);
-    });
-    driver.findElement(By.id("signout")).isDisplayed().then(function(res) {
-      expect(res).to.equal(false);
+    it("should display the signout button", function(done) {
+      driver.findElement(By.id("signout")).isDisplayed().then(function(res) {
+        expect(res).to.equal(true);
+        done();
+      });
     });
 
-    // Check there's an alert on user 2's screen
-    driver2.findElement(By.css("div.alert-info")).getText()
-          .then(function(alert) {
-      expect(alert).to.contain('only person');
+    it("should display an alert when the user is alone", function(done) {
+      driver.findElements(By.css("div.alert-info")).then(function(res) {
+        // XXX: Should we test the wording here?
+        expect(res.length).to.equal(1);
+        done();
+      });
+    });
+  });
+
+  describe("sign out", function() {
+
+    beforeEach(function() {
+      helpers.signInUser(driver, "bob");
     });
 
-    // Now sign out user 2
-    helpers.signOutUser(driver2);
-    driver2.findElements(By.css("div.alert-info")).then(function(res) {
-      expect(res).to.deep.equal([]);
-    });
-    driver2.findElement(By.id("signout")).isDisplayed().then(function(res) {
-      expect(res).to.equal(false);
-      done();
-    });
+    it("should remove bob from the list of present users");
+
   });
 
   it("should handle an interuppted websocket connection", function(done) {
@@ -110,10 +112,10 @@ describe("Sidebar Tests", function() {
       presence._destroyWebSocketServer();
     }).then(function() {
       driver.findElement(By.css("div.alert-warning")).getText()
-            .then(function(alert) {
-        expect(alert).to.contain('lost communication');
-        done();
-      });
+        .then(function(alert) {
+          expect(alert).to.contain('lost communication');
+          done();
+        });
     });
   });
 
