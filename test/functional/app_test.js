@@ -4,7 +4,6 @@
 var presence = require("../../presence"),
     app = presence.app;
 var expect = require("chai").expect;
-var request = require("request");
 
 var serverPort = 3000;
 var webdriver = require('selenium-webdriver'),
