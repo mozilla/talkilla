@@ -79,9 +79,9 @@ UserData.prototype = {
   },
 
   /**
-   * Works out the appropraite image object for our status.
+   * Returns the appropriate image object for our status.
    */
-  _getIcon: function() {
+  get statusIcon() {
     // If we're not connected, then always show the standard
     // icon, regardless of the user setting.
     if (!this._connected)
@@ -95,7 +95,7 @@ UserData.prototype = {
    */
   send: function() {
     var userData = {
-      iconURL: this._rootURL + "/img/" + this._getIcon(),
+      iconURL: this._rootURL + "/img/" + this.statusIcon,
       // XXX for now, we just hard-code the default avatar image.
       portrait: this._rootURL + "/img/default-avatar.png",
       userName: this._userName,
