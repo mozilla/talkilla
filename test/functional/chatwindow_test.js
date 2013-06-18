@@ -3,6 +3,7 @@
 
 var presence = require("../../presence"),
     app = presence.app;
+var expect = require("chai").expect;
 
 var serverPort = 3000;
 var webdriver = require('selenium-webdriver'),
@@ -46,19 +47,33 @@ describe("Chat Window Tests", function() {
     helpers.signOutUser(driver);
   });
 
-  it("should open a chat window when clicking a nick", function(done) {
-    // Click a nick
-    var firstUser = By.css("ul.nav-list>li>a");
-    helpers.waitForSelector(driver2, firstUser);
-    driver2.findElement(firstUser).click();
+  it("should open a chat window with status info when clicking a nick",
+    function(done) {
+      // Click a nick
+      var firstUser = By.css("ul.nav-list>li>a");
+      helpers.waitForSelector(driver2, firstUser);
+      driver2.findElement(firstUser).click();
 
-    // Check that we have a chat window
-    driver2.switchTo().frame("//chatbox");
+      // Check that we have a chat window
+      driver2.switchTo().frame("//chatbox");
 
-    // Check that a #call element exists
-    helpers.waitForSelector(driver2, By.id("call")).then(function() {
-      done();
+      // Check that an #establish element exists and is visible
+      helpers.waitForSelector(driver2, By.id("establish"));
+      driver2.findElement(By.id("establish")).isDisplayed().then(
+        function(displayed){
+          expect(displayed).to.equal(true);
+        });
+
+      // Check for the expected status information
+      var outgoingTextSelector =
+        By.css("#establish>.outgoing-info>.outgoing-text");
+
+      helpers.waitForSelector(driver2, outgoingTextSelector);
+      driver2.findElement(outgoingTextSelector).
+        getText().then(function (text) {
+          expect(text).to.equal("Calling bob…");
+          done();
+        });
     });
-  });
-
+  
 });
