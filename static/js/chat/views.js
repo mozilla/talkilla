@@ -28,10 +28,6 @@
     }
   });
 
-  /**
-   * Base class for extension by CallOfferView and CallEstablishView, as these
-   * function almost identically.
-   */
   app.views.BasePendingCallView = Backbone.View.extend({
     initialize: function(options) {
       options = options || {};
