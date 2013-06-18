@@ -11,6 +11,8 @@ describe('Call Establish View', function() {
     $('body').append([
       '<div id="establish">',
       '  <p class="avatar"><img src="" id="avatar"></p>',
+      '  <p class="incoming-info"><img src="/img/video-icon.png">',
+      '    <span class="incoming-text"></span></p>',
       '  <p class="actions"><a class="btn btn-abort">End Call</a></p>',
       '</div>'
     ].join(''));
@@ -113,7 +115,9 @@ describe('Call Establish View', function() {
   });
 
   describe("#render", function() {
-    it("should render with the caller's avatar");
+    it("should show 'Calling USERNAME' for outgoing calls");
+
+    it("should render with the callee's avatar");
     // XXX: needs to have the Call model having its otherUser set as a User
     // model instance so we can actually get the avatar
   });
