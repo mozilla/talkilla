@@ -75,5 +75,5 @@ describe("Chat Window Tests", function() {
           done();
         });
     });
-  
+
 });

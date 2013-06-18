@@ -35,16 +35,9 @@ describe('Call Establish View', function() {
 
   describe("#initialize", function() {
     it("should attach a given call model", function() {
-      var establishView = new app.views.CallEstablishView({call: call});
+      var establishView = new app.views.CallEstablishView({model: call});
 
-      expect(establishView.call).to.equal(call);
-    });
-
-    it("should throw an error when no call model is given", function() {
-      function shouldExplode() {
-        new app.views.CallEstablishView();
-      }
-      expect(shouldExplode).to.Throw(Error, /missing parameter: call/);
+      expect(establishView.model).to.equal(call);
     });
 
     it("should attach _handleStateChanges to the change:state event ",
@@ -52,7 +45,7 @@ describe('Call Establish View', function() {
         sandbox.stub(call, "on");
         sandbox.stub(app.views.CallEstablishView.prototype,
           "_handleStateChanges");
-        var establishView = new app.views.CallEstablishView({call: call});
+        var establishView = new app.views.CallEstablishView({model: call});
         var attachedHandler = call.on.args[0][1];
         expect(establishView._handleStateChanges.callCount).to.equal(0);
 
@@ -68,7 +61,7 @@ describe('Call Establish View', function() {
   describe("#_handleStateChanges", function() {
     var establishView;
     beforeEach(function() {
-      establishView = new app.views.CallEstablishView({call: call});
+      establishView = new app.views.CallEstablishView({model: call});
     });
 
     it("should show the element when the state changes to pending from ready",
@@ -94,7 +87,7 @@ describe('Call Establish View', function() {
     var establishView, event;
 
     beforeEach(function() {
-      establishView = new app.views.CallEstablishView({call: call});
+      establishView = new app.views.CallEstablishView({model: call});
       event = { preventDefault: sinon.spy() };
       sandbox.stub(window, "close");
     });
@@ -118,7 +111,7 @@ describe('Call Establish View', function() {
   describe("#render", function() {
     var establishView;
     beforeEach(function() {
-      establishView = new app.views.CallEstablishView({call: call});
+      establishView = new app.views.CallEstablishView({model: call});
     });
 
     it("should show 'Calling Mark…' when rendering", function() {

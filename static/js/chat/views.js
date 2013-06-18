@@ -93,12 +93,8 @@
 
     initialize: function(options) {
       options = options || {};
-      if (!options.call)
-        throw new Error("missing parameter: call");
 
-      this.call = options.call;
-
-      this.call.on("change:state", this._handleStateChanges.bind(this));
+      this.model.on("change:state", this._handleStateChanges.bind(this));
     },
 
     _handleStateChanges: function(to, from) {
@@ -121,7 +117,7 @@
     render: function() {
       // XXX: update caller's avatar, though we'd need to access otherUser
       //      as a User model instance
-      var otherUser = this.call.get('otherUser');
+      var otherUser = this.model.get('otherUser');
       var formattedText = this.outgoingTextTemplate({otherUser: otherUser});
       this.$('.outgoing-text').text(formattedText);
 
