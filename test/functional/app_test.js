@@ -96,9 +96,24 @@ describe("Sidebar Tests", function() {
       helpers.signInUser(driver, "bob");
     });
 
-    it("should remove bob from the list of present users", function() {
+    it("should remove bob from the list of present users", function(done) {
       "use strict";
+      helpers.signInUser(driver2, "larry");
 
+      // We see bob
+      driver2.wait(function() {
+        return driver2.findElements(By.css(".users li")).then(function(res) {
+          return res.length == 1
+        });
+      }, 500).then(function() {
+        helpers.signOutUser(driver);
+
+        // bob disappeared
+        driver2.findElements(By.css(".users li")).then(function(res) {
+          expect(res.length).to.equal(0);
+          done();
+        });
+      });
     });
 
   });
