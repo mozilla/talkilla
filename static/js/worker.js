@@ -50,11 +50,14 @@ function getContactsDatabase() {
 
 function storeContact(aUsername) {
   var transaction = contactsDb.transaction(["contacts"], "readwrite");
-  // happily ignore errors, as adding a contact twice will purposefully fail.
   var request = transaction.objectStore("contacts").add({username: aUsername});
   request.onsuccess = function(event) {
     contacts.push(aUsername);
   };
+  request.onerror = function(event) {
+    // happily ignore errors, as adding a contact twice will purposefully fail.
+    event.preventDefault();
+  }
 }
 
 /**
