@@ -80,14 +80,6 @@ describe("Sidebar Tests", function() {
         done();
       });
     });
-
-    it("should display an alert when the user is alone", function(done) {
-      driver.findElements(By.css("div.alert-info")).then(function(res) {
-        // XXX: Should we test the wording here?
-        expect(res.length).to.equal(1);
-        done();
-      });
-    });
   });
 
   describe("sign out", function() {
