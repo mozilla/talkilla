@@ -1,4 +1,4 @@
-/* global describe, it, before, after */
+/* global describe, it */
 /* jshint expr:true */
 
 var expect = require("chai").expect;
@@ -9,7 +9,7 @@ describe("Functional Helpers", function() {
   describe("#after", function() {
 
     it("should only run the callback after 3 calls", function() {
-      var n = 0
+      var n = 0;
       var fun = helpers.after(3, function() {
         n += 1;
       });

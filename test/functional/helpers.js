@@ -76,7 +76,7 @@ function doneAfter(nth, done) {
   var doneHelper = after(nth, done);
   // done expects a potential error as a first argument, so we must
   // wrap it in a function that gets rid of any arguments.
-  return function() { doneHelper() };
-};
+  return function() { doneHelper(); };
+}
 exports.doneAfter = doneAfter;
 

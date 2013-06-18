@@ -1,4 +1,4 @@
-/* global describe, it, before, after */
+/* global describe, it, before, after, beforeEach, afterEach */
 /* jshint expr:true */
 
 var presence = require("../../presence"),
@@ -95,7 +95,7 @@ describe("Sidebar Tests", function() {
       // We see bob
       driver2.wait(function() {
         return driver2.findElements(By.css(".users li")).then(function(res) {
-          return res.length == 1
+          return res.length === 1;
         });
       }, 500).then(function() {
         helpers.signOutUser(driver);
