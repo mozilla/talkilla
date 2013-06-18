@@ -51,7 +51,7 @@ var ChatApp = (function($, Backbone, _) {
     });
 
     this.callEstablishView = new app.views.CallEstablishView({
-      call: this.call,
+      model: this.call,
       el: $("#establish")
     });
 

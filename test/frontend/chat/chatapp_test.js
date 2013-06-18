@@ -133,7 +133,7 @@ describe("ChatApp", function() {
 
     sinon.assert.calledOnce(app.views.CallEstablishView);
     sinon.assert.calledWithExactly(app.views.CallEstablishView,
-      { call: chatApp.call, el: $("#establish") });
+      { model: chatApp.call, el: $("#establish") });
   });
 
   describe("ChatApp (constructed)", function () {
