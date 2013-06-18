@@ -23,6 +23,7 @@ describe('Call Establish View', function() {
     sandbox.stub(app.models.WebRTCCall.prototype, "initialize");
     media = new app.models.WebRTCCall();
     call = new app.models.Call({}, {media: media});
+    call.set({otherUser: "Mark"});
   });
 
   afterEach(function() {
@@ -115,7 +116,17 @@ describe('Call Establish View', function() {
   });
 
   describe("#render", function() {
-    it("should show 'Calling USERNAME' for outgoing calls");
+    var establishView;
+    beforeEach(function() {
+      establishView = new app.views.CallEstablishView({call: call});
+    });
+
+    it("should show 'Calling Mark…' when rendering", function() {
+      establishView.render();
+
+      expect(establishView.$('.incoming-text').text()).
+        to.equal("Calling Mark…");
+    });
 
     it("should render with the callee's avatar");
     // XXX: needs to have the Call model having its otherUser set as a User

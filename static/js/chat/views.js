@@ -89,6 +89,8 @@
       'click .btn-abort': '_abort'
     },
 
+    incomingTextTemplate: _.template('Calling <%= otherUser %>…'),
+
     initialize: function(options) {
       options = options || {};
       if (!options.call)
@@ -119,6 +121,10 @@
     render: function() {
       // XXX: update caller's avatar, though we'd need to access otherUser
       //      as a User model instance
+      var otherUser = this.call.get('otherUser');
+      var formattedText = this.incomingTextTemplate({otherUser: otherUser});
+      this.$('.incoming-text').text(formattedText);
+
       return this;
     }
   });
