@@ -11,8 +11,8 @@ describe('Call Establish View', function() {
     $('body').append([
       '<div id="establish">',
       '  <p class="avatar"><img src="" id="avatar"></p>',
-      '  <p class="incoming-info"><img src="/img/video-icon.png">',
-      '    <span class="incoming-text"></span></p>',
+      '  <p class="outgoing-info"><img src="/img/video-icon.png">',
+      '    <span class="outgoing-text"></span></p>',
       '  <p class="actions"><a class="btn btn-abort">End Call</a></p>',
       '</div>'
     ].join(''));
@@ -124,7 +124,7 @@ describe('Call Establish View', function() {
     it("should show 'Calling Mark…' when rendering", function() {
       establishView.render();
 
-      expect(establishView.$('.incoming-text').text()).
+      expect(establishView.$('.outgoing-text').text()).
         to.equal("Calling Mark…");
     });
 
