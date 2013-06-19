@@ -17,8 +17,7 @@ function signInUser(driver, user, options) {
   if (options && options.refresh === true)
     driver.navigate().refresh();
   driver.findElement(By.name("nick")).sendKeys(user);
-  driver.findElement(By.id("submit")).click();
-  return driver;
+  return driver.findElement(By.id("submit")).click();
 }
 exports.signInUser = signInUser;
 
@@ -29,8 +28,7 @@ exports.signInUser = signInUser;
  */
 function signOutUser(driver) {
   driver.switchTo().frame("//#social-sidebar-browser");
-  driver.findElement(By.css('#signout button')).click();
-  return driver;
+  return driver.findElement(By.css('#signout button')).click();
 }
 exports.signOutUser = signOutUser;
 
@@ -51,3 +49,12 @@ function waitForSelector(driver, expectedSelector, options) {
   }, options && options.timeout || 10000);
 }
 exports.waitForSelector = waitForSelector;
+
+function isSignedIn(driver) {
+  return driver.findElement(By.css("strong.nick")).getText()
+    .then(function(nick) {
+      return !!nick;
+    });
+}
+exports.isSignedIn = isSignedIn;
+
