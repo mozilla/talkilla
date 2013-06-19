@@ -17,8 +17,7 @@ function signInUser(driver, user, options) {
   if (options && options.refresh === true)
     driver.navigate().refresh();
   driver.findElement(By.name("nick")).sendKeys(user);
-  driver.findElement(By.id("submit")).click();
-  return driver;
+  return driver.findElement(By.id("submit")).click();
 }
 exports.signInUser = signInUser;
 
@@ -29,10 +28,18 @@ exports.signInUser = signInUser;
  */
 function signOutUser(driver) {
   driver.switchTo().frame("//#social-sidebar-browser");
-  driver.findElement(By.css('#signout button')).click();
-  return driver;
+  return driver.findElement(By.css('#signout button')).click();
 }
 exports.signOutUser = signOutUser;
+
+/**
+ * Signs out every user from the server.
+ * @param  {Server} app
+ */
+function signOutEveryone(app) {
+  app.set('users', {});
+}
+exports.signOutEveryone = signOutEveryone;
 
 /**
  * Waits for a given selector to exist in the current page.
@@ -51,3 +58,25 @@ function waitForSelector(driver, expectedSelector, options) {
   }, options && options.timeout || 10000);
 }
 exports.waitForSelector = waitForSelector;
+
+function after(nth, fn) {
+  return function() {
+    if (nth > 1) {
+      nth -= 1;
+      return;
+    }
+
+    fn.apply(this, arguments);
+  }.bind(this);
+}
+exports.after = after;
+
+
+function doneAfter(nth, done) {
+  var doneHelper = after(nth, done);
+  // done expects a potential error as a first argument, so we must
+  // wrap it in a function that gets rid of any arguments.
+  return function() { doneHelper(); };
+}
+exports.doneAfter = doneAfter;
+
