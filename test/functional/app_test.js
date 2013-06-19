@@ -117,4 +117,68 @@ describe("Sidebar Tests", function() {
     });
   });
 
+  describe("persistent login", function() {
+
+    before(function(done) {
+      helpers.signInUser(driver, "bob");
+      done();
+    });
+
+    after(function(done) {
+      helpers.signOutUser(driver);
+      done();
+    });
+
+    it("should keep me signed in even if I reload the sidebar",
+      function (done) {
+        var isSignedIn = helpers.isSignedIn.bind(this, driver);
+
+        driver.navigate().refresh()
+          .then(isSignedIn)
+          .then(function(signedIn) {
+            expect(signedIn).to.be.True;
+            done();
+          });
+      });
+
+    it("should keep me signed in even if I close the browser", function (done) {
+      var session;
+      function saveSession() {
+        return driver.manage().getCookies().then(function(cookies) {
+          session = cookies;
+        });
+      }
+
+      function restartBrowser() {
+        return driver.quit().then(function() {
+          driver = new webdriver.Builder().
+            usingServer('http://localhost:4444/wd/hub').
+            withCapabilities({'browserName': 'firefox'}).
+            build();
+        }).then(function() {
+          driver.switchTo().frame("//#social-sidebar-browser");
+
+          session.forEach(function(cookie) {
+            driver.manage().addCookie(cookie.name, cookie.value);
+          });
+
+          return driver.navigate().refresh();
+        });
+      }
+
+      function isSignedIn() {
+        return helpers.isSignedIn(driver);
+      }
+
+      saveSession()
+        .then(restartBrowser)
+        .then(isSignedIn)
+        .then(function(signedIn) {
+          expect(signedIn).to.be.True;
+          done();
+        });
+    });
+
+  });
+
 });
