@@ -18,29 +18,29 @@ function openChatWindow() {
   browserPort.postEvent('social.request-chat', 'chat.html');
 }
 
-function getAllContacts() {
-  var objectStore = contactsDb.transaction("contacts").objectStore("contacts");
-  contacts = [];
-  objectStore.openCursor().onsuccess = function(event) {
-    var cursor = event.target.result;
-    if (cursor) {
-      contacts.push(cursor.value.username);
-      cursor.continue();
-    }
-  };
-}
-
-function getContactsDatabase() {
+function getContactsDatabase(aDoneCallback) {
   var request = indexedDB.open("TalkillaContacts", 1);
   request.onerror = function(event) {
     contacts = []; // Use an empty contact list if we fail to access the db.
+    if (aDoneCallback)
+      aDoneCallback();
   };
   request.onsuccess = function(event) {
     contactsDb = request.result;
-    getAllContacts();
+    var objectStore = contactsDb.transaction("contacts")
+                                .objectStore("contacts");
+    contacts = [];
+    objectStore.openCursor().onsuccess = function(event) {
+      var cursor = event.target.result;
+      if (cursor) {
+        contacts.push(cursor.value.username);
+        cursor.continue();
+      }
+      else if (aDoneCallback)
+        aDoneCallback();
+    };
   };
 
-  // This event is only implemented in recent browsers
   request.onupgradeneeded = function(event) {
     var db = event.target.result;
     var objectStore = db.createObjectStore("contacts", {keyPath: "username"});
@@ -48,16 +48,20 @@ function getContactsDatabase() {
   };
 }
 
-function storeContact(aUsername) {
+function storeContact(aUsername, aDoneCallback) {
   var transaction = contactsDb.transaction(["contacts"], "readwrite");
   var request = transaction.objectStore("contacts").add({username: aUsername});
   request.onsuccess = function(event) {
     contacts.push(aUsername);
+    if (aDoneCallback)
+      aDoneCallback();
   };
   request.onerror = function(event) {
     // happily ignore errors, as adding a contact twice will purposefully fail.
     event.preventDefault();
-  }
+    if (aDoneCallback)
+      aDoneCallback();
+  };
 }
 
 /**

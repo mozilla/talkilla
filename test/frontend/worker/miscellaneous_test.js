@@ -1,6 +1,7 @@
 /* global afterEach, beforeEach, chai, describe,
    it, sinon, _config:true, loadconfig, _signinCallback,
-   _currentUserData:true, UserData,
+   _currentUserData:true, UserData, getContactsDatabase,
+   storeContact, contacts:true, contactsDb:true, indexedDB,
    _ */
 var expect = chai.expect;
 
@@ -79,6 +80,30 @@ describe('Miscellaneous', function() {
         var nickname;
         testableCallback(null, JSON.stringify({nick: nickname}));
         sinon.assert.notCalled(socketStub);
+      });
+  });
+
+  describe("storeContact", function() {
+    it("should store contacts",
+      function(done) {
+        getContactsDatabase(function() {
+          // Check that we start with an empty contact list.
+          storeContact("foo", function() {
+            // Check that the contact has been added to the cached list.
+            expect(contacts).to.eql(["foo"]);
+            // Drop all references to the contact list
+            contacts = undefined;
+            contactsDb = undefined;
+            getContactsDatabase(function() {
+              expect(contacts).to.eql(["foo"]);
+              contactsDb.close();
+              contactsDb = undefined;
+              contacts = undefined;
+              indexedDB.deleteDatabase("TalkillaContacts");
+              done();
+            });
+          });
+        });
       });
   });
 });

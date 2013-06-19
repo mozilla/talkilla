@@ -12,6 +12,8 @@ describe('handlers', function() {
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
+    // Avoid touching the contacts db which we haven't initialized.
+    sandbox.stub(window, "storeContact");
   });
 
   afterEach(function() {
@@ -316,8 +318,6 @@ describe('handlers', function() {
           callee: "bob"
         }
       };
-      // Avoid touching the contacts db which we haven't initialized.
-      storeContact = function() {};
     });
 
     afterEach(function() {
@@ -389,7 +389,6 @@ describe('handlers', function() {
     it("should store the contact when " +
       "receiving a talkilla.chat-window-ready notification",
       function () {
-        storeContact = sinon.spy();
         var port = {postEvent: function() {}};
         handlers['talkilla.chat-window-ready'].bind(port)({
           topic: "talkilla.chat-window-ready",
