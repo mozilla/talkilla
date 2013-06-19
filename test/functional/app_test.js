@@ -120,15 +120,13 @@ describe("Sidebar Tests", function() {
   describe("persistent login", function() {
 
     before(function(done) {
-      helpers.signInUser(driver, "bob").then(function() {
-        done();
-      });
+      helpers.signInUser(driver, "bob");
+      done();
     });
 
     after(function(done) {
-      helpers.signOutUser(driver).then(function() {
-        done();
-      });
+      helpers.signOutUser(driver);
+      done();
     });
 
     it("should keep me signed in even if I reload the sidebar",

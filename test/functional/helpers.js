@@ -17,7 +17,8 @@ function signInUser(driver, user, options) {
   if (options && options.refresh === true)
     driver.navigate().refresh();
   driver.findElement(By.name("nick")).sendKeys(user);
-  return driver.findElement(By.id("submit")).click();
+  driver.findElement(By.id("submit")).click();
+  return driver;
 }
 exports.signInUser = signInUser;
 
@@ -28,7 +29,8 @@ exports.signInUser = signInUser;
  */
 function signOutUser(driver) {
   driver.switchTo().frame("//#social-sidebar-browser");
-  return driver.findElement(By.css('#signout button')).click();
+  driver.findElement(By.css('#signout button')).click();
+  return driver;
 }
 exports.signOutUser = signOutUser;
 
@@ -53,7 +55,7 @@ exports.waitForSelector = waitForSelector;
 /**
  * Check if the given driver is signed in.
  * @param  {WebDriver} driver
- * @return {Boolean}
+ * @return {Promise} A promise that will be resolved to boolean
  */
 function isSignedIn(driver) {
   return driver.findElement(By.css("strong.nick")).getText()
