@@ -1,7 +1,4 @@
 /* jshint unused:false */
-/* -W024 tells jshint to not yell at the 'continue' keyword,
- * as it's part of the indexedDB API: */
-/* jshint -W024 */
 /* global indexedDB */
 
 var _config = {DEBUG: false};
@@ -13,54 +10,63 @@ var currentCall;
 var currentUsers;
 var contacts;
 var contactsDb;
+var kContactDBName = "contacts";
 
 function openChatWindow() {
   browserPort.postEvent('social.request-chat', 'chat.html');
 }
 
-function getContactsDatabase(aDoneCallback) {
-  var request = indexedDB.open("TalkillaContacts", 1);
-  request.onerror = function(event) {
+function getContactsDatabase(doneCallback) {
+  var kDBVersion = 1;
+  var request = indexedDB.open("TalkillaContacts", kDBVersion);
+
+  request.onerror = function() {
     contacts = []; // Use an empty contact list if we fail to access the db.
-    if (aDoneCallback)
-      aDoneCallback();
+    if (doneCallback)
+      doneCallback();
   };
-  request.onsuccess = function(event) {
+
+  request.onsuccess = function() {
     contactsDb = request.result;
-    var objectStore = contactsDb.transaction("contacts")
-                                .objectStore("contacts");
+    var objectStore = contactsDb.transaction(kContactDBName)
+                                .objectStore(kContactDBName);
     contacts = [];
     objectStore.openCursor().onsuccess = function(event) {
       var cursor = event.target.result;
       if (cursor) {
+        /* -W024 tells jshint to not yell at the 'continue' keyword,
+         * as it's part of the indexedDB API: */
+        /* jshint -W024 */
         contacts.push(cursor.value.username);
         cursor.continue();
       }
-      else if (aDoneCallback)
-        aDoneCallback();
+      else if (doneCallback)
+        doneCallback();
     };
   };
 
   request.onupgradeneeded = function(event) {
     var db = event.target.result;
-    var objectStore = db.createObjectStore("contacts", {keyPath: "username"});
+    var objectStore = db.createObjectStore(kContactDBName,
+                                           {keyPath: "username"});
     objectStore.createIndex("username", "username", {unique: true});
   };
 }
 
-function storeContact(aUsername, aDoneCallback) {
-  var transaction = contactsDb.transaction(["contacts"], "readwrite");
-  var request = transaction.objectStore("contacts").add({username: aUsername});
-  request.onsuccess = function(event) {
-    contacts.push(aUsername);
-    if (aDoneCallback)
-      aDoneCallback();
+function storeContact(username, doneCallback) {
+  var transaction = contactsDb.transaction([kContactDBName], "readwrite");
+  var request = transaction.objectStore(kContactDBName)
+                           .add({username: username});
+  request.onsuccess = function() {
+    contacts.push(username);
+    if (doneCallback)
+      doneCallback();
   };
   request.onerror = function(event) {
     // happily ignore errors, as adding a contact twice will purposefully fail.
     event.preventDefault();
-    if (aDoneCallback)
-      aDoneCallback();
+    if (doneCallback)
+      doneCallback();
   };
 }
 

@@ -84,10 +84,17 @@ describe('Miscellaneous', function() {
   });
 
   describe("storeContact", function() {
-    it("should store contacts",
-      function(done) {
+    afterEach(function() {
+      contactsDb.close();
+      contactsDb = undefined;
+      contacts = undefined;
+      indexedDB.deleteDatabase("TalkillaContacts");
+    });
+
+    it("should store contacts", function(done) {
         getContactsDatabase(function() {
           // Check that we start with an empty contact list.
+          expect(contacts).to.eql([]);
           storeContact("foo", function() {
             // Check that the contact has been added to the cached list.
             expect(contacts).to.eql(["foo"]);
@@ -96,10 +103,6 @@ describe('Miscellaneous', function() {
             contactsDb = undefined;
             getContactsDatabase(function() {
               expect(contacts).to.eql(["foo"]);
-              contactsDb.close();
-              contactsDb = undefined;
-              contacts = undefined;
-              indexedDB.deleteDatabase("TalkillaContacts");
               done();
             });
           });
