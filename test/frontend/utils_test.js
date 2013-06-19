@@ -3,21 +3,25 @@ var expect = chai.expect;
 
 describe('Utils', function() {
   "use strict";
+  var sandbox;
+
+  beforeEach(function() {
+    sandbox = sinon.sandbox.create();
+  });
+
+  afterEach(function() {
+    sandbox.restore();
+  });
 
   describe("AudioLibrary", function() {
-    var sandbox, fakeAudio;
+    var fakeAudio;
 
     beforeEach(function() {
-      sandbox = sinon.sandbox.create();
       fakeAudio = {
         play: sinon.spy(),
         pause: sinon.spy()
       };
       sandbox.stub(window, "Audio").returns(fakeAudio);
-    });
-
-    afterEach(function() {
-      sandbox.restore();
     });
 
     describe("#constructor", function() {
@@ -96,6 +100,15 @@ describe('Utils', function() {
       });
     });
 
+  });
+
+  describe("linkify", function() {
+
+   it("should linkify a simple link", function() {
+     var result = app.utils.linkify("http://foo.bar");
+
+     expect(result).to.be.equal("<a href='http://foo.bar'>http://foo.bar</a>");
+   });
   });
 
 });

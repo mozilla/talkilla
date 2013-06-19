@@ -78,4 +78,19 @@
     sidebarApp.view.notifications.addNotification(notification);
     return notification;
   };
+
+  /**
+   * Strips html from text. This may need further improvements for security
+   * in future.
+   *
+   * @param text  The string to strip.
+   */
+  app.utils.stripHTML = function(text) {
+    return text.replace(/<(?:.|\n)*?>/gm, '');
+  };
+
+  app.utils.linkify = function(text) {
+    var exp = new RegExp("\(?\bhttps?://[-A-Za-z0-9+&@#/%?=~_()|!:,.;]*[-A-Za-z0-9+&@#/%=~_()|]");
+    return text.replace(exp, "<a href='$1'>$1</a>");
+  };
 })(app);

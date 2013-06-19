@@ -204,7 +204,11 @@
     template: _.template('<strong><%= nick %>:</strong> <%= message %>'),
 
     render: function() {
-      this.$el.html(this.template(this.model.toJSON()));
+      var data = this.model.attributes;
+      console.log(data);
+      data.message = app.utils.linkify(data.message);
+      console.log(data);
+      this.$el.html(this.template(data));
       return this;
     }
   });
@@ -246,7 +250,8 @@
     send: function(event) {
       event.preventDefault();
       var $input = this.$('form input[name="message"]');
-      var message = $input.val().trim();
+      var message = app.utils.stripHTML($input.val().trim());
+
       $input.val('');
       this.collection.newEntry({
         nick: app.data.user.get("nick"),
