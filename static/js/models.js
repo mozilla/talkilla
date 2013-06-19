@@ -184,6 +184,12 @@
    * @class WebRTCCall
    * @constructor
    *
+   * Attributes:
+   *
+   * - {Boolean} audio: enable audio stream
+   * - {Boolean} video: enable video stream
+   * - {Boolean} fake: use fake streams
+   *
    * Fired when a SDP offer is available (see #offer).
    * @event offer-ready
    * @param {Object} offer An SDP offer
@@ -325,8 +331,9 @@
 
     _getMedia: function(callback, errback) {
       var constraints = {
-        video: this.get('video'),
-        audio: this.get('audio')
+        video: !!this.get('video'),
+        audio: !!this.get('audio'),
+        fake:  !!this.get('fake')
       };
 
       var cb = function (localStream) {

@@ -31,7 +31,10 @@ var ChatApp = (function($, Backbone, _) {
     this.port = app.port;
     app.data.user = new app.models.User();
 
-    this.webrtc = new app.models.WebRTCCall();
+    this.webrtc = new app.models.WebRTCCall({
+      fake: !!(app.options && app.options.FAKE_MEDIA_STREAMS)
+    });
+
     this.call = new app.models.Call({}, {
       media: this.webrtc
     });
@@ -51,7 +54,7 @@ var ChatApp = (function($, Backbone, _) {
     });
 
     this.callEstablishView = new app.views.CallEstablishView({
-      call: this.call,
+      model: this.call,
       el: $("#establish")
     });
 
