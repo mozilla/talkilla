@@ -11,6 +11,8 @@ describe('Call Establish View', function() {
     $('body').append([
       '<div id="establish">',
       '  <p class="avatar"><img src="" id="avatar"></p>',
+      '  <p class="outgoing-info"><img src="/img/video-icon.png">',
+      '    <span class="outgoing-text"></span></p>',
       '  <p class="actions"><a class="btn btn-abort">End Call</a></p>',
       '</div>'
     ].join(''));
@@ -21,6 +23,7 @@ describe('Call Establish View', function() {
     sandbox.stub(app.models.WebRTCCall.prototype, "initialize");
     media = new app.models.WebRTCCall();
     call = new app.models.Call({}, {media: media});
+    call.set({otherUser: "Mark"});
   });
 
   afterEach(function() {
@@ -32,16 +35,9 @@ describe('Call Establish View', function() {
 
   describe("#initialize", function() {
     it("should attach a given call model", function() {
-      var establishView = new app.views.CallEstablishView({call: call});
+      var establishView = new app.views.CallEstablishView({model: call});
 
-      expect(establishView.call).to.equal(call);
-    });
-
-    it("should throw an error when no call model is given", function() {
-      function shouldExplode() {
-        new app.views.CallEstablishView();
-      }
-      expect(shouldExplode).to.Throw(Error, /missing parameter: call/);
+      expect(establishView.model).to.equal(call);
     });
 
     it("should attach _handleStateChanges to the change:state event ",
@@ -49,7 +45,7 @@ describe('Call Establish View', function() {
         sandbox.stub(call, "on");
         sandbox.stub(app.views.CallEstablishView.prototype,
           "_handleStateChanges");
-        var establishView = new app.views.CallEstablishView({call: call});
+        var establishView = new app.views.CallEstablishView({model: call});
         var attachedHandler = call.on.args[0][1];
         expect(establishView._handleStateChanges.callCount).to.equal(0);
 
@@ -65,7 +61,7 @@ describe('Call Establish View', function() {
   describe("#_handleStateChanges", function() {
     var establishView;
     beforeEach(function() {
-      establishView = new app.views.CallEstablishView({call: call});
+      establishView = new app.views.CallEstablishView({model: call});
     });
 
     it("should show the element when the state changes to pending from ready",
@@ -91,13 +87,12 @@ describe('Call Establish View', function() {
     var establishView, event;
 
     beforeEach(function() {
-      establishView = new app.views.CallEstablishView({call: call});
+      establishView = new app.views.CallEstablishView({model: call});
       event = { preventDefault: sinon.spy() };
       sandbox.stub(window, "close");
     });
 
     it("should call preventDefault on any event passed", function() {
-
       establishView._abort(event);
 
       sinon.assert.calledOnce(event.preventDefault);
@@ -114,7 +109,19 @@ describe('Call Establish View', function() {
   });
 
   describe("#render", function() {
-    it("should render with the caller's avatar");
+    var establishView;
+    beforeEach(function() {
+      establishView = new app.views.CallEstablishView({model: call});
+    });
+
+    it("should show 'Calling Mark…' when rendering", function() {
+      establishView.render();
+
+      expect(establishView.$('.outgoing-text').text()).
+        to.equal("Calling Mark…");
+    });
+
+    it("should render with the callee's avatar");
     // XXX: needs to have the Call model having its otherUser set as a User
     // model instance so we can actually get the avatar
   });

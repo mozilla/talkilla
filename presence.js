@@ -66,6 +66,12 @@ app.configure('production', function() {
   app.set('config', getConfigFromFile('prod.json'));
 });
 
+// test settings
+app.configure('test', function() {
+  app.set('config', getConfigFromFile('test.json'));
+  app.use('/test', express.static(__dirname + '/test'));
+});
+
 function findNewNick(aNick) {
   var nickParts = /^(.+?)(\d*)$/.exec(aNick);
 
