@@ -50,6 +50,11 @@ function waitForSelector(driver, expectedSelector, options) {
 }
 exports.waitForSelector = waitForSelector;
 
+/**
+ * Check if the given driver is signed in.
+ * @param  {WebDriver} driver
+ * @return {Boolean}
+ */
 function isSignedIn(driver) {
   return driver.findElement(By.css("strong.nick")).getText()
     .then(function(nick) {
