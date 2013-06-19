@@ -71,12 +71,18 @@ function storeContact(aUsername) {
  *
  * @param {Object|undefined}  initial  Initial data
  * @param {Object|undefined}  config   Environment configuration
+ *
+ * UserData properties:
+ *
+ * userName: The name of the currently signed-in user.
+ * connected: Whether or not the websocket to the server is connected.
  */
 function UserData(initial, config) {
   this._rootURL = config ? config.ROOTURL : '';
 
   this.defaults = {
-    _userName: undefined
+    _userName: undefined,
+    _connected: false
   };
 
   this.reset(true);
@@ -91,15 +97,21 @@ function UserData(initial, config) {
 
 UserData.prototype = {
   /*jshint es5: true */
-  /**
-   * Sets the userName of the current user.
-   */
   get userName() {
     return this._userName;
   },
 
   set userName(userName) {
     this._userName = userName;
+    this.send();
+  },
+
+  get connected() {
+    return this._connected;
+  },
+
+  set connected(connected) {
+    this._connected = connected;
     this.send();
   },
 
@@ -115,11 +127,23 @@ UserData.prototype = {
   },
 
   /**
+   * Returns the appropriate image object for our status.
+   */
+  get statusIcon() {
+    // If we're not connected, then always show the standard
+    // icon, regardless of the user setting.
+    if (!this._connected)
+      return "talkilla16.png";
+
+    return "talkilla16-online.png";
+  },
+
+  /**
    * Sends the current user data to Social
    */
   send: function() {
     var userData = {
-      iconURL: this._rootURL + "/img/talkilla16.png",
+      iconURL: this._rootURL + "/img/" + this.statusIcon,
       // XXX for now, we just hard-code the default avatar image.
       portrait: this._rootURL + "/img/default-avatar.png",
       userName: this._userName,
@@ -177,6 +201,7 @@ function _presenceSocketSendMessage(data) {
 function _presenceSocketOnOpen(event) {
   "use strict";
 
+  _currentUserData.connected = true;
   ports.broadcastEvent("talkilla.presence-open", event);
 }
 
@@ -188,6 +213,8 @@ function _presenceSocketOnError(event) {
 
 function _presenceSocketOnClose(event) {
   "use strict";
+
+  _currentUserData.connected = false;
 
   // XXX: this will need future work to handle retrying presence connections
   ports.broadcastEvent('talkilla.presence-unavailable', event.code);
@@ -304,6 +331,8 @@ var handlers = {
     ports.remove(this);
     if (browserPort === this)
       browserPort = undefined;
+    if (currentCall && currentCall.port === this)
+      currentCall = undefined;
   },
 
   'social.initialize': function() {

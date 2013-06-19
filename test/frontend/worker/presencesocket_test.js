@@ -101,6 +101,15 @@ describe('presence socket', function () {
   });
 
   describe('#_presenceSocketOnOpen', function() {
+    beforeEach(function () {
+      sandbox.stub(UserData.prototype, "send");
+      _currentUserData = new UserData({connected: true});
+    });
+
+    afterEach(function() {
+      _currentUserData = undefined;
+    });
+
     it('should post a talkilla.presence-open message',
       function() {
         var event = {foo: "bar"};
@@ -110,6 +119,13 @@ describe('presence socket', function () {
         sinon.assert.calledWithExactly(spy1,
           {data: event, topic: "talkilla.presence-open"});
       });
+
+    it('should inform user data that the user is connected', function() {
+      var event = {foo: "bar"};
+      _presenceSocketOnOpen(event);
+
+      expect(_currentUserData.connected).to.be.equal(true);
+    });
   });
 
   describe('#_presenceSocketOnMessage', function() {
@@ -172,6 +188,15 @@ describe('presence socket', function () {
   });
 
   describe("#_presenceSocketOnClose", function() {
+    beforeEach(function () {
+      sandbox.stub(UserData.prototype, "send");
+      _currentUserData = new UserData({connected: true});
+    });
+
+    afterEach(function() {
+      _currentUserData = undefined;
+    });
+
     it('should post a talkilla.presence-unavailable message',
       function() {
         var event = {code: 1000};
@@ -180,8 +205,14 @@ describe('presence socket', function () {
         sinon.assert.calledOnce(spy1);
         sinon.assert.calledWithExactly(spy1,
           {data: 1000, topic: "talkilla.presence-unavailable"});
-      }
-    );
+      });
+
+    it('should inform user data that the user is disconnected', function() {
+      var event = {code: 1000};
+      _presenceSocketOnClose(event);
+
+      expect(_currentUserData.connected).to.be.equal(false);
+    });
 
     // XXX should we define behavior that is more than simple proxying
     // of the CloseEvent?  E.g. should we null out _presenceSocket?
