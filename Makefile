@@ -45,6 +45,10 @@ selenium:
 #
 # https://code.google.com/p/selenium/wiki/WebDriverJs#Writing_Tests has details
 # of the various promise bits.
+
+# Useful when testing a single file by setting SOLO_FILE and putting
+# debugger statement to force a breakpoint in the file you want to test.
+# See README.md for more details.
 #
 debug_test:
 	MOCHA_ARGS=debug $(MAKE) selenium
