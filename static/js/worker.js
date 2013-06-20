@@ -1,4 +1,5 @@
 /* jshint unused:false */
+/* global indexedDB */
 
 var _config = {DEBUG: false};
 var _currentUserData;
@@ -7,9 +8,66 @@ var ports;
 var browserPort;
 var currentCall;
 var currentUsers;
+var contacts;
+var contactsDb;
+var kContactDBName = "contacts";
 
 function openChatWindow() {
   browserPort.postEvent('social.request-chat', 'chat.html');
+}
+
+function getContactsDatabase(doneCallback) {
+  var kDBVersion = 1;
+  var request = indexedDB.open("TalkillaContacts", kDBVersion);
+
+  request.onerror = function() {
+    contacts = []; // Use an empty contact list if we fail to access the db.
+    if (doneCallback)
+      doneCallback();
+  };
+
+  request.onsuccess = function() {
+    contactsDb = request.result;
+    var objectStore = contactsDb.transaction(kContactDBName)
+                                .objectStore(kContactDBName);
+    contacts = [];
+    objectStore.openCursor().onsuccess = function(event) {
+      var cursor = event.target.result;
+      if (cursor) {
+        /* -W024 tells jshint to not yell at the 'continue' keyword,
+         * as it's part of the indexedDB API: */
+        /* jshint -W024 */
+        contacts.push(cursor.value.username);
+        cursor.continue();
+      }
+      else if (doneCallback)
+        doneCallback();
+    };
+  };
+
+  request.onupgradeneeded = function(event) {
+    var db = event.target.result;
+    var objectStore = db.createObjectStore(kContactDBName,
+                                           {keyPath: "username"});
+    objectStore.createIndex("username", "username", {unique: true});
+  };
+}
+
+function storeContact(username, doneCallback) {
+  var transaction = contactsDb.transaction([kContactDBName], "readwrite");
+  var request = transaction.objectStore(kContactDBName)
+                           .add({username: username});
+  request.onsuccess = function() {
+    contacts.push(username);
+    if (doneCallback)
+      doneCallback();
+  };
+  request.onerror = function(event) {
+    // happily ignore errors, as adding a contact twice will purposefully fail.
+    event.preventDefault();
+    if (doneCallback)
+      doneCallback();
+  };
 }
 
 /**
@@ -107,10 +165,24 @@ UserData.prototype = {
   }
 };
 
+function updateCurrentUsers(data) {
+  var usersMap = {};
+  var users = data.map(function(u) {
+    usersMap[u.nick] = true;
+    return {nick: u.nick, presence: "connected"};
+  });
+  contacts.forEach(function(name) {
+    if (!Object.prototype.hasOwnProperty.call(usersMap, name))
+      users.push({nick: name, presence: "disconnected"});
+  });
+  users.sort(function(u1, u2) { return u1.nick.localeCompare(u2.nick); });
+  currentUsers = users;
+}
+
 var serverHandlers = {
   'users': function(data) {
-    currentUsers = data;
-    ports.broadcastEvent("talkilla.users", data);
+    updateCurrentUsers(data);
+    ports.broadcastEvent("talkilla.users", currentUsers);
   },
 
   'incoming_call': function(data) {
@@ -284,6 +356,8 @@ var handlers = {
     // Don't have it in the main list of ports, as we don't need
     // to broadcast all our talkilla.* messages to the social api.
     ports.remove(this);
+
+    getContactsDatabase();
   },
 
   // Talkilla events
@@ -326,6 +400,11 @@ var handlers = {
         username: _currentUserData.userName
       });
     }
+
+    var contactName = currentCall.data.offer ?
+      currentCall.data.caller :
+      currentCall.data.callee;
+    storeContact(contactName);
 
    // If this is an incoming call, we won't have the port yet.
     var topic = currentCall.data.offer ?
