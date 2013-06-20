@@ -196,23 +196,18 @@
   });
 
   /**
-   * Text chat entry view.
+   * Base text chat entry view.
    */
-  app.views.TextChatEntryView = Backbone.View.extend({
+  app.views.BaseTextChatEntryView = Backbone.View.extend({
     tagName: 'li',
 
-    template: _.template([
-      '<strong><%= nick %>:</strong>&nbsp;',
-      '<%= linkify(message, {attributes: {class: "chat-link"}}) %>'
-    ].join('')),
-
     events: {
-      'click .chat-link': 'clickLink'
+      'click .chat-link': 'click'
     },
 
-    clickLink: function(event) {
-      if (event)
-        event.preventDefault();
+    click: function(event) {
+      event.preventDefault();
+      event.stopPropagation();
 
       window.open($(event.currentTarget).attr('href'));
     },
@@ -222,8 +217,29 @@
         escape: _.escape,
         linkify: app.utils.linkify
       })));
+
       return this;
     }
+  });
+
+  /**
+   * Text chat plain text message view.
+   */
+  app.views.TextChatTextEntryView = app.views.BaseTextChatEntryView.extend({
+    template: _.template([
+      '<strong><%= nick %>:</strong>&nbsp;',
+      '<%= linkify(message, {attributes: {class: "chat-link"}}) %>'
+    ].join(''))
+  });
+
+  /**
+   * Text chat URL entry view.
+   */
+  app.views.TextChatURLEntryView = app.views.BaseTextChatEntryView.extend({
+    template: _.template([
+      '<strong><%= nick %>:</strong>&nbsp;' +
+      '<a href="<%= message %>" class="chat-link"><%- message %></div>'
+    ].join(''))
   });
 
   /**
@@ -233,7 +249,9 @@
     el: '#textchat', // XXX: uncouple the selector from this view
 
     events: {
-      'submit form': 'send'
+      'submit form': 'send',
+      'dragover': 'dragover',
+      'drop': 'drop'
     },
 
     initialize: function(options) {
@@ -260,6 +278,33 @@
       }.bind(this));
     },
 
+    dragover: function(event) {
+      var dataTransfer = event.originalEvent.dataTransfer;
+
+      if (!dataTransfer.types.contains("text/x-moz-url"))
+        return;
+
+      // Need both of these to make the drag work
+      event.stopPropagation();
+      event.preventDefault();
+      dataTransfer.dropEffect = "copy";
+    },
+
+    drop: function(event) {
+      event.preventDefault();
+
+      var url = event.originalEvent.dataTransfer.getData("text/x-moz-url");
+
+      // Get rid of the title
+      url = url.split('\n')[0];
+
+      this.collection.newEntry({
+        nick: app.data.user.get("nick"),
+        message: url,
+        type: "url"
+      });
+    },
+
     send: function(event) {
       event.preventDefault();
       var $input = this.$('form input[name="message"]');
@@ -268,18 +313,23 @@
       $input.val('');
       this.collection.newEntry({
         nick: app.data.user.get("nick"),
-        message: message
+        message: message,
+        type: "text"
       });
     },
 
     render: function() {
       var $ul = this.$('ul').empty();
+
       this.collection.each(function(entry) {
-        var view = new app.views.TextChatEntryView({model: entry});
-        $ul.append(view.render().$el);
+        var ViewClass = entry.get('type') === "url" ?
+          app.views.TextChatURLEntryView : app.views.TextChatTextEntryView;
+        $ul.append(new ViewClass({model: entry}).render().$el);
       });
+
       var ul = $ul.get(0);
       ul.scrollTop = ul.scrollTopMax;
+
       return this;
     }
   });

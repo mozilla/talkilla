@@ -381,6 +381,7 @@
   app.models.TextChatEntry = Backbone.Model.extend({
     defaults: {nick: undefined,
                message: undefined,
+               type: "text",
                date: new Date().getTime()}
   });
 
