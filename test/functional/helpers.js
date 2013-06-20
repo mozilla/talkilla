@@ -58,7 +58,9 @@ exports.waitForSelector = waitForSelector;
  * @return {Promise} A promise that will be resolved to boolean
  */
 function isSignedIn(driver) {
-  return driver.findElement(By.css("strong.nick")).getText()
+  var nick = By.css("strong.nick");
+  waitForSelector(driver, nick);
+  return driver.findElement(nick).getText()
     .then(function(nick) {
       return !!nick;
     });
