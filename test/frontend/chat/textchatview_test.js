@@ -4,6 +4,37 @@
 /* jshint expr:true */
 var expect = chai.expect;
 
+describe('TextChatEntryView', function() {
+  var sandbox;
+
+  beforeEach(function() {
+    sandbox = sinon.sandbox.create();
+    sandbox.stub(window, "open");
+  });
+
+  afterEach(function() {
+    sandbox.restore();
+  });
+
+  it("should register a click event for chat links", function() {
+    var view = new app.views.TextChatEntryView({
+      model: new app.models.TextChatEntry({
+        nick: "jb",
+        message: "check that http://mozilla.com/"
+      })
+    });
+
+    view.render();
+
+    expect(view.$("a.chat-link")).to.have.length.of(1);
+
+    view.$("a.chat-link").click();
+
+    sinon.assert.calledOnce(window.open);
+    sinon.assert.calledWithExactly(window.open, "http://mozilla.com/");
+  });
+});
+
 describe('TextChatView', function() {
   "use strict";
   var chatApp, sandbox, call;

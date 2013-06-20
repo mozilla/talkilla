@@ -203,8 +203,19 @@
 
     template: _.template([
       '<strong><%= nick %>:</strong>&nbsp;',
-      '<%= linkify(message, {target: "_blank"}) %>'
+      '<%= linkify(message, {attributes: {class: "chat-link"}}) %>'
     ].join('')),
+
+    events: {
+      'click .chat-link': 'clickLink'
+    },
+
+    clickLink: function(event) {
+      if (event)
+        event.preventDefault();
+
+      window.open($(event.currentTarget).attr('href'));
+    },
 
     render: function() {
       this.$el.html(this.template(_.extend(this.model.toJSON(), {
