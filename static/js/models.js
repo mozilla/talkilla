@@ -379,10 +379,26 @@
   });
 
   app.models.TextChatEntry = Backbone.Model.extend({
+    supportedURLProtocols: ["http", "ftp"],
+
     defaults: {nick: undefined,
                message: undefined,
                type: "text",
-               date: new Date().getTime()}
+               date: new Date().getTime()},
+
+    validate: function(attrs) {
+      if (attrs.type !== "url")
+        return;
+
+      if (!this.validateURL(attrs.message))
+        return "Unsupported URL";
+    },
+
+    validateURL: function(url) {
+      return this.supportedURLProtocols.some(function(protocol) {
+        return url.toLowerCase().indexOf(protocol) !== -1;
+      });
+    }
   });
 
   app.models.TextChat = Backbone.Collection.extend({

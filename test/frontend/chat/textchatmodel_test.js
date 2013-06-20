@@ -12,7 +12,18 @@ describe('Text chat models', function() {
       var entry = new app.models.TextChatEntry();
       expect(entry.get("nick")).to.be.a("undefined");
       expect(entry.get("message")).to.be.a("undefined");
+      expect(entry.get("type")).to.equal("text");
       expect(entry.get("date")).to.be.a("number");
+    });
+
+    it("should validate a URL", function() {
+      function validator(url) {
+        return new app.models.TextChatEntry().validateURL(url);
+      }
+
+      expect(validator("http://mozilla.com/")).to.be.True;
+      /* jshint scripturl:true */
+      expect(validator("javascript:alert('plop')")).to.be.False;
     });
   });
 
