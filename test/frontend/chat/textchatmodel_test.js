@@ -22,6 +22,8 @@ describe('Text chat models', function() {
       }
 
       expect(validator("http://mozilla.com/")).to.be.True;
+      expect(validator("ftp://mozilla.com/")).to.be.True;
+      expect(validator("mailto:plop@plop.com")).to.be.False;
       /* jshint scripturl:true */
       expect(validator("javascript:alert('plop')")).to.be.False;
     });

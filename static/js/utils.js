@@ -1,8 +1,8 @@
-/* global app, sidebarApp*/
+/* global app, _, sidebarApp*/
 /**
  * Talkilla utilities.
  */
-(function(app) {
+(function(app, _) {
   "use strict";
 
   /**
@@ -103,10 +103,11 @@
    * @return {String}
    */
   app.utils.linkify = function(text, options) {
-    return (text || "").trim().split(" ").map(function(word) {
-      if (/^https?:\/\//.test(word.toLowerCase()))
-        return app.utils.createLink(word, options && options.attributes);
+    return _.escape(text || "").trim().split(" ").map(function(word) {
+      var raw = _.unescape(word);
+      if (/^https?:\/\//.test(raw.toLowerCase()))
+        return app.utils.createLink(raw, options && options.attributes);
       return word;
     }).join(" ");
   };
-})(app);
+})(app, _);
