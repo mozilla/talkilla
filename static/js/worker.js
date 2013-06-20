@@ -165,19 +165,24 @@ UserData.prototype = {
   }
 };
 
+function updateCurrentUsers(data) {
+  var usersMap = {};
+  var users = data.map(function(u) {
+    usersMap[u.nick] = true;
+    return {nick: u.nick, presence: "connected"};
+  });
+  contacts.forEach(function(name) {
+    if (!Object.prototype.hasOwnProperty.call(usersMap, name))
+      users.push({nick: name, presence: "disconnected"});
+  });
+  users.sort(function(u1, u2) { return u1.nick.localeCompare(u2.nick); });
+  currentUsers = users;
+}
+
 var serverHandlers = {
   'users': function(data) {
-    var usersMap = {};
-    var users = data.map(function(u) {
-      usersMap[u.nick] = true;
-      return {nick: u.nick, presence: "connected"};
-    });
-    contacts.forEach(function(name) {
-      if (!Object.prototype.hasOwnProperty.call(usersMap, name))
-        users.push({nick: name, presence: "disconnected"});
-    });
-    currentUsers = users;
-    ports.broadcastEvent("talkilla.users", users);
+    updateCurrentUsers(data);
+    ports.broadcastEvent("talkilla.users", currentUsers);
   },
 
   'incoming_call': function(data) {

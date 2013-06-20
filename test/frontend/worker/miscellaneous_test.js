@@ -2,7 +2,7 @@
    it, sinon, _config:true, loadconfig, _signinCallback,
    _currentUserData:true, UserData, getContactsDatabase,
    storeContact, contacts:true, contactsDb:true, indexedDB,
-   _ */
+   updateCurrentUsers, currentUsers, _ */
 var expect = chai.expect;
 
 describe('Miscellaneous', function() {
@@ -108,5 +108,17 @@ describe('Miscellaneous', function() {
           });
         });
       });
+  });
+
+  describe("show offline contacts", function() {
+    it("should merge local contacts with online contacts from the server",
+       function() {
+          contacts = ["foo"];
+          updateCurrentUsers([{nick: "jb"}]);
+          expect(currentUsers).to.eql([
+            {nick: "foo", presence: "disconnected"},
+            {nick: "jb", presence: "connected"}
+          ]);
+        });
   });
 });
