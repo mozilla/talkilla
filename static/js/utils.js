@@ -80,17 +80,33 @@
   };
 
   /**
-   * Strips html from text. This may need further improvements for security
-   * in future.
-   *
-   * @param text  The string to strip.
+   * Creates a link element.
+   * @param  {String} url
+   * @param  {Object} attributes
+   * @return {HTMLElement}
    */
-  app.utils.stripHTML = function(text) {
-    return text.replace(/<(?:.|\n)*?>/gm, '');
+  app.utils.createLink = function(url, attributes) {
+    var node = document.createElement('a');
+    node.href = url;
+    node.appendChild(document.createTextNode(url));
+    if (attributes) {
+      for (var name in attributes)
+        node.setAttribute(name, attributes[name]);
+    }
+    return node.outerHTML;
   };
 
-  app.utils.linkify = function(text) {
-    var exp = new RegExp("\(?\bhttps?://[-A-Za-z0-9+&@#/%?=~_()|!:,.;]*[-A-Za-z0-9+&@#/%=~_()|]");
-    return text.replace(exp, "<a href='$1'>$1</a>");
+  /**
+   * Turns urls in a text to clickable links.
+   * @param  {String} text
+   * @param  {Object} options
+   * @return {String}
+   */
+  app.utils.linkify = function(text, options) {
+    return (text || "").trim().split(" ").map(function(word) {
+      if (/^https?:\/\//.test(word.toLowerCase()))
+        return app.utils.createLink(word, options && options.attributes);
+      return word;
+    }).join(" ");
   };
 })(app);

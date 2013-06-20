@@ -156,11 +156,7 @@ var ChatApp = (function($, Backbone, _) {
 
   // Text chat & data channel event listeners
   ChatApp.prototype._onDataChannelMessageIn = function(event) {
-    var data = JSON.parse(event.data);
-
-    data.message = app.utils.stripHTML(data.message);
-
-    this.textChat.add(data);
+    this.textChat.add(JSON.parse(event.data));
   };
 
   ChatApp.prototype._onTextChatEntryCreated = function(entry) {

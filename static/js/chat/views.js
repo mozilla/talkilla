@@ -201,14 +201,16 @@
   app.views.TextChatEntryView = Backbone.View.extend({
     tagName: 'li',
 
-    template: _.template('<strong><%= nick %>:</strong> <%= message %>'),
+    template: _.template([
+      '<strong><%= nick %>:</strong>&nbsp;',
+      '<%= linkify(message, {target: "_blank"}) %>'
+    ].join('')),
 
     render: function() {
-      var data = this.model.attributes;
-      console.log(data);
-      data.message = app.utils.linkify(data.message);
-      console.log(data);
-      this.$el.html(this.template(data));
+      this.$el.html(this.template(_.extend(this.model.toJSON(), {
+        escape: _.escape,
+        linkify: app.utils.linkify
+      })));
       return this;
     }
   });
@@ -250,7 +252,7 @@
     send: function(event) {
       event.preventDefault();
       var $input = this.$('form input[name="message"]');
-      var message = app.utils.stripHTML($input.val().trim());
+      var message = $input.val().trim();
 
       $input.val('');
       this.collection.newEntry({
