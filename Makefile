@@ -25,27 +25,6 @@ selenium_all:
 selenium:
 	@env NO_LOCAL_CONFIG=true NODE_ENV=test bin/run_selenium_test.sh $(MOCHA_ARGS) test/functional/$(SOLO_FILE)
 
-# Useful for running mocha (and thus node) in debug mode so that the NodeJS
-# command line debugger can be used to debug webdriver-selenium functional
-# tests.  Example usage:
-#
-# (add a "debugger;" statement to the code where you want the debugger to break)
-# SOLO_FILE=chatwindow_test.js make debug_test
-# (debug)
-# (remove the debugger statement)
-#
-# Note that because most of the things in the webdriver-selenium API that
-# look like imperative statements are actually magic things that cause most
-# of the semantics of the commands be enqueued by the ControlFlow piece of
-# the "promise manager" to be executed at some point in the future. It can
-# take some experimenting to figure out where to usefully put the debugger
-# statements.  It may be particularly useful to add a then() handler to the
-# first promise-returning statement in the test you want to debug and put
-# the debugger statement there.
-#
-# https://code.google.com/p/selenium/wiki/WebDriverJs#Writing_Tests has details
-# of the various promise bits.
-
 # Useful when testing a single file by setting SOLO_FILE and putting
 # debugger statement to force a breakpoint in the file you want to test.
 # See README.md for more details.
