@@ -174,7 +174,8 @@ function configureWs(ws, nick) {
   });
 
   /**
-   * When a call offer has been sent.
+   * Handles a received call_offer message. It will send an
+   * incoming_call message to the user specified by data.other.
    *
    * call_offer parameters:
    *
@@ -192,7 +193,8 @@ function configureWs(ws, nick) {
   });
 
   /**
-   * When a call offer has been accepted.
+   * Handles a received call_accepted message. It will send an
+   * call_accepted message to the user specified by data.other.
    *
    * call_accepted parameters:
    *
