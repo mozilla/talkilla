@@ -59,7 +59,7 @@ exports.waitForSelector = waitForSelector;
  */
 function isSignedIn(driver) {
   var nick = By.css("strong.nick");
-  waitForSelector(driver, nick, 600000);
+  waitForSelector(driver, nick, {timeout: 600000});
   return driver.findElement(nick).getText()
     .then(function(nick) {
       return !!nick;
