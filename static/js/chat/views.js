@@ -214,7 +214,6 @@
 
     render: function() {
       this.$el.html(this.template(_.extend(this.model.toJSON(), {
-        escape: _.escape,
         linkify: app.utils.linkify
       })));
 
@@ -247,6 +246,11 @@
    */
   app.views.TextChatView = Backbone.View.extend({
     el: '#textchat', // XXX: uncouple the selector from this view
+
+    viewClasses: {
+      text: app.views.TextChatTextEntryView,
+      url:  app.views.TextChatURLEntryView
+    },
 
     events: {
       'submit form': 'send',
@@ -311,6 +315,7 @@
       var message = $input.val().trim();
 
       $input.val('');
+
       this.collection.newEntry({
         nick: app.data.user.get("nick"),
         message: message,
@@ -322,10 +327,9 @@
       var $ul = this.$('ul').empty();
 
       this.collection.each(function(entry) {
-        var ViewClass = entry.get('type') === "url" ?
-          app.views.TextChatURLEntryView : app.views.TextChatTextEntryView;
+        var ViewClass = this.viewClasses[entry.get('type')];
         $ul.append(new ViewClass({model: entry}).render().$el);
-      });
+      }, this);
 
       var ul = $ul.get(0);
       ul.scrollTop = ul.scrollTopMax;
