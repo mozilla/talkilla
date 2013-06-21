@@ -119,7 +119,7 @@ describe('Utils', function() {
   });
 
   describe("linkify", function() {
-    it("should linkify a simple link", function() {
+    it("should linkify text links", function() {
       var cases = {
         'foo http://foo.bar bar':
           'foo <a href="http://foo.bar">http://foo.bar</a> bar',
@@ -156,6 +156,10 @@ describe('Utils', function() {
 
       expect(result).to.equal(
         'foo <a target="_blank" href="http://foo.bar/">http://foo.bar/</a>');
+    });
+
+    it("should properly escape HTML text", function() {
+      expect(app.utils.linkify("<script>")).to.equal("&lt;script&gt;");
     });
   });
 
