@@ -391,7 +391,7 @@
         return;
 
       if (!this.validateURL(attrs.message))
-        return "Unsupported URL";
+        return "Unsupported URL"; // XXX: handle notification
     },
 
     validateURL: function(url) {
@@ -405,8 +405,9 @@
     model: app.models.TextChatEntry,
 
     newEntry: function(data) {
-      var entry = this.add(data).at(this.length - 1);
-      this.trigger('entry.created', entry);
+      var entry = this.add(data, {validate: true}).at(this.length - 1);
+      if (entry)
+        this.trigger('entry.created', entry);
     }
   });
 

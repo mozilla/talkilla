@@ -7,6 +7,16 @@ var expect = chai.expect;
 describe('Text chat models', function() {
   "use strict";
 
+  var sandbox;
+
+  beforeEach(function() {
+    sandbox = sinon.sandbox.create();
+  });
+
+  afterEach(function() {
+    sandbox.restore();
+  });
+
   describe("app.models.TextChatEntry", function() {
     it("should be initialized with defaults", function() {
       var entry = new app.models.TextChatEntry();
@@ -30,25 +40,59 @@ describe('Text chat models', function() {
   });
 
   describe("app.models.TextChat", function() {
-    it("#newEntry should add an entry and trigger the `entry.created` event",
-      function(done) {
-        var textChat = new app.models.TextChat();
-        var entry = new app.models.TextChatEntry({nick: "niko", message: "hi"});
 
-        textChat.on('entry.created', function(receivedEntry) {
-          expect(receivedEntry.toJSON()).to.deep.equal(entry.toJSON());
-          done();
+    describe("#newEntry", function() {
+      it("should add an entry and trigger the `entry.created` event",
+        function(done) {
+          var textChat = new app.models.TextChat();
+          var entry = new app.models.TextChatEntry({
+            nick: "niko",
+            message: "hi"
+          });
+
+          textChat.on('entry.created', function(receivedEntry) {
+            expect(receivedEntry.toJSON()).to.deep.equal(entry.toJSON());
+            done();
+          });
+
+          textChat.newEntry(entry);
         });
 
-        textChat.newEntry(entry);
+      it("should validate message data", function() {
+        /* jshint scripturl:true */
+        var stub = sandbox.stub(app.models.TextChatEntry.prototype, "validate");
+        var textChat = new app.models.TextChat();
+
+        textChat.newEntry({
+          nick: "niko",
+          message: "javascript:alert('plop')",
+          type: "url"
+        });
+
+        sinon.assert.called(stub);
       });
+
+      it("should not send invalid message data", function() {
+        /* jshint scripturl:true */
+        var textChat = new app.models.TextChat();
+        sandbox.stub(textChat, "trigger");
+
+        textChat.newEntry({
+          nick: "niko",
+          message: "javascript:alert('plop')",
+          type: "url"
+        });
+
+        sinon.assert.neverCalledWith(textChat.trigger, 'entry.created');
+      });
+    });
+
   });
 
   describe('chatApp events for text chat', function () {
-    var sandbox, chatApp;
+    var chatApp;
 
     beforeEach(function() {
-      sandbox = sinon.sandbox.create();
       app.port = {postEvent: sinon.spy()};
       _.extend(app.port, Backbone.Events);
       sandbox.stub(ChatApp.prototype, "_onDataChannelMessageIn");
@@ -58,7 +102,6 @@ describe('Text chat models', function() {
 
     afterEach(function() {
       app.port.off();
-      sandbox.restore();
     });
 
     it('should listen to the data channel `dc.in.message` event', function() {
