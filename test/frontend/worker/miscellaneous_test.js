@@ -4,6 +4,7 @@
    storeContact, contacts:true, contactsDb:true, indexedDB,
    updateCurrentUsers, currentUsers, _ */
 var expect = chai.expect;
+var contactDBName = "TalkillaContactsUnitTest";
 
 describe('Miscellaneous', function() {
   "use strict";
@@ -88,7 +89,7 @@ describe('Miscellaneous', function() {
       contactsDb.close();
       contactsDb = undefined;
       contacts = undefined;
-      indexedDB.deleteDatabase("TalkillaContacts");
+      indexedDB.deleteDatabase(contactDBName);
     });
 
     it("should store contacts", function(done) {
@@ -104,9 +105,9 @@ describe('Miscellaneous', function() {
             getContactsDatabase(function() {
               expect(contacts).to.eql(["foo"]);
               done();
-            });
+            }, contactDBName);
           });
-        });
+        }, contactDBName);
       });
   });
 

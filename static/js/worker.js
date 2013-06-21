@@ -16,9 +16,10 @@ function openChatWindow() {
   browserPort.postEvent('social.request-chat', 'chat.html');
 }
 
-function getContactsDatabase(doneCallback) {
+function getContactsDatabase(doneCallback, contactDBName) {
   var kDBVersion = 1;
-  var request = indexedDB.open("TalkillaContacts", kDBVersion);
+  contactDBName = contactDBName || "TalkillaContacts";
+  var request = indexedDB.open(contactDBName, kDBVersion);
 
   request.onerror = function() {
     contacts = []; // Use an empty contact list if we fail to access the db.
