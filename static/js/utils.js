@@ -97,7 +97,7 @@
   };
 
   /**
-   * Turns urls in a text to clickable links.
+   * Escapes a text and turns the urls it contains into clickable links.
    * @param  {String} text
    * @param  {Object} options
    * @return {String}
