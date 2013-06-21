@@ -387,16 +387,13 @@
                date: new Date().getTime()},
 
     validate: function(attrs) {
-      if (attrs.type !== "url")
-        return;
-
-      if (!this.validateURL(attrs.message))
+      if (attrs.type === "url" && !this.validateURL(attrs.message))
         return "Unsupported URL"; // XXX: handle notification
     },
 
     validateURL: function(url) {
       return this.supportedURLProtocols.some(function(protocol) {
-        return url.toLowerCase().indexOf(protocol) !== -1;
+        return (url || "").toLowerCase().indexOf(protocol) !== -1;
       });
     }
   });
