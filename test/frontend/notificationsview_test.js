@@ -33,7 +33,7 @@ describe("NotificationsView", function() {
           var notify = sinon.stub(app.utils, "notifyUI");
           new app.views.NotificationsView();
 
-          app.port.on.args[0][1]({callee: "jb"});
+          app.port.on.args[0][1]({other: "jb"});
 
           sinon.assert.calledOnce(notify);
           sinon.assert.calledWithExactly(notify,

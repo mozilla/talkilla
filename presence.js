@@ -173,21 +173,39 @@ function configureWs(ws, nick) {
     }
   });
 
-  // when a call offer has been sent
+  /**
+   * When a call offer has been sent.
+   *
+   * call_offer parameters:
+   *
+   * - other   the id of the user to call. This will be replaced
+   *           by the id of the user making the call.
+   * - offer   the sdp offer for the connection
+   */
   ws.on('call_offer', function(data) {
     try {
       var users = app.get('users');
-      var callee = users[data.callee];
-      callee.ws.send(JSON.stringify({'incoming_call': data}));
+      var other = users[data.other];
+      data.other = nick;
+      other.ws.send(JSON.stringify({'incoming_call': data}));
     } catch (e) {console.error('call_offer', e);}
   });
 
-  // when a call offer has been accepted
+  /**
+   * When a call offer has been accepted.
+   *
+   * call_accepted parameters:
+   *
+   * - other   the id of the user who initiated the call. This will be
+   *           replaced by the id of the user receiving the call.
+   * - offer   the sdp offer for the connection
+   */
   ws.on('call_accepted', function(data) {
     try {
       var users = app.get('users');
-      var caller = users[data.caller];
-      caller.ws.send(JSON.stringify({'call_accepted': data}));
+      var other = users[data.other];
+      data.other = nick;
+      other.ws.send(JSON.stringify({'call_accepted': data}));
     } catch (e) {console.error('call_accept', e);}
   });
 

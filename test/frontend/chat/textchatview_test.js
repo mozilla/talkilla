@@ -71,7 +71,7 @@ describe('TextChatView', function() {
 
   it("should allow the caller to send a first message", function(done) {
     var textChat = chatApp.textChatView.collection;
-    app.port.trigger("talkilla.call-start", {caller: "niko", callee: "jb"});
+    app.port.trigger("talkilla.call-start", {other: "niko"});
     expect(textChat).to.have.length.of(0);
 
     textChat.once("add", function(entry) {

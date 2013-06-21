@@ -61,16 +61,14 @@
 
       this.media.on("offer-ready", function(offer) {
         this.trigger("send-offer", {
-          caller: app.data.user.get('nick'),
-          callee: this.get("otherUser"),
+          other: this.get("otherUser"),
           offer: offer
         });
       }.bind(this));
 
       this.media.on("answer-ready", function(answer) {
         this.trigger("send-answer", {
-          caller: this.get("otherUser"),
-          callee: app.data.user.get('nick'),
+          other: this.get("otherUser"),
           answer: answer
         });
 
@@ -88,8 +86,7 @@
      *
      * @param {Object} options object containing:
      *
-     * - caller: The id of the user logged in
-     * - callee: The id of the user to be called
+     * - other: The id of the user to be called
      * - video: set to true to enable video
      * - audio: set to true to enable audio
      */
@@ -98,7 +95,7 @@
         callData: options,
         timeout: app.options.PENDING_CALL_TIMEOUT
       });
-      this.set({otherUser: options.callee});
+      this.set({otherUser: options.other});
       this.state.start();
       this.media.offer(options);
     },
@@ -107,8 +104,7 @@
      * Starts a call based on an incoming call request
      * @param {Object} options object containing:
      *
-     * - caller: The id of the other user
-     * - callee: The id of the user logged in
+     * - other: The id of the other user
      * - video: set to true to enable video
      * - audio: set to true to enable audio
      *
@@ -117,7 +113,7 @@
      */
     incoming: function(options) {
       this.set({
-        otherUser: options.caller,
+        otherUser: options.other,
         incomingData: options
       });
       this.state.incoming();

@@ -58,7 +58,7 @@ describe("Call", function() {
   });
 
   describe("#start", function() {
-    var callData = {caller: "bob", callee: "larry"};
+    var callData = {other: "larry"};
 
     it("should change the state from ready to pending", function() {
       call.start({});
@@ -86,7 +86,7 @@ describe("Call", function() {
   });
 
   describe("#incoming", function() {
-    var callData = {caller: "bob", callee: "larry"};
+    var callData = {other: "bob"};
 
     it("should change the state from ready to incoming", function() {
       call.incoming({});
@@ -108,7 +108,7 @@ describe("Call", function() {
   });
 
   describe("#accept", function() {
-    var callData = {caller: "bob", callee: "larry"};
+    var callData = {other: "bob"};
 
     it("should change the state from incoming to pending", function() {
       call.state.incoming();
@@ -205,7 +205,7 @@ describe("Call", function() {
     var fakeSdp = {type: "fake", sdp: "sdp"}, userModel;
 
     beforeEach(function() {
-      call.set({id: "bob", otherUser: "larry"});
+      call.set({otherUser: "larry"});
       call.trigger = sandbox.stub();
       app.data.user = userModel = new app.models.User();
       app.data.user.set("nick", "bob");
@@ -220,8 +220,7 @@ describe("Call", function() {
       it("should trigger send-offer with transport data", function() {
         // Set up the data
         var expectedData = {
-          caller: "bob",
-          callee: "larry",
+          other: "larry",
           offer: fakeSdp
         };
 
@@ -246,8 +245,7 @@ describe("Call", function() {
 
         // Set up the data
         expectedData = {
-          caller: "larry",
-          callee: "bob",
+          other: "larry",
           answer: fakeSdp
         };
       });

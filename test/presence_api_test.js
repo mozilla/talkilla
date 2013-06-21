@@ -465,13 +465,13 @@ describe("Server", function() {
           // The first message received on creating the socket has topic
           // 'users' so ignore that here.
           if (message.incoming_call) {
-            expect(message.incoming_call.caller).to.equal('first');
+            expect(message.incoming_call.other).to.equal('first');
             done();
           }
         });
 
         callerWs.send(JSON.stringify({
-          "call_offer": { caller: "first", callee: "second" }
+          "call_offer": { other: "second" }
         }));
       });
 
@@ -485,13 +485,13 @@ describe("Server", function() {
           // The first message received on creating the socket has topic
           // 'users' so ignore that here.
           if (message.call_accepted) {
-            expect(message.call_accepted.caller).to.equal('first');
+            expect(message.call_accepted.other).to.equal('second');
             done();
           }
         });
 
         calleeWs.send(JSON.stringify({
-          "call_accepted": { caller: "first", callee: "second" }
+          "call_accepted": { other: "first" }
         }));
       });
 

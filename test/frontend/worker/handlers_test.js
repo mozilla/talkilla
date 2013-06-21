@@ -314,8 +314,7 @@ describe('handlers', function() {
       currentCall = {
         port: undefined,
         data: {
-          caller: "alice",
-          callee: "bob"
+          other: "alice"
         }
       };
     });
@@ -457,8 +456,7 @@ describe('handlers', function() {
       function() {
         sandbox.stub(window, "_presenceSocketSendMessage");
         var data = {
-          caller: "fred",
-          callee: "tom",
+          other: "tom",
           offer: { sdp: "sdp", type: "type" }
         };
 
@@ -478,8 +476,7 @@ describe('handlers', function() {
       function() {
         sandbox.stub(window, "_presenceSocketSendMessage");
         var data = {
-          caller: "fred",
-          callee: "tom",
+          other: "fred",
           offer: { sdp: "sdp", type: "type" }
         };
 
@@ -520,7 +517,7 @@ describe('handlers', function() {
       function() {
         currentCall = {
           port: {},
-          data: { caller: "romain", callee: "florian" }
+          data: { other: "florian" }
         };
         sandbox.stub(window, "_presenceSocketSendMessage");
         var data = {

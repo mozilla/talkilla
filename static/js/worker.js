@@ -401,10 +401,7 @@ var handlers = {
       });
     }
 
-    var contactName = currentCall.data.offer ?
-      currentCall.data.caller :
-      currentCall.data.callee;
-    storeContact(contactName);
+    storeContact(currentCall.data.other);
 
    // If this is an incoming call, we won't have the port yet.
     var topic = currentCall.data.offer ?
@@ -417,8 +414,7 @@ var handlers = {
   /**
    * The data for talkilla.offer-timeout is:
    *
-   * - caller: The id of the user logged in
-   * - callee: The id of the user to be called
+   * - other: The id of the other user
    * - video: set to true to enable video
    * - audio: set to true to enable audio
    */
@@ -449,8 +445,7 @@ var handlers = {
   /**
    * The data for talkilla.call-offer is:
    *
-   * - callee: the person you are calling
-   * - caller: the person who is calling you
+   * - other: the person you are calling
    * - offer: an RTCSessionDescription containing the sdp data for the call.
    */
   'talkilla.call-offer': function(event) {
@@ -460,8 +455,7 @@ var handlers = {
   /**
    * The data for talkilla.call-answer is:
    *
-   * - callee: the person you are calling
-   * - caller: the person who is calling you
+   * - other: the person who is calling you
    * - offer: an RTCSessionDescription containing the sdp data for the call.
    */
   'talkilla.call-answer': function (event) {
