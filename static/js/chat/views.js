@@ -209,16 +209,12 @@
 
     click: function(event) {
       event.preventDefault();
-      event.stopPropagation();
 
       window.open($(event.currentTarget).attr('href'));
     },
 
     render: function() {
-      this.$el.html(this.template(_.extend(this.model.toJSON(), {
-        linkify: app.utils.linkify
-      })));
-
+      this.$el.html(this.template(this.model.toJSON()));
       return this;
     }
   });
