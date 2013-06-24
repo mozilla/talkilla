@@ -196,7 +196,7 @@
   });
 
   /**
-   * Base text chat entry view.
+   * Text chat entry view.
    */
   app.views.TextChatEntryView = Backbone.View.extend({
     tagName: 'li',
@@ -291,15 +291,12 @@
 
     render: function() {
       var $ul = this.$('ul').empty();
-
       this.collection.each(function(entry) {
         var view = new app.views.TextChatEntryView({model: entry});
         $ul.append(view.render().$el);
-      }, this);
-
+      });
       var ul = $ul.get(0);
       ul.scrollTop = ul.scrollTopMax;
-
       return this;
     }
   });

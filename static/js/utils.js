@@ -81,6 +81,10 @@
 
   /**
    * Creates a link element.
+   *
+   * Available options:
+   * - attributes: HTML attributes for link tag
+   *
    * @param  {String} url
    * @param  {Object} attributes
    * @return {HTMLElement}
@@ -97,16 +101,34 @@
   };
 
   /**
-   * Escapes a text and turns the urls it contains into clickable links.
+   * Escapes a text and map the urls it contains to their clickable link
+   * counterparts.
+   *
+   * Available options:
+   * - schemes: list of supported URL schemes
+   * - attributes: HTML attributes for link tag
+   *
    * @param  {String} text
    * @param  {Object} options
    * @return {String}
    */
   app.utils.linkify = function(text, options) {
+    var schemes = ["http", "https", "ftp"]; // default schemes
+
+    if (options && 'schemes' in options && options.schemes.length)
+      schemes = options.schemes;
+
+    function isSupportedURL(url) {
+      return schemes.some(function(scheme) {
+        return url.toLowerCase().indexOf(scheme + "://") === 0;
+      });
+    }
+
     return _.escape(text || "").trim().split(" ").map(function(word) {
       var raw = _.unescape(word);
-      if (/^https?:\/\//.test(raw.toLowerCase()))
+      if (isSupportedURL(raw))
         return app.utils.createLink(raw, options && options.attributes);
+
       return word;
     }).join(" ");
   };

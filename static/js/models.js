@@ -379,8 +379,6 @@
   });
 
   app.models.TextChatEntry = Backbone.Model.extend({
-    supportedURLProtocols: ["http", "ftp"],
-
     defaults: {nick: undefined,
                message: undefined,
                date: new Date().getTime()}
