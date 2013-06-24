@@ -87,7 +87,7 @@ describe('Call Offer View', function() {
 
   describe("#render", function() {
     it("should render with the caller's avatar");
-    // XXX: needs to have the Call model having its otherUser set as a User
+    // XXX: needs to have the Call model having its peer set as a User
     // model instance so we can actually get the avatar
   });
 

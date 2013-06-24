@@ -10,7 +10,7 @@
    * Call model.
    *
    * Attributes:
-   * - {String} otherUser
+   * - {String} peer
    * - {Object} incomingData
    *
    * Fired when #start() is called and the pending call timeout is reached with
@@ -61,14 +61,14 @@
 
       this.media.on("offer-ready", function(offer) {
         this.trigger("send-offer", {
-          other: this.get("otherUser"),
+          peer: this.get("peer"),
           offer: offer
         });
       }.bind(this));
 
       this.media.on("answer-ready", function(answer) {
         this.trigger("send-answer", {
-          other: this.get("otherUser"),
+          peer: this.get("peer"),
           answer: answer
         });
 
@@ -86,7 +86,7 @@
      *
      * @param {Object} options object containing:
      *
-     * - other: The id of the user to be called
+     * - peer: The id of the user to be called
      * - video: set to true to enable video
      * - audio: set to true to enable audio
      */
@@ -95,7 +95,7 @@
         callData: options,
         timeout: app.options.PENDING_CALL_TIMEOUT
       });
-      this.set({otherUser: options.other});
+      this.set({peer: options.peer});
       this.state.start();
       this.media.offer(options);
     },
@@ -104,7 +104,7 @@
      * Starts a call based on an incoming call request
      * @param {Object} options object containing:
      *
-     * - other: The id of the other user
+     * - peer:  The id of the peer user
      * - video: set to true to enable video
      * - audio: set to true to enable audio
      *
@@ -113,7 +113,7 @@
      */
     incoming: function(options) {
       this.set({
-        otherUser: options.other,
+        peer: options.peer,
         incomingData: options
       });
       this.state.incoming();

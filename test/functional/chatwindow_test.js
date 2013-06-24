@@ -53,7 +53,7 @@ describe("Chat Window Tests", function() {
       var firstUser = By.css("ul.nav-list>li>a");
       helpers.waitForSelector(driver2, firstUser);
       driver2.findElement(firstUser).click();
-
+driver2.sleep(1000);
       // Check that we have a chat window
       driver2.switchTo().frame("//chatbox");
 

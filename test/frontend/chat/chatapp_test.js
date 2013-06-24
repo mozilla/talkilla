@@ -6,9 +6,9 @@ var expect = chai.expect;
 
 describe("ChatApp", function() {
   var sandbox, chatApp;
-  var callData = {other: "bob"};
+  var callData = {peer: "bob"};
   var incomingCallData = {
-    other: "alice",
+    peer: "alice",
     offer: {type: "answer", sdp: "fake"}
   };
 
@@ -69,7 +69,7 @@ describe("ChatApp", function() {
 
   it("should attach _onCallShutdown to talkilla.call-hangup", function() {
     assertEventTriggersHandler("talkilla.call-hangup",
-      "_onCallShutdown", { other: "mark" });
+      "_onCallShutdown", { peer: "mark" });
   });
 
   function assertModelEventTriggersHandler(event, handler) {
@@ -186,10 +186,10 @@ describe("ChatApp", function() {
 
     describe("#_onStartingCall", function() {
 
-      it("should set the other user", function() {
+      it("should set the peer", function() {
         chatApp._onStartingCall(callData);
 
-        expect(chatApp.call.get('otherUser')).to.equal(callData.other);
+        expect(chatApp.call.get('peer')).to.equal(callData.peer);
       });
 
       it("should start the call", function() {
@@ -210,10 +210,10 @@ describe("ChatApp", function() {
     });
 
     describe("#_onIncomingCall", function() {
-      it("should set the other user", function() {
+      it("should set the peer", function() {
         chatApp._onIncomingCall(incomingCallData);
 
-        expect(chatApp.call.get('otherUser')).to.equal(incomingCallData.other);
+        expect(chatApp.call.get('peer')).to.equal(incomingCallData.peer);
       });
 
       it("should set the call as incoming", function() {
@@ -314,11 +314,11 @@ describe("ChatApp", function() {
       });
 
       it("should post a talkilla.call-hangup event to the worker", function() {
-        chatApp.call.set("otherUser", "florian");
+        chatApp.call.set("peer", "florian");
         chatApp._onCallHangup();
         sinon.assert.calledOnce(app.port.postEvent);
         sinon.assert.calledWith(app.port.postEvent,
-                                "talkilla.call-hangup", {other: "florian"});
+                                "talkilla.call-hangup", {peer: "florian"});
       });
 
       it("should do nothing if the call is already terminated", function () {

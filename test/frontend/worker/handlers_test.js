@@ -314,7 +314,7 @@ describe('handlers', function() {
       currentCall = {
         port: undefined,
         data: {
-          other: "alice"
+          peer: "alice"
         }
       };
     });
@@ -456,7 +456,7 @@ describe('handlers', function() {
       function() {
         sandbox.stub(window, "_presenceSocketSendMessage");
         var data = {
-          other: "tom",
+          peer: "tom",
           offer: { sdp: "sdp", type: "type" }
         };
 
@@ -476,7 +476,7 @@ describe('handlers', function() {
       function() {
         sandbox.stub(window, "_presenceSocketSendMessage");
         var data = {
-          other: "fred",
+          peer: "fred",
           offer: { sdp: "sdp", type: "type" }
         };
 
@@ -500,7 +500,7 @@ describe('handlers', function() {
       function() {
         sandbox.stub(window, "_presenceSocketSendMessage");
         var data = {
-          other: "florian"
+          peer: "florian"
         };
 
         handlers['talkilla.call-hangup']({
@@ -517,11 +517,11 @@ describe('handlers', function() {
       function() {
         currentCall = {
           port: {},
-          data: { other: "florian" }
+          data: { peer: "florian" }
         };
         sandbox.stub(window, "_presenceSocketSendMessage");
         var data = {
-          other: "florian"
+          peer: "florian"
         };
 
         handlers['talkilla.call-hangup']({

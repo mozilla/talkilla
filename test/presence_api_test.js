@@ -465,13 +465,13 @@ describe("Server", function() {
           // The first message received on creating the socket has topic
           // 'users' so ignore that here.
           if (message.incoming_call) {
-            expect(message.incoming_call.other).to.equal('first');
+            expect(message.incoming_call.peer).to.equal('first');
             done();
           }
         });
 
         callerWs.send(JSON.stringify({
-          "call_offer": { other: "second" }
+          "call_offer": { peer: "second" }
         }));
       });
 
@@ -485,13 +485,13 @@ describe("Server", function() {
           // The first message received on creating the socket has topic
           // 'users' so ignore that here.
           if (message.call_accepted) {
-            expect(message.call_accepted.other).to.equal('second');
+            expect(message.call_accepted.peer).to.equal('second');
             done();
           }
         });
 
         calleeWs.send(JSON.stringify({
-          "call_accepted": { other: "first" }
+          "call_accepted": { peer: "first" }
         }));
       });
 
@@ -506,13 +506,13 @@ describe("Server", function() {
           // Although we send first, we should get second as the result
           // as the receiver of the message needs to know who hung up the
           // call.
-          expect(message.call_hangup.other).to.equal('second');
+          expect(message.call_hangup.peer).to.equal('second');
           done();
         }
       });
 
       calleeWs.send(JSON.stringify({
-        "call_hangup": { other: "first" }
+        "call_hangup": { peer: "first" }
       }));
     });
   });

@@ -401,7 +401,7 @@ var handlers = {
       });
     }
 
-    storeContact(currentCall.data.other);
+    storeContact(currentCall.data.peer);
 
    // If this is an incoming call, we won't have the port yet.
     var topic = currentCall.data.offer ?
@@ -414,7 +414,7 @@ var handlers = {
   /**
    * The data for talkilla.offer-timeout is:
    *
-   * - other: The id of the other user
+   * - peer:  The id of the other user
    * - video: set to true to enable video
    * - audio: set to true to enable audio
    */
@@ -445,7 +445,7 @@ var handlers = {
   /**
    * The data for talkilla.call-offer is:
    *
-   * - other: the person you are calling
+   * - peer:  the person you are calling
    * - offer: an RTCSessionDescription containing the sdp data for the call.
    */
   'talkilla.call-offer': function(event) {
@@ -455,7 +455,7 @@ var handlers = {
   /**
    * The data for talkilla.call-answer is:
    *
-   * - other: the person who is calling you
+   * - peer:  the person who is calling you
    * - offer: an RTCSessionDescription containing the sdp data for the call.
    */
   'talkilla.call-answer': function (event) {
@@ -465,7 +465,7 @@ var handlers = {
   /**
    * Ends a call. The expected data is:
    *
-   * - other: the person you are talking to.
+   * - peer: the person you are talking to.
    */
   'talkilla.call-hangup': function (event) {
     _presenceSocketSendMessage(JSON.stringify({ 'call_hangup': event.data }));
