@@ -18,49 +18,6 @@ describe("Text chat views", function() {
     sandbox.restore();
   });
 
-  describe('TextChatTextEntryView', function() {
-
-    it("should register a click event for text links", function() {
-      var view = new app.views.TextChatTextEntryView({
-        model: new app.models.TextChatEntry({
-          nick: "jb",
-          message: "check that http://mozilla.com/"
-        })
-      });
-
-      view.render();
-
-      expect(view.$("a.chat-link")).to.have.length.of(1);
-
-      view.$("a.chat-link").click();
-
-      sinon.assert.calledOnce(window.open);
-      sinon.assert.calledWithExactly(window.open, "http://mozilla.com/");
-    });
-  });
-
-  describe('TextChatURLEntryView', function() {
-
-    it("should register a click event for URL entries", function() {
-      var view = new app.views.TextChatURLEntryView({
-        model: new app.models.TextChatEntry({
-          nick: "jb",
-          message: "http://mozilla.com/",
-          type: "url"
-        })
-      });
-
-      view.render();
-
-      expect(view.$("a.chat-link")).to.have.length.of(1);
-
-      view.$("a.chat-link").click();
-
-      sinon.assert.calledOnce(window.open);
-      sinon.assert.calledWithExactly(window.open, "http://mozilla.com/");
-    });
-  });
-
   describe('TextChatView', function() {
 
     var chatApp, call;
@@ -141,6 +98,17 @@ describe("Text chat views", function() {
 
       $('#textchat [name="message"]').val("plop");
       $("#textchat form").trigger("submit");
+    });
+
+    it("#send() should send a linkified message", function() {
+      var linkify = sandbox.stub(app.utils, "linkify");
+      var message = 'foo http://plop.com';
+      chatApp.textChatView.$('form input').val(message);
+
+      chatApp.textChatView.send({ preventDefault: function() {} });
+
+      sinon.assert.calledOnce(linkify);
+      sinon.assert.calledWith(linkify, message);
     });
 
     describe("Change events", function() {

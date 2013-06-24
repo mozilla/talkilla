@@ -187,4 +187,5 @@
 #textchat form input[type="text"] {
   border-radius: 0;
   width: 100%;
+  font-size: 12px;
 }

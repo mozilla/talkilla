@@ -383,19 +383,7 @@
 
     defaults: {nick: undefined,
                message: undefined,
-               type: "text",
-               date: new Date().getTime()},
-
-    validate: function(attrs) {
-      if (attrs.type === "url" && !this.validateURL(attrs.message))
-        return "Unsupported URL"; // XXX: handle notification
-    },
-
-    validateURL: function(url) {
-      return this.supportedURLProtocols.some(function(protocol) {
-        return (url || "").toLowerCase().indexOf(protocol) !== -1;
-      });
-    }
+               date: new Date().getTime()}
   });
 
   app.models.TextChat = Backbone.Collection.extend({

@@ -22,20 +22,7 @@ describe('Text chat models', function() {
       var entry = new app.models.TextChatEntry();
       expect(entry.get("nick")).to.be.a("undefined");
       expect(entry.get("message")).to.be.a("undefined");
-      expect(entry.get("type")).to.equal("text");
       expect(entry.get("date")).to.be.a("number");
-    });
-
-    it("should validate a URL", function() {
-      function validator(url) {
-        return new app.models.TextChatEntry().validateURL(url);
-      }
-
-      expect(validator("http://mozilla.com/")).to.be.True;
-      expect(validator("ftp://mozilla.com/")).to.be.True;
-      expect(validator("mailto:plop@plop.com")).to.be.False;
-      /* jshint scripturl:true */
-      expect(validator("javascript:alert('plop')")).to.be.False;
     });
   });
 
@@ -57,34 +44,6 @@ describe('Text chat models', function() {
 
           textChat.newEntry(entry);
         });
-
-      it("should validate message data", function() {
-        /* jshint scripturl:true */
-        var stub = sandbox.stub(app.models.TextChatEntry.prototype, "validate");
-        var textChat = new app.models.TextChat();
-
-        textChat.newEntry({
-          nick: "niko",
-          message: "javascript:alert('plop')",
-          type: "url"
-        });
-
-        sinon.assert.called(stub);
-      });
-
-      it("should not send invalid message data", function() {
-        /* jshint scripturl:true */
-        var textChat = new app.models.TextChat();
-        sandbox.stub(textChat, "trigger");
-
-        textChat.newEntry({
-          nick: "niko",
-          message: "javascript:alert('plop')",
-          type: "url"
-        });
-
-        sinon.assert.neverCalledWith(textChat.trigger, 'entry.created');
-      });
     });
 
   });

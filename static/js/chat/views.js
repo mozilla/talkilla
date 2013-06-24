@@ -198,8 +198,10 @@
   /**
    * Base text chat entry view.
    */
-  app.views.BaseTextChatEntryView = Backbone.View.extend({
+  app.views.TextChatEntryView = Backbone.View.extend({
     tagName: 'li',
+
+    template: _.template('<strong><%= nick %>:</strong> <%= message %>'),
 
     events: {
       'click .chat-link': 'click'
@@ -222,35 +224,10 @@
   });
 
   /**
-   * Text chat plain text message view.
-   */
-  app.views.TextChatTextEntryView = app.views.BaseTextChatEntryView.extend({
-    template: _.template([
-      '<strong><%= nick %>:</strong>&nbsp;',
-      '<%= linkify(message, {attributes: {class: "chat-link"}}) %>'
-    ].join(''))
-  });
-
-  /**
-   * Text chat URL entry view.
-   */
-  app.views.TextChatURLEntryView = app.views.BaseTextChatEntryView.extend({
-    template: _.template([
-      '<strong><%= nick %>:</strong>&nbsp;' +
-      '<a href="<%= message %>" class="chat-link"><%- message %></div>'
-    ].join(''))
-  });
-
-  /**
    * Text chat conversation view.
    */
   app.views.TextChatView = Backbone.View.extend({
     el: '#textchat', // XXX: uncouple the selector from this view
-
-    viewClasses: {
-      text: app.views.TextChatTextEntryView,
-      url:  app.views.TextChatURLEntryView
-    },
 
     events: {
       'submit form': 'send',
@@ -297,16 +274,8 @@
     drop: function(event) {
       event.preventDefault();
 
-      var url = event.originalEvent.dataTransfer.getData("text/x-moz-url");
-
-      // Get rid of the title
-      url = url.split('\n')[0];
-
-      this.collection.newEntry({
-        nick: app.data.user.get("nick"),
-        message: url,
-        type: "url"
-      });
+      var data = event.originalEvent.dataTransfer.getData("text/x-moz-url");
+      this.$('[name="message"]').val(data.split('\n').join(' ')).focus();
     },
 
     send: function(event) {
@@ -318,8 +287,9 @@
 
       this.collection.newEntry({
         nick: app.data.user.get("nick"),
-        message: message,
-        type: "text"
+        message: app.utils.linkify(message, {attributes: {
+          class: "chat-link"
+        }})
       });
     },
 
@@ -327,8 +297,8 @@
       var $ul = this.$('ul').empty();
 
       this.collection.each(function(entry) {
-        var ViewClass = this.viewClasses[entry.get('type')];
-        $ul.append(new ViewClass({model: entry}).render().$el);
+        var view = new app.views.TextChatEntryView({model: entry});
+        $ul.append(view.render().$el);
       }, this);
 
       var ul = $ul.get(0);
