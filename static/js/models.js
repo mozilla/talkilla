@@ -388,7 +388,7 @@
     model: app.models.TextChatEntry,
 
     newEntry: function(data) {
-      var entry = this.add(data, {validate: true}).at(this.length - 1);
+      var entry = this.add(data).at(this.length - 1);
       if (entry)
         this.trigger('entry.created', entry);
     }
