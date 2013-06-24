@@ -148,10 +148,10 @@ var ChatApp = (function($, Backbone, _) {
     if (callState === "ready" || callState === "terminated")
       return;
 
-    var other = this.call.get("otherUser");
+    var peer = this.call.get("peer");
     this.call.hangup();
 
-    this.port.postEvent('talkilla.call-hangup', {other: other});
+    this.port.postEvent('talkilla.call-hangup', {peer: peer});
   };
 
   // Text chat & data channel event listeners

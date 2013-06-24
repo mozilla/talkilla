@@ -64,7 +64,7 @@
       }.bind(this));
 
       app.port.on('talkilla.offer-timeout', function(callData) {
-        app.utils.notifyUI("The other party, " + callData.callee +
+        app.utils.notifyUI("The other party, " + callData.peer +
                            ", did not respond", "error");
       });
     },
@@ -123,8 +123,7 @@
     call: function(event) {
       event.preventDefault();
       app.port.postEvent('talkilla.call-start', {
-        caller: app.data.user.get('nick'),
-        callee: event.currentTarget.getAttribute('rel')
+        peer: event.currentTarget.getAttribute('rel')
       });
     },
 
