@@ -17,8 +17,8 @@
 
       this.call = options.call;
 
-      this.call.on('change:otherUser', function(to) {
-        document.title = to.get("otherUser");
+      this.call.on('change:peer', function(to) {
+        document.title = to.get("peer");
       });
 
       this.call.on('offer-timeout', function() {
@@ -73,7 +73,7 @@
     },
 
     render: function() {
-      // XXX: update caller's avatar, though we'd need to access otherUser
+      // XXX: update caller's avatar, though we'd need to access peer
       //      as a User model instance
       return this;
     }
@@ -89,7 +89,7 @@
       'click .btn-abort': '_abort'
     },
 
-    outgoingTextTemplate: _.template('Calling <%= otherUser %>…'),
+    outgoingTextTemplate: _.template('Calling <%= peer %>…'),
 
     initialize: function(options) {
       options = options || {};
@@ -115,10 +115,10 @@
     },
 
     render: function() {
-      // XXX: update caller's avatar, though we'd need to access otherUser
+      // XXX: update caller's avatar, though we'd need to access peer
       //      as a User model instance
-      var otherUser = this.model.get('otherUser');
-      var formattedText = this.outgoingTextTemplate({otherUser: otherUser});
+      var peer = this.model.get('peer');
+      var formattedText = this.outgoingTextTemplate({peer: peer});
       this.$('.outgoing-text').text(formattedText);
 
       return this;
