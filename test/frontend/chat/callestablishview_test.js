@@ -23,7 +23,7 @@ describe('Call Establish View', function() {
     sandbox.stub(app.models.WebRTCCall.prototype, "initialize");
     media = new app.models.WebRTCCall();
     call = new app.models.Call({}, {media: media});
-    call.set({otherUser: "Mark"});
+    call.set({peer: "Mark"});
   });
 
   afterEach(function() {
@@ -122,7 +122,7 @@ describe('Call Establish View', function() {
     });
 
     it("should render with the callee's avatar");
-    // XXX: needs to have the Call model having its otherUser set as a User
+    // XXX: needs to have the Call model having its peer set as a User
     // model instance so we can actually get the avatar
   });
 
