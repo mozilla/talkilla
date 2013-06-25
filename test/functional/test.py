@@ -10,6 +10,8 @@ import unittest
 from selenium import webdriver
 from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
 from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
+from selenium.webdriver.remote.webdriver import WebDriver
+
 
 
 TEST_PROFILE_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)),
@@ -20,9 +22,26 @@ FF_PROFILE = os.getenv("FF_PROFILE", TEST_PROFILE_PATH)
 
 
 def create_driver():
-    binary = FirefoxBinary(firefox_path=FF_BINARY)
-    profile = FirefoxProfile(profile_directory=FF_PROFILE)
-    return webdriver.Firefox(firefox_binary=binary, firefox_profile=profile)
+    profile = FirefoxProfile()
+
+    profile.set_preference("social.enabled", True)
+    profile.set_preference("social.activeProviders", json.dumps({
+        "http://localhost:5000": 1
+    }))
+    profile.set_preference("social.manifest.tests", json.dumps({
+        "name": "Talkilla Functional tests",
+        "iconURL": "http://localhost:5000/icon.png",
+        "sidebarURL": "http://localhost:5000/sidebar.html",
+        "workerURL": "http://localhost:5000/js/worker.js",
+        "origin": "http://localhost:5000",
+        "enabled": True,
+        "last_modified": 135101330568
+    }))
+    profile.set_preference("social.provider.current", "http://localhost:5000")
+
+    return WebDriver(command_executor="http://127.0.0.1:4444/wd/hub",
+                     desired_capabilities={"browserName": "firefox"},
+                     browser_profile=profile)
 
 
 class BaseTest(unittest.TestCase):
@@ -36,7 +55,7 @@ class BaseTest(unittest.TestCase):
         self.bob = create_driver()
 
     def tearDown(self):
-        self.bob.close()
+        #self.bob.close()
         #self.larry.close()
         os.killpg(self.node_app.pid, signal.SIGTERM)
         self.node_app.kill()
@@ -48,10 +67,10 @@ class TalkillaApptest(BaseTest):
     def test_public_homepage_test(self):
         self.bob.get("http://127.0.0.1:5000/")
         self.bob.find_element_by_css_selector("button")
+        time.sleep(20)
 
     def test_sidebar(self):
         self.bob.switch_to_frame("//#social-sidebar-browser")
-
 
 
 if __name__ == "__main__":
