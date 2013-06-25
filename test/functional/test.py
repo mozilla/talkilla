@@ -27,7 +27,7 @@ class BrowserTest(unittest.TestCase):
         # ps aux|grep "node app"|grep -v grep|awk '{print $2}'|xargs kill
 
 
-# class StandardTest(mixins.WithBob, BrowserTest):
+# class SingleBrowserTest(mixins.WithBob, BrowserTest):
 #     def test_public_homepage(self):
 #         self.bob.get("http://127.0.0.1:3000/")
 #         self.bob.find_element_by_css_selector("button")
@@ -37,36 +37,49 @@ class BrowserTest(unittest.TestCase):
 #         assert self.bob.title == "Talkilla Sidebar"
 
 
-class SigninTest(mixins.WithBob, mixins.WithLarry, BrowserTest):
-    def test_signin_users(self):
-        # Sign in user 1
+class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry, BrowserTest):
+    # def test_signin_users(self):
+    #     # Sign in user 1
+    #     self.bob.signin()
+    #     assert self.bob.find_element_by_css_selector("strong.nick").text == "bob"
+    #     assert self.bob.find_element_by_id("signout").is_displayed()
+
+    #     # Check there is a message that this is the only person logged in
+    #     assert "only person" in self.bob.find_element_by_css_selector(".alert-info").text
+
+    #     # Sign in user 2
+    #     self.larry.signin()
+    #     assert self.larry.find_element_by_css_selector("strong.nick").text == "larry"
+
+    #     # Check that both pages no longer have the alert on them
+    #     assert len(self.bob.find_elements_by_css_selector(".alert-info")) == 0
+    #     assert len(self.larry.find_elements_by_css_selector(".alert-info")) == 0
+
+    #     # Sign out user 1
+    #     self.bob.signout()
+    #     assert len(self.bob.find_elements_by_css_selector(".alert-info")) == 0
+    #     assert not self.bob.find_element_by_id("signout").is_displayed()
+
+    #     # Check there's an alert on user 2's screen
+    #     assert "only person" in self.larry.find_element_by_css_selector(".alert-info").text
+
+    #     # Now sign out user 2
+    #     self.larry.signout()
+    #     assert len(self.larry.find_elements_by_css_selector(".alert-info")) == 0
+    #     assert not self.larry.find_element_by_id("signout").is_displayed()
+
+    def test_chat_window(self):
+        # Sign both users in
         self.bob.signin()
-        assert self.bob.find_element_by_css_selector("strong.nick").text == "bob"
-        assert self.bob.find_element_by_id("signout").is_displayed()
-
-        # Check there is a message that this is the only person logged in
-        assert "only person" in self.bob.find_element_by_css_selector(".alert-info").text
-
-        # Sign in user 2
         self.larry.signin()
-        assert self.larry.find_element_by_css_selector("strong.nick").text == "larry"
 
-        # Check that both pages no longer have the alert on them
-        assert len(self.bob.find_elements_by_css_selector(".alert-info")) == 0
-        assert len(self.larry.find_elements_by_css_selector(".alert-info")) == 0
+        # Bob calls Larry
+        self.bob.find_element_by_css_selector("ul.nav-list>li>a").click()
+        self.bob.implicitly_wait(2000)
 
-        # Sign out user 1
-        self.bob.signout()
-        assert len(self.bob.find_elements_by_css_selector(".alert-info")) == 0
-        assert not self.bob.find_element_by_id("signout").is_displayed()
-
-        # Check there's an alert on user 2's screen
-        assert "only person" in self.larry.find_element_by_css_selector(".alert-info").text
-
-        # Now sign out user 2
-        self.larry.signout()
-        assert len(self.larry.find_elements_by_css_selector(".alert-info")) == 0
-        assert not self.larry.find_element_by_id("signout").is_displayed()
+        # Larry checks for the chat window
+        self.larry.switch_to_frame("//chatbox")
+        # Shane, this is failing here
 
 
 if __name__ == "__main__":
