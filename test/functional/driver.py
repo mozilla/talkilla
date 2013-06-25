@@ -2,6 +2,7 @@
 
 import json
 
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
 from selenium.webdriver.remote.webdriver import WebDriver
 
@@ -27,6 +28,16 @@ class Driver(WebDriver):
     def signout(self):
         self.switch_to_frame("//#social-sidebar-browser")
         self.find_element_by_css_selector('#signout button').click()
+
+    # def wait_for_frame_and_switch(self, name):
+    #     def test():
+    #         try:
+    #             self.switch_to_frame(name)
+    #             return True
+    #         except TimeoutException:
+    #             return False
+    #     while not test():
+
 
 
 def create(nick=None):
