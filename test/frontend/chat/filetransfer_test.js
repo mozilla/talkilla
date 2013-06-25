@@ -1,0 +1,81 @@
+/* global app, chai, describe, it, sinon, beforeEach, afterEach */
+
+/* jshint expr:true */
+var expect = chai.expect;
+
+describe("FileTransfer", function() {
+
+  var sandbox, transfer, blob;
+
+  beforeEach(function() {
+    sandbox = sinon.sandbox.create();
+    blob = new Blob(['content'], {type: 'plain/text'})
+    transfer = new app.models.FileTransfer({file: blob}, {chunkSize: 1});
+  });
+
+  afterEach(function() {
+    sandbox.restore();
+  });
+
+  describe("#initialize", function() {
+
+    it("should have a state machine", function() {
+      expect(transfer.state).to.be.an.instanceOf(Object);
+    });
+
+    it("should have a File object", function() {
+      expect(transfer.file).to.equal(blob);
+    });
+
+    it("should have a chunk size parameter", function() {
+      expect(transfer.chunkSize).to.equal(1);
+    });
+
+  });
+
+  describe("#start", function() {
+
+    it("should change the state from ready to ongoing", function() {
+      transfer.start();
+      expect(transfer.state.current).to.equal('ongoing');
+    });
+
+    it("should trigger 1 byte chunks events until reaching the eof event", function(done) {
+      var chunks = [];
+      transfer.on("chunk", function(chunk) {
+        chunks.push(chunk);
+      });
+      transfer.on("eof", function() {
+        expect(chunks).to.deep.equal(['c', 'o', 'n', 't', 'e', 'n', 't']);
+        done();
+      });
+
+      transfer.start();
+    });
+
+    it("should call complete when there is not chunk left", function(done) {
+      var chunks = [];
+      transfer.on("chunk", function(chunk) {
+        chunks.push(chunk);
+      });
+      sandbox.stub(transfer, "complete", function() {
+        expect(chunks).to.deep.equal(['c', 'o', 'n', 't', 'e', 'n', 't']);
+        done();
+      });
+
+      transfer.start();
+    });
+
+  });
+
+  describe("#complete", function() {
+
+    it("should change the state from ongoing to completed", function() {
+      transfer.state.start();
+      transfer.complete();
+      expect(transfer.state.current).to.equal('completed');
+    });
+
+  });
+
+});
