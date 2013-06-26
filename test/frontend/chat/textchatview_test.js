@@ -16,6 +16,7 @@ describe("Text chat views", function() {
 
   afterEach(function() {
     sandbox.restore();
+    app.port.off();
   });
 
   describe('TextChatEntryView', function() {
@@ -150,6 +151,64 @@ describe("Text chat views", function() {
           expect(textChatView.$el.is(":visible")).to.be.equal(false);
         });
     });
+
+    describe("#sendFile", function() {
+      var textChatView;
+
+      beforeEach(function() {
+        sandbox.stub(call, "on");
+
+        textChatView = new app.views.TextChatView({
+          call: call,
+          collection: new app.models.TextChat()
+        });
+      });
+
+      it("should add a FileTransfer model to the collection", function() {
+        var file = "fakeFile";
+        var chunkSize = 512;
+        var event = {target: {files: [file]}};
+        sandbox.stub(textChatView.collection, "add", function(transfer) {
+          expect(transfer.file).to.equal(file);
+          expect(transfer.chunkSize).to.equal(chunkSize);
+        });
+
+        textChatView.sendFile(event);
+
+        sinon.assert.calledOnce(textChatView.collection.add);
+      });
+
+    });
+
+    describe("#render", function() {
+      var textChatView, textChat, blob;
+
+      beforeEach(function() {
+        sandbox.stub(call, "on");
+
+        textChat = new app.models.TextChat();
+        textChatView = new app.views.TextChatView({
+          call: call,
+          collection: textChat
+        });
+
+        blob = new Blob(['content'], {type: 'plain/text'});
+      });
+
+      it("should render a FileTransferView", function() {
+        sandbox.stub(app.views.FileTransferView.prototype, "render", function() {
+          return this;
+        });
+        textChat.add(new app.models.FileTransfer({file: blob}, {chunkSize: 512}));
+        app.views.FileTransferView.prototype.render.reset();
+
+        textChatView.render();
+
+        sinon.assert.calledOnce(app.views.FileTransferView.prototype.render);
+      });
+    });
+  });
+});
 
 describe("FileTransferView", function() {
 

@@ -383,11 +383,24 @@
       }));
     },
 
+    sendFile: function(event) {
+      var file = event.target.files[0];
+      var transfer =
+        new app.models.FileTransfer({file: file}, {chunkSize: 512});
+      this.collection.add(transfer);
+    },
+
     render: function() {
       var $ul = this.$('ul').empty();
 
       this.collection.each(function(entry) {
-        var view = new app.views.TextChatEntryView({model: entry});
+        var view;
+
+        if (entry instanceof app.models.TextChatEntry)
+          view = new app.views.TextChatEntryView({model: entry});
+        else if (entry instanceof app.models.FileTransfer)
+          view = new app.views.FileTransferView({model: entry});
+
         $ul.append(view.render().$el);
       });
 
