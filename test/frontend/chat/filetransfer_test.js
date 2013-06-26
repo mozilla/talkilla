@@ -31,6 +31,15 @@ describe("FileTransfer", function() {
       expect(transfer.chunkSize).to.equal(1);
     });
 
+    it("should bind _onProgress to the chunk event", function() {
+      sandbox.stub(app.models.FileTransfer.prototype, "_onProgress");
+      transfer = new app.models.FileTransfer({file: blob}, {chunkSize: 1});
+
+      transfer.trigger("chunk");
+
+      sinon.assert.calledOnce(transfer._onProgress);
+    });
+
   });
 
   describe("#start", function() {
@@ -76,6 +85,17 @@ describe("FileTransfer", function() {
       expect(transfer.state.current).to.equal('completed');
     });
 
+  });
+
+  describe("#_onProgress", function() {
+
+    it("should update the progress attribute via a voodoo equation", function() {
+      transfer.seek = 6;
+      transfer._onProgress();
+
+      expect(transfer.file.size).to.equal(7); // size of the blob
+      expect(transfer.get("progress")).to.equal(85); // percentage of progress
+    });
   });
 
 });

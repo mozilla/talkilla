@@ -23,6 +23,15 @@
 
       this.complete = this.state.complete.bind(this.state);
       this.reader.onload = this._onChunk.bind(this);
+
+      this.on("chunk", this._onProgress, this);
+    },
+
+    toJSON: function() {
+      return {
+        filename: this.file.name,
+        progress: this.get("progress")
+      };
     },
 
     start: function() {
@@ -32,9 +41,9 @@
 
     _onChunk: function(event) {
       var data = event.target.result;
-      this.trigger("chunk", data);
 
       this.seek += 1;
+      this.trigger("chunk", data);
 
       if (this.seek < this.file.size) {
         this._readChunk();
@@ -42,6 +51,11 @@
         this.trigger("eof");
         this.complete();
       }
+    },
+
+    _onProgress: function() {
+      var progress = Math.floor(this.seek * 100 / this.file.size);
+      this.set("progress", progress);
     },
 
     _readChunk: function() {
