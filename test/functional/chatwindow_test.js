@@ -51,28 +51,18 @@ describe("Chat Window Tests", function() {
   it("should open a chat window with status info when clicking a nick",
     function(done) {
       // Click a nick
-      var firstUser = By.css("ul.nav-list>li>a");
-      helpers.waitForSelector(larry, firstUser);
-      larry.findElement(firstUser).click();
+      helpers.waitForElement(larry, By.css("ul.nav-list>li>a")).click();
 
       // Check that we have a chat window
       larry.switchTo().frame("//chatbox");
 
       // Check that an #establish element exists and is visible
-      helpers.waitForSelector(larry, By.id("establish"));
-      larry.findElement(By.id("establish")).isDisplayed().then(
-        function(displayed){
-          expect(displayed).to.equal(true);
-        });
+      helpers.expectDisplayed(larry, By.id("establish"));
 
       // Check for the expected status information
-      var outgoingTextSelector =
-        By.css("#establish>.outgoing-info>.outgoing-text");
-
-      helpers.waitForSelector(larry, outgoingTextSelector);
-      larry.findElement(outgoingTextSelector).
-        getText().then(function (text) {
-          expect(text).to.equal("Calling bob…");
+      helpers.expectTextEquals(larry,
+        By.css("#establish>.outgoing-info>.outgoing-text"), "Calling bob…")
+        .then(function() {
           done();
         });
     });
@@ -91,32 +81,21 @@ describe("Chat Window Tests", function() {
       helpers.waitForElement(larry, By.css("form input:not([disabled])"))
              .sendKeys("hi");
       larry.findElement(By.css("form")).submit();
-      helpers.waitForElement(larry, By.css("#textchat ul li"))
-        .getText().then(function(text) {
-          expect(text).to.contain("hi");
-        });
+      helpers.expectTextContains(larry, By.css("#textchat ul li"), "hi");
 
       // Check if Bob has received Larry's message
-      helpers
-        .waitForElement(bob, By.css("#textchat ul li"))
-        .getText().then(function(text) {
-          expect(text).to.contain("hi");
-        });
+      helpers.expectTextContains(bob, By.css("#textchat ul li"), "hi");
 
       // Bob replies
       helpers.waitForElement(bob, By.css("form input:not([disabled])"))
              .sendKeys("how are you");
       bob.findElement(By.css("form")).submit();
-      helpers.waitForElement(bob, By.css("#textchat ul li:nth-child(2)"))
-        .getText().then(function(text) {
-          expect(text).to.contain("how are you");
-        });
+      helpers.expectTextContains(bob, By.css("#textchat ul li:nth-child(2)"),
+        "how are you");
 
       // Check if Larry has received Bob's message
-      helpers
-        .waitForElement(larry, By.css("#textchat ul li:nth-child(2)"))
-        .getText().then(function(text) {
-          expect(text).to.contain("how are you");
+      helpers.expectTextContains(larry, By.css("#textchat ul li:nth-child(2)"),
+        "how are you").then(function() {
           done();
         });
     });

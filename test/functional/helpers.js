@@ -1,5 +1,6 @@
 var webdriver = require('selenium-webdriver'),
     By = webdriver.By;
+var expect = require("chai").expect;
 
 /**
  * Waits for a frame to become available in the browser environment and returns
@@ -125,3 +126,39 @@ function isSignedIn(driver) {
     });
 }
 exports.isSignedIn = isSignedIn;
+
+/**
+ * Retrieves element text and trigger the provided callback.
+ * @param  {WebDriver} driver
+ * @param  {By|Object} selector
+ * @param  {Function} cb(text)
+ * @param  {Object} options
+ * @return {webdriver.promise.Promise}
+ */
+function waitForText(driver, selector, cb, options) {
+  return waitForElement(driver, selector, options).getText().then(cb);
+}
+exports.waitForText = waitForText;
+
+function expectTextEquals(driver, selector, expectedText, options) {
+  return waitForText(driver, selector, function(text) {
+    expect(text).to.equal(expectedText);
+  }, options);
+}
+exports.expectTextEquals = expectTextEquals;
+
+function expectTextContains(driver, selector, extract, options) {
+  return waitForText(driver, selector, function(text) {
+    expect(text).to.contain(extract);
+  }, options);
+}
+exports.expectTextContains = expectTextContains;
+
+function expectDisplayed(driver, selector, options) {
+  return waitForElement(driver, selector, options)
+    .isDisplayed()
+    .then(function(displayed){
+      expect(displayed).to.equal(true);
+    });
+}
+exports.expectDisplayed = expectDisplayed;
