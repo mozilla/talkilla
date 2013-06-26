@@ -173,21 +173,41 @@ function configureWs(ws, nick) {
     }
   });
 
-  // when a call offer has been sent
+  /**
+   * Handles a received call_offer message. It will send an
+   * incoming_call message to the user specified by data.peer.
+   *
+   * call_offer parameters:
+   *
+   * - peer    the id of the user to call. This will be replaced
+   *           by the id of the user making the call.
+   * - offer   the sdp offer for the connection
+   */
   ws.on('call_offer', function(data) {
     try {
       var users = app.get('users');
-      var callee = users[data.callee];
-      callee.ws.send(JSON.stringify({'incoming_call': data}));
+      var peer = users[data.peer];
+      data.peer = nick;
+      peer.ws.send(JSON.stringify({'incoming_call': data}));
     } catch (e) {console.error('call_offer', e);}
   });
 
-  // when a call offer has been accepted
+  /**
+   * Handles a received call_accepted message. It will send an
+   * call_accepted message to the user specified by data.peer.
+   *
+   * call_accepted parameters:
+   *
+   * - peer   the id of the user who initiated the call. This will be
+   *           replaced by the id of the user receiving the call.
+   * - offer   the sdp offer for the connection
+   */
   ws.on('call_accepted', function(data) {
     try {
       var users = app.get('users');
-      var caller = users[data.caller];
-      caller.ws.send(JSON.stringify({'call_accepted': data}));
+      var peer = users[data.peer];
+      data.peer = nick;
+      peer.ws.send(JSON.stringify({'call_accepted': data}));
     } catch (e) {console.error('call_accept', e);}
   });
 
@@ -204,15 +224,15 @@ function configureWs(ws, nick) {
    * When a call is hung up.
    *
    * data is expected to contain
-   * - other: id of the other user for which the call should be hung up.
+   * - peer: id of the peer user for which the call should be hung up.
    *
-   * The 'other' value will be translated to the id of the sender.
+   * The 'peer' value will be translated to the id of the sender.
    */
   ws.on('call_hangup', function(data) {
     try {
       var users = app.get('users');
-      var other = users[data.other];
-      other.ws.send(JSON.stringify({'call_hangup': {other: nick}}));
+      var peer = users[data.peer];
+      peer.ws.send(JSON.stringify({'call_hangup': {peer: nick}}));
     } catch (e) {console.error('call_hangup', e);}
   });
 

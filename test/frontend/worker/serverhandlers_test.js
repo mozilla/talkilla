@@ -27,8 +27,7 @@ describe("serverHandlers", function() {
 
     it("should store the current call data", function() {
       var data = {
-        caller: "bob",
-        callee: "alice",
+        peer: "alice",
         offer: {type: "fake", sdp: "sdp" }
       };
       serverHandlers.incoming_call(data);
@@ -51,12 +50,11 @@ describe("serverHandlers", function() {
       function() {
         var port = {postEvent: sinon.spy()};
         var data = {
-          caller: "alice",
-          callee: "bob",
+          peer: "alice",
           answer: { type: "fake", sdp: "sdp" }
         };
 
-        currentCall = {port: port, data: {caller: "alice", callee: "bob"}};
+        currentCall = {port: port, data: {peer: "alice"}};
 
         serverHandlers.call_accepted(data);
 
@@ -72,7 +70,7 @@ describe("serverHandlers", function() {
     beforeEach(function() {
       handlers.postEvent = sandbox.spy();
       callData = {
-        other: "bob"
+        peer: "bob"
       };
       currentCall = {port: {postEvent: handlers.postEvent}, data: callData};
     });

@@ -45,12 +45,12 @@ describe("ChatView", function() {
       new app.views.ChatView({call: call});
 
       sinon.assert.called(call.on);
-      sinon.assert.calledWith(call.on, "change:otherUser");
+      sinon.assert.calledWith(call.on, "change:peer");
     });
 
     it("should update the document title on change of user login details",
       function() {
-        call.set("otherUser", "nick");
+        call.set("peer", "nick");
 
         new app.views.ChatView({call: call});
 
