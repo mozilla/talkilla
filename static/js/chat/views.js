@@ -10,6 +10,11 @@
    * Chat View (overall)
    */
   app.views.ChatView = Backbone.View.extend({
+    events: {
+      'dragover': 'dragover',
+      'drop': 'drop'
+    },
+
     initialize: function(options) {
       options = options || {};
       if (!options.call)
@@ -17,14 +22,35 @@
 
       this.call = options.call;
 
-      this.call.on('change:otherUser', function(to) {
-        document.title = to.get("otherUser");
+      this.call.on('change:peer', function(to) {
+        document.title = to.get("peer");
       });
 
       this.call.on('offer-timeout', function() {
         // outgoing call didn't go through, close the window
         window.close();
       });
+    },
+
+    dragover: function(event) {
+      var dataTransfer = event.originalEvent.dataTransfer;
+
+      if (!dataTransfer.types.contains("text/x-moz-url"))
+        return;
+
+      // Need both of these to make the drag work
+      event.stopPropagation();
+      event.preventDefault();
+      dataTransfer.dropEffect = "copy";
+    },
+
+    drop: function(event) {
+      event.preventDefault();
+
+      var data = event.originalEvent.dataTransfer.getData("text/x-moz-url");
+      var url = data.split('\n')[0]; // get rid of the title
+
+      this.$('#textchat [name="message"]').val(url).focus();
     }
   });
 
@@ -73,7 +99,7 @@
     },
 
     render: function() {
-      // XXX: update caller's avatar, though we'd need to access otherUser
+      // XXX: update caller's avatar, though we'd need to access peer
       //      as a User model instance
       return this;
     }
@@ -89,14 +115,12 @@
       'click .btn-abort': '_abort'
     },
 
+    outgoingTextTemplate: _.template('Calling <%= peer %>…'),
+
     initialize: function(options) {
       options = options || {};
-      if (!options.call)
-        throw new Error("missing parameter: call");
 
-      this.call = options.call;
-
-      this.call.on("change:state", this._handleStateChanges.bind(this));
+      this.model.on("change:state", this._handleStateChanges.bind(this));
     },
 
     _handleStateChanges: function(to, from) {
@@ -110,16 +134,19 @@
     },
 
     _abort: function(event) {
-      if (event) {
+      if (event)
         event.preventDefault();
-      }
 
       window.close();
     },
 
     render: function() {
-      // XXX: update caller's avatar, though we'd need to access otherUser
+      // XXX: update caller's avatar, though we'd need to access peer
       //      as a User model instance
+      var peer = this.model.get('peer');
+      var formattedText = this.outgoingTextTemplate({peer: peer});
+      this.$('.outgoing-text').text(formattedText);
+
       return this;
     }
   });
@@ -200,10 +227,25 @@
   app.views.TextChatEntryView = Backbone.View.extend({
     tagName: 'li',
 
-    template: _.template('<strong><%= nick %>:</strong> <%= message %>'),
+    template: _.template([
+      '<strong><%= nick %>:</strong>',
+      '<%= linkify(message, {attributes: {class: "chat-link"}}) %>'
+    ].join(' ')),
+
+    events: {
+      'click .chat-link': 'click'
+    },
+
+    click: function(event) {
+      event.preventDefault();
+
+      window.open($(event.currentTarget).attr('href'));
+    },
 
     render: function() {
-      this.$el.html(this.template(this.model.toJSON()));
+      this.$el.html(this.template(_.extend(this.model.toJSON(), {
+        linkify: app.utils.linkify
+      })));
       return this;
     }
   });
@@ -246,7 +288,9 @@
       event.preventDefault();
       var $input = this.$('form input[name="message"]');
       var message = $input.val().trim();
+
       $input.val('');
+
       this.collection.newEntry({
         nick: app.data.user.get("nick"),
         message: message

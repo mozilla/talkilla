@@ -51,3 +51,19 @@ function waitForSelector(driver, expectedSelector, options) {
   }, options && options.timeout || 10000);
 }
 exports.waitForSelector = waitForSelector;
+
+/**
+ * Check if the given driver is signed in.
+ * @param  {WebDriver} driver
+ * @return {Promise} A promise that will be resolved to boolean
+ */
+function isSignedIn(driver) {
+  var nick = By.css("strong.nick");
+  waitForSelector(driver, nick, {timeout: 600000});
+  return driver.findElement(nick).getText()
+    .then(function(nick) {
+      return !!nick;
+    });
+}
+exports.isSignedIn = isSignedIn;
+

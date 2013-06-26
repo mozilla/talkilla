@@ -113,7 +113,7 @@ describe("WebRTCCall", function() {
 
       sinon.assert.calledOnce(navigator.mozGetUserMedia);
       sinon.assert.calledWith(navigator.mozGetUserMedia,
-                              {video: true, audio: true});
+                              sinon.match({audio: true, video: true}));
     });
 
     it("should trigger a offer-ready event with an offer", function(done) {
@@ -196,7 +196,8 @@ describe("WebRTCCall", function() {
       webrtc.answer(fakeAnswer);
 
       sinon.assert.calledOnce(navigator.mozGetUserMedia);
-      sinon.assert.calledWith(navigator.mozGetUserMedia, gumOptions);
+      sinon.assert.calledWith(navigator.mozGetUserMedia,
+                              sinon.match({audio: true, video: true}));
     });
 
     it("should trigger an answer-ready event with an answer", function(done) {

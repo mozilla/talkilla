@@ -52,23 +52,23 @@ describe("Call", function() {
     });
 
     it("should set instance attributes", function() {
-      var call = new app.models.Call({otherUser: "larry"}, {media: media});
-      expect(call.get("otherUser")).to.equal("larry");
+      var call = new app.models.Call({peer: "larry"}, {media: media});
+      expect(call.get("peer")).to.equal("larry");
     });
   });
 
   describe("#start", function() {
-    var callData = {caller: "bob", callee: "larry"};
+    var callData = {peer: "larry"};
 
     it("should change the state from ready to pending", function() {
       call.start({});
       expect(call.state.current).to.equal('pending');
     });
 
-    it("should store the otherUser", function() {
+    it("should store the peer", function() {
       call.start(callData);
 
-      expect(call.get('otherUser')).to.equal('larry');
+      expect(call.get('peer')).to.equal('larry');
     });
 
     it("should pass the call data to the media", function() {
@@ -86,17 +86,17 @@ describe("Call", function() {
   });
 
   describe("#incoming", function() {
-    var callData = {caller: "bob", callee: "larry"};
+    var callData = {peer: "bob"};
 
     it("should change the state from ready to incoming", function() {
       call.incoming({});
       expect(call.state.current).to.equal('incoming');
     });
 
-    it("should store the otherUser", function() {
+    it("should store the peer", function() {
       call.incoming(callData);
 
-      expect(call.get('otherUser')).to.equal('bob');
+      expect(call.get('peer')).to.equal('bob');
     });
 
     it("should store the call data", function() {
@@ -108,7 +108,7 @@ describe("Call", function() {
   });
 
   describe("#accept", function() {
-    var callData = {caller: "bob", callee: "larry"};
+    var callData = {peer: "bob"};
 
     it("should change the state from incoming to pending", function() {
       call.state.incoming();
@@ -205,7 +205,7 @@ describe("Call", function() {
     var fakeSdp = {type: "fake", sdp: "sdp"}, userModel;
 
     beforeEach(function() {
-      call.set({id: "bob", otherUser: "larry"});
+      call.set({peer: "larry"});
       call.trigger = sandbox.stub();
       app.data.user = userModel = new app.models.User();
       app.data.user.set("nick", "bob");
@@ -220,8 +220,7 @@ describe("Call", function() {
       it("should trigger send-offer with transport data", function() {
         // Set up the data
         var expectedData = {
-          caller: "bob",
-          callee: "larry",
+          peer: "larry",
           offer: fakeSdp
         };
 
@@ -246,8 +245,7 @@ describe("Call", function() {
 
         // Set up the data
         expectedData = {
-          caller: "larry",
-          callee: "bob",
+          peer: "larry",
           answer: fakeSdp
         };
       });

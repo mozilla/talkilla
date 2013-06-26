@@ -1,7 +1,8 @@
 /* global afterEach, beforeEach, chai, describe, sinon, it,
    ports:true, Port, PortCollection, handlers, _currentUserData:true,
    currentCall:true, UserData, _presenceSocket:true, tryPresenceSocket,
-   browserPort:true, currentUsers:true, _presenceSocketSendMessage */
+   browserPort:true, currentUsers:true, _presenceSocketSendMessage,
+   storeContact:true */
 /* jshint expr:true */
 
 var expect = chai.expect;
@@ -11,6 +12,8 @@ describe('handlers', function() {
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
+    // Avoid touching the contacts db which we haven't initialized.
+    sandbox.stub(window, "storeContact");
   });
 
   afterEach(function() {
@@ -311,8 +314,7 @@ describe('handlers', function() {
       currentCall = {
         port: undefined,
         data: {
-          caller: "alice",
-          callee: "bob"
+          peer: "alice"
         }
       };
     });
@@ -382,6 +384,18 @@ describe('handlers', function() {
 
         expect(currentCall.port).to.be.equal(port);
       });
+
+    it("should store the contact when " +
+      "receiving a talkilla.chat-window-ready notification",
+      function () {
+        var port = {postEvent: function() {}};
+        handlers['talkilla.chat-window-ready'].bind(port)({
+          topic: "talkilla.chat-window-ready",
+          data: {}
+        });
+
+        sinon.assert.calledOnce(storeContact);
+      });
   });
 
   describe("talkilla.offer-timeout", function() {
@@ -442,8 +456,7 @@ describe('handlers', function() {
       function() {
         sandbox.stub(window, "_presenceSocketSendMessage");
         var data = {
-          caller: "fred",
-          callee: "tom",
+          peer: "tom",
           offer: { sdp: "sdp", type: "type" }
         };
 
@@ -463,8 +476,7 @@ describe('handlers', function() {
       function() {
         sandbox.stub(window, "_presenceSocketSendMessage");
         var data = {
-          caller: "fred",
-          callee: "tom",
+          peer: "fred",
           offer: { sdp: "sdp", type: "type" }
         };
 
@@ -488,7 +500,7 @@ describe('handlers', function() {
       function() {
         sandbox.stub(window, "_presenceSocketSendMessage");
         var data = {
-          other: "florian"
+          peer: "florian"
         };
 
         handlers['talkilla.call-hangup']({
@@ -505,11 +517,11 @@ describe('handlers', function() {
       function() {
         currentCall = {
           port: {},
-          data: { caller: "romain", callee: "florian" }
+          data: { peer: "florian" }
         };
         sandbox.stub(window, "_presenceSocketSendMessage");
         var data = {
-          other: "florian"
+          peer: "florian"
         };
 
         handlers['talkilla.call-hangup']({
@@ -522,4 +534,3 @@ describe('handlers', function() {
   });
 
 });
-

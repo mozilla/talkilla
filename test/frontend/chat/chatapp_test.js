@@ -6,9 +6,9 @@ var expect = chai.expect;
 
 describe("ChatApp", function() {
   var sandbox, chatApp;
-  var callData = {callee: "bob"};
+  var callData = {peer: "bob"};
   var incomingCallData = {
-    caller: "alice",
+    peer: "alice",
     offer: {type: "answer", sdp: "fake"}
   };
 
@@ -69,7 +69,7 @@ describe("ChatApp", function() {
 
   it("should attach _onCallShutdown to talkilla.call-hangup", function() {
     assertEventTriggersHandler("talkilla.call-hangup",
-      "_onCallShutdown", { other: "mark" });
+      "_onCallShutdown", { peer: "mark" });
   });
 
   function assertModelEventTriggersHandler(event, handler) {
@@ -133,7 +133,7 @@ describe("ChatApp", function() {
 
     sinon.assert.calledOnce(app.views.CallEstablishView);
     sinon.assert.calledWithExactly(app.views.CallEstablishView,
-      { call: chatApp.call, el: $("#establish") });
+      { model: chatApp.call, el: $("#establish") });
   });
 
   describe("ChatApp (constructed)", function () {
@@ -186,10 +186,10 @@ describe("ChatApp", function() {
 
     describe("#_onStartingCall", function() {
 
-      it("should set the caller and callee", function() {
+      it("should set the peer", function() {
         chatApp._onStartingCall(callData);
 
-        expect(chatApp.call.get('otherUser')).to.equal(callData.callee);
+        expect(chatApp.call.get('peer')).to.equal(callData.peer);
       });
 
       it("should start the call", function() {
@@ -210,10 +210,10 @@ describe("ChatApp", function() {
     });
 
     describe("#_onIncomingCall", function() {
-      it("should set the caller and callee", function() {
+      it("should set the peer", function() {
         chatApp._onIncomingCall(incomingCallData);
 
-        expect(chatApp.call.get('otherUser')).to.equal(incomingCallData.caller);
+        expect(chatApp.call.get('peer')).to.equal(incomingCallData.peer);
       });
 
       it("should set the call as incoming", function() {
@@ -314,11 +314,11 @@ describe("ChatApp", function() {
       });
 
       it("should post a talkilla.call-hangup event to the worker", function() {
-        chatApp.call.set("otherUser", "florian");
+        chatApp.call.set("peer", "florian");
         chatApp._onCallHangup();
         sinon.assert.calledOnce(app.port.postEvent);
         sinon.assert.calledWith(app.port.postEvent,
-                                "talkilla.call-hangup", {other: "florian"});
+                                "talkilla.call-hangup", {peer: "florian"});
       });
 
       it("should do nothing if the call is already terminated", function () {

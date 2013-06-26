@@ -1,4 +1,4 @@
-/* global app, chai, describe, it, beforeEach, afterEach, sinon */
+/* global $, app, chai, describe, it, beforeEach, afterEach, sinon */
 var expect = chai.expect;
 
 describe("ChatView", function() {
@@ -9,6 +9,13 @@ describe("ChatView", function() {
     var call, oldtitle;
 
     beforeEach(function() {
+      $('#fixtures').append([
+        '<div id="textchat">',
+        '  <ul></ul>',
+        '  <form><input name="message"></form>',
+        '</div>'
+      ].join(''));
+
       sandbox = sinon.sandbox.create();
       sandbox.stub(window, "close");
       oldtitle = document.title;
@@ -26,6 +33,7 @@ describe("ChatView", function() {
     afterEach(function() {
       document.title = oldtitle;
       sandbox.restore();
+      $('#fixtures').empty();
     });
 
     it("should attach a given call model", function() {
@@ -45,12 +53,12 @@ describe("ChatView", function() {
       new app.views.ChatView({call: call});
 
       sinon.assert.called(call.on);
-      sinon.assert.calledWith(call.on, "change:otherUser");
+      sinon.assert.calledWith(call.on, "change:peer");
     });
 
     it("should update the document title on change of user login details",
       function() {
-        call.set("otherUser", "nick");
+        call.set("peer", "nick");
 
         new app.views.ChatView({call: call});
 
@@ -69,6 +77,26 @@ describe("ChatView", function() {
         call.on.args[1][1]();
 
         sinon.assert.calledOnce(window.close);
+      });
+
+    it("should set a text message input value on dropped url event",
+      function() {
+        var view = new app.views.ChatView({call: call, el: '#fixtures'});
+        var dropEvent = {
+          preventDefault: function() {},
+          originalEvent: {
+            dataTransfer: {
+              getData: function() {
+                return "http://mozilla.com\nMozilla";
+              }
+            }
+          }
+        };
+
+        view.drop(dropEvent);
+
+        expect(view.render().$('form input').val()).to.equal(
+          "http://mozilla.com");
       });
   });
 });

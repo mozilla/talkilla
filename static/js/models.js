@@ -10,7 +10,7 @@
    * Call model.
    *
    * Attributes:
-   * - {String} otherUser
+   * - {String} peer
    * - {Object} incomingData
    *
    * Fired when #start() is called and the pending call timeout is reached with
@@ -61,16 +61,14 @@
 
       this.media.on("offer-ready", function(offer) {
         this.trigger("send-offer", {
-          caller: app.data.user.get('nick'),
-          callee: this.get("otherUser"),
+          peer: this.get("peer"),
           offer: offer
         });
       }.bind(this));
 
       this.media.on("answer-ready", function(answer) {
         this.trigger("send-answer", {
-          caller: this.get("otherUser"),
-          callee: app.data.user.get('nick'),
+          peer: this.get("peer"),
           answer: answer
         });
 
@@ -88,8 +86,7 @@
      *
      * @param {Object} options object containing:
      *
-     * - caller: The id of the user logged in
-     * - callee: The id of the user to be called
+     * - peer: The id of the user to be called
      * - video: set to true to enable video
      * - audio: set to true to enable audio
      */
@@ -98,7 +95,7 @@
         callData: options,
         timeout: app.options.PENDING_CALL_TIMEOUT
       });
-      this.set({otherUser: options.callee});
+      this.set({peer: options.peer});
       this.state.start();
       this.media.offer(options);
     },
@@ -107,8 +104,7 @@
      * Starts a call based on an incoming call request
      * @param {Object} options object containing:
      *
-     * - caller: The id of the other user
-     * - callee: The id of the user logged in
+     * - peer:  The id of the peer user
      * - video: set to true to enable video
      * - audio: set to true to enable audio
      *
@@ -117,7 +113,7 @@
      */
     incoming: function(options) {
       this.set({
-        otherUser: options.caller,
+        peer: options.peer,
         incomingData: options
       });
       this.state.incoming();
@@ -183,6 +179,12 @@
    *
    * @class WebRTCCall
    * @constructor
+   *
+   * Attributes:
+   *
+   * - {Boolean} audio: enable audio stream
+   * - {Boolean} video: enable video stream
+   * - {Boolean} fake: use fake streams
    *
    * Fired when a SDP offer is available (see #offer).
    * @event offer-ready
@@ -325,8 +327,9 @@
 
     _getMedia: function(callback, errback) {
       var constraints = {
-        video: this.get('video'),
-        audio: this.get('audio')
+        video: !!this.get('video'),
+        audio: !!this.get('audio'),
+        fake:  !!this.get('fake')
       };
 
       var cb = function (localStream) {
@@ -382,7 +385,8 @@
 
     newEntry: function(data) {
       var entry = this.add(data).at(this.length - 1);
-      this.trigger('entry.created', entry);
+      if (entry)
+        this.trigger('entry.created', entry);
     }
   });
 

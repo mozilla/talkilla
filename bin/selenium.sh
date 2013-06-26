@@ -2,9 +2,10 @@
 
 FIREFOX_BZIP2_FILENAME="firefox-24.0a1.en-US.linux-x86_64.tar.bz2"
 FIREFOX_BZIP2_URL="http://ftp.mozilla.org/pub/mozilla.org/firefox/nightly/latest-mozilla-central/$FIREFOX_BZIP2_FILENAME"
-SELENIUM_JAR_FILENAME="selenium-server-standalone-2.32.0a.jar"
+SELENIUM_JAR_FILENAME="selenium-server-standalone-2.32.0b.jar"
 SELENIUM_JAR_URL="http://people.mozilla.com/~mbanner2/talkilla/$SELENIUM_JAR_FILENAME"
 SELENIUM_PID_FILE="/tmp/selenium-server-pid"
+PWD=`pwd`
 
 install() {
     if [ ! -f $SELENIUM_JAR_FILENAME ]; then
@@ -26,8 +27,8 @@ start() {
         echo "Selenium server is already running ($SELENIUM_PID_FILE)"
         exit 1
     fi
-    PATH=`pwd`/bin:$PATH
-    java -jar $SELENIUM_JAR_FILENAME &>/dev/null &
+    # options are listed at http://code.google.com/p/selenium/wiki/FirefoxDriver
+    java -jar $SELENIUM_JAR_FILENAME -Dwebdriver.firefox.bin=$PWD/bin/firefox -Dwebdriver.log.file=$PWD/console.log -Dwebdriver.firefox.logfile=$PWD/firefox.log &>/dev/null &
     PID=$!
     echo $PID > $SELENIUM_PID_FILE
     CODE="000"

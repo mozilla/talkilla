@@ -99,7 +99,7 @@
   height: 64px;
 }
 
-.pending .incoming-text {
+.pending .incoming-info {
   color: #555;
   font-size: 90%;
 }
@@ -187,4 +187,5 @@
 #textchat form input[type="text"] {
   border-radius: 0;
   width: 100%;
+  font-size: 12px;
 }

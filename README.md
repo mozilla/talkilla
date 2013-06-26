@@ -6,7 +6,7 @@ Video call exploration
 Local Development
 -----------------
 
-1. Talkilla requires Firefox > 21.
+1. Talkilla currently requires Firefox > 23.
 
 2. Make sure you have [node installed](http://nodejs.org/).
 
@@ -22,7 +22,9 @@ Local Development
         # or alternatively:
         $ make runserver
 
-5. Point your web browser to [http://localhost:5000](http://localhost:5000).
+5. In Firefox, set `media.navigator.permission.disabled` to `true`
+
+6. Point your web browser to [http://localhost:5000](http://localhost:5000).
 
 
 Configuration
@@ -47,7 +49,7 @@ To run the unit tests:
 
 1. Make sure you've installed node and the required modules as per the local development section.
 
-2. On Mac, you need to have /Applications/FirefoxNightly.app installed (aka Firefox 24), and not have a /Applications/Firefox.app
+2. On Mac, you need to have /Applications/FirefoxNightly.app installed (aka Firefox 24)
 
 3. On Linux, you need to have /usr/bin/firefox-nightly present, or a Firefox will be downloaded for you.
 
@@ -66,6 +68,28 @@ To run the front-end unit tests standalone:
     $ make runserver_dev
 
 2. Visit http://localhost:5000/test/frontend/index.html
+
+Debugging Functional Tests
+--------------------------
+It can useful to execute individual functional tests in the Node debugger.
+Example usage:
+
+1. (add a "debugger;" statement to the code where you want the debugger to break)
+2. # SOLO_FILE=chatwindow_test.js make debug_test
+3. (debug)
+4. (remove the debugger statement)
+
+Note that because most of the things in the webdriver-selenium API that
+look like imperative statements are actually magic things that cause most
+of the semantics of the commands be enqueued by the ControlFlow piece of
+the "promise manager" to be executed at some point in the future. It can
+take some experimenting to figure out where to usefully put the debugger
+statements.  It may be particularly useful to add a then() handler to the
+first promise-returning statement in the test you want to debug and put
+the debugger statement there.
+
+https://code.google.com/p/selenium/wiki/WebDriverJs#Writing_Tests has more
+details on how this stuff fits together.
 
 Contribution
 ------------
