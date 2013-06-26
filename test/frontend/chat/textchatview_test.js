@@ -150,6 +150,26 @@ describe("Text chat views", function() {
           expect(textChatView.$el.is(":visible")).to.be.equal(false);
         });
     });
+
+describe("FileTransferView", function() {
+
+  beforeEach(function() {
+    sandbox = sinon.sandbox.create();
   });
 
+  afterEach(function() {
+    sandbox.restore();
+  });
+
+  it("should bind render to model change events", function() {
+    sandbox.stub(app.views.FileTransferView.prototype, "render");
+
+    var file = {name: "toto", size: 10};
+    var transfer = new app.models.FileTransfer({file: file}, {chunkSize: 1});
+    var view = new app.views.FileTransferView({model: transfer});
+
+    transfer.trigger("change");
+
+    sinon.assert.calledOnce(view.render);
+  });
 });

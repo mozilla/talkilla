@@ -319,6 +319,24 @@
   });
 
   /**
+   * File transfer view.
+   */
+  app.views.FileTransferView = Backbone.View.extend({
+    tagName: 'li',
+
+    template: _.template('<strong><%= filename %>:</strong> <%= progress %>%'),
+
+    initialize: function() {
+      this.model.on("change", this.render, this);
+    },
+
+    render: function() {
+      this.$el.html(this.template(this.model.toJSON()));
+      return this;
+    }
+  });
+
+  /**
    * Text chat conversation view.
    */
   app.views.TextChatView = Backbone.View.extend({
