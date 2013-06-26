@@ -343,7 +343,7 @@
     el: '#textchat', // XXX: uncouple the selector from this view
 
     events: {
-      'submit form': 'send'
+      'submit form': 'sendMessage'
     },
 
     initialize: function(options) {
@@ -370,27 +370,30 @@
       }.bind(this));
     },
 
-    send: function(event) {
+    sendMessage: function(event) {
       event.preventDefault();
       var $input = this.$('form input[name="message"]');
       var message = $input.val().trim();
 
       $input.val('');
 
-      this.collection.newEntry({
+      this.collection.add(new app.models.TextChatEntry({
         nick: app.data.user.get("nick"),
         message: message
-      });
+      }));
     },
 
     render: function() {
       var $ul = this.$('ul').empty();
+
       this.collection.each(function(entry) {
         var view = new app.views.TextChatEntryView({model: entry});
         $ul.append(view.render().$el);
       });
+
       var ul = $ul.get(0);
       ul.scrollTop = ul.scrollTopMax;
+
       return this;
     }
   });

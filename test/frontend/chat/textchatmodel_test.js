@@ -26,28 +26,6 @@ describe('Text chat models', function() {
     });
   });
 
-  describe("app.models.TextChat", function() {
-
-    describe("#newEntry", function() {
-      it("should add an entry and trigger the `entry.created` event",
-        function(done) {
-          var textChat = new app.models.TextChat();
-          var entry = new app.models.TextChatEntry({
-            nick: "niko",
-            message: "hi"
-          });
-
-          textChat.on('entry.created', function(receivedEntry) {
-            expect(receivedEntry.toJSON()).to.deep.equal(entry.toJSON());
-            done();
-          });
-
-          textChat.newEntry(entry);
-        });
-    });
-
-  });
-
   describe('chatApp events for text chat', function () {
     var chatApp;
 
@@ -56,6 +34,7 @@ describe('Text chat models', function() {
       _.extend(app.port, Backbone.Events);
       sandbox.stub(ChatApp.prototype, "_onDataChannelMessageIn");
       sandbox.stub(ChatApp.prototype, "_onTextChatEntryCreated");
+      sandbox.stub(app.views.TextChatView.prototype, "render");
       chatApp = new ChatApp();
     });
 
@@ -72,10 +51,10 @@ describe('Text chat models', function() {
       sinon.assert.calledWithExactly(chatApp._onDataChannelMessageIn, event);
     });
 
-    it('should listen to the text chat `entry.created` event', function() {
+    it('should listen to the text chat `add` event', function() {
       var entry = new app.models.TextChatEntry({nick: "niko", message: "hi"});
 
-      chatApp.textChat.trigger('entry.created', entry.toJSON());
+      chatApp.textChat.trigger('add', entry.toJSON());
 
       sinon.assert.calledOnce(chatApp._onTextChatEntryCreated);
       sinon.assert.calledWithExactly(chatApp._onTextChatEntryCreated,

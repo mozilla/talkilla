@@ -379,13 +379,7 @@
   });
 
   app.models.TextChat = Backbone.Collection.extend({
-    model: app.models.TextChatEntry,
-
-    newEntry: function(data) {
-      var entry = this.add(data).at(this.length - 1);
-      if (entry)
-        this.trigger('entry.created', entry);
-    }
+    model: app.models.TextChatEntry
   });
 
   app.models.User = Backbone.Model.extend({

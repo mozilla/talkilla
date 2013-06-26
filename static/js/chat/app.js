@@ -101,7 +101,7 @@ var ChatApp = (function($, Backbone, _) {
 
     // Data channels
     this.webrtc.on('dc.in.message', this._onDataChannelMessageIn.bind(this));
-    this.textChat.on('entry.created', this._onTextChatEntryCreated.bind(this));
+    this.textChat.on('add', this._onTextChatEntryCreated.bind(this));
 
     // Internal events
     window.addEventListener("unload", this._onCallHangup.bind(this));
@@ -170,7 +170,9 @@ var ChatApp = (function($, Backbone, _) {
   };
 
   ChatApp.prototype._onTextChatEntryCreated = function(entry) {
-    this.webrtc.send(JSON.stringify(entry));
+    if (entry instanceof app.models.TextChatEntry &&
+        entry.get('nick') === app.data.user.get("nick"))
+      this.webrtc.send(JSON.stringify(entry));
   };
 
   return ChatApp;

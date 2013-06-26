@@ -392,8 +392,9 @@ describe("ChatApp", function() {
     describe("#_onTextChatEntryCreated", function() {
       it("should send data over data channel", function() {
         var stub = sandbox.stub(app.models.WebRTCCall.prototype, "send");
+        var entry = new app.models.TextChatEntry({nick: "foo", message: "bar"});
         chatApp = new ChatApp();
-        var entry = {foo: "bar"};
+        app.data.user.set("nick", "foo")
 
         chatApp._onTextChatEntryCreated(entry);
 
