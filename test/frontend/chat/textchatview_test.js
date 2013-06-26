@@ -114,17 +114,6 @@ describe("Text chat views", function() {
       $("#textchat form").trigger("submit");
     });
 
-    it("#send() should send a linkified message", function() {
-      var linkify = sandbox.stub(app.utils, "linkify");
-      var message = 'foo http://plop.com';
-      chatApp.textChatView.$('form input').val(message);
-
-      chatApp.textChatView.send({ preventDefault: function() {} });
-
-      sinon.assert.calledOnce(linkify);
-      sinon.assert.calledWith(linkify, message);
-    });
-
     describe("Change events", function() {
       var textChatView;
 
