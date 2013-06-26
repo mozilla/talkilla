@@ -385,7 +385,8 @@
 
     newEntry: function(data) {
       var entry = this.add(data).at(this.length - 1);
-      this.trigger('entry.created', entry);
+      if (entry)
+        this.trigger('entry.created', entry);
     }
   });
 
