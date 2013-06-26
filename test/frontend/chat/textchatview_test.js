@@ -23,7 +23,7 @@ describe("Text chat views", function() {
       new app.views.TextChatEntryView({
         model: new app.models.TextChatEntry({
           nick: "jb",
-          message: 'hi <a href="http://mozilla.com/" class="chat-link">moz</a>'
+          message: 'hi http://mozilla.com/'
         })
       }).render().$('a.chat-link').click();
 
@@ -123,25 +123,6 @@ describe("Text chat views", function() {
 
       sinon.assert.calledOnce(linkify);
       sinon.assert.calledWith(linkify, message);
-    });
-
-    it("should set the message input value on dropped url event", function() {
-      var view = chatApp.textChatView;
-      var dropEvent = {
-        preventDefault: function() {},
-        originalEvent: {
-          dataTransfer: {
-            getData: function() {
-              return "http://mozilla.com\nMozilla";
-            }
-          }
-        }
-      };
-
-      view.drop(dropEvent);
-
-      expect(view.render().$('form input').val()).to.equal(
-        "http://mozilla.com Mozilla");
     });
 
     describe("Change events", function() {
