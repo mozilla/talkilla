@@ -1,23 +1,27 @@
-/* global app, chai, describe, it, beforeEach, afterEach, sinon */
+/* global app, chai, describe, it, beforeEach, afterEach, sinon, _ */
 var expect = chai.expect;
 
 describe('Utils', function() {
   "use strict";
+  var sandbox;
+
+  beforeEach(function() {
+    sandbox = sinon.sandbox.create();
+  });
+
+  afterEach(function() {
+    sandbox.restore();
+  });
 
   describe("AudioLibrary", function() {
-    var sandbox, fakeAudio;
+    var fakeAudio;
 
     beforeEach(function() {
-      sandbox = sinon.sandbox.create();
       fakeAudio = {
         play: sinon.spy(),
         pause: sinon.spy()
       };
       sandbox.stub(window, "Audio").returns(fakeAudio);
-    });
-
-    afterEach(function() {
-      sandbox.restore();
     });
 
     describe("#constructor", function() {
@@ -94,6 +98,118 @@ describe('Utils', function() {
 
         sinon.assert.calledTwice(fakeAudio.pause);
       });
+    });
+
+  });
+
+  describe("createLink", function() {
+    it("should create a simple link", function() {
+      expect(app.utils.createLink("http://foo.bar/")).to.equal(
+        '<a href="http://foo.bar/">http://foo.bar/</a>');
+    });
+
+    it("should create a link specifying its attributes", function() {
+      var result = app.utils.createLink("http://foo.bar/", {
+        target: '_blank'
+      });
+
+      expect(result).to.equal(
+        '<a target="_blank" href="http://foo.bar/">http://foo.bar/</a>');
+    });
+  });
+
+  describe("linkify", function() {
+    var linkify = app.utils.linkify;
+
+    function transformed(text, options) {
+      return text !== _.unescape(linkify(text, options));
+    }
+
+    it("should properly escape HTML text", function() {
+      expect(app.utils.linkify("<script>")).to.equal("&lt;script&gt;");
+    });
+
+    it("should properly escape HTML text but not URLs", function() {
+      expect(app.utils.linkify("<script> http://foo.bar")).to.equal(
+        '&lt;script&gt; <a href="http://foo.bar">http://foo.bar</a>');
+    });
+
+    it("should linkify a simple URL", function() {
+      expect(linkify('foo http://foo.bar bar')).to.equal(
+        'foo <a href="http://foo.bar">http://foo.bar</a> bar');
+    });
+
+    it("should linkify a URL with port", function() {
+      expect(linkify('foo http://foo.bar:80 bar')).to.equal(
+        'foo <a href="http://foo.bar:80">http://foo.bar:80</a> bar');
+    });
+
+    it("should linkify a URL with port and path", function() {
+      expect(linkify('foo http://foo.bar:80/x bar')).to.equal(
+        'foo <a href="http://foo.bar:80/x">http://foo.bar:80/x</a> bar');
+    });
+
+    it("should linkify a URL with complex path", function() {
+      expect(linkify('foo http://aa.vv/x/y/z bar')).to.equal(
+        'foo <a href="http://aa.vv/x/y/z">http://aa.vv/x/y/z</a> bar');
+    });
+
+    it("should linkify a URL with a query string", function() {
+      expect(linkify('foo http://foo/?w=1 bar')).to.equal(
+        'foo <a href="http://foo/?w=1">http://foo/?w=1</a> bar');
+    });
+
+    it("should linkify a URL with a hashbang", function() {
+      expect(linkify('foo http://foo/?w=1&x=42#foo_bar bar')).to.equal(
+        'foo <a href="http://foo/?w=1&amp;x=42#foo_bar">' +
+        'http://foo/?w=1&amp;x=42#foo_bar</a> bar');
+    });
+
+    it("should linkify multiple URLs", function() {
+      expect(linkify('a http://x.y/ b http://y.z/ c')).to.equal(
+        'a <a href="http://x.y/">http://x.y/</a> ' +
+        'b <a href="http://y.z/">http://y.z/</a> c');
+    });
+
+    it("should not linkify a non-URL word", function() {
+      expect(transformed("plop")).to.equal(false);
+    });
+
+    it("should linkify a http link by default", function() {
+      expect(transformed("http://plop")).to.equal(true);
+    });
+
+    it("should linkify a https link by default", function() {
+      expect(transformed("https://plop")).to.equal(true);
+    });
+
+    it("should linkify a ftp link by default", function() {
+      expect(transformed("ftp://plop")).to.equal(true);
+    });
+
+    it("should not linkify a mailto link by default", function() {
+      expect(transformed("mailto:a@a.com")).to.equal(false);
+    });
+
+    it("should not linkify an unsupported scheme by default", function() {
+      /* jshint scripturl:true */
+      expect(transformed("javascript:plop()")).to.equal(false);
+    });
+
+    it("should not linkify an unsupported scheme by configuration",
+      function() {
+        expect(transformed("ftp://plop", {
+          schemes: ["http"]
+        })).to.equal(false);
+      });
+
+    it("should linkify text with urls setting custom attributes", function() {
+      var result = app.utils.linkify("foo http://foo.bar/", {
+        attributes: { target: '_blank' }
+      });
+
+      expect(result).to.equal(
+        'foo <a target="_blank" href="http://foo.bar/">http://foo.bar/</a>');
     });
 
   });
