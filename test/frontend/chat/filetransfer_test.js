@@ -62,6 +62,20 @@ describe("FileTransfer", function() {
       transfer.start();
     });
 
+    it("should accepts a custom chunkSize", function(done) {
+      var chunks = [];
+      transfer.on("chunk", function(chunk) {
+        chunks.push(chunk);
+      });
+      transfer.on("eof", function() {
+        expect(chunks).to.deep.equal(['con', 'ten', 't']);
+        done();
+      });
+
+      transfer.chunkSize = 3;
+      transfer.start();
+    });
+
     it("should call complete when there is not chunk left", function(done) {
       var chunks = [];
       transfer.on("chunk", function(chunk) {

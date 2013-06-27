@@ -42,7 +42,7 @@
     _onChunk: function(event) {
       var data = event.target.result;
 
-      this.seek += 1;
+      this.seek += this.chunkSize;
       this.trigger("chunk", data);
 
       if (this.seek < this.file.size) {
@@ -59,7 +59,7 @@
     },
 
     _readChunk: function() {
-      var blob = this.file.slice(this.seek, this.seek + 1);
+      var blob = this.file.slice(this.seek, this.seek + this.chunkSize);
       this.reader.readAsBinaryString(blob);
     }
   });
