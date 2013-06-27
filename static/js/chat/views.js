@@ -32,10 +32,17 @@
       });
     },
 
+    _checkDragTypes: function(types) {
+      if (!types.contains("text/x-moz-url") &&
+          !types.contains("text/x-moz-text-internal"))
+        return false;
+      return true;
+    },
+
     dragover: function(event) {
       var dataTransfer = event.originalEvent.dataTransfer;
 
-      if (!dataTransfer.types.contains("text/x-moz-url"))
+      if (!this._checkDragTypes(dataTransfer.types))
         return;
 
       // Need both of these to make the drag work
@@ -45,10 +52,21 @@
     },
 
     drop: function(event) {
+      var dataTransfer = event.originalEvent.dataTransfer;
+
+      if (!this._checkDragTypes(dataTransfer.types))
+        return;
+
       event.preventDefault();
 
-      var data = event.originalEvent.dataTransfer.getData("text/x-moz-url");
-      var url = data.split('\n')[0]; // get rid of the title
+      var url;
+      var tabData = dataTransfer.getData("text/x-moz-text-internal");
+      var urlData = dataTransfer.getData("text/x-moz-url");
+
+      if (urlData)
+        url = urlData.split('\n')[0]; // get rid of the title
+      else if (tabData)
+        url = tabData;
 
       this.$('#textchat [name="message"]').val(url).focus();
     }
