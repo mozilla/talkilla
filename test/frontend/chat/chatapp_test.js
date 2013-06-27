@@ -380,12 +380,12 @@ describe("ChatApp", function() {
       it("should append received data to the current text chat", function() {
         var stub = sandbox.stub(app.models.TextChat.prototype, "add");
         chatApp = new ChatApp();
-        var event = {data: JSON.stringify({foo: "bar"})};
+        var event = {data: JSON.stringify({type: "chat:message", message: "data"})};
 
         chatApp._onDataChannelMessageIn(event);
 
         sinon.assert.calledOnce(stub);
-        sinon.assert.calledWithExactly(stub, {foo: "bar"});
+        sinon.assert.calledWithExactly(stub, "data");
       });
     });
 
@@ -393,13 +393,14 @@ describe("ChatApp", function() {
       it("should send data over data channel", function() {
         var stub = sandbox.stub(app.models.WebRTCCall.prototype, "send");
         var entry = new app.models.TextChatEntry({nick: "foo", message: "bar"});
+        var message = {type: "chat:message", message: entry.toJSON()};
         chatApp = new ChatApp();
         app.data.user.set("nick", "foo")
 
         chatApp._onTextChatEntryCreated(entry);
 
         sinon.assert.calledOnce(stub);
-        sinon.assert.calledWithExactly(stub, JSON.stringify(entry));
+        sinon.assert.calledWithExactly(stub, message);
       });
     });
 

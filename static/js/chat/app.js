@@ -166,13 +166,15 @@ var ChatApp = (function($, Backbone, _) {
 
   // Text chat & data channel event listeners
   ChatApp.prototype._onDataChannelMessageIn = function(event) {
-    this.textChat.add(JSON.parse(event.data));
+    event = JSON.parse(event.data);
+    if (event.type === "chat:message")
+      this.textChat.add(event.message);
   };
 
   ChatApp.prototype._onTextChatEntryCreated = function(entry) {
     if (entry instanceof app.models.TextChatEntry &&
         entry.get('nick') === app.data.user.get("nick"))
-      this.webrtc.send(JSON.stringify(entry));
+      this.webrtc.send({type: "chat:message", message: entry.toJSON()});
   };
 
   return ChatApp;
