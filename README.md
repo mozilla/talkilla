@@ -86,6 +86,10 @@ Acticate it:
     $ source .venv/bin/activate
     (.venv) $
 
+Install the `selenium` package using [pip](https://pypi.python.org/pypi/pip):
+
+    (.venv) $ pip install selenium
+
 Start the selenium server:
 
     (.venv) $ bin/selenium.sh start
