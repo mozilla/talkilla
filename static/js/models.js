@@ -289,7 +289,7 @@
     send: function(data) {
       if (!this.dcOut)
         return this._onError('no data channel connection available');
-      this.dcOut.send(data);
+      this.dcOut.send(JSON.stringify(data));
     },
 
     /**
