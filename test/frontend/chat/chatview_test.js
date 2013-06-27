@@ -79,24 +79,62 @@ describe("ChatView", function() {
         sinon.assert.calledOnce(window.close);
       });
 
-    it("should set a text message input value on dropped url event",
-      function() {
-        var view = new app.views.ChatView({call: call, el: '#fixtures'});
-        var dropEvent = {
+    describe("drag and drop events", function() {
+      function fakeDropEvent(data) {
+        return {
           preventDefault: function() {},
           originalEvent: {
             dataTransfer: {
-              getData: function() {
-                return "http://mozilla.com\nMozilla";
+              types: {
+                contains: function(what) {
+                  return what in data;
+                }
+              },
+              getData: function(what) {
+                return data[what];
               }
             }
           }
         };
+      }
 
-        view.drop(dropEvent);
+      it("should set a text message input value on dropped url event",
+        function() {
+          var view = new app.views.ChatView({call: call, el: '#fixtures'});
+          var dropEvent = fakeDropEvent({
+            "text/x-moz-url": "http://mozilla.com\nMozilla"
+          });
 
-        expect(view.render().$('form input').val()).to.equal(
-          "http://mozilla.com");
-      });
+          view.drop(dropEvent);
+
+          expect(view.render().$('form input').val()).to.equal(
+            "http://mozilla.com");
+        });
+
+      it("should set a text message input value on dropped tab event",
+        function() {
+          var view = new app.views.ChatView({call: call, el: '#fixtures'});
+          var dropEvent = fakeDropEvent({
+            "text/x-moz-text-internal": "http://mozilla.com"
+          });
+
+          view.drop(dropEvent);
+
+          expect(view.render().$('form input').val()).to.equal(
+            "http://mozilla.com");
+        });
+
+      it("should not set a text message input value on unsupported drop event",
+        function() {
+          var view = new app.views.ChatView({call: call, el: '#fixtures'});
+          var dropEvent = fakeDropEvent({
+            "text/x-foobar": "xxx"
+          });
+
+          view.drop(dropEvent);
+
+          expect(view.render().$('form input').val()).to.equal("");
+        });
+    });
   });
 });
