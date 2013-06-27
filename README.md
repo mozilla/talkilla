@@ -69,6 +69,31 @@ To run the front-end unit tests standalone:
 
 2. Visit http://localhost:5000/test/frontend/index.html
 
+
+Integration Tests
+-----------------
+
+You'll need Python 2.7+ and the [selenium](https://pypi.python.org/pypi/selenium)
+package in order to run the integration tests suite.
+
+First create a [virtualenv](https://pypi.python.org/pypi/virtualenv):
+
+    $ cd /path/to/talkilla
+    $ virtualenv `pwd`/.venv
+
+Acticate it:
+
+    $ source .venv/bin/activate
+    (.venv) $
+
+Start the selenium server:
+
+    (.venv) $ bin/selenium.sh start
+
+Run the tests:
+
+    (.venv) $ python test/functional/test.py
+
 Debugging Functional Tests
 --------------------------
 It can useful to execute individual functional tests in the Node debugger.
@@ -103,4 +128,3 @@ License
 All source code here is available under the
 [MPL 2.0](https://mozilla.org/MPL/2.0/) license, unless otherwise
 indicated.
-

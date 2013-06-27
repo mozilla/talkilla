@@ -36,7 +36,7 @@ start() {
         CODE=$(curl -sL -w "%{http_code}" http://localhost:4444/wd/hub -o /dev/null)
         sleep 0.1
     done
-    echo "Selenium server started"
+    echo "Selenium server started ($SELENIUM_JAR_FILENAME, pid=$PID)"
 }
 
 stop() {
