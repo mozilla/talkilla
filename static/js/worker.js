@@ -6,15 +6,11 @@ var _currentUserData;
 var _presenceSocket;
 var ports;
 var browserPort;
-var currentCall;
+var currentConversation;
 var currentUsers;
 var contacts;
 var contactsDb;
 var kContactDBName = "contacts";
-
-function openChatWindow() {
-  browserPort.postEvent('social.request-chat', 'chat.html');
-}
 
 function getContactsDatabase(doneCallback, contactDBName) {
   var kDBVersion = 1;
@@ -70,6 +66,83 @@ function storeContact(username, doneCallback) {
       doneCallback();
   };
 }
+
+/**
+ * Conversation data storage.
+ *
+ * This is designed to contain information about open conversation
+ * windows, and to route appropraite information to those windows,
+ *
+ * Some aspects of the design are more relevant to only allowing
+ * a single conversation window, and these will need to be changed
+ * at the appropriate time.
+ *
+ * @param {Object|undefined}  data  Initial data
+ *
+ * data properties:
+ *
+ * peer: The id of the peer this conversation window is for.
+ * offer: optional data for incoming calls.
+ */
+function Conversation(data) {
+  this.data = data;
+  this.port = undefined;
+
+  // Open the window for this conversation
+  browserPort.postEvent('social.request-chat', 'chat.html');
+}
+
+Conversation.prototype = {
+  /**
+   * Call to tell the conversation that a window has been opened
+   * for it, so it can set the window up with the required info.
+   *
+   * @param port The Port instance associated with the window.
+   */
+  windowOpened: function(port) {
+    this.port = port;
+
+    if (_currentUserData.userName) {
+      // If there's currenty a logged in user,
+      port.postEvent('talkilla.login-success', {
+        username: _currentUserData.userName
+      });
+    }
+
+    storeContact(this.data.peer);
+
+    var topic = this.data.offer ?
+      "talkilla.call-incoming" :
+      "talkilla.conversation-open";
+
+    port.postEvent(topic, this.data);
+  },
+
+  /**
+   * Call to tell the conversation that the call has been accepted
+   * by the peer.
+   *
+   * @param data The data associated with the call. Consisting of:
+   *
+   * - peer   the id of the other user
+   * - offer  the sdp offer for the connection
+   */
+  callAccepted: function(data) {
+    this.port.postEvent('talkilla.call-establishment', data);
+  },
+
+  /**
+   * Call to tell the conversation window that the call has been
+   * hungup by the peer.
+   *
+   * @param data The data associated with the call. Consisting of:
+   *
+   * - peer   the id of the other user.
+   */
+  callHangup: function(data) {
+    this.port.postEvent('talkilla.call-hangup', data);
+  }
+};
 
 /**
  * User data and Social API profile data storage.
@@ -187,17 +260,16 @@ var serverHandlers = {
   },
 
   'incoming_call': function(data) {
-    currentCall = {port: undefined, data: data};
-    openChatWindow();
+    currentConversation = new Conversation(data);
   },
 
   'call_accepted': function(data) {
-    currentCall.port.postEvent('talkilla.call-establishment', data);
+    currentConversation.callAccepted(data);
   },
 
   'call_hangup': function(data) {
-    currentCall.port.postEvent('talkilla.call-hangup', data);
-    currentCall = undefined;
+    currentConversation.callHangup(data);
+    currentConversation = undefined;
   }
 };
 
@@ -347,8 +419,8 @@ var handlers = {
     ports.remove(this);
     if (browserPort === this)
       browserPort = undefined;
-    if (currentCall && currentCall.port === this)
-      currentCall = undefined;
+    if (currentConversation && currentConversation.port === this)
+      currentConversation = undefined;
   },
 
   'social.initialize': function() {
@@ -386,29 +458,13 @@ var handlers = {
 
   'talkilla.conversation-open': function(event) {
     // XXX Temporarily work around to only allow one call at a time.
-    if (!currentCall) {
-      currentCall = {port: undefined, data: event.data};
-      openChatWindow();
+    if (!currentConversation) {
+      currentConversation = new Conversation(event.data);
     }
   },
 
   'talkilla.chat-window-ready': function() {
-    currentCall.port = this;
-
-    if (_currentUserData.userName) {
-      // If there's currenty a logged in user,
-      this.postEvent('talkilla.login-success', {
-        username: _currentUserData.userName
-      });
-    }
-
-    storeContact(currentCall.data.peer);
-
-    var topic = currentCall.data.offer ?
-      "talkilla.call-incoming" :
-      "talkilla.conversation-open";
-
-    this.postEvent(topic, currentCall.data);
+    currentConversation.windowOpened(this);
   },
 
   /**
@@ -469,7 +525,7 @@ var handlers = {
    */
   'talkilla.call-hangup': function (event) {
     _presenceSocketSendMessage(JSON.stringify({ 'call_hangup': event.data }));
-    currentCall = undefined;
+    currentConversation = undefined;
   }
 };
 

@@ -1,8 +1,8 @@
 /* global afterEach, beforeEach, chai, describe, sinon, it,
    ports:true, Port, PortCollection, handlers, _currentUserData:true,
-   currentCall:true, UserData, _presenceSocket:true, tryPresenceSocket,
+   currentConversation:true, UserData, _presenceSocket:true, tryPresenceSocket,
    browserPort:true, currentUsers:true, _presenceSocketSendMessage,
-   storeContact:true */
+   Conversation */
 /* jshint expr:true */
 
 var expect = chai.expect;
@@ -12,8 +12,6 @@ describe('handlers', function() {
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
-    // Avoid touching the contacts db which we haven't initialized.
-    sandbox.stub(window, "storeContact");
   });
 
   afterEach(function() {
@@ -290,10 +288,11 @@ describe('handlers', function() {
     });
 
     afterEach(function() {
+      currentConversation = undefined;
       browserPort = undefined;
     });
 
-    it("should open a chat window when receiving a " +
+    it("should open create a new conversation object when receiving a " +
        "talkilla.conversation-open event", function() {
         handlers.postEvent = sinon.spy();
         handlers['talkilla.conversation-open']({
@@ -301,9 +300,7 @@ describe('handlers', function() {
           data: {}
         });
 
-        sinon.assert.calledOnce(browserPort.postEvent);
-        sinon.assert.calledWithExactly(browserPort.postEvent,
-          'social.request-chat', "chat.html");
+        expect(currentConversation).to.be.an.instanceOf(Conversation);
       });
   });
 
@@ -311,21 +308,18 @@ describe('handlers', function() {
     beforeEach(function() {
       browserPort = {postEvent: sandbox.spy()};
       _currentUserData = new UserData();
-      currentCall = {
-        port: undefined,
-        data: {
-          peer: "alice"
-        }
+      currentConversation = {
+        windowOpened: sandbox.stub()
       };
     });
 
     afterEach(function() {
-      currentCall = undefined;
+      currentConversation = undefined;
       _currentUserData = undefined;
       browserPort = undefined;
     });
 
-    it("should post a talkilla.login-success event when " +
+    it("should tell the conversation the window has opened when " +
       "receiving a talkilla.chat-window-ready",
       function () {
         var chatAppPort = {postEvent: sinon.spy()};
@@ -336,65 +330,9 @@ describe('handlers', function() {
           data: {}
         });
 
-        sinon.assert.called(chatAppPort.postEvent);
-        sinon.assert.calledWithExactly(chatAppPort.postEvent,
-          'talkilla.login-success', {username: "bob"});
-      });
-
-    it("should post a talkilla.conversation-open event when " +
-      "receiving a talkilla.chat-window-ready for an outgoing call",
-      function () {
-        var chatAppPort = {postEvent: sinon.spy()};
-
-        handlers['talkilla.chat-window-ready'].bind(chatAppPort)({
-          topic: "talkilla.chat-window-ready",
-          data: {}
-        });
-
-        sinon.assert.called(chatAppPort.postEvent);
-        sinon.assert.calledWithExactly(chatAppPort.postEvent,
-          'talkilla.conversation-open', currentCall.data);
-      });
-
-    it("should post a talkilla.call-incoming event when " +
-      "receiving a talkilla.chat-window-ready for an incoming call",
-       function () {
-        var chatAppPort = {postEvent: sinon.spy()};
-        currentCall.data.offer = {type: "fake", sdp: "sdp"};
-
-        handlers['talkilla.chat-window-ready'].bind(chatAppPort)({
-          topic: "talkilla.chat-window-ready",
-          data: {}
-        });
-
-        sinon.assert.called(chatAppPort.postEvent);
-        sinon.assert.calledWithExactly(chatAppPort.postEvent,
-          'talkilla.call-incoming', currentCall.data);
-      });
-
-    it("should store the current port when " +
-      "receiving a talkilla.chat-window-ready for an outgoing call",
-      function () {
-        var port = {postEvent: sinon.spy()};
-
-        handlers['talkilla.chat-window-ready'].bind(port)({
-          topic: "talkilla.chat-window-ready",
-          data: {}
-        });
-
-        expect(currentCall.port).to.be.equal(port);
-      });
-
-    it("should store the contact when " +
-      "receiving a talkilla.chat-window-ready notification",
-      function () {
-        var port = {postEvent: function() {}};
-        handlers['talkilla.chat-window-ready'].bind(port)({
-          topic: "talkilla.chat-window-ready",
-          data: {}
-        });
-
-        sinon.assert.calledOnce(storeContact);
+        sinon.assert.called(currentConversation.windowOpened);
+        sinon.assert.calledWithExactly(currentConversation.windowOpened,
+          chatAppPort);
       });
   });
 
@@ -493,7 +431,7 @@ describe('handlers', function() {
 
   describe("talkilla.call-hangup", function() {
     afterEach(function() {
-      currentCall = undefined;
+      currentConversation = undefined;
     });
 
     it("should send a websocket message when receiving talkilla.call-hangup",
@@ -515,10 +453,7 @@ describe('handlers', function() {
 
     it("should reset the call data when receiving talkilla.call-hangup",
       function() {
-        currentCall = {
-          port: {},
-          data: { peer: "florian" }
-        };
+        currentConversation = {data: "fake"};
         sandbox.stub(window, "_presenceSocketSendMessage");
         var data = {
           peer: "florian"
@@ -529,7 +464,7 @@ describe('handlers', function() {
           data: data
         });
 
-        expect(currentCall).to.be.equal(undefined);
+        expect(currentConversation).to.be.equal(undefined);
       });
   });
 

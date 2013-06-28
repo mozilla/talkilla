@@ -1,5 +1,6 @@
 /* global afterEach, beforeEach, chai, describe, sinon, it,
-   browserPort:true, currentCall:true, serverHandlers, handlers */
+   browserPort:true, currentConversation:true, serverHandlers,
+   Conversation */
 /* Needed due to the use of non-camelcase in the websocket topics */
 /* jshint camelcase:false */
 var expect = chai.expect;
@@ -12,7 +13,7 @@ describe("serverHandlers", function() {
   });
 
   afterEach(function() {
-    currentCall = undefined;
+    currentConversation = undefined;
     sandbox.restore();
   });
 
@@ -25,68 +26,66 @@ describe("serverHandlers", function() {
       browserPort = undefined;
     });
 
-    it("should store the current call data", function() {
+    it("should create a new conversation object with the call data",
+       function() {
       var data = {
         peer: "alice",
         offer: {type: "fake", sdp: "sdp" }
       };
       serverHandlers.incoming_call(data);
 
-      expect(currentCall).to.deep.equal({port: undefined, data: data});
-    });
-
-    it("should open a chat window", function() {
-      serverHandlers.incoming_call({});
-
-      sinon.assert.calledOnce(browserPort.postEvent);
-      sinon.assert.calledWithExactly(browserPort.postEvent,
-        'social.request-chat', "chat.html");
+      expect(currentConversation).to.be.an.instanceOf(Conversation);
+      expect(currentConversation.data).to.deep.equal(data);
     });
   });
 
   describe("#call_accepted", function() {
 
-    it("should post talkilla.call-establishment to the chat window",
-      function() {
-        var port = {postEvent: sinon.spy()};
-        var data = {
-          peer: "alice",
-          answer: { type: "fake", sdp: "sdp" }
-        };
+    it("should call callAccepted on the conversation", function () {
+      var data = {
+        peer: "alice",
+        answer: { type: "fake", sdp: "sdp" }
+      };
 
-        currentCall = {port: port, data: {peer: "alice"}};
+      currentConversation = {
+        callAccepted: sandbox.spy()
+      };
 
-        serverHandlers.call_accepted(data);
+      serverHandlers.call_accepted(data);
 
-        sinon.assert.calledOnce(port.postEvent);
-        sinon.assert.calledWithExactly(port.postEvent,
-          'talkilla.call-establishment', data);
-      });
+      sinon.assert.calledOnce(currentConversation.callAccepted);
+      sinon.assert.calledWithExactly(currentConversation.callAccepted,
+        data);
+    });
+
   });
 
   describe("#call_hangup", function() {
-    var callData;
+    var callData, stub;
 
     beforeEach(function() {
-      handlers.postEvent = sandbox.spy();
+      currentConversation = {
+        callHangup: function() {}
+      };
+
+      stub = sandbox.stub(currentConversation, "callHangup");
+
       callData = {
         peer: "bob"
       };
-      currentCall = {port: {postEvent: handlers.postEvent}, data: callData};
     });
 
-    it("should notify the chat window", function() {
+    it("should call callHangup on the conversation", function() {
       serverHandlers.call_hangup(callData);
 
-      sinon.assert.calledOnce(handlers.postEvent);
-      sinon.assert.calledWithExactly(handlers.postEvent,
-        'talkilla.call-hangup', callData);
+      sinon.assert.calledOnce(stub);
+      sinon.assert.calledWithExactly(stub, callData);
     });
 
     it("should clear the current call data", function() {
       serverHandlers.call_hangup(callData);
 
-      expect(currentCall).to.be.equal(undefined);
+      expect(currentConversation).to.be.equal(undefined);
     });
   });
 });
