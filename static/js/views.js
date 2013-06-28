@@ -112,7 +112,7 @@
     ].join('')),
 
     events: {
-      'click a': 'conversation'
+      'click a': 'openConversation'
     },
 
     initialize: function(options) {
@@ -120,7 +120,7 @@
       this.active = options && options.active;
     },
 
-    conversation: function(event) {
+    openConversation: function(event) {
       event.preventDefault();
       app.port.postEvent('talkilla.conversation-open', {
         peer: event.currentTarget.getAttribute('rel')

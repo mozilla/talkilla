@@ -61,14 +61,16 @@ describe("serverHandlers", function() {
   });
 
   describe("#call_hangup", function() {
-    var callData, stub;
+    var callData, callHangupStub;
 
     beforeEach(function() {
       currentConversation = {
         callHangup: function() {}
       };
 
-      stub = sandbox.stub(currentConversation, "callHangup");
+      // We save this as a stub, because currentConversation gets
+      // cleared in the call_hangup function.
+      callHangupStub = sandbox.stub(currentConversation, "callHangup");
 
       callData = {
         peer: "bob"
@@ -78,8 +80,8 @@ describe("serverHandlers", function() {
     it("should call callHangup on the conversation", function() {
       serverHandlers.call_hangup(callData);
 
-      sinon.assert.calledOnce(stub);
-      sinon.assert.calledWithExactly(stub, callData);
+      sinon.assert.calledOnce(callHangupStub);
+      sinon.assert.calledWithExactly(callHangupStub, callData);
     });
 
     it("should clear the current call data", function() {

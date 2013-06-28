@@ -28,7 +28,7 @@ describe("UserEntryView", function() {
         }
       };
 
-      view.conversation(clickEvent);
+      view.openConversation(clickEvent);
 
       sinon.assert.calledOnce(app.port.postEvent);
       sinon.assert.calledWith(app.port.postEvent,

@@ -292,7 +292,7 @@ describe('handlers', function() {
       browserPort = undefined;
     });
 
-    it("should open create a new conversation object when receiving a " +
+    it("should create a new conversation object when receiving a " +
        "talkilla.conversation-open event", function() {
         handlers.postEvent = sinon.spy();
         handlers['talkilla.conversation-open']({
@@ -309,7 +309,7 @@ describe('handlers', function() {
       browserPort = {postEvent: sandbox.spy()};
       _currentUserData = new UserData();
       currentConversation = {
-        windowOpened: sandbox.stub()
+        windowOpened: sandbox.spy()
       };
     });
 
