@@ -384,7 +384,7 @@ var handlers = {
       _signoutCallback.bind(this));
   },
 
-  'talkilla.call-start': function(event) {
+  'talkilla.conversation-open': function(event) {
     // XXX Temporarily work around to only allow one call at a time.
     if (!currentCall) {
       currentCall = {port: undefined, data: event.data};
@@ -404,10 +404,9 @@ var handlers = {
 
     storeContact(currentCall.data.peer);
 
-   // If this is an incoming call, we won't have the port yet.
     var topic = currentCall.data.offer ?
       "talkilla.call-incoming" :
-      "talkilla.call-start";
+      "talkilla.conversation-open";
 
     this.postEvent(topic, currentCall.data);
   },

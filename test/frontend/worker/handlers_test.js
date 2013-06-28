@@ -284,7 +284,7 @@ describe('handlers', function() {
       });
   });
 
-  describe("talkilla.call-start", function() {
+  describe("talkilla.conversation-open", function() {
     beforeEach(function() {
       browserPort = {postEvent: sandbox.spy()};
     });
@@ -293,11 +293,11 @@ describe('handlers', function() {
       browserPort = undefined;
     });
 
-    it("should open a chat window when receiving a talkilla.call-start event",
-      function() {
+    it("should open a chat window when receiving a " +
+       "talkilla.conversation-open event", function() {
         handlers.postEvent = sinon.spy();
-        handlers['talkilla.call-start']({
-          topic: "talkilla.call-start",
+        handlers['talkilla.conversation-open']({
+          topic: "talkilla.conversation-open",
           data: {}
         });
 
@@ -341,7 +341,7 @@ describe('handlers', function() {
           'talkilla.login-success', {username: "bob"});
       });
 
-    it("should post a talkilla.call-start event when " +
+    it("should post a talkilla.conversation-open event when " +
       "receiving a talkilla.chat-window-ready for an outgoing call",
       function () {
         var chatAppPort = {postEvent: sinon.spy()};
@@ -353,7 +353,7 @@ describe('handlers', function() {
 
         sinon.assert.called(chatAppPort.postEvent);
         sinon.assert.calledWithExactly(chatAppPort.postEvent,
-          'talkilla.call-start', currentCall.data);
+          'talkilla.conversation-open', currentCall.data);
       });
 
     it("should post a talkilla.call-incoming event when " +
