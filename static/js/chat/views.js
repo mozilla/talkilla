@@ -19,11 +19,14 @@
       options = options || {};
       if (!options.call)
         throw new Error("missing parameter: call");
+      if (!options.peer)
+        throw new Error("missing parameter: peer");
 
       this.call = options.call;
+      this.peer = options.peer;
 
-      this.call.on('change:peer', function(to) {
-        document.title = to.get("peer");
+      this.peer.on('change:nick', function(to) {
+        document.title = to.get("nick");
       });
 
       this.call.on('offer-timeout', function() {
@@ -137,6 +140,10 @@
 
     initialize: function(options) {
       options = options || {};
+      if (!options.peer)
+        throw new Error("missing parameter: peer");
+
+      this.peer = options.peer;
 
       this.model.on("change:state", this._handleStateChanges.bind(this));
     },
@@ -161,7 +168,7 @@
     render: function() {
       // XXX: update caller's avatar, though we'd need to access peer
       //      as a User model instance
-      var peer = this.model.get('peer');
+      var peer = this.peer.get('nick');
       var formattedText = this.outgoingTextTemplate({peer: peer});
       this.$('.outgoing-text').text(formattedText);
 

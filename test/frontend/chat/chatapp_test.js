@@ -134,7 +134,15 @@ describe("ChatApp", function() {
 
     sinon.assert.calledOnce(app.views.CallEstablishView);
     sinon.assert.calledWithExactly(app.views.CallEstablishView,
-      { model: chatApp.call, el: $("#establish") });
+      { model: chatApp.call, peer: chatApp.peer, el: $("#establish") });
+  });
+
+  it("should initialize a peer model", function() {
+    sandbox.stub(app.models, "User");
+    chatApp = new ChatApp();
+
+    // This currently gets called twice because of app.data.user
+    sinon.assert.called(app.models.User);
   });
 
   describe("ChatApp (constructed)", function () {
@@ -190,7 +198,7 @@ describe("ChatApp", function() {
       it("should set the peer", function() {
         chatApp._onConversationOpen(callData);
 
-        expect(chatApp.call.get('peer')).to.equal(callData.peer);
+        expect(chatApp.peer.get("nick")).to.equal(callData.peer);
       });
 
       it("should start the call", function() {
@@ -199,7 +207,8 @@ describe("ChatApp", function() {
         chatApp._onConversationOpen(callData);
 
         sinon.assert.calledOnce(chatApp.call.start);
-        sinon.assert.calledWithExactly(chatApp.call.start, callData);
+        sinon.assert.calledWithExactly(chatApp.call.start,
+          {audio: true, video: true});
       });
 
       it("should start the outgoing call sound", function() {
@@ -214,7 +223,7 @@ describe("ChatApp", function() {
       it("should set the peer", function() {
         chatApp._onIncomingCall(incomingCallData);
 
-        expect(chatApp.call.get('peer')).to.equal(incomingCallData.peer);
+        expect(chatApp.peer.get("nick")).to.equal(incomingCallData.peer);
       });
 
       it("should set the call as incoming", function() {
@@ -223,7 +232,8 @@ describe("ChatApp", function() {
         chatApp._onIncomingCall(incomingCallData);
 
         sinon.assert.calledOnce(chatApp.call.incoming);
-        sinon.assert.calledWithExactly(chatApp.call.incoming, incomingCallData);
+        sinon.assert.calledWithExactly(chatApp.call.incoming,
+         {offer: incomingCallData.offer, video: true, audio: true});
       });
 
       it("should play the incoming call sound", function() {
@@ -315,7 +325,7 @@ describe("ChatApp", function() {
       });
 
       it("should post a talkilla.call-hangup event to the worker", function() {
-        chatApp.call.set("peer", "florian");
+        chatApp.peer.set({"nick": "florian"});
         chatApp._onCallHangup();
         sinon.assert.calledOnce(app.port.postEvent);
         sinon.assert.calledWith(app.port.postEvent,
