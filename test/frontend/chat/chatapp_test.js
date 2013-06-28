@@ -27,7 +27,7 @@ describe("ChatApp", function() {
     sandbox.stub(app.models.WebRTCCall.prototype, "initialize");
 
     // This stops us changing the document's title unnecessarily
-    sandbox.stub(app.views.ChatView.prototype, "initialize");
+    sandbox.stub(app.views.ConversationView.prototype, "initialize");
   });
 
   afterEach(function() {
@@ -168,8 +168,8 @@ describe("ChatApp", function() {
       $("#fixtures").empty();
     });
 
-    it("should have a chat view" , function() {
-      expect(chatApp.view).to.be.an.instanceOf(app.views.ChatView);
+    it("should have a conversation view" , function() {
+      expect(chatApp.view).to.be.an.instanceOf(app.views.ConversationView);
     });
 
     it("should have a call model" , function() {

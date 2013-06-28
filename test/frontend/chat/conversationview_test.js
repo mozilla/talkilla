@@ -1,7 +1,7 @@
 /* global $, app, chai, describe, it, beforeEach, afterEach, sinon */
 var expect = chai.expect;
 
-describe("ChatView", function() {
+describe("ConversationView", function() {
   "use strict";
   var sandbox;
 
@@ -37,20 +37,20 @@ describe("ChatView", function() {
     });
 
     it("should attach a given call model", function() {
-      var view = new app.views.ChatView({call: call});
+      var view = new app.views.ConversationView({call: call});
 
       expect(view.call).to.equal(call);
     });
 
     it("should throw an error when no call model is given", function() {
       function shouldExplode() {
-        new app.views.ChatView({});
+        new app.views.ConversationView({});
       }
       expect(shouldExplode).to.Throw(Error, /missing parameter: call/);
     });
 
     it("should attach to the app user model", function() {
-      new app.views.ChatView({call: call});
+      new app.views.ConversationView({call: call});
 
       sinon.assert.called(call.on);
       sinon.assert.calledWith(call.on, "change:peer");
@@ -60,7 +60,7 @@ describe("ChatView", function() {
       function() {
         call.set("peer", "nick");
 
-        new app.views.ChatView({call: call});
+        new app.views.ConversationView({call: call});
 
         call.on.args[0][1](call);
 
@@ -69,7 +69,7 @@ describe("ChatView", function() {
 
     it("should close the window when the call `offer-timeout` event is " +
        "triggered", function() {
-        new app.views.ChatView({call: call});
+        new app.views.ConversationView({call: call});
 
         call.trigger('offer-timeout');
 
@@ -100,7 +100,10 @@ describe("ChatView", function() {
 
       it("should set a text message input value on dropped url event",
         function() {
-          var view = new app.views.ChatView({call: call, el: '#fixtures'});
+          var view = new app.views.ConversationView({
+            call: call,
+            el: '#fixtures'
+          });
           var dropEvent = fakeDropEvent({
             "text/x-moz-url": "http://mozilla.com\nMozilla"
           });
@@ -113,7 +116,10 @@ describe("ChatView", function() {
 
       it("should set a text message input value on dropped tab event",
         function() {
-          var view = new app.views.ChatView({call: call, el: '#fixtures'});
+          var view = new app.views.ConversationView({
+            call: call,
+            el: '#fixtures'
+          });
           var dropEvent = fakeDropEvent({
             "text/x-moz-text-internal": "http://mozilla.com"
           });
@@ -126,7 +132,10 @@ describe("ChatView", function() {
 
       it("should not set a text message input value on unsupported drop event",
         function() {
-          var view = new app.views.ChatView({call: call, el: '#fixtures'});
+          var view = new app.views.ConversationView({
+            call: call,
+            el: '#fixtures'
+          });
           var dropEvent = fakeDropEvent({
             "text/x-foobar": "xxx"
           });

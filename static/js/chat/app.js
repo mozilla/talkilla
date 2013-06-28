@@ -39,7 +39,7 @@ var ChatApp = (function($, Backbone, _) {
       media: this.webrtc
     });
 
-    this.view = new app.views.ChatView({
+    this.view = new app.views.ConversationView({
       call: this.call,
       el: 'body'
     });

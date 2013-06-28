@@ -7,9 +7,9 @@
   "use strict";
 
   /**
-   * Chat View (overall)
+   * Conversation View (overall)
    */
-  app.views.ChatView = Backbone.View.extend({
+  app.views.ConversationView = Backbone.View.extend({
     events: {
       'dragover': 'dragover',
       'drop': 'drop'
