@@ -5,7 +5,7 @@ var expect = chai.expect;
 
 describe("Call", function() {
 
-  var sandbox, call, media, oldPort;
+  var sandbox, call, media, oldPort, peer;
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
@@ -22,7 +22,9 @@ describe("Call", function() {
       on: sandbox.stub()
     };
 
-    call = new app.models.Call({}, {media: media});
+    peer = new app.models.User();
+
+    call = new app.models.Call({}, {media: media, peer: peer});
   });
 
   afterEach(function() {
@@ -58,17 +60,11 @@ describe("Call", function() {
   });
 
   describe("#start", function() {
-    var callData = {peer: "larry"};
+    var callData = {video: true, audio: true};
 
     it("should change the state from ready to pending", function() {
       call.start({});
       expect(call.state.current).to.equal('pending');
-    });
-
-    it("should store the peer", function() {
-      call.start(callData);
-
-      expect(call.get('peer')).to.equal('larry');
     });
 
     it("should pass the call data to the media", function() {
@@ -86,17 +82,11 @@ describe("Call", function() {
   });
 
   describe("#incoming", function() {
-    var callData = {peer: "bob"};
+    var callData = {video: true, audio: true};
 
     it("should change the state from ready to incoming", function() {
       call.incoming({});
       expect(call.state.current).to.equal('incoming');
-    });
-
-    it("should store the peer", function() {
-      call.incoming(callData);
-
-      expect(call.get('peer')).to.equal('bob');
     });
 
     it("should store the call data", function() {
@@ -205,7 +195,7 @@ describe("Call", function() {
     var fakeSdp = {type: "fake", sdp: "sdp"}, userModel;
 
     beforeEach(function() {
-      call.set({peer: "larry"});
+      peer.set({nick: "larry"});
       call.trigger = sandbox.stub();
       app.data.user = userModel = new app.models.User();
       app.data.user.set("nick", "bob");

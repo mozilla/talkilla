@@ -58,30 +58,15 @@ describe("CallView", function() {
 
         sandbox.stub(app.views.CallView.prototype, "ongoing");
         sandbox.stub(app.views.CallView.prototype, "terminated");
-        callView = new app.views.CallView({el: {}, call: call});
+        callView = new app.views.CallView({el: $("#call"), call: call});
       });
 
-      it("should attach to change:state events on the call model", function() {
-        sinon.assert.calledOnce(call.on);
-        sinon.assert.calledWith(call.on, 'change:state');
+      it("should attach to state:to:... events on the call model", function() {
+        sinon.assert.calledTwice(call.on);
+        sinon.assert.calledWith(call.on, 'state:to:ongoing');
+        sinon.assert.calledWith(call.on, 'state:to:terminated');
       });
 
-      it("should call CallView#ongoing() when change:state goes to the " +
-         "ongoing state",
-        function() {
-          var changeStateCallback = call.on.args[0][1].bind(callView);
-          changeStateCallback("ongoing");
-
-          sinon.assert.calledOnce(callView.ongoing);
-        });
-
-      it("should call CallView#terminated() when change:state goes to the " +
-         "terminated state", function() {
-          var changeStateCallback = call.on.args[0][1].bind(callView);
-          changeStateCallback("terminated");
-
-          sinon.assert.calledOnce(callView.terminated);
-        });
     });
 
     it("should call #_displayLocalVideo when the webrtc model sets localStream",
@@ -104,35 +89,6 @@ describe("CallView", function() {
         sinon.assert.calledOnce(callView._displayRemoteVideo);
       });
 
-  });
-
-  describe("events", function() {
-    it("should call hangup() when a click event is fired on the hangup button",
-      function() {
-        var el = $('<ul><li class="btn-hangup"><a href="#"></a></li></li>');
-        $("#fixtures").append(el);
-        sandbox.stub(app.views.CallView.prototype, "initialize");
-        sandbox.stub(app.views.CallView.prototype, "hangup");
-        var callView = new app.views.CallView({el: el});
-
-        $(el).find('a').trigger("click");
-
-        sinon.assert.calledOnce(callView.hangup);
-      });
-  });
-
-  describe("#hangup", function() {
-
-    it('should close the window', function() {
-      var el = $('<div><div id="local-video"></div></div>');
-      $("#fixtures").append(el);
-      var callView = new app.views.CallView({el: el, call: call});
-      sandbox.stub(window, "close");
-
-      callView.hangup();
-
-      sinon.assert.calledOnce(window.close);
-    });
   });
 
   describe("#ongoing", function() {

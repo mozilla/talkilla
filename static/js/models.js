@@ -10,7 +10,6 @@
    * Call model.
    *
    * Attributes:
-   * - {String} peer
    * - {Object} incomingData
    *
    * Fired when #start() is called and the pending call timeout is reached with
@@ -34,6 +33,7 @@
       this.set(attributes || {});
 
       this.media = options && options.media;
+      this.peer = options && options.peer;
 
       this.state = StateMachine.create({
         initial: 'ready',
@@ -55,20 +55,21 @@
           onenterstate: function(event, from, to) {
             this.trigger("change:state", to, from, event);
             this.trigger("state:" + event);
+            this.trigger("state:to:" + to);
           }.bind(this)
         }
       });
 
       this.media.on("offer-ready", function(offer) {
         this.trigger("send-offer", {
-          peer: this.get("peer"),
+          peer: this.peer.get("nick"),
           offer: offer
         });
       }.bind(this));
 
       this.media.on("answer-ready", function(answer) {
         this.trigger("send-answer", {
-          peer: this.get("peer"),
+          peer: this.peer.get("nick"),
           answer: answer
         });
 
@@ -86,7 +87,6 @@
      *
      * @param {Object} options object containing:
      *
-     * - peer: The id of the user to be called
      * - video: set to true to enable video
      * - audio: set to true to enable audio
      */
@@ -95,7 +95,6 @@
         callData: options,
         timeout: app.options.PENDING_CALL_TIMEOUT
       });
-      this.set({peer: options.peer});
       this.state.start();
       this.media.offer(options);
     },
@@ -104,16 +103,15 @@
      * Starts a call based on an incoming call request
      * @param {Object} options object containing:
      *
-     * - peer:  The id of the peer user
      * - video: set to true to enable video
      * - audio: set to true to enable audio
+     * - offer: information for the media object
      *
      * Other items may be set according to the requirements for the particular
      * media.
      */
     incoming: function(options) {
       this.set({
-        peer: options.peer,
         incomingData: options
       });
       this.state.incoming();

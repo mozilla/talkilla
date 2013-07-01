@@ -27,7 +27,7 @@ describe("ChatApp", function() {
     sandbox.stub(app.models.WebRTCCall.prototype, "initialize");
 
     // This stops us changing the document's title unnecessarily
-    sandbox.stub(app.views.ChatView.prototype, "initialize");
+    sandbox.stub(app.views.ConversationView.prototype, "initialize");
   });
 
   afterEach(function() {
@@ -134,7 +134,15 @@ describe("ChatApp", function() {
 
     sinon.assert.calledOnce(app.views.CallEstablishView);
     sinon.assert.calledWithExactly(app.views.CallEstablishView,
-      { model: chatApp.call, el: $("#establish") });
+      { model: chatApp.call, peer: chatApp.peer, el: $("#establish") });
+  });
+
+  it("should initialize a peer model", function() {
+    sandbox.stub(app.models, "User");
+    chatApp = new ChatApp();
+
+    // This currently gets called twice because of app.data.user
+    sinon.assert.called(app.models.User);
   });
 
   describe("ChatApp (constructed)", function () {
@@ -168,8 +176,8 @@ describe("ChatApp", function() {
       $("#fixtures").empty();
     });
 
-    it("should have a chat view" , function() {
-      expect(chatApp.view).to.be.an.instanceOf(app.views.ChatView);
+    it("should have a conversation view" , function() {
+      expect(chatApp.view).to.be.an.instanceOf(app.views.ConversationView);
     });
 
     it("should have a call model" , function() {
@@ -190,23 +198,7 @@ describe("ChatApp", function() {
       it("should set the peer", function() {
         chatApp._onConversationOpen(callData);
 
-        expect(chatApp.call.get('peer')).to.equal(callData.peer);
-      });
-
-      it("should start the call", function() {
-        sandbox.stub(chatApp.call, "start");
-
-        chatApp._onConversationOpen(callData);
-
-        sinon.assert.calledOnce(chatApp.call.start);
-        sinon.assert.calledWithExactly(chatApp.call.start, callData);
-      });
-
-      it("should start the outgoing call sound", function() {
-        chatApp._onConversationOpen(callData);
-
-        sinon.assert.calledOnce(chatApp.audioLibrary.play);
-        sinon.assert.calledWithExactly(chatApp.audioLibrary.play, "outgoing");
+        expect(chatApp.peer.get("nick")).to.equal(callData.peer);
       });
     });
 
@@ -214,7 +206,7 @@ describe("ChatApp", function() {
       it("should set the peer", function() {
         chatApp._onIncomingCall(incomingCallData);
 
-        expect(chatApp.call.get('peer')).to.equal(incomingCallData.peer);
+        expect(chatApp.peer.get("nick")).to.equal(incomingCallData.peer);
       });
 
       it("should set the call as incoming", function() {
@@ -223,7 +215,8 @@ describe("ChatApp", function() {
         chatApp._onIncomingCall(incomingCallData);
 
         sinon.assert.calledOnce(chatApp.call.incoming);
-        sinon.assert.calledWithExactly(chatApp.call.incoming, incomingCallData);
+        sinon.assert.calledWithExactly(chatApp.call.incoming,
+         {offer: incomingCallData.offer, video: true, audio: true});
       });
 
       it("should play the incoming call sound", function() {
@@ -315,7 +308,7 @@ describe("ChatApp", function() {
       });
 
       it("should post a talkilla.call-hangup event to the worker", function() {
-        chatApp.call.set("peer", "florian");
+        chatApp.peer.set({"nick": "florian"});
         chatApp._onCallHangup();
         sinon.assert.calledOnce(app.port.postEvent);
         sinon.assert.calledWith(app.port.postEvent,
@@ -342,18 +335,30 @@ describe("ChatApp", function() {
     });
 
     describe("#_onSendOffer", function() {
+      var offer;
+
+      beforeEach(function() {
+        offer = {
+          sdp: 'sdp',
+          type: 'type'
+        };
+      });
+
       it("should post an event to the worker when onSendOffer is called",
         function() {
-          var offer = {
-            sdp: 'sdp',
-            type: 'type'
-          };
-
           chatApp._onSendOffer(offer);
 
           sinon.assert.calledOnce(app.port.postEvent);
           sinon.assert.calledWith(app.port.postEvent, "talkilla.call-offer");
         });
+
+      it("should start the outgoing call sound", function() {
+        chatApp._onSendOffer(callData);
+
+        sinon.assert.calledOnce(chatApp.audioLibrary.play);
+        sinon.assert.calledWithExactly(chatApp.audioLibrary.play, "outgoing");
+      });
+
     });
 
     describe("#_onSendAnswer", function() {

@@ -29,19 +29,29 @@ var ChatApp = (function($, Backbone, _) {
 
   function ChatApp() {
     this.port = app.port;
+    // XXX app.data.user probably shouldn't be global, but this is synced
+    // with the sidebar so needs to be reworked at the same time.
     app.data.user = new app.models.User();
+    this.peer = new app.models.User();
 
     this.webrtc = new app.models.WebRTCCall({
       fake: !!(app.options && app.options.FAKE_MEDIA_STREAMS)
     });
 
     this.call = new app.models.Call({}, {
-      media: this.webrtc
+      media: this.webrtc,
+      peer: this.peer
     });
 
-    this.view = new app.views.ChatView({
+    this.view = new app.views.ConversationView({
       call: this.call,
+      peer: this.peer,
       el: 'body'
+    });
+
+    this.callControlsView = new app.views.CallControlsView({
+      call: this.call,
+      el: $("#call-controls")
     });
 
     this.callView = new app.views.CallView({
@@ -56,6 +66,7 @@ var ChatApp = (function($, Backbone, _) {
 
     this.callEstablishView = new app.views.CallEstablishView({
       model: this.call,
+      peer: this.peer,
       el: $("#establish")
     });
 
@@ -100,12 +111,7 @@ var ChatApp = (function($, Backbone, _) {
 
   // Outgoing calls
   ChatApp.prototype._onConversationOpen = function(data) {
-    // XXX Assume both video and audio call for now
-    // Really webrtc and calls should be set up on clicking a button
-    data.video = true;
-    data.audio = true;
-    this.call.start(data);
-    this.audioLibrary.play('outgoing');
+    this.peer.set({nick: data.peer});
   };
 
   ChatApp.prototype._onCallAccepted = function() {
@@ -123,15 +129,16 @@ var ChatApp = (function($, Backbone, _) {
 
   // Incoming calls
   ChatApp.prototype._onIncomingCall = function(data) {
+    this.peer.set({nick: data.peer});
     // XXX Assume both video and audio call for now
-    data.video = true;
-    data.audio = true;
-    this.call.incoming(data);
+    this.call.incoming({video: true, audio: true, offer: data.offer});
     this.audioLibrary.play('incoming');
   };
 
   ChatApp.prototype._onSendOffer = function(data) {
     this.port.postEvent('talkilla.call-offer', data);
+    // Now start the tone, as the offer is going out.
+    this.audioLibrary.play('outgoing');
   };
 
   ChatApp.prototype._onSendAnswer = function(data) {
@@ -150,10 +157,11 @@ var ChatApp = (function($, Backbone, _) {
     if (callState === "ready" || callState === "terminated")
       return;
 
-    var peer = this.call.get("peer");
     this.call.hangup();
 
-    this.port.postEvent('talkilla.call-hangup', {peer: peer});
+    this.port.postEvent('talkilla.call-hangup', {
+      peer: this.peer.get("nick")
+    });
   };
 
   // Text chat & data channel event listeners

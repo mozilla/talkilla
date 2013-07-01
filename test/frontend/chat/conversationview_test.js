@@ -1,12 +1,12 @@
 /* global $, app, chai, describe, it, beforeEach, afterEach, sinon */
 var expect = chai.expect;
 
-describe("ChatView", function() {
+describe("ConversationView", function() {
   "use strict";
   var sandbox;
 
   describe("#initialize", function() {
-    var call, oldtitle;
+    var call, oldtitle, peer;
 
     beforeEach(function() {
       $('#fixtures').append([
@@ -26,7 +26,8 @@ describe("ChatView", function() {
       sandbox.stub(app.models.WebRTCCall.prototype, "initialize");
       var media = new app.models.WebRTCCall();
       call = new app.models.Call({}, {media: media});
-
+      peer = new app.models.User();
+      sandbox.stub(peer, "on");
       sandbox.stub(call, "on");
     });
 
@@ -37,44 +38,56 @@ describe("ChatView", function() {
     });
 
     it("should attach a given call model", function() {
-      var view = new app.views.ChatView({call: call});
+      var view = new app.views.ConversationView({call: call, peer: peer});
 
       expect(view.call).to.equal(call);
     });
 
+    it("should attach a given peer model", function() {
+      var view = new app.views.ConversationView({call: call, peer: peer});
+
+      expect(view.peer).to.equal(peer);
+    });
+
     it("should throw an error when no call model is given", function() {
       function shouldExplode() {
-        new app.views.ChatView({});
+        new app.views.ConversationView({peer: peer});
       }
       expect(shouldExplode).to.Throw(Error, /missing parameter: call/);
     });
 
-    it("should attach to the app user model", function() {
-      new app.views.ChatView({call: call});
-
-      sinon.assert.called(call.on);
-      sinon.assert.calledWith(call.on, "change:peer");
+    it("should throw an error when no peer model is given", function() {
+      function shouldExplode() {
+        new app.views.ConversationView({call: call});
+      }
+      expect(shouldExplode).to.Throw(Error, /missing parameter: peer/);
     });
 
-    it("should update the document title on change of user login details",
+    it("should attach to the app user model", function() {
+      new app.views.ConversationView({call: call, peer: peer});
+
+      sinon.assert.called(peer.on);
+      sinon.assert.calledWith(peer.on, "change:nick");
+    });
+
+    it("should update the document title on change of the peer's details",
       function() {
-        call.set("peer", "nick");
+        peer.set({nick: "nick"});
+        new app.views.ConversationView({call: call, peer: peer});
 
-        new app.views.ChatView({call: call});
-
-        call.on.args[0][1](call);
+        peer.on.args[0][1](peer);
 
         expect(document.title).to.be.equal("nick");
       });
 
     it("should close the window when the call `offer-timeout` event is " +
        "triggered", function() {
-        new app.views.ChatView({call: call});
+        new app.views.ConversationView({call: call, peer: peer});
 
         call.trigger('offer-timeout');
 
         // offer-timeout is the second event triggered
-        call.on.args[1][1]();
+        call.on.args[0][1]();
 
         sinon.assert.calledOnce(window.close);
       });
@@ -100,7 +113,11 @@ describe("ChatView", function() {
 
       it("should set a text message input value on dropped url event",
         function() {
-          var view = new app.views.ChatView({call: call, el: '#fixtures'});
+          var view = new app.views.ConversationView({
+            call: call,
+            peer: peer,
+            el: '#fixtures'
+          });
           var dropEvent = fakeDropEvent({
             "text/x-moz-url": "http://mozilla.com\nMozilla"
           });
@@ -113,7 +130,11 @@ describe("ChatView", function() {
 
       it("should set a text message input value on dropped tab event",
         function() {
-          var view = new app.views.ChatView({call: call, el: '#fixtures'});
+          var view = new app.views.ConversationView({
+            call: call,
+            peer: peer,
+            el: '#fixtures'
+          });
           var dropEvent = fakeDropEvent({
             "text/x-moz-text-internal": "http://mozilla.com"
           });
@@ -126,7 +147,11 @@ describe("ChatView", function() {
 
       it("should not set a text message input value on unsupported drop event",
         function() {
-          var view = new app.views.ChatView({call: call, el: '#fixtures'});
+          var view = new app.views.ConversationView({
+            call: call,
+            peer: peer,
+            el: '#fixtures'
+          });
           var dropEvent = fakeDropEvent({
             "text/x-foobar": "xxx"
           });
