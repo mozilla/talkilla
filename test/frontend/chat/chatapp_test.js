@@ -50,11 +50,12 @@ describe("ChatApp", function() {
     sinon.assert.calledWithExactly(chatApp[handler], data);
   }
 
-  it("should attach _onStartingCall to talkilla.call-start", function() {
-    "use strict";
-    assertEventTriggersHandler("talkilla.call-start",
-      "_onStartingCall", callData);
-  });
+  it("should attach _onConversationOpen to talkilla.conversation-open",
+    function() {
+      "use strict";
+      assertEventTriggersHandler("talkilla.conversation-open",
+        "_onConversationOpen", callData);
+    });
 
   it("should attach _onCallEstablishment to talkilla.call-establishment",
     function() {
@@ -184,10 +185,10 @@ describe("ChatApp", function() {
       expect(chatApp.callView.el).to.equal(callFixture[0]);
     });
 
-    describe("#_onStartingCall", function() {
+    describe("#_onConversationOpen", function() {
 
       it("should set the peer", function() {
-        chatApp._onStartingCall(callData);
+        chatApp._onConversationOpen(callData);
 
         expect(chatApp.call.get('peer')).to.equal(callData.peer);
       });
@@ -195,14 +196,14 @@ describe("ChatApp", function() {
       it("should start the call", function() {
         sandbox.stub(chatApp.call, "start");
 
-        chatApp._onStartingCall(callData);
+        chatApp._onConversationOpen(callData);
 
         sinon.assert.calledOnce(chatApp.call.start);
         sinon.assert.calledWithExactly(chatApp.call.start, callData);
       });
 
       it("should start the outgoing call sound", function() {
-        chatApp._onStartingCall(callData);
+        chatApp._onConversationOpen(callData);
 
         sinon.assert.calledOnce(chatApp.audioLibrary.play);
         sinon.assert.calledWithExactly(chatApp.audioLibrary.play, "outgoing");
