@@ -170,7 +170,7 @@ describe("Text chat views", function() {
         var event = {target: {files: [file]}};
         sandbox.stub(textChatView.collection, "add", function(transfer) {
           expect(transfer.file).to.equal(file);
-          expect(transfer.chunkSize).to.equal(chunkSize);
+          expect(transfer.options.chunkSize).to.equal(chunkSize);
         });
 
         textChatView.sendFile(event);

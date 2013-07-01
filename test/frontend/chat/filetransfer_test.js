@@ -5,12 +5,13 @@ var expect = chai.expect;
 
 describe("FileTransfer", function() {
 
-  var sandbox, transfer, blob;
+  var sandbox, transfer, incomingTransfer, blob;
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
     blob = new Blob(['content'], {type: 'plain/text'})
     transfer = new app.models.FileTransfer({file: blob}, {chunkSize: 1});
+    incomingTransfer = new app.models.FileTransfer({filename: "foo", size: 10});
   });
 
   afterEach(function() {
@@ -27,8 +28,12 @@ describe("FileTransfer", function() {
       expect(transfer.file).to.equal(blob);
     });
 
-    it("should have a chunk size parameter", function() {
-      expect(transfer.chunkSize).to.equal(1);
+    it("shoud have a filename attribute", function() {
+      expect(incomingTransfer.filename).to.equal("foo");
+    });
+
+    it("shoud have a size attribute", function() {
+      expect(incomingTransfer.size).to.equal(10);
     });
 
     it("should bind _onProgress to the chunk event", function() {
@@ -54,7 +59,7 @@ describe("FileTransfer", function() {
       transfer.on("chunk", function(chunk) {
         chunks.push(chunk);
       });
-      transfer.on("eof", function() {
+      transfer.on("complete", function() {
         expect(chunks).to.deep.equal(['c', 'o', 'n', 't', 'e', 'n', 't']);
         done();
       });
@@ -67,12 +72,12 @@ describe("FileTransfer", function() {
       transfer.on("chunk", function(chunk) {
         chunks.push(chunk);
       });
-      transfer.on("eof", function() {
+      transfer.on("complete", function() {
         expect(chunks).to.deep.equal(['con', 'ten', 't']);
         done();
       });
 
-      transfer.chunkSize = 3;
+      transfer.options.chunkSize = 3;
       transfer.start();
     });
 
@@ -87,6 +92,15 @@ describe("FileTransfer", function() {
       });
 
       transfer.start();
+    });
+
+  });
+
+  describe("#incoming", function() {
+
+    it("should change the state from ready to ongoing", function() {
+      transfer.incoming();
+      expect(transfer.state.current).to.equal('ongoing');
     });
 
   });
@@ -110,6 +124,38 @@ describe("FileTransfer", function() {
       expect(transfer.file.size).to.equal(7); // size of the blob
       expect(transfer.get("progress")).to.equal(85); // percentage of progress
     });
+  });
+
+  describe("#append", function() {
+
+    it("should trigger a chunk event", function(done) {
+      incomingTransfer.incoming();
+      incomingTransfer.on("chunk", function(c) {
+        expect(c).to.equal("chunk");
+        done();
+      });
+      incomingTransfer.append("chunk");
+    });
+
+    it("should call complete when reaching the file size", function(done) {
+      var reader = new FileReader();
+      incomingTransfer.incoming();
+
+      reader.onload = function(event) {
+        var data = event.target.result;
+        expect(data).to.equal("abcdefghij");
+        done();
+      };
+
+      incomingTransfer.on("complete", function(file) {
+        reader.readAsBinaryString(file);
+      });
+
+      ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"].forEach(function(c) {
+        incomingTransfer.append(c);
+      });
+    });
+
   });
 
 });

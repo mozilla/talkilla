@@ -8,28 +8,40 @@
   app.models.FileTransfer = Backbone.Model.extend({
 
     initialize: function(attributes, options) {
-      this.file = attributes.file;
-      this.chunkSize = options.chunkSize;
-      this.reader = new FileReader();
-      this.seek = 0;
+      this.options = options;
 
+      if (attributes.file) {
+        this.file          = attributes.file;
+        this.filename      = attributes.file.name;
+        this.size          = attributes.file.size;
+        this.reader        = new FileReader();
+        this.reader.onload = this._onChunk.bind(this);
+      } else {
+        this.size          = attributes.size;
+        this.filename      = attributes.filename;
+        this.chunks        = [];
+      }
+
+      this.seek = 0;
       this.state = StateMachine.create({
         initial: 'ready',
         events: [
           {name: 'start',    from: 'ready',   to: 'ongoing'},
+          {name: 'incoming', from: 'ready',   to: 'ongoing'},
           {name: 'complete', from: 'ongoing', to: 'completed'}
         ]
       });
 
+      this.state.oncomplete = this._onComplete.bind(this);
+      this.incoming = this.state.incoming.bind(this.state);
       this.complete = this.state.complete.bind(this.state);
-      this.reader.onload = this._onChunk.bind(this);
 
       this.on("chunk", this._onProgress, this);
     },
 
     toJSON: function() {
       return {
-        filename: this.file.name,
+        filename: this.filename,
         progress: this.get("progress")
       };
     },
@@ -39,27 +51,44 @@
       this._readChunk();
     },
 
+    append: function(chunk) {
+      this.chunks.push(chunk);
+      this.seek += chunk.length;
+      this.trigger("chunk", chunk);
+
+      if (this.seek === this.size) {
+        this.blob = new Blob(this.chunks);
+        this.trigger("complete", this.blob);
+      }
+
+      if (this.seek > this.size)
+        throw Error("Received more data than expected: " +
+                    this.seek + " instead of " + this.size);
+    },
+
     _onChunk: function(event) {
       var data = event.target.result;
 
-      this.seek += this.chunkSize;
       this.trigger("chunk", data);
+      this.seek += this.options.chunkSize;
 
-      if (this.seek < this.file.size) {
+      if (this.seek < this.file.size)
         this._readChunk();
-      } else {
-        this.trigger("eof");
+      else
         this.complete();
-      }
     },
 
     _onProgress: function() {
-      var progress = Math.floor(this.seek * 100 / this.file.size);
+      var progress = Math.floor(this.seek * 100 / this.size);
       this.set("progress", progress);
     },
 
+    _onComplete: function() {
+      this.trigger("complete");
+    },
+
     _readChunk: function() {
-      var blob = this.file.slice(this.seek, this.seek + this.chunkSize);
+      var blob = this.file.slice(this.seek, this.seek + this.options.chunkSize);
       this.reader.readAsBinaryString(blob);
     }
   });
