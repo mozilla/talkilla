@@ -340,10 +340,6 @@
 
       this.collection.on('add', this.render, this);
 
-      this.media.on('dc.in.ready', function() {
-        this.$('input').removeAttr('disabled');
-      }, this);
-
       this.call.on('change:state', function(to) {
         if (to === "ongoing")
           this.$el.show();

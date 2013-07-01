@@ -176,6 +176,7 @@
 /* Text chat window */
 #textchat {
   font-size: 80%;
+  margin-top: 34px;
 }
 
 #textchat ul {

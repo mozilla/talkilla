@@ -268,8 +268,10 @@ var serverHandlers = {
   },
 
   'call_hangup': function(data) {
-    currentConversation.callHangup(data);
-    currentConversation = undefined;
+    if (currentConversation) {
+      currentConversation.callHangup(data);
+      currentConversation = undefined;
+    }
   }
 };
 
