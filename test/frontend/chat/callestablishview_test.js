@@ -5,7 +5,7 @@ var expect = chai.expect;
 
 describe('Call Establish View', function() {
   "use strict";
-  var media, sandbox, call;
+  var media, sandbox, call, peer;
 
   beforeEach(function() {
     $('body').append([
@@ -22,8 +22,9 @@ describe('Call Establish View', function() {
     // (e.g. PeerConnection) takes a lot of time that we don't need to spend.
     sandbox.stub(app.models.WebRTCCall.prototype, "initialize");
     media = new app.models.WebRTCCall();
+    peer = new app.models.User();
+    peer.set({nick: "Mark"});
     call = new app.models.Call({}, {media: media});
-    call.set({peer: "Mark"});
   });
 
   afterEach(function() {
@@ -35,17 +36,29 @@ describe('Call Establish View', function() {
 
   describe("#initialize", function() {
     it("should attach a given call model", function() {
-      var establishView = new app.views.CallEstablishView({model: call});
+      var establishView =
+        new app.views.CallEstablishView({model: call, peer: peer});
 
       expect(establishView.model).to.equal(call);
     });
+
+    it("should throw an error when no peer is given", function() {
+      function shouldExplode() {
+        new app.views.CallEstablishView({model: call});
+      }
+      expect(shouldExplode).to.Throw(Error, /missing parameter: peer/);
+    });
+
 
     it("should attach _handleStateChanges to the change:state event ",
       function() {
         sandbox.stub(call, "on");
         sandbox.stub(app.views.CallEstablishView.prototype,
           "_handleStateChanges");
-        var establishView = new app.views.CallEstablishView({model: call});
+        var establishView = new app.views.CallEstablishView({
+          model: call,
+          peer: peer
+        });
         var attachedHandler = call.on.args[0][1];
         expect(establishView._handleStateChanges.callCount).to.equal(0);
 
@@ -61,7 +74,10 @@ describe('Call Establish View', function() {
   describe("#_handleStateChanges", function() {
     var establishView;
     beforeEach(function() {
-      establishView = new app.views.CallEstablishView({model: call});
+      establishView = new app.views.CallEstablishView({
+        model: call,
+        peer: peer
+      });
     });
 
     it("should show the element when the state changes to pending from ready",
@@ -87,7 +103,10 @@ describe('Call Establish View', function() {
     var establishView, event;
 
     beforeEach(function() {
-      establishView = new app.views.CallEstablishView({model: call});
+      establishView = new app.views.CallEstablishView({
+        model: call,
+        peer: peer
+      });
       event = { preventDefault: sinon.spy() };
       sandbox.stub(window, "close");
     });
@@ -111,7 +130,10 @@ describe('Call Establish View', function() {
   describe("#render", function() {
     var establishView;
     beforeEach(function() {
-      establishView = new app.views.CallEstablishView({model: call});
+      establishView = new app.views.CallEstablishView({
+        model: call,
+        peer: peer
+      });
     });
 
     it("should show 'Calling Mark…' when rendering", function() {

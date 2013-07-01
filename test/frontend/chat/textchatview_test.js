@@ -55,7 +55,7 @@ describe("Text chat views", function() {
       });
 
       // This stops us changing the document's title unnecessarily
-      sandbox.stub(app.views.ChatView.prototype, "initialize");
+      sandbox.stub(app.views.ConversationView.prototype, "initialize");
 
       call = new app.models.Call({}, {media: new app.models.WebRTCCall()});
       chatApp = new ChatApp();
