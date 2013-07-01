@@ -76,6 +76,71 @@
   });
 
   /**
+   * Call controls view
+   */
+  app.views.CallControlsView = Backbone.View.extend({
+
+    events: {
+      'click .btn-video a': 'videoCall',
+      'click .btn-audio a': 'audioCall',
+      'click .btn-hangup a': 'hangup'
+    },
+
+    initialize: function(options) {
+      options = options || {};
+      if (!options.call)
+        throw new Error("missing parameter: call");
+      if (!options.el)
+        throw new Error("missing parameter: el");
+
+      this.call = options.call;
+
+      this.call.on('state:to:pending state:to:incoming',
+                   this._callPending, this);
+      this.call.on('state:to:ongoing',
+                   this._callOngoing, this);
+      this.call.on('state:to:terminated',
+                   this._callInactive, this);
+    },
+
+    videoCall: function(event) {
+      // Really webrtc and calls should be set up on clicking a button
+      this.call.start({video: true, audio: true});
+    },
+
+    audioCall: function(event) {
+      // Really webrtc and calls should be set up on clicking a button
+      this.call.start({video: false, audio: true});
+    },
+
+    hangup: function(event) {
+      if (event)
+        event.preventDefault();
+
+      window.close(); // XXX: actually terminate the call and leave the
+                      // conversation window open (eg. for text chat)
+    },
+
+    _callPending: function() {
+      this.$el.hide();
+    },
+
+    _callOngoing: function() {
+      this.$el.show();
+      this.$('.btn-video').hide();
+      this.$('.btn-audio').hide();
+      this.$('.btn-hangup').show();
+    },
+
+    _callInactive: function() {
+      this.$el.show();
+      this.$('.btn-video').show();
+      this.$('.btn-audio').show();
+      this.$('.btn-hangup').hide();
+    }
+  });
+
+  /**
    * Call offer view
    */
   app.views.CallOfferView = Backbone.View.extend({
@@ -181,10 +246,6 @@
    */
   app.views.CallView = Backbone.View.extend({
 
-    events: {
-      'click .btn-hangup a': 'hangup'
-    },
-
     initialize: function(options) {
       options = options || {};
       if (!options.call)
@@ -196,34 +257,16 @@
       this.call.media.on('change:localStream', this._displayLocalVideo, this);
       this.call.media.on('change:remoteStream', this._displayRemoteVideo, this);
 
-      options.call.on('change:state', function(to) {
-        if (to === "ongoing")
-          this.ongoing();
-        else if (to === "terminated")
-          this.terminated();
-      }, this);
-    },
-
-    hangup: function(event) {
-      if (event)
-        event.preventDefault();
-
-      window.close(); // XXX: actually terminate the call and leave the
-                      // conversation window open (eg. for text chat)
+      this.call.on('state:to:ongoing', this.ongoing, this);
+      this.call.on('state:to:terminated', this.terminated, this);
     },
 
     ongoing: function() {
       this.$el.show();
-      this.$('.btn-video').hide();
-      this.$('.btn-audio').hide();
-      this.$('.btn-hangup').show();
     },
 
     terminated: function() {
       this.$el.hide();
-      this.$('.btn-video').show();
-      this.$('.btn-audio').show();
-      this.$('.btn-hangup').hide();
     },
 
     _displayLocalVideo: function() {

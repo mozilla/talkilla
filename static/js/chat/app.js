@@ -49,6 +49,11 @@ var ChatApp = (function($, Backbone, _) {
       el: 'body'
     });
 
+    this.callControlsView = new app.views.CallControlsView({
+      call: this.call,
+      el: $("#call-controls")
+    });
+
     this.callView = new app.views.CallView({
       call: this.call,
       el: $("#call")
@@ -107,10 +112,6 @@ var ChatApp = (function($, Backbone, _) {
   // Outgoing calls
   ChatApp.prototype._onConversationOpen = function(data) {
     this.peer.set({nick: data.peer});
-    // XXX Assume both video and audio call for now
-    // Really webrtc and calls should be set up on clicking a button
-    this.call.start({video: true, audio: true});
-    this.audioLibrary.play('outgoing');
   };
 
   ChatApp.prototype._onCallAccepted = function() {
@@ -136,6 +137,8 @@ var ChatApp = (function($, Backbone, _) {
 
   ChatApp.prototype._onSendOffer = function(data) {
     this.port.postEvent('talkilla.call-offer', data);
+    // Now start the tone, as the offer is going out.
+    this.audioLibrary.play('outgoing');
   };
 
   ChatApp.prototype._onSendAnswer = function(data) {

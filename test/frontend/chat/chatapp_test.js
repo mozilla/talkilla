@@ -200,23 +200,6 @@ describe("ChatApp", function() {
 
         expect(chatApp.peer.get("nick")).to.equal(callData.peer);
       });
-
-      it("should start the call", function() {
-        sandbox.stub(chatApp.call, "start");
-
-        chatApp._onConversationOpen(callData);
-
-        sinon.assert.calledOnce(chatApp.call.start);
-        sinon.assert.calledWithExactly(chatApp.call.start,
-          {audio: true, video: true});
-      });
-
-      it("should start the outgoing call sound", function() {
-        chatApp._onConversationOpen(callData);
-
-        sinon.assert.calledOnce(chatApp.audioLibrary.play);
-        sinon.assert.calledWithExactly(chatApp.audioLibrary.play, "outgoing");
-      });
     });
 
     describe("#_onIncomingCall", function() {
@@ -352,18 +335,30 @@ describe("ChatApp", function() {
     });
 
     describe("#_onSendOffer", function() {
+      var offer;
+
+      beforeEach(function() {
+        offer = {
+          sdp: 'sdp',
+          type: 'type'
+        };
+      });
+
       it("should post an event to the worker when onSendOffer is called",
         function() {
-          var offer = {
-            sdp: 'sdp',
-            type: 'type'
-          };
-
           chatApp._onSendOffer(offer);
 
           sinon.assert.calledOnce(app.port.postEvent);
           sinon.assert.calledWith(app.port.postEvent, "talkilla.call-offer");
         });
+
+      it("should start the outgoing call sound", function() {
+        chatApp._onSendOffer(callData);
+
+        sinon.assert.calledOnce(chatApp.audioLibrary.play);
+        sinon.assert.calledWithExactly(chatApp.audioLibrary.play, "outgoing");
+      });
+
     });
 
     describe("#_onSendAnswer", function() {

@@ -115,25 +115,7 @@
   position: relative;
   background: #eee;
   overflow: hidden;
-}
-
-#call .controls {
-  background-color: #FAFAFA;
-  border-bottom: 1px solid #d6d6d6;
-  position: absolute;
-  top: 0;
-  width: 100%;
-  height: 24px;
-  margin: 0;
-  padding: 0;
-  list-style-type: none;
-}
-
-#call .controls li {
-  height: 24px;
-  padding: 0 4px;
-  float: left;
-  border-right: 1px solid #d6d6d6;
+  margin-top: 25px;
 }
 
 #call .remote-video {
@@ -150,6 +132,31 @@
   right: -11px;
   width: 25%;
   z-index: 1;
+}
+
+#call-controls {
+  background-color: #FAFAFA;
+  border-bottom: 1px solid #d6d6d6;
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 24px;
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+}
+
+#call-controls .controls {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+#call-controls .controls li {
+  height: 24px;
+  padding: 0 4px;
+  float: left;
+  border-right: 1px solid #d6d6d6;
 }
 
 /**

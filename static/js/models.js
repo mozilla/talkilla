@@ -55,6 +55,7 @@
           onenterstate: function(event, from, to) {
             this.trigger("change:state", to, from, event);
             this.trigger("state:" + event);
+            this.trigger("state:to:" + to);
           }.bind(this)
         }
       });
