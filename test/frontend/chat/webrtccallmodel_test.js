@@ -137,15 +137,6 @@ describe("WebRTCCall", function() {
 
   describe("_createOffer", function() {
 
-    it("should note an error if audio or video types have not been set",
-      function() {
-        webrtc._onError = sandbox.spy();
-
-        webrtc._createOffer(function() {});
-
-        sinon.assert.calledOnce(webrtc._onError);
-      });
-
     it("should call createOffer and setRemoteDescription", function() {
       sandbox.stub(webrtc.pc, "createOffer", function(callback) {
         callback(fakeOffer);
@@ -221,15 +212,6 @@ describe("WebRTCCall", function() {
 
   describe("_createAnswer", function() {
 
-    it("should note an error if audio or video types have not been set",
-      function() {
-        webrtc._onError = sandbox.spy();
-
-        webrtc._createAnswer(fakeOffer, function() {});
-
-        sinon.assert.calledOnce(webrtc._onError);
-      });
-
     it("should call createAnswer, setLocalDescription and setRemoteDescription",
       function() {
         sandbox.stub(webrtc.pc, "setRemoteDescription",
@@ -268,6 +250,7 @@ describe("WebRTCCall", function() {
     });
 
     it("should set the localStream", function() {
+      webrtc.set('audio', true);
       webrtc._getMedia(function() {}, function() {});
 
       expect(webrtc.get("localStream")).to.equal(fakeLocalStream);
@@ -284,6 +267,7 @@ describe("WebRTCCall", function() {
 
     it("should attach the localStream to the peerConnection",
       function () {
+        webrtc.set('audio', true);
         sandbox.stub(webrtc, "set");
 
         webrtc._getMedia(function callbk() {}, function errbk() {});

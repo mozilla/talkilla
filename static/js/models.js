@@ -223,6 +223,7 @@
    * });
    */
   app.models.WebRTCCall = Backbone.Model.extend({
+    connected: false,
     pc: undefined, // peer connection
     dcIn: undefined, // data channel in
     dcOut: undefined, // data channel out
@@ -266,7 +267,11 @@
      */
     establish: function(options) {
       var answerDescription = new mozRTCSessionDescription(options.answer);
-      var cb = function() {};
+
+      var cb = function() {
+        this.connected = true;
+      }.bind(this);
+
       this.pc.setRemoteDescription(answerDescription, cb, this._onError);
     },
 
@@ -296,14 +301,12 @@
      * Close the p2p connection.
      */
     hangup: function() {
+      this.connected = false;
       if (this.pc && this.pc.signalingState !== "closed")
         this.pc.close();
     },
 
     _createOffer: function(callback) {
-      if (!this.get('video') && !this.get('audio'))
-        return this._onError("Call type has not been defined");
-
       this.pc.createOffer(function(offer) {
         var cb = callback.bind(this, offer);
         this.pc.setLocalDescription(offer, cb, this._onError);
@@ -311,9 +314,6 @@
     },
 
     _createAnswer: function(offer, callback) {
-      if (!this.get('video') && !this.get('audio'))
-        return this._onError("Call type has not been defined");
-
       var offerDescription = new mozRTCSessionDescription(offer);
       this.pc.setRemoteDescription(offerDescription, function() {
         this.pc.createAnswer(function(answer) {
@@ -324,6 +324,10 @@
     },
 
     _getMedia: function(callback, errback) {
+      // if no media required, skip gUM
+      if (!this.get('video') && !this.get('audio'))
+        return callback();
+
       var constraints = {
         video: !!this.get('video'),
         audio: !!this.get('audio'),
@@ -381,10 +385,37 @@
   app.models.TextChat = Backbone.Collection.extend({
     model: app.models.TextChatEntry,
 
-    newEntry: function(data) {
-      var entry = this.add(data).at(this.length - 1);
-      if (entry)
-        this.trigger('entry.created', entry);
+    media: undefined,
+    peer: undefined,
+
+    initialize: function(attributes, options) {
+      this.media = options && options.media;
+      this.peer = options && options.peer;
+
+      this.state = StateMachine.create({
+        initial: 'idle'
+      });
+    },
+
+    ensureConnected: function(cb) {
+      if (this.media.connected)
+        return cb.call(this);
+
+      // initiate peer connection
+      this.media.offer({video: false, audio: false});
+    },
+
+    /**
+     * Adds a new entry to the collection and sends it over data channel.
+     * TODO: send entry over data channel
+     * @param  {Object} data
+     */
+    send: function(data) {
+      this.ensureConnected(function() {
+        var entry = this.add(data).at(this.length - 1);
+        if (entry)
+          this.trigger('entry.created', entry);
+      });
     }
   });
 

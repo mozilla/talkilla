@@ -355,7 +355,7 @@
 
       $input.val('');
 
-      this.collection.newEntry({
+      this.collection.send({
         nick: app.data.user.get("nick"),
         message: message
       });

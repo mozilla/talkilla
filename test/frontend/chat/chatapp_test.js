@@ -384,7 +384,7 @@ describe("ChatApp", function() {
 
         chatApp._onDataChannelMessageIn(event);
 
-        sinon.assert.calledOnce(stub);
+        sinon.assert.called(stub);
         sinon.assert.calledWithExactly(stub, {foo: "bar"});
       });
     });

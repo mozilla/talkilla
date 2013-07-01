@@ -48,7 +48,6 @@ describe("Text chat views", function() {
         createDataChannel: function() {}
       });
 
-
       sandbox.stub(window, "Audio").returns({
         play: sinon.spy(),
         pause: sinon.spy()
@@ -72,8 +71,11 @@ describe("Text chat views", function() {
         call: call,
         collection: new app.models.TextChat()
       });
+
       expect(view.collection).to.have.length.of(0);
+
       view.render();
+
       expect(view.$('ul').html()).to.equal('');
     });
 
@@ -100,6 +102,7 @@ describe("Text chat views", function() {
 
     it("should allow the caller to send a first message", function(done) {
       var textChat = chatApp.textChatView.collection;
+      chatApp.textChatView.collection.media.connected = true;
       app.port.trigger("talkilla.conversation-open", {peer: "niko"});
       expect(textChat).to.have.length.of(0);
 
