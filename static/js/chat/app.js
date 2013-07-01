@@ -73,7 +73,8 @@ var ChatApp = (function($, Backbone, _) {
     });
 
     // Incoming events
-    this.port.on('talkilla.call-start', this._onStartingCall.bind(this));
+    this.port.on('talkilla.conversation-open',
+                 this._onConversationOpen.bind(this));
     this.port.on('talkilla.call-incoming', this._onIncomingCall.bind(this));
     this.port.on('talkilla.call-establishment',
                  this._onCallEstablishment.bind(this));
@@ -98,7 +99,7 @@ var ChatApp = (function($, Backbone, _) {
   }
 
   // Outgoing calls
-  ChatApp.prototype._onStartingCall = function(data) {
+  ChatApp.prototype._onConversationOpen = function(data) {
     // XXX Assume both video and audio call for now
     // Really webrtc and calls should be set up on clicking a button
     data.video = true;
