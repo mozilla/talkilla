@@ -115,6 +115,14 @@ describe("FileTransfer", function() {
 
   });
 
+  describe("#toJSON", function() {
+
+    it("should have a progress of 0 by default", function() {
+      expect(transfer.toJSON().progress).to.equal(0);
+    });
+
+  });
+
   describe("#_onProgress", function() {
 
     it("should update the progress attribute via a voodoo equation", function() {

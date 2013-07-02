@@ -42,7 +42,7 @@
     toJSON: function() {
       return {
         filename: this.filename,
-        progress: this.get("progress")
+        progress: this.get("progress") || 0
       };
     },
 
@@ -69,8 +69,8 @@
     _onChunk: function(event) {
       var data = event.target.result;
 
+      this.seek += data.length;
       this.trigger("chunk", data);
-      this.seek += this.options.chunkSize;
 
       if (this.seek < this.file.size)
         this._readChunk();
