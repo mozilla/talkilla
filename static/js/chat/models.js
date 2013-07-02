@@ -9,6 +9,7 @@
 
     initialize: function(attributes, options) {
       this.options = options;
+      this.id = this.set("id", _.uniqueId()).id;
 
       if (attributes.file) {
         this.file          = attributes.file;
@@ -54,7 +55,7 @@
     append: function(chunk) {
       this.chunks.push(chunk);
       this.seek += chunk.length;
-      this.trigger("chunk", chunk);
+      this.trigger("chunk", this.id, chunk);
 
       if (this.seek === this.size) {
         this.blob = new Blob(this.chunks);
@@ -70,7 +71,7 @@
       var data = event.target.result;
 
       this.seek += data.length;
-      this.trigger("chunk", data);
+      this.trigger("chunk", this.id, data);
 
       if (this.seek < this.file.size)
         this._readChunk();

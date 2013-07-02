@@ -20,6 +20,10 @@ describe("FileTransfer", function() {
 
   describe("#initialize", function() {
 
+    it("should have an id", function() {
+      expect(transfer.id).to.not.be.null;
+    });
+
     it("should have a state machine", function() {
       expect(transfer.state).to.be.an.instanceOf(Object);
     });
@@ -56,7 +60,8 @@ describe("FileTransfer", function() {
 
     it("should trigger 1 byte chunks events until reaching the eof event", function(done) {
       var chunks = [];
-      transfer.on("chunk", function(chunk) {
+      transfer.on("chunk", function(id, chunk) {
+        expect(id).to.not.be.null;
         chunks.push(chunk);
       });
       transfer.on("complete", function() {
@@ -69,7 +74,7 @@ describe("FileTransfer", function() {
 
     it("should accepts a custom chunkSize", function(done) {
       var chunks = [];
-      transfer.on("chunk", function(chunk) {
+      transfer.on("chunk", function(id, chunk) {
         chunks.push(chunk);
       });
       transfer.on("complete", function() {
@@ -83,7 +88,7 @@ describe("FileTransfer", function() {
 
     it("should call complete when there is not chunk left", function(done) {
       var chunks = [];
-      transfer.on("chunk", function(chunk) {
+      transfer.on("chunk", function(id, chunk) {
         chunks.push(chunk);
       });
       sandbox.stub(transfer, "complete", function() {
@@ -138,7 +143,8 @@ describe("FileTransfer", function() {
 
     it("should trigger a chunk event", function(done) {
       incomingTransfer.incoming();
-      incomingTransfer.on("chunk", function(c) {
+      incomingTransfer.on("chunk", function(id, c) {
+        expect(id).to.not.be.null;
         expect(c).to.equal("chunk");
         done();
       });
