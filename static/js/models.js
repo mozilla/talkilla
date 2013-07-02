@@ -270,6 +270,7 @@
 
       var cb = function() {
         this.connected = true;
+        this.trigger("established");
       }.bind(this);
 
       this.pc.setRemoteDescription(answerDescription, cb, this._onError);
@@ -391,12 +392,15 @@
     initialize: function(attributes, options) {
       if (!options || !options.media)
         throw new Error('TextChat model needs a `media` option');
+      if (!options || !options.peer)
+        throw new Error('TextChat model needs a `peer` option');
 
       this.media = options && options.media;
       this.peer = options && options.peer;
 
       this.state = StateMachine.create({
-        initial: 'idle'
+        initial: 'ready',
+        events: []
       });
 
       this.media.on("offer-ready", function(offer) {
@@ -422,8 +426,8 @@
     },
 
     /**
-     * Checks an established peer connection exists before processing the
-     * provided callback.
+     * Checks for an established peer connection before processing the provided
+     * callback.
      * @param  {Function} cb
      */
     ensureConnected: function(cb) {
@@ -432,6 +436,9 @@
 
       // initiate peer connection
       this.media.offer({video: false, audio: false});
+
+      // send the message once the connection is established
+      this.media.once("established", cb, this);
     },
 
     /**

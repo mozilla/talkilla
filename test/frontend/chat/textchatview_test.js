@@ -33,7 +33,7 @@ describe("Text chat views", function() {
 
   describe('TextChatView', function() {
 
-    var chatApp, call, media;
+    var chatApp, call, media, peer;
 
     beforeEach(function() {
       $('body').append([
@@ -58,6 +58,7 @@ describe("Text chat views", function() {
 
       chatApp = new ChatApp();
       media = chatApp.call.media;
+      peer = chatApp.peer;
 
       app.data.user.set("nick", "niko");
     });
@@ -68,7 +69,7 @@ describe("Text chat views", function() {
 
     it("should be empty by default", function() {
       var view = new app.views.TextChatView({
-        collection: new app.models.TextChat([], {media: media})
+        collection: new app.models.TextChat([], {media: media, peer: peer})
       });
 
       expect(view.collection).to.have.length.of(0);
@@ -83,7 +84,7 @@ describe("Text chat views", function() {
         collection: new app.models.TextChat([
           {nick: "niko", message: "plop"},
           {nick: "jb", message: "hello"}
-        ], {media: media})
+        ], {media: media, peer: peer})
       });
       expect(view.collection).to.have.length.of(2);
 

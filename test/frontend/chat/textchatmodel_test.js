@@ -7,13 +7,24 @@ var expect = chai.expect;
 describe('Text chat models', function() {
   "use strict";
 
-  var sandbox, media;
+  var sandbox, media, peer, createTextChat;
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
     //sandbox.stub(window, "mozRTCPeerConnection");
     //sandbox.stub(app.models.WebRTCCall.prototype, "initialize");
+    app.port = {
+      on: sinon.spy(),
+      postEvent: sinon.spy()
+    };
+    _.extend(app.port, Backbone.Events);
+
     media = new app.models.WebRTCCall();
+    peer = new app.models.User();
+
+    createTextChat = function() {
+      return new app.models.TextChat([], {media: media, peer: peer});
+    };
   });
 
   afterEach(function() {
@@ -23,6 +34,7 @@ describe('Text chat models', function() {
   describe("app.models.TextChatEntry", function() {
     it("should be initialized with defaults", function() {
       var entry = new app.models.TextChatEntry();
+
       expect(entry.get("nick")).to.be.a("undefined");
       expect(entry.get("message")).to.be.a("undefined");
       expect(entry.get("date")).to.be.a("number");
@@ -33,32 +45,53 @@ describe('Text chat models', function() {
 
     describe("constructor", function() {
       it("should accept a `media` option", function() {
-        var textChat = new app.models.TextChat([], {media: media});
+        var textChat = createTextChat();
 
         expect(textChat.media).to.be.an.instanceOf(app.models.WebRTCCall);
       });
 
       it("should accept a `peer` option", function() {
-        var textChat = new app.models.TextChat([], {
-          media: media,
-          peer: new app.models.User()
-        });
+        var textChat = createTextChat();
 
         expect(textChat.peer).to.be.an.instanceOf(app.models.User);
       });
 
-      it("should be in the `idle` state", function() {
-        var textChat = new app.models.TextChat([], {media: media});
+      it("should be in the `ready` state", function() {
+        var textChat = createTextChat();
 
-        expect(textChat.state.current).to.equal("idle");
+        expect(textChat.state.current).to.equal("ready");
       });
+    });
+
+    describe("#ensureConnected", function() {
+      it("should execute a callback when a pc is established", function() {
+        var textChat = createTextChat();
+        var called = sandbox.spy();
+        media.connected = true;
+
+        textChat.ensureConnected(called);
+
+        sinon.assert.calledOnce(called);
+      });
+
+      it("should establish a pc when not connected, then execute a callback",
+        function() {
+          var textChat = createTextChat();
+          var called = sandbox.spy();
+          media.connected = false;
+
+          textChat.ensureConnected(called);
+          textChat.media.trigger("established");
+
+          sinon.assert.calledOnce(called);
+        });
     });
 
     describe("#send", function() {
       it("should add and send a message then trigger the `entry.created` event",
         function(done) {
           media.connected = true;
-          var textChat = new app.models.TextChat([], {media: media});
+          var textChat = createTextChat();
           var entry = new app.models.TextChatEntry({
             nick: "niko",
             message: "hi"
@@ -75,7 +108,7 @@ describe('Text chat models', function() {
 
       it("should initiate a peer connection if not started yet", function() {
         media.connected = false;
-        var textChat = new app.models.TextChat([], {media: media});
+        var textChat = createTextChat();
         sandbox.stub(media, "offer");
 
         textChat.send({nick: "niko", message: "hi"});
@@ -86,7 +119,7 @@ describe('Text chat models', function() {
 
       it("should reuse a peer connection if already started", function() {
         media.connected = true;
-        var textChat = new app.models.TextChat([], {media: media});
+        var textChat = createTextChat();
         sandbox.stub(media, "offer");
 
         textChat.send({nick: "niko", message: "hi"});
