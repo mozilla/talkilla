@@ -43,12 +43,6 @@ var ChatApp = (function($, Backbone, _) {
       peer: this.peer
     });
 
-    this.view = new app.views.ConversationView({
-      call: this.call,
-      peer: this.peer,
-      el: 'body'
-    });
-
     this.callControlsView = new app.views.CallControlsView({
       call: this.call,
       el: $("#call-controls")
@@ -81,6 +75,13 @@ var ChatApp = (function($, Backbone, _) {
     this.textChatView = new app.views.TextChatView({
       collection: this.textChat,
       call: this.call
+    });
+
+    this.view = new app.views.ConversationView({
+      call: this.call,
+      textChat: this.textChat,
+      peer: this.peer,
+      el: 'body'
     });
 
     // Incoming events
