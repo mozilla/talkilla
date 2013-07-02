@@ -102,6 +102,7 @@ var ChatApp = (function($, Backbone, _) {
     // Data channels
     this.webrtc.on('dc.in.message', this._onDataChannelMessageIn.bind(this));
     this.textChat.on('add', this._onTextChatEntryCreated.bind(this));
+    this.textChat.on('add', this._onFileTransferCreated.bind(this));
 
     // Internal events
     window.addEventListener("unload", this._onCallHangup.bind(this));
@@ -166,15 +167,46 @@ var ChatApp = (function($, Backbone, _) {
 
   // Text chat & data channel event listeners
   ChatApp.prototype._onDataChannelMessageIn = function(event) {
+    var entry;
     event = JSON.parse(event.data);
+
     if (event.type === "chat:message")
-      this.textChat.add(event.message);
+      entry = new app.models.TextChatEntry(event.message);
+    else if (event.type === "file:new")
+      entry = new app.models.FileTransfer(event.message);
+    else if (event.type === "file:chunk") {
+      var transfer = this.textChat.findWhere({id: event.message.id});
+      transfer.append(event.message.chunk);
+    }
+
+    this.textChat.add(entry);
   };
 
   ChatApp.prototype._onTextChatEntryCreated = function(entry) {
     if (entry instanceof app.models.TextChatEntry &&
         entry.get('nick') === app.data.user.get("nick"))
       this.webrtc.send({type: "chat:message", message: entry.toJSON()});
+  };
+
+  ChatApp.prototype._onFileTransferCreated = function(entry) {
+   if (entry instanceof app.models.FileTransfer && entry.file) {
+      var onFileChunk = this._onFileChunk.bind(this);
+      var message = {
+        id: entry.id,
+        filename: entry.file.name,
+        size: entry.file.size
+      };
+      this.webrtc.send({type: "file:new", message: message});
+
+      entry.once("chunk", onFileChunk);
+      // entry.on("complete", entry.off.bind(this, "chunk", onFileChunk));
+
+      entry.start();
+    }
+  };
+
+  ChatApp.prototype._onFileChunk = function(id, chunk) {
+    this.webrtc.send({type: "file:chunk", message: {id: id, chunk: chunk}});
   };
 
   return ChatApp;
