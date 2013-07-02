@@ -389,14 +389,43 @@
     peer: undefined,
 
     initialize: function(attributes, options) {
+      if (!options || !options.media)
+        throw new Error('TextChat model needs a `media` option');
+
       this.media = options && options.media;
       this.peer = options && options.peer;
 
       this.state = StateMachine.create({
         initial: 'idle'
       });
+
+      this.media.on("offer-ready", function(offer) {
+        this.trigger("send-offer", {
+          peer: this.peer.get("nick"),
+          offer: offer
+        });
+      }.bind(this));
+
+      this.media.on("answer-ready", function(answer) {
+        this.trigger("send-answer", {
+          peer: this.peer.get("nick"),
+          answer: answer
+        });
+
+        // XXX Change transition to complete/ongoing here as
+        // this is the best place we've got currently to know that
+        // the incoming call is now ongoing. When WebRTC platform
+        // support comes for connection notifications, we'll want
+        // to handle this differently.
+        this.state.complete();
+      }.bind(this));
     },
 
+    /**
+     * Checks an established peer connection exists before processing the
+     * provided callback.
+     * @param  {Function} cb
+     */
     ensureConnected: function(cb) {
       if (this.media.connected)
         return cb.call(this);

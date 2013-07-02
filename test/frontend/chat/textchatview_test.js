@@ -33,7 +33,7 @@ describe("Text chat views", function() {
 
   describe('TextChatView', function() {
 
-    var chatApp, call;
+    var chatApp, call, media;
 
     beforeEach(function() {
       $('body').append([
@@ -56,8 +56,8 @@ describe("Text chat views", function() {
       // This stops us changing the document's title unnecessarily
       sandbox.stub(app.views.ConversationView.prototype, "initialize");
 
-      call = new app.models.Call({}, {media: new app.models.WebRTCCall()});
       chatApp = new ChatApp();
+      media = chatApp.call.media;
 
       app.data.user.set("nick", "niko");
     });
@@ -68,8 +68,7 @@ describe("Text chat views", function() {
 
     it("should be empty by default", function() {
       var view = new app.views.TextChatView({
-        call: call,
-        collection: new app.models.TextChat()
+        collection: new app.models.TextChat([], {media: media})
       });
 
       expect(view.collection).to.have.length.of(0);
@@ -81,11 +80,10 @@ describe("Text chat views", function() {
 
     it("should update rendering when its collection is updated", function() {
       var view = new app.views.TextChatView({
-        call: call,
         collection: new app.models.TextChat([
           {nick: "niko", message: "plop"},
           {nick: "jb", message: "hello"}
-        ])
+        ], {media: media})
       });
       expect(view.collection).to.have.length.of(2);
 
@@ -117,42 +115,6 @@ describe("Text chat views", function() {
       $("#textchat form").trigger("submit");
     });
 
-    describe("Change events", function() {
-      var textChatView;
-
-      beforeEach(function() {
-        sandbox.stub(call, "on");
-
-        textChatView = new app.views.TextChatView({
-          call: call,
-          collection: new app.models.TextChat()
-        });
-      });
-
-      it("should attach to change:state events on the call model", function() {
-        sinon.assert.calledOnce(call.on);
-        sinon.assert.calledWith(call.on, 'change:state');
-      });
-
-      it("should show the element when change:state goes to ongoing",
-        function() {
-          textChatView.$el.hide();
-
-          call.on.args[0][1]("ongoing");
-
-          expect(textChatView.$el.is(":visible")).to.be.equal(true);
-        });
-
-
-      it("should hide the element when change:state goes to something !ongoing",
-        function() {
-          textChatView.$el.show();
-
-          call.on.args[0][1]("dummy");
-
-          expect(textChatView.$el.is(":visible")).to.be.equal(false);
-        });
-    });
   });
 
 });

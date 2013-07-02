@@ -40,6 +40,7 @@ describe('Text chat models', function() {
 
       it("should accept a `peer` option", function() {
         var textChat = new app.models.TextChat([], {
+          media: media,
           peer: new app.models.User()
         });
 
@@ -47,7 +48,7 @@ describe('Text chat models', function() {
       });
 
       it("should be in the `idle` state", function() {
-        var textChat = new app.models.TextChat();
+        var textChat = new app.models.TextChat([], {media: media});
 
         expect(textChat.state.current).to.equal("idle");
       });

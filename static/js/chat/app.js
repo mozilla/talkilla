@@ -77,11 +77,14 @@ var ChatApp = (function($, Backbone, _) {
     });
 
     // Text chat
-    // TODO: fill the chat with history
-    this.textChat = new app.models.TextChat([], {media: this.webrtc});
+    // TODO: prefill the chat with history
+    var history = [];
+    this.textChat = new app.models.TextChat(history, {
+      media: this.webrtc,
+      peer: this.peer
+    });
     this.textChatView = new app.views.TextChatView({
-      collection: this.textChat,
-      call: this.call
+      collection: this.textChat
     });
 
     // Incoming events

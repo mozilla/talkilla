@@ -329,23 +329,12 @@
     },
 
     initialize: function(options) {
-      if (!options.call)
-        throw new Error("missing parameter: call");
       if (!options.collection)
         throw new Error("missing parameter: collection");
 
       this.collection = options.collection;
-      this.call = options.call;
-      this.media = options.call.media;
 
       this.collection.on('add', this.render, this);
-
-      this.call.on('change:state', function(to) {
-        if (to === "ongoing")
-          this.$el.show();
-        else if (to !== "ongoing")
-          this.$el.hide();
-      }.bind(this));
     },
 
     send: function(event) {
