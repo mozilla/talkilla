@@ -24,19 +24,6 @@
       }
 
       this.seek = 0;
-      this.state = StateMachine.create({
-        initial: 'ready',
-        events: [
-          {name: 'start',    from: 'ready',   to: 'ongoing'},
-          {name: 'incoming', from: 'ready',   to: 'ongoing'},
-          {name: 'complete', from: 'ongoing', to: 'completed'}
-        ]
-      });
-
-      this.state.oncomplete = this._onComplete.bind(this);
-      this.incoming = this.state.incoming.bind(this.state);
-      this.complete = this.state.complete.bind(this.state);
-
       this.on("chunk", this._onProgress, this);
     },
 
@@ -48,7 +35,6 @@
     },
 
     start: function() {
-      this.state.start();
       this._readChunk();
     },
 
@@ -76,16 +62,13 @@
       if (this.seek < this.file.size)
         this._readChunk();
       else
-        this.complete();
+        this.trigger("complete", this.file);
+
     },
 
     _onProgress: function() {
       var progress = Math.floor(this.seek * 100 / this.size);
       this.set("progress", progress);
-    },
-
-    _onComplete: function() {
-      this.trigger("complete");
     },
 
     _readChunk: function() {

@@ -24,10 +24,6 @@ describe("FileTransfer", function() {
       expect(transfer.id).to.not.be.null;
     });
 
-    it("should have a state machine", function() {
-      expect(transfer.state).to.be.an.instanceOf(Object);
-    });
-
     it("should have a File object", function() {
       expect(transfer.file).to.equal(blob);
     });
@@ -52,11 +48,6 @@ describe("FileTransfer", function() {
   });
 
   describe("#start", function() {
-
-    it("should change the state from ready to ongoing", function() {
-      transfer.start();
-      expect(transfer.state.current).to.equal('ongoing');
-    });
 
     it("should trigger 1 byte chunks events until reaching the eof event", function(done) {
       var chunks = [];
@@ -91,31 +82,12 @@ describe("FileTransfer", function() {
       transfer.on("chunk", function(id, chunk) {
         chunks.push(chunk);
       });
-      sandbox.stub(transfer, "complete", function() {
+      transfer.on("complete", function() {
         expect(chunks).to.deep.equal(['c', 'o', 'n', 't', 'e', 'n', 't']);
         done();
       });
 
       transfer.start();
-    });
-
-  });
-
-  describe("#incoming", function() {
-
-    it("should change the state from ready to ongoing", function() {
-      transfer.incoming();
-      expect(transfer.state.current).to.equal('ongoing');
-    });
-
-  });
-
-  describe("#complete", function() {
-
-    it("should change the state from ongoing to completed", function() {
-      transfer.state.start();
-      transfer.complete();
-      expect(transfer.state.current).to.equal('completed');
     });
 
   });
@@ -142,7 +114,6 @@ describe("FileTransfer", function() {
   describe("#append", function() {
 
     it("should trigger a chunk event", function(done) {
-      incomingTransfer.incoming();
       incomingTransfer.on("chunk", function(id, c) {
         expect(id).to.not.be.null;
         expect(c).to.equal("chunk");
@@ -153,7 +124,6 @@ describe("FileTransfer", function() {
 
     it("should call complete when reaching the file size", function(done) {
       var reader = new FileReader();
-      incomingTransfer.incoming();
 
       reader.onload = function(event) {
         var data = event.target.result;
