@@ -42,7 +42,7 @@ describe("WebRTCCall", function() {
         sandbox.stub(window, "mozRTCPeerConnection").returns(fakePC);
         var _setupDataChannelIn = sandbox.stub(app.models.WebRTCCall.prototype,
                                                "_setupDataChannelIn");
-        new app.models.WebRTCCall();
+        new app.models.WebRTCCall(null, {dataChannel: true});
 
         fakePC.ondatachannel({channel: fakeChannel});
 
@@ -53,7 +53,7 @@ describe("WebRTCCall", function() {
     it("should configure a received data channel then trigger the " +
        "`dc.in.open` event",
       function(done) {
-        var rtcCall = new app.models.WebRTCCall();
+        var rtcCall = new app.models.WebRTCCall(null, {dataChannel: true});
         var fakeChannel = {};
         rtcCall.on('dc.in.open', function() {
           done();
@@ -66,7 +66,7 @@ describe("WebRTCCall", function() {
 
     it("should configure data channel to trigger the dc.in.close event",
       function(done) {
-        var rtcCall = new app.models.WebRTCCall();
+        var rtcCall = new app.models.WebRTCCall(null, {dataChannel: true});
         var fakeChannel = {};
         rtcCall.on('dc.in.close', function() {
           done();
@@ -79,7 +79,7 @@ describe("WebRTCCall", function() {
 
     it("should configure data channel to trigger the dc.in.message event",
       function(done) {
-        var rtcCall = new app.models.WebRTCCall();
+        var rtcCall = new app.models.WebRTCCall(null, {dataChannel: true});
         var fakeChannel = {};
         rtcCall.on('dc.in.message', function() {
           done();
@@ -92,7 +92,7 @@ describe("WebRTCCall", function() {
 
     it("should configure data channel to trigger the dc.in.error event",
       function(done) {
-        var rtcCall = new app.models.WebRTCCall();
+        var rtcCall = new app.models.WebRTCCall(null, {dataChannel: true});
         var fakeChannel = {};
         rtcCall.on('dc.in.error', function() {
           done();

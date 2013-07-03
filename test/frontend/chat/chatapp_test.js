@@ -63,10 +63,11 @@ describe("ChatApp", function() {
         "_onCallEstablishment", incomingCallData);
     });
 
-  it("should attach _onIncomingCall to talkilla.call-incoming", function() {
-    assertEventTriggersHandler("talkilla.call-incoming",
-      "_onIncomingCall", incomingCallData);
-  });
+  it("should attach _onIncomingConversation to talkilla.conversation-incoming",
+    function() {
+      assertEventTriggersHandler("talkilla.conversation-incoming",
+        "_onIncomingConversation", incomingCallData);
+    });
 
   it("should attach _onCallShutdown to talkilla.call-hangup", function() {
     assertEventTriggersHandler("talkilla.call-hangup",
@@ -202,9 +203,9 @@ describe("ChatApp", function() {
       });
     });
 
-    describe("#_onIncomingCall", function() {
+    describe("#_onIncomingConversation", function() {
       it("should set the peer", function() {
-        chatApp._onIncomingCall(incomingCallData);
+        chatApp._onIncomingConversation(incomingCallData);
 
         expect(chatApp.peer.get("nick")).to.equal(incomingCallData.peer);
       });
@@ -212,15 +213,15 @@ describe("ChatApp", function() {
       it("should set the call as incoming", function() {
         sandbox.stub(chatApp.call, "incoming");
 
-        chatApp._onIncomingCall(incomingCallData);
+        chatApp._onIncomingConversation(incomingCallData);
 
         sinon.assert.calledOnce(chatApp.call.incoming);
         sinon.assert.calledWithExactly(chatApp.call.incoming,
-         {offer: incomingCallData.offer, video: true, audio: true});
+         {offer: incomingCallData.offer, video: false, audio: false});
       });
 
       it("should play the incoming call sound", function() {
-        chatApp._onIncomingCall(incomingCallData);
+        chatApp._onIncomingConversation(incomingCallData);
 
         sinon.assert.calledOnce(chatApp.audioLibrary.play);
         sinon.assert.calledWithExactly(chatApp.audioLibrary.play, "incoming");
@@ -386,19 +387,6 @@ describe("ChatApp", function() {
 
         sinon.assert.called(stub);
         sinon.assert.calledWithExactly(stub, {foo: "bar"});
-      });
-    });
-
-    describe("#_onTextChatEntryCreated", function() {
-      it("should send data over data channel", function() {
-        var stub = sandbox.stub(app.models.WebRTCCall.prototype, "send");
-        chatApp = new ChatApp();
-        var entry = {foo: "bar"};
-
-        chatApp._onTextChatEntryCreated(entry);
-
-        sinon.assert.calledOnce(stub);
-        sinon.assert.calledWithExactly(stub, JSON.stringify(entry));
       });
     });
 

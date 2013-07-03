@@ -6,6 +6,18 @@
 (function(app, Backbone, StateMachine) {
   "use strict";
 
+  function log() {
+    if (!app.options.DEBUG)
+      return;
+    return console.log.apply(console, arguments);
+  }
+
+  function error() {
+    if (!app.options.DEBUG)
+      return;
+    return console.error.apply(console, arguments);
+  }
+
   /**
    * Call model.
    *
@@ -232,14 +244,16 @@
       this.pc = new mozRTCPeerConnection();
 
       // outgoing data channel
-      if (options && !!options.dataChannel)
+      if (options && !!options.dataChannel) {
         this.dcOut = this.pc.createDataChannel('dc', {});
 
-      // incoming data channel
-      this.pc.ondatachannel = function(event) {
-        this.dcIn = this._setupDataChannelIn(event.channel);
-        this.trigger('dc.in.ready', event);
-      }.bind(this);
+        // incoming data channel
+        this.pc.ondatachannel = function(event) {
+          log("incomming data channel");
+          this.dcIn = this._setupDataChannelIn(event.channel);
+          this.trigger('dc.in.ready', event);
+        }.bind(this);
+      }
 
       // remote stream
       this.pc.onaddstream = function(event) {
@@ -258,9 +272,15 @@
      * - audio: set to true to enable audio
      */
     offer: function(options) {
-      this.set({video: options.video, audio: options.audio});
+      log("WebRTCCall#offer", options);
+      this.set({
+        video: !!(options && options.video),
+        audio: !!(options && options.audio)
+      });
       var callback = this.trigger.bind(this, "offer-ready");
-      this._getMedia(this._createOffer.bind(this, callback), this._onError);
+      this._getMedia(this._createOffer.bind(this, callback), function(err) {
+        error("Unable to get media (offer)", err);
+      });
     },
 
     /**
@@ -270,6 +290,7 @@
      * - answer: the answer (sdp) to add to the peer connection
      */
     establish: function(options) {
+      log("WebRTCCall#establish", options);
       var answerDescription = new mozRTCSessionDescription(options.answer);
 
       var cb = function() {
@@ -277,7 +298,9 @@
         this.trigger("established");
       }.bind(this);
 
-      this.pc.setRemoteDescription(answerDescription, cb, this._onError);
+      this.pc.setRemoteDescription(answerDescription, cb, function(err) {
+        error("Unable to set remote description", err);
+      });
     },
 
     /**
@@ -290,10 +313,18 @@
      * - offer: the offer (sdp) to respond to.
      */
     answer: function(options) {
-      this.set({video: options.video, audio: options.audio});
+      log("WebRTCCall#answer", options);
+
+      this.set({
+        video: !!(options && options.video),
+        audio: !!(options && options.audio)
+      });
+
       var callback = this.trigger.bind(this, "answer-ready");
       var createAnswer = this._createAnswer.bind(this, options.offer, callback);
-      this._getMedia(createAnswer, this._onError);
+      this._getMedia(createAnswer, function(err) {
+        error("Unable to get media (answer)", err);
+      });
     },
 
     /**
@@ -301,8 +332,9 @@
      * @param  {Object} data
      */
     send: function(data) {
+      log("WebRTCCall#send", data);
       if (!this.dcOut)
-        return this._onError('no data channel connection available');
+        return error('no data channel connection available');
       this.dcOut.send(data);
     },
 
@@ -310,29 +342,52 @@
      * Close the p2p connection.
      */
     hangup: function() {
+      log("WebRTCCall#hangup");
       this.connected = false;
       if (this.pc && this.pc.signalingState !== "closed")
         this.pc.close();
     },
 
     _createOffer: function(callback) {
-      this.pc.createOffer(function(offer) {
+      log("WebRTCCall#_createOffer");
+
+      var onOfferCreated = function(offer) {
         var cb = callback.bind(this, offer);
-        this.pc.setLocalDescription(offer, cb, this._onError);
-      }.bind(this), this._onError);
+        this.pc.setLocalDescription(offer, cb, function(err) {
+          error("Unable to set local description (offer)", err);
+        });
+      }.bind(this);
+
+      this.pc.createOffer(onOfferCreated, function(err) {
+        error("Unable to create offer", err);
+      });
     },
 
     _createAnswer: function(offer, callback) {
+      log("WebRTCCall#_createAnswer", offer);
+
       var offerDescription = new mozRTCSessionDescription(offer);
-      this.pc.setRemoteDescription(offerDescription, function() {
-        this.pc.createAnswer(function(answer) {
+
+      var cb = function() {
+        var onAnswerCreated = function(answer) {
           var cb = callback.bind(this, answer);
-          this.pc.setLocalDescription(answer, cb, this._onError);
-        }.bind(this), this._onError);
-      }.bind(this), this._onError);
+          this.pc.setLocalDescription(answer, cb, function(err) {
+            error("Unable to set local description (answer)", err);
+          });
+        }.bind(this);
+
+        this.pc.createAnswer(onAnswerCreated, function(err) {
+          error("Unable to create answer", err);
+        });
+      }.bind(this);
+
+      this.pc.setRemoteDescription(offerDescription, cb, function(err) {
+        error("Unable to set remote description", err);
+      });
     },
 
     _getMedia: function(callback, errback) {
+      log("WebRTCCall#_getMedia");
       // if no media required, skip gUM
       if (!this.get('video') && !this.get('audio'))
         return callback();
@@ -353,6 +408,7 @@
     },
 
     _setupDataChannelIn: function(channel) {
+      log("WebRTCCall#_setupDataChannelIn");
       channel.binaryType = 'blob';
 
       channel.onopen = function(event) {
@@ -374,14 +430,16 @@
       return channel;
     },
 
-    _onError: function(error) {
+    _onError: function(err) {
       // XXX: better error logging
-      var readable = error;
-      if ("name" in error && "message" in error)
-        readable = error.name + ": " + error.message;
+      var readable = err;
+      if ("name" in err && "message" in err)
+        readable = err.name + ": " + err.message;
       else
-        readable = error.toString();
-      throw new Error("WebRTCCall error: " + readable);
+        readable = err.toString();
+      var message = "WebRTCCall error: " + readable;
+      error(message);
+      throw new Error(message);
     }
   });
 
@@ -411,31 +469,19 @@
       this.media = options && options.media;
       this.peer = options && options.peer;
 
-      this.state = StateMachine.create({
-        initial: 'ready',
-        events: []
-      });
-
       this.media.on("offer-ready", function(offer) {
         this.trigger("send-offer", {
           peer: this.peer.get("nick"),
           offer: offer
         });
-      }.bind(this));
+      }, this);
 
       this.media.on("answer-ready", function(answer) {
         this.trigger("send-answer", {
           peer: this.peer.get("nick"),
           answer: answer
         });
-
-        // XXX Change transition to complete/ongoing here as
-        // this is the best place we've got currently to know that
-        // the incoming call is now ongoing. When WebRTC platform
-        // support comes for connection notifications, we'll want
-        // to handle this differently.
-        this.state.complete();
-      }.bind(this));
+      }, this);
     },
 
     /**
@@ -448,7 +494,7 @@
         return cb.call(this);
 
       // initiate peer connection
-      this.media.offer({video: false, audio: false});
+      this.media.offer({video: false, audio: true, fake: true});
 
       // send the message once the connection is established
       this.media.once("established", cb, this);
@@ -461,9 +507,13 @@
      */
     send: function(data) {
       this.ensureConnected(function() {
+        log("connection established, processing data", data);
         var entry = this.add(data).at(this.length - 1);
-        if (entry)
-          this.trigger('entry.created', entry);
+        if (entry) {
+          log("new text chat entry added", entry);
+          log("sending text chat message data", data);
+          this.media.send(data);
+        }
       });
     }
   });

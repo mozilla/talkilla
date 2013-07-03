@@ -80,7 +80,7 @@ var ChatApp = (function($, Backbone, _) {
     // TODO: prefill the chat with history
     var history = [];
     this.textChat = new app.models.TextChat(history, {
-      media: this.webrtc,
+      media: new app.models.WebRTCCall(null, {dataChannel: true}),
       peer: this.peer
     });
     this.textChatView = new app.views.TextChatView({
@@ -90,7 +90,8 @@ var ChatApp = (function($, Backbone, _) {
     // Incoming events
     this.port.on('talkilla.conversation-open',
                  this._onConversationOpen.bind(this));
-    this.port.on('talkilla.call-incoming', this._onIncomingCall.bind(this));
+    this.port.on('talkilla.conversation-incoming',
+                 this._onIncomingConversation.bind(this));
     this.port.on('talkilla.call-establishment',
                  this._onCallEstablishment.bind(this));
     this.port.on('talkilla.call-hangup', this._onCallShutdown.bind(this));
@@ -99,13 +100,14 @@ var ChatApp = (function($, Backbone, _) {
     this.call.on('send-offer', this._onSendCallOffer.bind(this));
     this.call.on('send-answer', this._onSendCallAnswer.bind(this));
     this.call.on('offer-timeout', this._onCallOfferTimout.bind(this));
+    this.textChat.on('send-offer', this._onSendTextChatOffer.bind(this));
+    this.textChat.on('send-answer', this._onSendTextChatAnswer.bind(this));
 
     // Internal events
     this.call.on('state:accept', this._onCallAccepted.bind(this));
 
     // Data channels
     this.webrtc.on('dc.in.message', this._onDataChannelMessageIn.bind(this));
-    this.textChat.on('entry.created', this._onTextChatEntryCreated.bind(this));
 
     // Internal events
     window.addEventListener("unload", this._onCallHangup.bind(this));
@@ -132,10 +134,15 @@ var ChatApp = (function($, Backbone, _) {
   };
 
   // Incoming calls
-  ChatApp.prototype._onIncomingCall = function(data) {
+  ChatApp.prototype._onIncomingConversation = function(data) {
     this.peer.set({nick: data.peer});
-    // XXX Assume both video and audio call for now
-    this.call.incoming({video: true, audio: true, offer: data.offer});
+    var sdp = data.offer.sdp;
+    var options = {
+      video: sdp.contains("\nm=video "),
+      audio: sdp.contains("\nm=audio "),
+      offer: data.offer
+    };
+    this.call.incoming(options);
     this.audioLibrary.play('incoming');
   };
 
@@ -147,6 +154,14 @@ var ChatApp = (function($, Backbone, _) {
 
   ChatApp.prototype._onSendCallAnswer = function(data) {
     this.port.postEvent('talkilla.call-answer', data);
+  };
+
+  ChatApp.prototype._onSendTextChatOffer = function(data) {
+    this.port.postEvent('talkilla.text-chat-offer', data);
+  };
+
+  ChatApp.prototype._onSendTextChatAnswer = function(data) {
+    this.port.postEvent('talkilla.text-chat-answer', data);
   };
 
   // Call Hangup
@@ -171,10 +186,6 @@ var ChatApp = (function($, Backbone, _) {
   // Text chat & data channel event listeners
   ChatApp.prototype._onDataChannelMessageIn = function(event) {
     this.textChat.add(JSON.parse(event.data));
-  };
-
-  ChatApp.prototype._onTextChatEntryCreated = function(entry) {
-    this.webrtc.send(JSON.stringify(entry));
   };
 
   return ChatApp;

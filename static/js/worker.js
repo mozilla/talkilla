@@ -112,7 +112,7 @@ Conversation.prototype = {
     storeContact(this.data.peer);
 
     var topic = this.data.offer ?
-      "talkilla.call-incoming" :
+      "talkilla.conversation-incoming" :
       "talkilla.conversation-open";
 
     port.postEvent(topic, this.data);
@@ -516,7 +516,31 @@ var handlers = {
    * - peer:  the person who is calling you
    * - offer: an RTCSessionDescription containing the sdp data for the call.
    */
-  'talkilla.call-answer': function (event) {
+  'talkilla.call-answer': function(event) {
+    _presenceSocketSendMessage(JSON.stringify({ 'call_accepted': event.data }));
+  },
+
+  /**
+   * The data for talkilla.text-chat-offer is:
+   *
+   * - peer:  the person you are calling
+   * - offer: an RTCSessionDescription containing the sdp data for the text
+   *          chat.
+   */
+  'talkilla.text-chat-offer': function(event) {
+    // Note: reusing server event for calls
+    _presenceSocketSendMessage(JSON.stringify({ 'call_offer': event.data }));
+  },
+
+  /**
+   * The data for talkilla.text-chat-answer is:
+   *
+   * - peer:  the person who is calling you
+   * - offer: an RTCSessionDescription containing the sdp data for the text
+   *          chat.
+   */
+  'talkilla.text-chat-answer': function(event) {
+    // Note: reusing server event for calls
     _presenceSocketSendMessage(JSON.stringify({ 'call_accepted': event.data }));
   },
 

@@ -55,12 +55,6 @@ describe('Text chat models', function() {
 
         expect(textChat.peer).to.be.an.instanceOf(app.models.User);
       });
-
-      it("should be in the `ready` state", function() {
-        var textChat = createTextChat();
-
-        expect(textChat.state.current).to.equal("ready");
-      });
     });
 
     describe("#ensureConnected", function() {
@@ -88,23 +82,19 @@ describe('Text chat models', function() {
     });
 
     describe("#send", function() {
-      it("should add and send a message then trigger the `entry.created` event",
-        function(done) {
-          media.connected = true;
-          var textChat = createTextChat();
-          var entry = new app.models.TextChatEntry({
-            nick: "niko",
-            message: "hi"
-          });
-
-          textChat.on('entry.created', function(receivedEntry) {
-            expect(textChat).to.have.length.of(1);
-            expect(receivedEntry.toJSON()).to.deep.equal(entry.toJSON());
-            done();
-          });
-
-          textChat.send(entry);
+      it("should add and send a message over data channel", function() {
+        media.connected = true;
+        var textChat = createTextChat();
+        var entry = new app.models.TextChatEntry({
+          nick: "niko",
+          message: "hi"
         });
+
+        textChat.send(entry);
+
+        expect(textChat).to.have.length.of(1);
+        expect(textChat.at(0).toJSON()).to.deep.equal(entry.toJSON());
+      });
 
       it("should initiate a peer connection if not started yet", function() {
         media.connected = false;
@@ -137,7 +127,6 @@ describe('Text chat models', function() {
       app.port = {postEvent: sinon.spy()};
       _.extend(app.port, Backbone.Events);
       sandbox.stub(ChatApp.prototype, "_onDataChannelMessageIn");
-      sandbox.stub(ChatApp.prototype, "_onTextChatEntryCreated");
       chatApp = new ChatApp();
     });
 
@@ -152,16 +141,6 @@ describe('Text chat models', function() {
 
       sinon.assert.calledOnce(chatApp._onDataChannelMessageIn);
       sinon.assert.calledWithExactly(chatApp._onDataChannelMessageIn, event);
-    });
-
-    it('should listen to the text chat `entry.created` event', function() {
-      var entry = new app.models.TextChatEntry({nick: "niko", message: "hi"});
-
-      chatApp.textChat.trigger('entry.created', entry.toJSON());
-
-      sinon.assert.calledOnce(chatApp._onTextChatEntryCreated);
-      sinon.assert.calledWithExactly(chatApp._onTextChatEntryCreated,
-                                     entry.toJSON());
     });
   });
 });
