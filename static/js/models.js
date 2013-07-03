@@ -294,6 +294,7 @@
     establish: function(options) {
       log("WebRTCCall#establish", options);
       var answerDescription = new mozRTCSessionDescription(options.answer);
+      log("answer description", answerDescription);
 
       var cb = function() {
         this.connected = true;
@@ -474,16 +475,26 @@
       this.media.on("offer-ready", function(offer) {
         this.trigger("send-offer", {
           peer: this.peer.get("nick"),
-          offer: offer
+          offer: offer,
+          dataChannel: true
         });
       }, this);
 
       this.media.on("answer-ready", function(answer) {
         this.trigger("send-answer", {
           peer: this.peer.get("nick"),
-          answer: answer
+          answer: answer,
+          dataChannel: true
         });
       }, this);
+    },
+
+    /**
+     * Establish communication through data channel.
+     * @param  {Object} options
+     */
+    establish: function(options) {
+      this.media.establish(options);
     },
 
     /**

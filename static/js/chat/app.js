@@ -136,12 +136,20 @@ var ChatApp = (function($, Backbone, _) {
   // Incoming calls
   ChatApp.prototype._onIncomingConversation = function(data) {
     this.peer.set({nick: data.peer});
+
     var sdp = data.offer.sdp;
+
     var options = {
       video: sdp.contains("\nm=video "),
       audio: sdp.contains("\nm=audio "),
       offer: data.offer
     };
+
+    // incoming text chat conversation
+    if (data.dataChannel)
+      return this.textChat.media.answer(options);
+
+    // incoming video/audio call
     this.call.incoming(options);
     this.audioLibrary.play('incoming');
   };
