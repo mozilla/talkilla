@@ -3,8 +3,6 @@
 /* jshint expr:true */
 var expect = chai.expect;
 
-app.options.DEBUG = true;
-
 describe('Text chat models', function() {
   "use strict";
 

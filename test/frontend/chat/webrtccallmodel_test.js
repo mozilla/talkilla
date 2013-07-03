@@ -154,16 +154,17 @@ describe("WebRTCCall", function() {
   });
 
   describe("#_ensureConnected", function() {
-    it("should execute a callback when a pc is established", function() {
-      webrtc.connected = true;
-      sandbox.stub(webrtc, "offer");
-      var called = sandbox.spy();
+    it("should execute a callback when a pc is already established",
+      function() {
+        webrtc.connected = true;
+        sandbox.stub(webrtc, "offer");
+        var called = sandbox.spy();
 
-      webrtc._ensureConnected(called);
+        webrtc._ensureConnected(called);
 
-      sinon.assert.calledOnce(called);
-      sinon.assert.notCalled(webrtc.offer);
-    });
+        sinon.assert.calledOnce(called);
+        sinon.assert.notCalled(webrtc.offer);
+      });
 
     it("should establish a pc when not connected, then execute a callback",
       function() {

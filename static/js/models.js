@@ -236,8 +236,8 @@
    */
   app.models.WebRTCCall = Backbone.Model.extend({
     connected: false,
-    pc: undefined, // peer connection
-    dcIn: undefined, // data channel in
+    pc: undefined,    // peer connection
+    dcIn: undefined,  // data channel in
     dcOut: undefined, // data channel out
 
     initialize: function(attributes, options) {
@@ -335,17 +335,14 @@
      * Sends data over data channel, initiating and establishing the peer
      * communication if necessary.
      *
-     * TODO: buffer data to send until the connection is effective
-     *
      * @param  {Object} data
      */
     send: function(data) {
-      log("WebRTCCall#send", data);
       this._ensureConnected(function() {
         if (!this.dcOut)
           return error('No data channel connection available');
         this.dcOut.send(JSON.stringify(data));
-      });
+      }, "dc.in.open");
     },
 
     /**
@@ -415,15 +412,16 @@
 
     /**
      * Checks for an established peer connection before processing the provided
-     * callback.
-     * @param  {Function} callback     Callback to call once connected
+     * callback. Will queue tasks until then.
+     * @param  {Function} callback   Callback to call once connected
+     * @param  {String}   eventName  Connect event to wait for
      */
-    _ensureConnected: function(callback) {
+    _ensureConnected: function(callback, eventName) {
       if (this.connected)
         return callback.call(this);
 
       this.offer(this._getConstraints());
-      this.once("established", callback, this);
+      this.once(eventName || "established", callback, this);
     },
 
     _getMedia: function(callback, errback) {
