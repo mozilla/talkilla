@@ -296,14 +296,15 @@
       var answerDescription = new mozRTCSessionDescription(options.answer);
       log("answer description", answerDescription);
 
-      var cb = function() {
+      var onEstablished = function(data) {
         this.connected = true;
         this.trigger("established");
       }.bind(this);
 
-      this.pc.setRemoteDescription(answerDescription, cb, function(err) {
-        error("Unable to set remote description", err);
-      });
+      this.pc.setRemoteDescription(answerDescription, onEstablished,
+        function(err) {
+          error("Unable to set remote description", err);
+        });
     },
 
     /**
@@ -338,7 +339,7 @@
       log("WebRTCCall#send", data);
       if (!this.dcOut)
         return error('No data channel connection available');
-      this.dcOut.send(data);
+      this.dcOut.send(JSON.stringify(data));
     },
 
     /**
@@ -371,14 +372,23 @@
 
       var offerDescription = new mozRTCSessionDescription(offer);
 
-      var cb = function() {
-        var onAnswerCreated = function(answer) {
+      var onAnswerCreated = function(answer) {
+        log("answer created", answer);
+
+        var onEstablished = function() {
           var cb = callback.bind(this, answer);
-          this.pc.setLocalDescription(answer, cb, function(err) {
-            error("Unable to set local description (answer)", err);
-          });
+          this.connected = true;
+          this.trigger("established");
+          cb();
         }.bind(this);
 
+        this.pc.setLocalDescription(answer, onEstablished,
+          function(err) {
+            error("Unable to set local description (answer)", err);
+          });
+      }.bind(this);
+
+      var cb = function() {
         this.pc.createAnswer(onAnswerCreated, function(err) {
           error("Unable to create answer", err);
         });
@@ -487,6 +497,14 @@
           dataChannel: true
         });
       }, this);
+
+      this.media.on('dc.in.message', function(event) {
+        this.add(JSON.parse(event.data));
+      }, this);
+    },
+
+    incoming: function(options) {
+      this.media.answer(options);
     },
 
     /**
@@ -507,7 +525,7 @@
         return cb.call(this);
 
       // initiate peer connection
-      this.media.offer({video: false, audio: true, fake: true});
+      this.media.offer({video: false, audio: false});
 
       // send the message once the connection is established
       this.media.once("established", cb, this);
@@ -524,8 +542,7 @@
         var entry = this.add(data).at(this.length - 1);
         if (entry) {
           log("new text chat entry added", entry);
-          log("sending text chat message data", data);
-          this.media.send(data);
+          this.media.send(entry.toJSON());
         }
       });
     }
