@@ -4,6 +4,8 @@
 /* jshint expr:true */
 var expect = chai.expect;
 
+app.options.DEBUG = true;
+
 describe('Text chat models', function() {
   "use strict";
 
@@ -11,17 +13,22 @@ describe('Text chat models', function() {
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
-    //sandbox.stub(window, "mozRTCPeerConnection");
-    //sandbox.stub(app.models.WebRTCCall.prototype, "initialize");
+
+    // stubbing port
     app.port = {
       on: sinon.spy(),
       postEvent: sinon.spy()
     };
     _.extend(app.port, Backbone.Events);
 
+    // stubbing WebRTCCall#send
+    sandbox.stub(app.models.WebRTCCall.prototype, "send");
+
+    // text chat model dependencies
     media = new app.models.WebRTCCall(null, {dataChannel: true});
     peer = new app.models.User();
 
+    // object creation helper
     createTextChat = function() {
       return new app.models.TextChat([], {media: media, peer: peer});
     };
@@ -85,36 +92,47 @@ describe('Text chat models', function() {
       it("should add and send a message over data channel", function() {
         media.connected = true;
         var textChat = createTextChat();
-        var entry = new app.models.TextChatEntry({
-          nick: "niko",
-          message: "hi"
-        });
+        var entry = {nick: "niko", message: "hi"};
 
         textChat.send(entry);
 
+        sinon.assert.calledOnce(media.send);
+        sinon.assert.calledWithExactly(media.send, entry);
+
         expect(textChat).to.have.length.of(1);
-        expect(textChat.at(0).toJSON()).to.deep.equal(entry.toJSON());
-      });
-
-      it("should initiate a peer connection if not started yet", function() {
-        media.connected = false;
-        var textChat = createTextChat();
-        sandbox.stub(media, "offer");
-
-        textChat.send({nick: "niko", message: "hi"});
-
-        sinon.assert.calledOnce(media.offer);
-        sinon.assert.calledWith(media.offer, {video: false, audio: false});
+        expect(textChat.at(0).get("nick")).to.equal("niko");
+        expect(textChat.at(0).get("message")).to.equal("hi");
       });
 
       it("should reuse a peer connection if already started", function() {
         media.connected = true;
         var textChat = createTextChat();
         sandbox.stub(media, "offer");
+        var entry = {nick: "niko", message: "hi"};
 
-        textChat.send({nick: "niko", message: "hi"});
+        textChat.send(entry);
 
         sinon.assert.notCalled(media.offer);
+        sinon.assert.calledOnce(media.send);
+        sinon.assert.calledWithExactly(media.send, entry);
+      });
+
+      it("should initiate a peer connection if not started yet", function() {
+        media.connected = false;
+        var textChat = createTextChat();
+        sandbox.stub(media, "offer");
+        var entry = {nick: "niko", message: "hi"};
+
+        textChat.send(entry);
+
+        media.trigger("established");
+
+        sinon.assert.calledOnce(media.offer);
+        sinon.assert.calledWith(media.offer,
+                                {audio: true, fake: true, video: false});
+
+        sinon.assert.calledOnce(media.send);
+        sinon.assert.calledWithExactly(media.send, entry);
       });
     });
 

@@ -245,11 +245,13 @@
 
       // outgoing data channel
       if (options && !!options.dataChannel) {
+        log("creating outgoing data channel");
+
         this.dcOut = this.pc.createDataChannel('dc', {});
 
         // incoming data channel
         this.pc.ondatachannel = function(event) {
-          log("incomming data channel");
+          log("creating incoming data channel");
           this.dcIn = this._setupDataChannelIn(event.channel);
           this.trigger('dc.in.ready', event);
         }.bind(this);
@@ -334,7 +336,7 @@
     send: function(data) {
       log("WebRTCCall#send", data);
       if (!this.dcOut)
-        return error('no data channel connection available');
+        return error('No data channel connection available');
       this.dcOut.send(data);
     },
 
