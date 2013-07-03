@@ -97,9 +97,9 @@ describe("ChatApp", function() {
     assertModelEventTriggersHandler("send-offer", "_onSendCallOffer");
   });
 
-  it("should attach _onSendAnswer to send-answer on the webrtc model",
+  it("should attach _onSendCallAnswer to send-answer on the webrtc model",
     function() {
-    assertModelEventTriggersHandler("send-answer", "_onSendAnswer");
+    assertModelEventTriggersHandler("send-answer", "_onSendCallAnswer");
   });
 
   it("should post talkilla.chat-window-ready to the worker", function() {
@@ -361,7 +361,7 @@ describe("ChatApp", function() {
 
     });
 
-    describe("#_onSendAnswer", function() {
+    describe("#_onSendCallAnswer", function() {
       it("should post an event to the worker when onSendAnsweris triggered",
         function() {
           var answer = {
@@ -369,7 +369,7 @@ describe("ChatApp", function() {
             type: 'type'
           };
 
-          chatApp._onSendAnswer(answer);
+          chatApp._onSendCallAnswer(answer);
 
           sinon.assert.calledOnce(app.port.postEvent);
           sinon.assert.calledWith(app.port.postEvent, "talkilla.call-answer");

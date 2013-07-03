@@ -97,7 +97,7 @@ var ChatApp = (function($, Backbone, _) {
 
     // Outgoing events
     this.call.on('send-offer', this._onSendCallOffer.bind(this));
-    this.call.on('send-answer', this._onSendAnswer.bind(this));
+    this.call.on('send-answer', this._onSendCallAnswer.bind(this));
     this.call.on('offer-timeout', this._onCallOfferTimout.bind(this));
 
     // Internal events
@@ -145,7 +145,7 @@ var ChatApp = (function($, Backbone, _) {
     this.audioLibrary.play('outgoing');
   };
 
-  ChatApp.prototype._onSendAnswer = function(data) {
+  ChatApp.prototype._onSendCallAnswer = function(data) {
     this.port.postEvent('talkilla.call-answer', data);
   };
 
