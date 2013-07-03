@@ -19,7 +19,7 @@ describe('Text chat models', function() {
     };
     _.extend(app.port, Backbone.Events);
 
-    media = new app.models.WebRTCCall();
+    media = new app.models.WebRTCCall(null, {dataChannel: true});
     peer = new app.models.User();
 
     createTextChat = function() {

@@ -228,18 +228,22 @@
     dcIn: undefined, // data channel in
     dcOut: undefined, // data channel out
 
-    initialize: function() {
+    initialize: function(attributes, options) {
       this.pc = new mozRTCPeerConnection();
-      this.dcOut = this.pc.createDataChannel('dc', {});
 
-      this.pc.onaddstream = function(event) {
-        this.set("remoteStream", event.stream);
-      }.bind(this);
+      // outgoing data channel
+      if (options && !!options.dataChannel)
+        this.dcOut = this.pc.createDataChannel('dc', {});
 
-      // data channel for incoming calls
+      // incoming data channel
       this.pc.ondatachannel = function(event) {
         this.dcIn = this._setupDataChannelIn(event.channel);
         this.trigger('dc.in.ready', event);
+      }.bind(this);
+
+      // remote stream
+      this.pc.onaddstream = function(event) {
+        this.set("remoteStream", event.stream);
       }.bind(this);
 
       this._onError = this._onError.bind(this);
@@ -292,6 +296,10 @@
       this._getMedia(createAnswer, this._onError);
     },
 
+    /**
+     * Sends data over data channel if available.
+     * @param  {Object} data
+     */
     send: function(data) {
       if (!this.dcOut)
         return this._onError('no data channel connection available');
@@ -367,8 +375,13 @@
     },
 
     _onError: function(error) {
-      // XXX Better error logging and handling
-      console.error("WebRTCCall error: " + error);
+      // XXX: better error logging
+      var readable = error;
+      if ("name" in error && "message" in error)
+        readable = error.name + ": " + error.message;
+      else
+        readable = error.toString();
+      throw new Error("WebRTCCall error: " + readable);
     }
   });
 

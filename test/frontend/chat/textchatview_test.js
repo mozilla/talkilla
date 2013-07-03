@@ -1,4 +1,4 @@
-/* global app, chai, describe, it, sinon, beforeEach, afterEach,
+/* global app, Backbone, _, chai, describe, it, sinon, beforeEach, afterEach,
    ChatApp, $ */
 
 /* jshint expr:true */
@@ -12,6 +12,11 @@ describe("Text chat views", function() {
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
     sandbox.stub(window, "open");
+    app.port = {
+      on: sinon.spy(),
+      postEvent: sinon.spy()
+    };
+    _.extend(app.port, Backbone.Events);
   });
 
   afterEach(function() {
@@ -33,7 +38,7 @@ describe("Text chat views", function() {
 
   describe('TextChatView', function() {
 
-    var chatApp, call, media, peer;
+    var chatApp, media, peer;
 
     beforeEach(function() {
       $('body').append([
