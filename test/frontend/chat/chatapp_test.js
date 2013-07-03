@@ -216,7 +216,7 @@ describe("ChatApp", function() {
         chatApp._onIncomingConversation(incomingCallData);
 
         sinon.assert.calledOnce(chatApp.call.incoming);
-        sinon.assert.calledWithExactly(chatApp.call.incoming,
+        sinon.assert.calledWithMatch(chatApp.call.incoming,
          {offer: incomingCallData.offer, video: false, audio: false});
       });
 
@@ -375,19 +375,6 @@ describe("ChatApp", function() {
           sinon.assert.calledOnce(app.port.postEvent);
           sinon.assert.calledWith(app.port.postEvent, "talkilla.call-answer");
         });
-    });
-
-    describe("#_onDataChannelMessageIn", function() {
-      it("should append received data to the current text chat", function() {
-        var stub = sandbox.stub(app.models.TextChat.prototype, "add");
-        chatApp = new ChatApp();
-        var event = {data: JSON.stringify({foo: "bar"})};
-
-        chatApp._onDataChannelMessageIn(event);
-
-        sinon.assert.called(stub);
-        sinon.assert.calledWithExactly(stub, {foo: "bar"});
-      });
     });
 
   });

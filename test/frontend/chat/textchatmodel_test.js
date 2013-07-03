@@ -36,6 +36,7 @@ describe('Text chat models', function() {
 
   afterEach(function() {
     sandbox.restore();
+    app.port.off();
   });
 
   describe("app.models.TextChatEntry", function() {
@@ -97,7 +98,7 @@ describe('Text chat models', function() {
         textChat.send(entry);
 
         sinon.assert.calledOnce(media.send);
-        sinon.assert.calledWithExactly(media.send, entry);
+        sinon.assert.calledWithMatch(media.send, entry);
 
         expect(textChat).to.have.length.of(1);
         expect(textChat.at(0).get("nick")).to.equal("niko");
@@ -114,7 +115,7 @@ describe('Text chat models', function() {
 
         sinon.assert.notCalled(media.offer);
         sinon.assert.calledOnce(media.send);
-        sinon.assert.calledWithExactly(media.send, entry);
+        sinon.assert.calledWithMatch(media.send, entry);
       });
 
       it("should initiate a peer connection if not started yet", function() {
@@ -128,37 +129,27 @@ describe('Text chat models', function() {
         media.trigger("established");
 
         sinon.assert.calledOnce(media.offer);
-        sinon.assert.calledWith(media.offer,
-                                {audio: true, fake: true, video: false});
+        sinon.assert.calledWith(media.offer, {audio: false, video: false});
 
         sinon.assert.calledOnce(media.send);
-        sinon.assert.calledWithExactly(media.send, entry);
+        sinon.assert.calledWithMatch(media.send, entry);
+      });
+    });
+
+    describe("events", function() {
+      it('should listen to the data channel `dc.in.message` event', function() {
+        var textChat = createTextChat();
+        sandbox.stub(textChat, "add");
+        var event = {data: JSON.stringify({nick: "niko", message: "hi"})};
+
+        textChat.media.trigger('dc.in.message', event);
+
+        sinon.assert.calledOnce(textChat.add);
+        sinon.assert.calledWithExactly(textChat.add,
+                                       {nick: "niko", message: "hi"});
       });
     });
 
   });
 
-  describe('chatApp events for text chat', function () {
-    var chatApp;
-
-    beforeEach(function() {
-      app.port = {postEvent: sinon.spy()};
-      _.extend(app.port, Backbone.Events);
-      sandbox.stub(ChatApp.prototype, "_onDataChannelMessageIn");
-      chatApp = new ChatApp();
-    });
-
-    afterEach(function() {
-      app.port.off();
-    });
-
-    it('should listen to the data channel `dc.in.message` event', function() {
-      var event = {data: JSON.stringify({nick: "niko", message: "hi"})};
-
-      chatApp.webrtc.trigger('dc.in.message', event);
-
-      sinon.assert.calledOnce(chatApp._onDataChannelMessageIn);
-      sinon.assert.calledWithExactly(chatApp._onDataChannelMessageIn, event);
-    });
-  });
 });
