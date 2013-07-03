@@ -296,7 +296,7 @@
       var answerDescription = new mozRTCSessionDescription(options.answer);
       log("answer description", answerDescription);
 
-      var onEstablished = function(data) {
+      var onEstablished = function() {
         this.connected = true;
         this.trigger("established");
       }.bind(this);
