@@ -64,33 +64,8 @@ describe('Text chat models', function() {
       });
     });
 
-    describe("#ensureConnected", function() {
-      it("should execute a callback when a pc is established", function() {
-        var textChat = createTextChat();
-        var called = sandbox.spy();
-        media.connected = true;
-
-        textChat.ensureConnected(called);
-
-        sinon.assert.calledOnce(called);
-      });
-
-      it("should establish a pc when not connected, then execute a callback",
-        function() {
-          var textChat = createTextChat();
-          var called = sandbox.spy();
-          media.connected = false;
-
-          textChat.ensureConnected(called);
-          textChat.media.trigger("established");
-
-          sinon.assert.calledOnce(called);
-        });
-    });
-
     describe("#send", function() {
       it("should add and send a message over data channel", function() {
-        media.connected = true;
         var textChat = createTextChat();
         var entry = {nick: "niko", message: "hi"};
 
@@ -102,36 +77,6 @@ describe('Text chat models', function() {
         expect(textChat).to.have.length.of(1);
         expect(textChat.at(0).get("nick")).to.equal("niko");
         expect(textChat.at(0).get("message")).to.equal("hi");
-      });
-
-      it("should reuse a peer connection if already started", function() {
-        media.connected = true;
-        var textChat = createTextChat();
-        sandbox.stub(media, "offer");
-        var entry = {nick: "niko", message: "hi"};
-
-        textChat.send(entry);
-
-        sinon.assert.notCalled(media.offer);
-        sinon.assert.calledOnce(media.send);
-        sinon.assert.calledWithMatch(media.send, entry);
-      });
-
-      it("should initiate a peer connection if not started yet", function() {
-        media.connected = false;
-        var textChat = createTextChat();
-        sandbox.stub(media, "offer");
-        var entry = {nick: "niko", message: "hi"};
-
-        textChat.send(entry);
-
-        media.trigger("established");
-
-        sinon.assert.calledOnce(media.offer);
-        sinon.assert.calledWith(media.offer, {audio: false, video: false});
-
-        sinon.assert.calledOnce(media.send);
-        sinon.assert.calledWithMatch(media.send, entry);
       });
     });
 

@@ -332,14 +332,20 @@
     },
 
     /**
-     * Sends data over data channel if available.
+     * Sends data over data channel, initiating and establishing the peer
+     * communication if necessary.
+     *
+     * TODO: buffer data to send until the connection is effective
+     *
      * @param  {Object} data
      */
     send: function(data) {
       log("WebRTCCall#send", data);
-      if (!this.dcOut)
-        return error('No data channel connection available');
-      this.dcOut.send(JSON.stringify(data));
+      this._ensureConnected(function() {
+        if (!this.dcOut)
+          return error('No data channel connection available');
+        this.dcOut.send(JSON.stringify(data));
+      });
     },
 
     /**
@@ -350,6 +356,14 @@
       this.connected = false;
       if (this.pc && this.pc.signalingState !== "closed")
         this.pc.close();
+    },
+
+    _getConstraints: function() {
+      return {
+        video: !!this.get('video'),
+        audio: !!this.get('audio'),
+        fake:  !!this.get('fake')
+      };
     },
 
     _createOffer: function(callback) {
@@ -399,17 +413,24 @@
       });
     },
 
+    /**
+     * Checks for an established peer connection before processing the provided
+     * callback.
+     * @param  {Function} callback     Callback to call once connected
+     */
+    _ensureConnected: function(callback) {
+      if (this.connected)
+        return callback.call(this);
+
+      this.offer(this._getConstraints());
+      this.once("established", callback, this);
+    },
+
     _getMedia: function(callback, errback) {
       log("WebRTCCall#_getMedia");
       // if no media required, skip gUM
       if (!this.get('video') && !this.get('audio'))
         return callback();
-
-      var constraints = {
-        video: !!this.get('video'),
-        audio: !!this.get('audio'),
-        fake:  !!this.get('fake')
-      };
 
       var cb = function (localStream) {
         this.pc.addStream(localStream);
@@ -417,7 +438,7 @@
         callback();
       }.bind(this);
 
-      navigator.mozGetUserMedia(constraints, cb, errback);
+      navigator.mozGetUserMedia(this._getConstraints(), cb, errback);
     },
 
     _setupDataChannelIn: function(channel) {
@@ -516,35 +537,14 @@
     },
 
     /**
-     * Checks for an established peer connection before processing the provided
-     * callback.
-     * @param  {Function} cb
-     */
-    ensureConnected: function(cb) {
-      if (this.media.connected)
-        return cb.call(this);
-
-      // initiate peer connection
-      this.media.offer({video: false, audio: false});
-
-      // send the message once the connection is established
-      this.media.once("established", cb, this);
-    },
-
-    /**
      * Adds a new entry to the collection and sends it over data channel.
      * TODO: send entry over data channel
      * @param  {Object} data
      */
     send: function(data) {
-      this.ensureConnected(function() {
-        log("connection established, processing data", data);
-        var entry = this.add(data).at(this.length - 1);
-        if (entry) {
-          log("new text chat entry added", entry);
-          this.media.send(entry.toJSON());
-        }
-      });
+      var entry = this.add(data).at(this.length - 1);
+      if (entry)
+        this.media.send(entry.toJSON());
     }
   });
 
