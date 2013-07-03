@@ -96,7 +96,7 @@ var ChatApp = (function($, Backbone, _) {
     this.port.on('talkilla.call-hangup', this._onCallShutdown.bind(this));
 
     // Outgoing events
-    this.call.on('send-offer', this._onSendOffer.bind(this));
+    this.call.on('send-offer', this._onSendCallOffer.bind(this));
     this.call.on('send-answer', this._onSendAnswer.bind(this));
     this.call.on('offer-timeout', this._onCallOfferTimout.bind(this));
 
@@ -139,7 +139,7 @@ var ChatApp = (function($, Backbone, _) {
     this.audioLibrary.play('incoming');
   };
 
-  ChatApp.prototype._onSendOffer = function(data) {
+  ChatApp.prototype._onSendCallOffer = function(data) {
     this.port.postEvent('talkilla.call-offer', data);
     // Now start the tone, as the offer is going out.
     this.audioLibrary.play('outgoing');
