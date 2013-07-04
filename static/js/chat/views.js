@@ -334,7 +334,12 @@
   app.views.FileTransferView = Backbone.View.extend({
     tagName: 'li',
 
-    template: _.template('<strong><%= filename %>:</strong> <%= progress %>%'),
+    template: _.template('<strong><%= filename %>:' +
+                         '<% if (progress < 100) { %>' +
+                           '</strong> <%= progress %>%' +
+                         '<% } else { %>' +
+                           '<a href="<%= url %>" download="<%= filename %>">Save</a>' +
+                         '<% } %>'),
 
     initialize: function() {
       this.model.on("change", this.render, this);

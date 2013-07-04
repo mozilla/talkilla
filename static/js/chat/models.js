@@ -28,10 +28,16 @@
     },
 
     toJSON: function() {
-      return {
+      var progress = this.get("progress");
+      var json = {
         filename: this.filename,
-        progress: this.get("progress") || 0
+        progress: progress || 0,
       };
+
+      if (progress === 100)
+        json.url = window.URL.createObjectURL(this.blob || this.file);
+
+      return json;
     },
 
     start: function() {
