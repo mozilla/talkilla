@@ -190,7 +190,10 @@
 }
 
 #textchat form input[type="text"] {
-  border-radius: 0;
   width: 100%;
   font-size: 12px;
+  border-radius: 0;
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
 }
