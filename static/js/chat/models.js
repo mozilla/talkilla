@@ -46,13 +46,13 @@
 
     append: function(chunk) {
       this.chunks.push(chunk);
-      this.seek += chunk.length;
-      this.trigger("chunk", this.id, chunk);
+      this.seek += chunk.byteLength;
 
       if (this.seek === this.size) {
         this.blob = new Blob(this.chunks);
         this.trigger("complete", this.blob);
       }
+      this.trigger("chunk", this.id, chunk);
 
       if (this.seek > this.size)
         throw Error("Received more data than expected: " +
@@ -62,7 +62,7 @@
     _onChunk: function(event) {
       var data = event.target.result;
 
-      this.seek += data.length;
+      this.seek += data.byteLength;
       this.trigger("chunk", this.id, data);
 
       if (this.seek < this.file.size)
@@ -79,7 +79,7 @@
 
     _readChunk: function() {
       var blob = this.file.slice(this.seek, this.seek + this.options.chunkSize);
-      this.reader.readAsBinaryString(blob);
+      this.reader.readAsArrayBuffer(blob);
     }
   });
 })(app, Backbone);

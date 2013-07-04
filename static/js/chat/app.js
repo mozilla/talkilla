@@ -169,15 +169,15 @@ var ChatApp = (function($, Backbone, _) {
   // Text chat & data channel event listeners
   ChatApp.prototype._onDataChannelMessageIn = function(event) {
     var entry;
-    event = JSON.parse(event.data);
 
     if (event.type === "chat:message")
       entry = new app.models.TextChatEntry(event.message);
     else if (event.type === "file:new")
       entry = new app.models.FileTransfer(event.message);
     else if (event.type === "file:chunk") {
+      var chunk = tnetbin.toArrayBuffer(event.message.chunk).buffer
       var transfer = this.textChat.findWhere({id: event.message.id});
-      transfer.append(event.message.chunk);
+      transfer.append(chunk);
     }
 
     this.textChat.add(entry);

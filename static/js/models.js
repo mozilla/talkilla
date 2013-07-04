@@ -289,7 +289,7 @@
     send: function(data) {
       if (!this.dcOut)
         return this._onError('no data channel connection available');
-      this.dcOut.send(JSON.stringify(data));
+      this.dcOut.send(tnetbin.toArrayBuffer(tnetbin.encode(data)));
     },
 
     /**
@@ -347,7 +347,11 @@
       }.bind(this);
 
       channel.onmessage = function(event) {
-        this.trigger('dc.in.message', event);
+        var reader = new FileReader();
+        reader.addEventListener("loadend", function() {
+          this.trigger('dc.in.message', tnetbin.decode(reader.result).value);
+        }.bind(this));
+        reader.readAsArrayBuffer(event.data);
       }.bind(this);
 
       channel.onerror = function(event) {
