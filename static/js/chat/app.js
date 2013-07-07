@@ -1,4 +1,4 @@
-/*global jQuery, Backbone, _*/
+/*global jQuery, Backbone, _, WebRTC*/
 /* jshint unused: false */
 /**
  * Talkilla application.
@@ -34,8 +34,15 @@ var ChatApp = (function($, Backbone, _) {
     app.data.user = new app.models.User();
     this.peer = new app.models.User();
 
-    this.webrtc = new app.models.WebRTCCall({
-      fake: !!(app.options && app.options.FAKE_MEDIA_STREAMS)
+    // {
+    //   fake: !!(app.options && app.options.FAKE_MEDIA_STREAMS) // TODO
+    // }
+    this.webrtc = new WebRTC();
+    this.webrtc.on("error", function(message) {
+      console.error(message);
+    });
+    this.webrtc.on('all', function() {
+      console.log.apply(console, arguments);
     });
 
     this.call = new app.models.Call({}, {
@@ -100,7 +107,7 @@ var ChatApp = (function($, Backbone, _) {
     this.call.on('state:accept', this._onCallAccepted.bind(this));
 
     // Data channels
-    this.webrtc.on('dc.in.message', this._onDataChannelMessageIn.bind(this));
+    this.webrtc.on('dc:message-in', this._onDataChannelMessageIn.bind(this));
     this.textChat.on('entry.created', this._onTextChatEntryCreated.bind(this));
 
     // Internal events

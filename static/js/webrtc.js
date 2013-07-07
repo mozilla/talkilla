@@ -13,7 +13,7 @@
    */
   function WebRTC(pc, options) {
     this.constraints = {};
-    this.options = options || {}; // XXX: unused
+    this.options = options || {}; // TODO: fake media option
 
     this.pc = pc || new mozRTCPeerConnection();
     this.dc = this.pc.createDataChannel('dc', {});
