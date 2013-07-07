@@ -1,4 +1,4 @@
-/*global jQuery, Backbone, _*/
+/*global jQuery, Backbone, _, WebRTC*/
 /* jshint unused: false */
 /**
  * Talkilla application.
@@ -34,8 +34,13 @@ var ChatApp = (function($, Backbone, _) {
     app.data.user = new app.models.User();
     this.peer = new app.models.User();
 
-    this.webrtc = new app.models.WebRTCCall({
+    this.webrtc = new WebRTC(null, {
       fake: !!(app.options && app.options.FAKE_MEDIA_STREAMS)
+    });
+
+    this.webrtc.on("error", function(message) {
+      // XXX: notify user that something went wrong
+      console.error(message);
     });
 
     this.call = new app.models.Call({}, {
@@ -105,8 +110,6 @@ var ChatApp = (function($, Backbone, _) {
 
     // Internal events
     this.call.on('state:accept', this._onCallAccepted.bind(this));
-
-    // Internal events
     window.addEventListener("unload", this._onCallHangup.bind(this));
 
     this.port.postEvent('talkilla.chat-window-ready', {});

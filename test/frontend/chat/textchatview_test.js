@@ -1,5 +1,5 @@
 /* global app, Backbone, _, chai, describe, it, sinon, beforeEach, afterEach,
-   ChatApp, $ */
+   ChatApp, $, WebRTC */
 
 /* jshint expr:true */
 var expect = chai.expect;
@@ -38,7 +38,7 @@ describe("Text chat views", function() {
 
   describe('TextChatView', function() {
 
-    var chatApp, media, peer;
+    var call, media, peer;
 
     beforeEach(function() {
       $('body').append([
@@ -61,9 +61,14 @@ describe("Text chat views", function() {
       // This stops us changing the document's title unnecessarily
       sandbox.stub(app.views.ConversationView.prototype, "initialize");
 
-      chatApp = new ChatApp();
-      media = chatApp.call.media;
-      peer = chatApp.peer;
+      // port stubs
+      app.port.on = sandbox.stub();
+      app.port.postEvent = sandbox.stub();
+      app.port.trigger = sandbox.stub();
+
+      sandbox.stub(WebRTC.prototype, "send");
+      media = new WebRTC();
+      call = new app.models.Call({}, {media: media});
 
       app.data.user.set("nick", "niko");
     });
@@ -105,6 +110,7 @@ describe("Text chat views", function() {
     });
 
     it("should allow the caller to send a first message", function(done) {
+      var chatApp = new ChatApp();
       var textChat = chatApp.textChatView.collection;
       chatApp.textChatView.collection.media.connected = true;
       app.port.trigger("talkilla.conversation-open", {peer: "niko"});

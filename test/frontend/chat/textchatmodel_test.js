@@ -76,6 +76,8 @@ describe('Text chat models', function() {
         expect(textChat.at(0).get("nick")).to.equal("niko");
         expect(textChat.at(0).get("message")).to.equal("hi");
       });
+
+      it('should listen to the data channel `dc:message-in` event');
     });
 
     describe("events", function() {
