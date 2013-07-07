@@ -18,26 +18,7 @@
   function WebRTC(pc, options) {
     this._constraints = {};
     this.options = options || {};
-
-    this.pc = this._setupPeerConnection(pc || new mozRTCPeerConnection());
-    this.dc = this.pc.createDataChannel('dc', {});
-
-    this.state = StateMachine.create({
-      initial: 'ready',
-      events: [
-        {name: 'initiate',  from: 'ready',   to: 'pending'},
-        {name: 'establish', from: 'pending', to: 'ongoing'},
-        {name: 'answer',    from: 'ready',   to: 'ongoing'},
-        {name: 'terminate', from: '*',       to: 'terminated'}
-      ],
-      callbacks: {
-        onenterstate: function(event, from, to) {
-          this.trigger("change:state", to, from, event);
-          this.trigger("state:" + event);
-          this.trigger("state:to:" + to);
-        }.bind(this)
-      }
-    });
+    this._initialize(pc);
   }
   exports.WebRTC = WebRTC;
 
@@ -215,6 +196,31 @@
     if (err && typeof err === "object")
       messageParts = messageParts.concat([':', err.name, err.message]);
     return this.trigger('error', messageParts.join(' '));
+  };
+
+  /**
+   * Initializes WebRTC.
+   */
+  WebRTC.prototype._initialize = function(pc) {
+    this.pc = this._setupPeerConnection(pc || new mozRTCPeerConnection());
+    this.dc = this.pc.createDataChannel('dc', {});
+
+    this.state = StateMachine.create({
+      initial: 'ready',
+      events: [
+        {name: 'initiate',  from: 'ready',   to: 'pending'},
+        {name: 'establish', from: 'pending', to: 'ongoing'},
+        {name: 'answer',    from: 'ready',   to: 'ongoing'},
+        {name: 'terminate', from: '*',       to: 'terminated'}
+      ],
+      callbacks: {
+        onenterstate: function(event, from, to) {
+          this.trigger("change:state", to, from, event);
+          this.trigger("state:" + event);
+          this.trigger("state:to:" + to);
+        }.bind(this)
+      }
+    });
   };
 
   /**
