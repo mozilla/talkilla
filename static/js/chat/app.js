@@ -34,15 +34,13 @@ var ChatApp = (function($, Backbone, _) {
     app.data.user = new app.models.User();
     this.peer = new app.models.User();
 
-    // {
-    //   fake: !!(app.options && app.options.FAKE_MEDIA_STREAMS) // TODO
-    // }
-    this.webrtc = new WebRTC();
-    this.webrtc.on("error", function(message) {
-      console.error(message);
+    this.webrtc = new WebRTC(null, {
+      fake: !!(app.options && app.options.FAKE_MEDIA_STREAMS)
     });
-    this.webrtc.on('all', function() {
-      console.log.apply(console, arguments);
+
+    this.webrtc.on("error", function(message) {
+      // XXX: notify user that something went wrong
+      console.error(message);
     });
 
     this.call = new app.models.Call({}, {

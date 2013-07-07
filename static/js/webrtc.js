@@ -8,24 +8,19 @@
 
   /**
    * WebRTC object constructor.
-   * @param {PeerConnection} pc       Peer connection object
-   * @param {Object}         options  Options
+   *
+   * Options are:
+   * - {Boolean} forceFake: Forces use of fake media streams.
+   *
+   * @param {PeerConnection|undefined} pc       Peer connection object
+   * @param {Object}                   options  Options
    */
   function WebRTC(pc, options) {
-    this.constraints = {};
-    this.options = options || {}; // TODO: fake media option
+    this._constraints = {};
+    this.options = options || {};
 
-    this.pc = pc || new mozRTCPeerConnection();
+    this.pc = this._setupPeerConnection(pc || new mozRTCPeerConnection());
     this.dc = this.pc.createDataChannel('dc', {});
-
-    // peer connection event listeners
-    this.pc.onaddstream = this._onAddStream.bind(this);
-    this.pc.onclose = this._onPeerConnectionClose.bind(this);
-    this.pc.ondatachannel = this._onDataChannel.bind(this);
-    this.pc.oniceconnectionstatechange =
-      this._onIceConnectionStateChange.bind(this);
-    this.pc.onremovestream = this._onRemoveStream.bind(this);
-    this.pc.onsignalingstatechange = this._onSignalingStateChange.bind(this);
 
     this.state = StateMachine.create({
       initial: 'ready',
@@ -50,6 +45,21 @@
 
   // public API
 
+  /* jshint camelcase:false */
+  WebRTC.prototype.__defineGetter__('constraints', function() {
+    var _constraints = this._constraints || defaultConstraints;
+    if (!!this.options.forceFake)
+      _constraints.fake = true;
+    return _constraints;
+  });
+
+  WebRTC.prototype.__defineSetter__('constraints', function(constraints) {
+    this._constraints = constraints || defaultConstraints;
+    if (!!this.options.forceFake)
+      this._constraints.fake = true;
+  });
+  /* jshint camelcase:true */
+
   /**
    * Initiates an outgoing connection.
    * @param  {Object}  constraints  Media constraints
@@ -59,7 +69,7 @@
    */
   WebRTC.prototype.initiate = function(constraints) {
     this.state.initiate();
-    this.constraints = constraints || defaultConstraints;
+    this.constraints = constraints;
     return this._getMedia(function(localStream) {
       this.trigger('local-stream:ready', localStream)
           ._addLocalStream(localStream)
@@ -311,5 +321,20 @@
       this._handleError.bind(this, 'Unable to set local offer description')
     );
     return this;
+  };
+
+  /**
+   * Configures a peer connection, registering local event listeners.
+   *
+   * @param {RTCPeerConnection} pc
+   */
+  WebRTC.prototype._setupPeerConnection = function(pc) {
+    pc.onaddstream = this._onAddStream.bind(this);
+    pc.onclose = this._onPeerConnectionClose.bind(this);
+    pc.ondatachannel = this._onDataChannel.bind(this);
+    pc.oniceconnectionstatechange = this._onIceConnectionStateChange.bind(this);
+    pc.onremovestream = this._onRemoveStream.bind(this);
+    pc.onsignalingstatechange = this._onSignalingStateChange.bind(this);
+    return pc;
   };
 })(this);

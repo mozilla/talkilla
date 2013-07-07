@@ -1,5 +1,5 @@
 /* global app, chai, describe, it, sinon, beforeEach, afterEach,
-   ChatApp, $ */
+   ChatApp, $, WebRTC */
 
 /* jshint expr:true */
 var expect = chai.expect;
@@ -57,7 +57,13 @@ describe("Text chat views", function() {
       // This stops us changing the document's title unnecessarily
       sandbox.stub(app.views.ConversationView.prototype, "initialize");
 
-      call = new app.models.Call({}, {media: new app.models.WebRTCCall()});
+      // port stubs
+      app.port.on = sandbox.stub();
+      app.port.postEvent = sandbox.stub();
+      app.port.trigger = sandbox.stub();
+
+      sandbox.stub(WebRTC.prototype, "send");
+      call = new app.models.Call({}, {media: new WebRTC()});
       chatApp = new ChatApp();
 
       app.data.user.set("nick", "niko");

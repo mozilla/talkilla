@@ -135,7 +135,8 @@
      * Accepts a pending incoming call.
      */
     accept: function() {
-      this.media.answer(this.get('incomingData'));
+      var data = this.get('incomingData');
+      this.media.answer(data && data.offer);
       this.state.accept();
     },
 

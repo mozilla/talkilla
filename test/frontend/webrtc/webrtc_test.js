@@ -121,6 +121,15 @@ describe("WebRTC", function() {
     });
   });
 
+  describe("constraints property", function() {
+    it("should register constraints regarding the `forceFake` option",
+      function() {
+        var webrtc = new WebRTC(null, {forceFake: true});
+
+        expect(webrtc.constraints.fake).to.equal(true);
+      });
+  });
+
   describe("prototype", function() {
     beforeEach(function() {
       webrtc = new WebRTC();

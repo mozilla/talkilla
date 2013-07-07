@@ -17,8 +17,8 @@ describe("Call", function() {
     media = {
       answer: sandbox.stub(),
       establish: sandbox.stub(),
-      hangup: sandbox.stub(),
-      offer: sandbox.stub(),
+      initiate: sandbox.stub(),
+      terminate: sandbox.stub(),
       on: sandbox.stub()
     };
 
@@ -70,8 +70,8 @@ describe("Call", function() {
     it("should pass the call data to the media", function() {
       call.start(callData);
 
-      sinon.assert.calledOnce(media.offer);
-      sinon.assert.calledWithExactly(media.offer, callData);
+      sinon.assert.calledOnce(media.initiate);
+      sinon.assert.calledWithExactly(media.initiate, callData);
     });
 
     it("should raise an error if called twice", function() {
@@ -98,10 +98,10 @@ describe("Call", function() {
   });
 
   describe("#accept", function() {
-    var callData = {peer: "bob"};
+    var callData = {video: true, audio: true, peer: "bob", offer: {foo: 42}};
 
     it("should change the state from incoming to pending", function() {
-      call.state.incoming();
+      call.state.incoming(callData);
       call.accept();
       expect(call.state.current).to.equal('pending');
     });
@@ -111,13 +111,13 @@ describe("Call", function() {
       call.accept();
 
       sinon.assert.calledOnce(media.answer);
-      sinon.assert.calledWithExactly(media.answer, callData);
+      sinon.assert.calledWithExactly(media.answer, callData.offer);
     });
 
   });
 
   describe("#establish", function() {
-    var answer = {answer: {type: "type", sdp: "sdp"}};
+    var answerData = {answer: {type: "type", sdp: "sdp"}};
 
     it("should change the state from pending to ongoing", function() {
       call.start({});
@@ -127,10 +127,10 @@ describe("Call", function() {
 
     it("should pass the data to the media", function() {
       call.start({});
-      call.establish(answer);
+      call.establish(answerData);
 
       sinon.assert.calledOnce(media.establish);
-      sinon.assert.calledWithExactly(media.establish, answer);
+      sinon.assert.calledWithExactly(media.establish, answerData.answer);
     });
 
   });
@@ -166,8 +166,8 @@ describe("Call", function() {
       call.start({});
       call.hangup();
 
-      sinon.assert.calledOnce(media.hangup);
-      sinon.assert.calledWithExactly(media.hangup);
+      sinon.assert.calledOnce(media.terminate);
+      sinon.assert.calledWithExactly(media.terminate);
     });
 
   });
