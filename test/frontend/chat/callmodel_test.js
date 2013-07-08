@@ -101,7 +101,7 @@ describe("Call", function() {
     var callData = {video: true, audio: true, peer: "bob", offer: {foo: 42}};
 
     it("should change the state from incoming to pending", function() {
-      call.state.incoming(callData);
+      call.state.incoming();
       call.accept();
       expect(call.state.current).to.equal('pending');
     });
