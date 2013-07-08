@@ -81,13 +81,18 @@ describe("WebRTCCall", function() {
       function(done) {
         var rtcCall = new app.models.WebRTCCall();
         var fakeChannel = {};
+        var data = new Uint16Array(3);
+        for (var i = 0; i < data.byteLength; i++)
+          data[i] = "0:~".charCodeAt(i);
+
         rtcCall.on('dc.in.message', function() {
           done();
         });
+        var event = {data: new Blob([data])};
 
         rtcCall.pc.ondatachannel({channel: fakeChannel});
 
-        rtcCall.dcIn.onmessage();
+        rtcCall.dcIn.onmessage(event);
       });
 
     it("should configure data channel to trigger the dc.in.error event",

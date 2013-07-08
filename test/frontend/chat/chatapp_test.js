@@ -11,6 +11,7 @@ describe("ChatApp", function() {
     peer: "alice",
     offer: {type: "answer", sdp: "fake"}
   };
+  var chunk;
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
@@ -28,6 +29,11 @@ describe("ChatApp", function() {
 
     // This stops us changing the document's title unnecessarily
     sandbox.stub(app.views.ConversationView.prototype, "initialize");
+
+    chunk = new ArrayBuffer(22*2);
+    var view = new Uint16Array(chunk);
+    for (var i=0; i < 22; i++)
+      view[i] = 'data'.charCodeAt(i);
   });
 
   afterEach(function() {
@@ -381,7 +387,7 @@ describe("ChatApp", function() {
       it("should append received message to the current text chat", function() {
         sandbox.stub(app.models.TextChat.prototype, "add");
         var newTextChat = sandbox.stub(app.models, "TextChatEntry");
-        var event = {data: JSON.stringify({type: "chat:message", message: "data"})};
+        var event = {type: "chat:message", message: "data"};
         chatApp = new ChatApp();
 
         chatApp._onDataChannelMessageIn(event);
@@ -393,7 +399,7 @@ describe("ChatApp", function() {
       it("should display a new file transfer to the current text chat", function() {
         sandbox.stub(app.models.TextChat.prototype, "add");
         var newFileTransfer = sandbox.stub(app.models, "FileTransfer");
-        var event = {data: JSON.stringify({type: "file:new", message: "data"})};
+        var event = {type: "file:new", message: "data"};
         chatApp = new ChatApp();
 
         chatApp._onDataChannelMessageIn(event);
@@ -405,21 +411,15 @@ describe("ChatApp", function() {
       it("should append data to a previous started file transfer", function() {
         sandbox.stub(app.views, "TextChatView");
         var transfer = new app.models.FileTransfer({filename: "foo", size: 10});
-        var event = {
-          data: JSON.stringify({
-            type: "file:chunk",
-            message: {
-              id: transfer.id,
-              chunk: "data"
-            }
-          })};
+        var event =
+          {type: "file:chunk", message: {id: transfer.id, chunk: chunk}};
         sandbox.stub(transfer, "append");
         chatApp = new ChatApp();
         chatApp.textChat.add(transfer);
 
         chatApp._onDataChannelMessageIn(event);
         sinon.assert.calledOnce(transfer.append);
-        sinon.assert.calledWithExactly(transfer.append, "data");
+        sinon.assert.calledWithExactly(transfer.append, chunk);
       });
     });
 

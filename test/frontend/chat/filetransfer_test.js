@@ -52,8 +52,11 @@ describe("FileTransfer", function() {
     it("should trigger 1 byte chunks events until reaching the eof event", function(done) {
       var chunks = [];
       transfer.on("chunk", function(id, chunk) {
+        var view = new Uint8Array(chunk);
+        var char = String.fromCharCode.apply(null, view);
+
         expect(id).to.not.be.null;
-        chunks.push(chunk);
+        chunks.push(char);
       });
       transfer.on("complete", function() {
         expect(chunks).to.deep.equal(['c', 'o', 'n', 't', 'e', 'n', 't']);
@@ -66,7 +69,10 @@ describe("FileTransfer", function() {
     it("should accepts a custom chunkSize", function(done) {
       var chunks = [];
       transfer.on("chunk", function(id, chunk) {
-        chunks.push(chunk);
+        var view = new Uint8Array(chunk);
+        var str = String.fromCharCode.apply(null, view);
+
+        chunks.push(str);
       });
       transfer.on("complete", function() {
         expect(chunks).to.deep.equal(['con', 'ten', 't']);
@@ -80,7 +86,10 @@ describe("FileTransfer", function() {
     it("should call complete when there is not chunk left", function(done) {
       var chunks = [];
       transfer.on("chunk", function(id, chunk) {
-        chunks.push(chunk);
+        var view = new Uint8Array(chunk);
+        var str = String.fromCharCode.apply(null, view);
+
+        chunks.push(str);
       });
       transfer.on("complete", function() {
         expect(chunks).to.deep.equal(['c', 'o', 'n', 't', 'e', 'n', 't']);
@@ -131,12 +140,14 @@ describe("FileTransfer", function() {
         done();
       };
 
-      incomingTransfer.on("complete", function(file) {
-        reader.readAsBinaryString(file);
+      incomingTransfer.on("complete", function(blob) {
+        reader.readAsBinaryString(blob);
       });
 
       ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"].forEach(function(c) {
-        incomingTransfer.append(c);
+        var view = new Uint8Array(new ArrayBuffer(1));
+        view[0] = c.charCodeAt(0);
+        incomingTransfer.append(view);
       });
     });
 
