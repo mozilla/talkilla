@@ -113,7 +113,7 @@
     this.state.answer();
     this.constraints = this._parseOfferConstraints(offer);
 
-    if (!this.constraints.audio && !this.constraints.audio)
+    if (!this.constraints.video && !this.constraints.audio)
       return this._prepareAnswer(offer);
 
     return this._getMedia(function(localStream) {
