@@ -12,6 +12,19 @@ describe("ChatApp", function() {
     offer: {type: "answer", sdp: "fake"}
   };
 
+  function fakeSDP(str) {
+    return {
+      str: str,
+      contains: function(what) {
+        return this.str.indexOf(what) !== -1;
+      }
+    };
+  }
+
+  var fakeOffer = {type: "offer", sdp: fakeSDP("\nm=video aaa\nm=audio bbb")};
+  var fakeAnswer = {type: "answer", sdp: fakeSDP("\nm=video ccc\nm=audio ddd")};
+  var fakeDataChannel = {fakeDataChannel: true};
+
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
     app.port = {postEvent: sinon.spy()};
@@ -20,6 +33,28 @@ describe("ChatApp", function() {
     sandbox.stub(window, "Audio").returns({
       play: sandbox.stub(),
       pause: sandbox.stub()
+    });
+
+    // mozRTCPeerConnection stub
+    sandbox.stub(window, "mozRTCPeerConnection").returns({
+      close: sandbox.spy(),
+      addStream: sandbox.spy(),
+      createAnswer: function(success) {
+        success(fakeAnswer);
+      },
+      createOffer: function(success) {
+        success(fakeOffer);
+      },
+      setLocalDescription: function(source, success) {
+        success(source);
+      },
+      setRemoteDescription: function(source, success) {
+        success(source);
+      },
+      createDataChannel: function() {
+        fakeDataChannel.send = sandbox.spy();
+        return fakeDataChannel;
+      }
     });
 
     // This stops us changing the document's title unnecessarily
