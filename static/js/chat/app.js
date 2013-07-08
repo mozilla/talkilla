@@ -199,8 +199,8 @@ var ChatApp = (function($, Backbone, _) {
       };
       this.webrtc.send({type: "file:new", message: message});
 
-      entry.once("chunk", onFileChunk);
-      // entry.on("complete", entry.off.bind(this, "chunk", onFileChunk));
+      entry.on("chunk", onFileChunk);
+      entry.on("complete", entry.off.bind(this, "chunk", onFileChunk));
 
       entry.start();
     }
