@@ -126,9 +126,14 @@
      * media.
      */
     establish: function(options) {
+      var answer = options && options.answer;
+      if (!answer)
+        throw new Error("Invalid answer, can't establish connection.");
+
       clearTimeout(this.timer);
-      this.state.establish();
-      this.media.establish(options.answer);
+      this.media.once('connection-established', this.state.establish,
+                                                this.state);
+      this.media.establish(answer);
     },
 
     /**

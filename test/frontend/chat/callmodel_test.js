@@ -1,4 +1,4 @@
-/* global app, chai, describe, it, sinon, beforeEach, afterEach */
+/* global _, Backbone, app, chai, describe, it, sinon, beforeEach, afterEach */
 
 /* jshint expr:true */
 var expect = chai.expect;
@@ -15,10 +15,10 @@ describe("Call", function() {
     // XXX This should probably be a mock, but sinon mocks don't seem to want
     // to work with Backbone.
     media = {
-      answer: sandbox.stub(),
-      establish: sandbox.stub(),
-      initiate: sandbox.stub(),
-      terminate: sandbox.stub(),
+      answer: sandbox.spy(),
+      establish: sandbox.spy(),
+      initiate: sandbox.spy(),
+      terminate: sandbox.spy(),
       on: sandbox.stub()
     };
 
@@ -101,7 +101,7 @@ describe("Call", function() {
     var callData = {video: true, audio: true, peer: "bob", offer: {foo: 42}};
 
     it("should change the state from incoming to pending", function() {
-      call.state.incoming(callData);
+      call.state.incoming();
       call.accept();
       expect(call.state.current).to.equal('pending');
     });
@@ -117,15 +117,27 @@ describe("Call", function() {
   });
 
   describe("#establish", function() {
-    var answerData = {answer: {type: "type", sdp: "sdp"}};
+    var answerData = {answer: {type: "answer", sdp: "sdp"}};
 
-    it("should change the state from pending to ongoing", function() {
+    it("should not accept an invalid answer", function() {
       call.start({});
-      call.establish({});
-      expect(call.state.current).to.equal('ongoing');
+      function establish() {
+        call.establish({});
+      }
+      expect(establish).throws(Error);
+    });
+
+    it("should change the state from pending to ongoing", function(done) {
+      _.extend(media, Backbone.Events);
+      call.start({});
+      call.once('state:to:ongoing', done);
+      call.establish(answerData);
+      call.media.trigger('connection-established');
     });
 
     it("should pass the data to the media", function() {
+      _.extend(media, Backbone.Events);
+      media.establish = sandbox.stub();
       call.start({});
       call.establish(answerData);
 
@@ -156,13 +168,15 @@ describe("Call", function() {
     });
 
     it("should change the state from ongoing to terminated", function() {
+      _.extend(media, Backbone.Events);
       call.start({});
-      call.establish({});
+      call.establish({answer: {type: "answer", sdp: "sdp"}});
       call.hangup();
       expect(call.state.current).to.equal('terminated');
     });
 
     it("should call hangup on the media element", function() {
+      media.terminate = sandbox.stub();
       call.start({});
       call.hangup();
 

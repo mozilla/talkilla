@@ -18,190 +18,7 @@
   function WebRTC(pc, options) {
     this._constraints = {};
     this.options = options || {};
-    this._initialize(pc);
-  }
-  exports.WebRTC = WebRTC;
 
-  _.extend(WebRTC.prototype, Backbone.Events);
-
-  // public API
-
-  /* jshint camelcase:false */
-  WebRTC.prototype.__defineGetter__('constraints', function() {
-    var _constraints = this._constraints || defaultConstraints;
-    if (!!this.options.forceFake)
-      _constraints.fake = true;
-    return _constraints;
-  });
-
-  WebRTC.prototype.__defineSetter__('constraints', function(constraints) {
-    this._constraints = constraints || defaultConstraints;
-    if (!!this.options.forceFake)
-      this._constraints.fake = true;
-  });
-  /* jshint camelcase:true */
-
-  /**
-   * Initiates an outgoing connection.
-   * @param  {Object}  constraints  Media constraints
-   * @return {WebRTC}
-   * @event  `local-stream:ready` {LocalMediaStream}
-   * @public
-   */
-  WebRTC.prototype.initiate = function(constraints) {
-    this.state.initiate();
-    this.constraints = constraints;
-    if (!this.constraints.video && !this.constraints.audio)
-      return this._createOffer();
-    return this._getMedia(function(localStream) {
-      this.trigger('local-stream:ready', localStream)
-          ._addLocalStream(localStream)
-          ._createOffer();
-    });
-  };
-
-  /**
-   * Establishes the connection using the received answer.
-   * @param  {Object} answer
-   * @return {WebRTC}
-   * @event  `connection-established`
-   * @public
-   */
-  WebRTC.prototype.establish = function(answer) {
-    this.state.establish();
-    this.pc.setRemoteDescription(
-      new mozRTCSessionDescription(answer),
-      this.trigger.bind(this, 'connection-established'),
-      this._handleError.bind(this, 'Unable to set remote answer description')
-    );
-    return this;
-  };
-
-  /**
-   * Answers an incoming onnection offer.
-   * @param  {Object}  offer  Connection offer
-   * @return {WebRTC}
-   * @public
-   */
-  WebRTC.prototype.answer = function(offer) {
-    this.state.answer();
-    this.constraints = this._parseOfferConstraints(offer);
-    if (!this.constraints.audio && !this.constraints.audio)
-      return this._prepareAnswer(offer);
-    return this._getMedia(function(localStream) {
-      this.trigger('local-stream:ready', localStream)
-          ._addLocalStream(localStream)
-          ._prepareAnswer(offer);
-    });
-  };
-
-  /**
-   * Sends data over data channel.
-   * @param  {Object} data
-   * @return {WebRTC}
-   * @event  `dc:message-out` {Object}
-   * @public
-   */
-  WebRTC.prototype.send = function(data) {
-    if (this.state.current !== 'ongoing')
-      return this._handleError("Not connected, can't send data");
-    try {
-      this.dc.send(data);
-    } catch(err) {
-      return this._handleError("Couldn't send data", err);
-    }
-    return this.trigger('dc:message-out', data);
-  };
-
-  /**
-   * Terminates an ongoing communication.
-   * @return {WebRTC}
-   * @event  `connection-terminated`
-   * @public
-   */
-  WebRTC.prototype.terminate = function() {
-    this.state.terminate();
-    if (this.pc.signalingState !== 'closed')
-      this.pc.close();
-    return this.trigger('connection-terminated');
-  };
-
-  // "private" methods
-
-  /**
-   * Adds a local media stream to the peer connection.
-   * @param  {LocalMediaStream} localStream
-   * @return {WebRTC}
-   */
-  WebRTC.prototype._addLocalStream = function(localStream) {
-    try {
-      this.pc.addStream(localStream);
-    } catch (err) {
-      return this._handleError('Unable to add local stream', err);
-    }
-    return this;
-  };
-
-  /**
-   * Creates an answer.
-   * @return {WebRTC}
-   * @private
-   */
-  WebRTC.prototype._createAnswer = function() {
-    this.pc.createAnswer(
-      this._setAnswerDescription.bind(this),
-      this._handleError.bind(this, 'Unable to create answer')
-    );
-    return this;
-  };
-
-  /**
-   * Creates an offer.
-   * @return {WebRTC}
-   * @private
-   */
-  WebRTC.prototype._createOffer = function() {
-    this.pc.createOffer(
-      this._setOfferDescription.bind(this),
-      this._handleError.bind(this, 'Unable to create offer')
-    );
-    return this;
-  };
-
-  /**
-   * gUM proxy.
-   * @param  {Function} callback    Callback
-   * @return {WebRTC}
-   * @private
-   */
-  WebRTC.prototype._getMedia = function(callback) {
-    navigator.mozGetUserMedia(
-      this.constraints,
-      callback.bind(this),
-      this._handleError.bind(this, 'Unable to get user media, constraints=' +
-                                   this.constraints.toSource())
-    );
-    return this;
-  };
-
-  /**
-   * Handles a WebRTC error.
-   * @param  {String} message
-   * @param  {Object} err
-   * @return {WebRTC}
-   * @private
-   */
-  WebRTC.prototype._handleError = function(description, err) {
-    var messageParts = [description];
-    if (err && typeof err === "object")
-      messageParts = messageParts.concat([':', err.name, err.message]);
-    return this.trigger('error', messageParts.join(' '));
-  };
-
-  /**
-   * Initializes WebRTC.
-   */
-  WebRTC.prototype._initialize = function(pc) {
     this.pc = this._setupPeerConnection(pc || new mozRTCPeerConnection());
     this.dc = this.pc.createDataChannel('dc', {});
 
@@ -221,6 +38,205 @@
         }.bind(this)
       }
     });
+  }
+  exports.WebRTC = WebRTC;
+
+  _.extend(WebRTC.prototype, Backbone.Events);
+
+  // public API
+
+  /* jshint camelcase:false */
+  WebRTC.prototype.__defineGetter__('constraints', function() {
+    var _constraints = this._constraints || defaultConstraints;
+
+    if (!!this.options.forceFake)
+      _constraints.fake = true;
+
+    return _constraints;
+  });
+
+  WebRTC.prototype.__defineSetter__('constraints', function(constraints) {
+    this._constraints = constraints || defaultConstraints;
+
+    if (!!this.options.forceFake)
+      this._constraints.fake = true;
+  });
+  /* jshint camelcase:true */
+
+  /**
+   * Initiates an outgoing connection.
+   * @param  {Object}  constraints  Media constraints
+   * @return {WebRTC}
+   * @event  `local-stream:ready` {LocalMediaStream}
+   * @public
+   */
+  WebRTC.prototype.initiate = function(constraints) {
+    this.state.initiate();
+    this.constraints = constraints;
+
+    if (!this.constraints.video && !this.constraints.audio)
+      return this._createOffer();
+
+    return this._getMedia(function(localStream) {
+      this.trigger('local-stream:ready', localStream)
+          ._addLocalStream(localStream)
+          ._createOffer();
+    });
+  };
+
+  /**
+   * Establishes the connection using the received answer.
+   * @param  {Object} answer
+   * @return {WebRTC}
+   * @event  `connection-established`
+   * @public
+   */
+  WebRTC.prototype.establish = function(answer) {
+    this.state.establish();
+
+    this.pc.setRemoteDescription(
+      new mozRTCSessionDescription(answer),
+      this.trigger.bind(this, 'connection-established'),
+      this._handleError.bind(this, 'Unable to set remote answer description')
+    );
+
+    return this;
+  };
+
+  /**
+   * Answers an incoming onnection offer.
+   * @param  {Object}  offer  Connection offer
+   * @return {WebRTC}
+   * @public
+   */
+  WebRTC.prototype.answer = function(offer) {
+    this.state.answer();
+    this.constraints = this._parseOfferConstraints(offer);
+
+    if (!this.constraints.video && !this.constraints.audio)
+      return this._prepareAnswer(offer);
+
+    return this._getMedia(function(localStream) {
+      this.trigger('local-stream:ready', localStream)
+          ._addLocalStream(localStream)
+          ._prepareAnswer(offer);
+    });
+  };
+
+  /**
+   * Sends data over data channel.
+   * @param  {Object} data
+   * @return {WebRTC}
+   * @event  `dc:message-out` {Object}
+   * @public
+   */
+  WebRTC.prototype.send = function(data) {
+    if (this.state.current !== 'ongoing')
+      return this._handleError("Not connected, can't send data");
+
+    try {
+      this.dc.send(data);
+    } catch(err) {
+      return this._handleError("Couldn't send data", err);
+    }
+
+    return this.trigger('dc:message-out', data);
+  };
+
+  /**
+   * Terminates an ongoing communication.
+   * @return {WebRTC}
+   * @event  `connection-terminated`
+   * @public
+   */
+  WebRTC.prototype.terminate = function() {
+    this.state.terminate();
+
+    if (this.pc.signalingState === 'closed')
+      return this;
+
+    this.once('ice:closed', this.trigger.bind(this, 'connection-terminated'));
+    this.pc.close();
+
+    return this;
+  };
+
+  // "private" methods
+
+  /**
+   * Adds a local media stream to the peer connection.
+   * @param  {LocalMediaStream} localStream
+   * @return {WebRTC}
+   */
+  WebRTC.prototype._addLocalStream = function(localStream) {
+    try {
+      this.pc.addStream(localStream);
+    } catch (err) {
+      return this._handleError('Unable to add local stream', err);
+    }
+
+    return this;
+  };
+
+  /**
+   * Creates an answer.
+   * @return {WebRTC}
+   * @private
+   */
+  WebRTC.prototype._createAnswer = function() {
+    this.pc.createAnswer(
+      this._setAnswerDescription.bind(this),
+      this._handleError.bind(this, 'Unable to create answer')
+    );
+
+    return this;
+  };
+
+  /**
+   * Creates an offer.
+   * @return {WebRTC}
+   * @private
+   */
+  WebRTC.prototype._createOffer = function() {
+    this.pc.createOffer(
+      this._setOfferDescription.bind(this),
+      this._handleError.bind(this, 'Unable to create offer')
+    );
+
+    return this;
+  };
+
+  /**
+   * gUM proxy.
+   * @param  {Function} callback    Callback
+   * @return {WebRTC}
+   * @private
+   */
+  WebRTC.prototype._getMedia = function(callback) {
+    navigator.mozGetUserMedia(
+      this.constraints,
+      callback.bind(this),
+      this._handleError.bind(this, 'Unable to get user media, constraints=' +
+                                   this.constraints.toSource())
+    );
+
+    return this;
+  };
+
+  /**
+   * Handles a WebRTC error.
+   * @param  {String} message
+   * @param  {Object} err
+   * @return {WebRTC}
+   * @private
+   */
+  WebRTC.prototype._handleError = function(description, err) {
+    var messageParts = [description];
+
+    if (err && typeof err === "object")
+      messageParts = messageParts.concat([':', err.name, err.message]);
+
+    return this.trigger('error', messageParts.join(' '));
   };
 
   /**
@@ -242,8 +258,10 @@
       onerror: 'dc:error',
       onclose: 'dc:close'
     };
+
     for (var handler in eventsMap)
       event.channel[handler] = this.trigger.bind(this, eventsMap[handler]);
+
     this.trigger('dc:ready', event.channel);
   };
 
@@ -252,15 +270,8 @@
    * @return {Event} event
    */
   WebRTC.prototype._onIceConnectionStateChange = function() {
-    this.trigger('ice:change', this.pc.readyState);
-    this.trigger('ice:' + this.pc.readyState);
-  };
-
-  /**
-   * Executed when the current peer connection is closed.
-   */
-  WebRTC.prototype._onPeerConnectionClose = function() {
-    this.terminate();
+    this.trigger('ice:change', this.pc.iceConnectionState);
+    this.trigger('ice:' + this.pc.iceConnectionState);
   };
 
   /**
@@ -289,8 +300,10 @@
    */
   WebRTC.prototype._parseOfferConstraints = function(offer) {
     var sdp = offer && offer.sdp;
+
     if (!sdp)
       return this._handleError('No SDP offer to parse');
+
     return {
       video: sdp.contains('\nm=video '),
       audio: sdp.contains('\nm=audio ')
@@ -308,6 +321,7 @@
       this._createAnswer.bind(this),
       this._handleError.bind(this, 'Unable to set remote offer description')
     );
+
     return this;
   };
 
@@ -324,6 +338,7 @@
       this.trigger.bind(this, 'answer-ready', answer),
       this._handleError.bind(this, 'Unable to set local answer description')
     );
+
     return this;
   };
 
@@ -340,6 +355,7 @@
       this.trigger.bind(this, 'offer-ready', offer),
       this._handleError.bind(this, 'Unable to set local offer description')
     );
+
     return this;
   };
 
@@ -350,11 +366,11 @@
    */
   WebRTC.prototype._setupPeerConnection = function(pc) {
     pc.onaddstream = this._onAddStream.bind(this);
-    pc.onclose = this._onPeerConnectionClose.bind(this);
     pc.ondatachannel = this._onDataChannel.bind(this);
     pc.oniceconnectionstatechange = this._onIceConnectionStateChange.bind(this);
     pc.onremovestream = this._onRemoveStream.bind(this);
     pc.onsignalingstatechange = this._onSignalingStateChange.bind(this);
+
     return pc;
   };
 })(this);
