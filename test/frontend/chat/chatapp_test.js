@@ -396,17 +396,18 @@ describe("ChatApp", function() {
         sinon.assert.calledWithExactly(newTextChat, "data");
       });
 
-      it("should display a new file transfer to the current text chat", function() {
-        sandbox.stub(app.models.TextChat.prototype, "add");
-        var newFileTransfer = sandbox.stub(app.models, "FileTransfer");
-        var event = {type: "file:new", message: "data"};
-        chatApp = new ChatApp();
+      it("should display a new file transfer to the current text chat",
+        function() {
+          sandbox.stub(app.models.TextChat.prototype, "add");
+          var newFileTransfer = sandbox.stub(app.models, "FileTransfer");
+          var event = {type: "file:new", message: "data"};
+          chatApp = new ChatApp();
 
-        chatApp._onDataChannelMessageIn(event);
+          chatApp._onDataChannelMessageIn(event);
 
-        sinon.assert.calledOnce(newFileTransfer);
-        sinon.assert.calledWithExactly(newFileTransfer, "data");
-      });
+          sinon.assert.calledOnce(newFileTransfer);
+          sinon.assert.calledWithExactly(newFileTransfer, "data");
+        });
 
       it("should append data to a previous started file transfer", function() {
         sandbox.stub(app.views, "TextChatView");
@@ -429,7 +430,7 @@ describe("ChatApp", function() {
         var entry = new app.models.TextChatEntry({nick: "foo", message: "bar"});
         var message = {type: "chat:message", message: entry.toJSON()};
         chatApp = new ChatApp();
-        app.data.user.set("nick", "foo")
+        app.data.user.set("nick", "foo");
 
         chatApp._onTextChatEntryCreated(entry);
 
@@ -449,7 +450,9 @@ describe("ChatApp", function() {
       it("should notify of a new file via data channel", function() {
         var dcSend = sandbox.stub(app.models.WebRTCCall.prototype, "send");
         var entry = new app.models.FileTransfer({file: blob}, {chunkSize: 1});
-        var message = {type: "file:new", message: {id: entry.id, filename: "foo", size: 10}};
+        var message = {type: "file:new", message: {id: entry.id,
+                                                   filename: "foo",
+                                                   size: 10}};
         chatApp = new ChatApp();
         chatApp._onFileTransferCreated(entry);
 
@@ -457,33 +460,35 @@ describe("ChatApp", function() {
         sinon.assert.calledWithExactly(dcSend, message);
       });
 
-      it("should bind _onFileChunk on the chunk event triggered by the entry", function() {
-        sandbox.stub(ChatApp.prototype, "_onFileChunk");
-        var dcSend = sandbox.stub(app.models.WebRTCCall.prototype, "send");
-        var entry = new app.models.FileTransfer({file: blob}, {chunkSize: 1});
-        sandbox.stub(entry, "off");
-        chatApp = new ChatApp();
-        chatApp._onFileTransferCreated(entry);
+      it("should bind _onFileChunk on the chunk event triggered by the entry",
+        function() {
+          sandbox.stub(ChatApp.prototype, "_onFileChunk");
+          sandbox.stub(app.models.WebRTCCall.prototype, "send");
+          var entry = new app.models.FileTransfer({file: blob}, {chunkSize: 1});
+          sandbox.stub(entry, "off");
+          chatApp = new ChatApp();
+          chatApp._onFileTransferCreated(entry);
 
-        entry.trigger("chunk", "chunk");
+          entry.trigger("chunk", "chunk");
 
-        sinon.assert.calledOnce(chatApp._onFileChunk);
-        sinon.assert.calledWithExactly(chatApp._onFileChunk, "chunk");
+          sinon.assert.calledOnce(chatApp._onFileChunk);
+          sinon.assert.calledWithExactly(chatApp._onFileChunk, "chunk");
 
-        entry.trigger("complete");
+          entry.trigger("complete");
 
-        sinon.assert.calledOnce(entry.off);
-        sinon.assert.calledWith(chatApp._onFileChunk, "chunk");
-      });
+          sinon.assert.calledOnce(entry.off);
+          sinon.assert.calledWith(chatApp._onFileChunk, "chunk");
+        });
 
-      it("should not send anything if the entry is not a FileTransfer", function() {
-        var dcSend = sandbox.stub(app.models.WebRTCCall.prototype, "send");
-        var entry = {};
-        chatApp = new ChatApp();
-        chatApp._onFileTransferCreated(entry);
+      it("should not send anything if the entry is not a FileTransfer",
+        function() {
+          var dcSend = sandbox.stub(app.models.WebRTCCall.prototype, "send");
+          var entry = {};
+          chatApp = new ChatApp();
+          chatApp._onFileTransferCreated(entry);
 
-        sinon.assert.notCalled(dcSend);
-      });
+          sinon.assert.notCalled(dcSend);
+        });
     });
 
     describe("#_onFileChunk", function() {
@@ -491,7 +496,8 @@ describe("ChatApp", function() {
       it("should send chunks over data channel", function() {
         var dcSend = sandbox.stub(app.models.WebRTCCall.prototype, "send");
         var entry = new app.models.FileTransfer({size: 10, filename: "bar"});
-        var message = {type: "file:chunk", message: {id: entry.id, chunk: "chunk"}};
+        var message = {type: "file:chunk",
+                       message: {id: entry.id, chunk: "chunk"}};
         chatApp = new ChatApp();
 
         chatApp._onFileChunk(entry.id, "chunk");

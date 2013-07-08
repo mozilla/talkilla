@@ -338,7 +338,9 @@
                          '<% if (progress < 100) { %>' +
                            '</strong> <%= progress %>%' +
                          '<% } else { %>' +
-                           '<a href="<%= url %>" download="<%= filename %>">Save</a>' +
+                           '<a href="<%= url %>" download="<%= filename %>">' +
+                             'Save' +
+                           '</a>' +
                          '<% } %>'),
 
     initialize: function() {

@@ -196,10 +196,12 @@ describe("Text chat views", function() {
       });
 
       it("should render a FileTransferView", function() {
-        sandbox.stub(app.views.FileTransferView.prototype, "render", function() {
-          return this;
-        });
-        textChat.add(new app.models.FileTransfer({file: blob}, {chunkSize: 512}));
+        sandbox.stub(app.views.FileTransferView.prototype, "render",
+          function() {
+            return this;
+          });
+        textChat.add(new app.models.FileTransfer({file: blob},
+                                                 {chunkSize: 512}));
         app.views.FileTransferView.prototype.render.reset();
 
         textChatView.render();
@@ -211,6 +213,7 @@ describe("Text chat views", function() {
 });
 
 describe("FileTransferView", function() {
+  var sandbox;
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();

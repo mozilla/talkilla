@@ -9,7 +9,7 @@ describe("FileTransfer", function() {
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
-    blob = new Blob(['content'], {type: 'plain/text'})
+    blob = new Blob(['content'], {type: 'plain/text'});
     transfer = new app.models.FileTransfer({file: blob}, {chunkSize: 1});
     incomingTransfer = new app.models.FileTransfer({filename: "foo", size: 10});
   });
@@ -21,7 +21,7 @@ describe("FileTransfer", function() {
   describe("#initialize", function() {
 
     it("should have an id", function() {
-      expect(transfer.id).to.not.be.null;
+      expect(transfer.id).to.not.be.Null;
     });
 
     it("should have a File object", function() {
@@ -49,22 +49,23 @@ describe("FileTransfer", function() {
 
   describe("#start", function() {
 
-    it("should trigger 1 byte chunks events until reaching the eof event", function(done) {
-      var chunks = [];
-      transfer.on("chunk", function(id, chunk) {
-        var view = new Uint8Array(chunk);
-        var char = String.fromCharCode.apply(null, view);
+    it("should trigger 1 byte chunks events until reaching the eof event",
+      function(done) {
+        var chunks = [];
+        transfer.on("chunk", function(id, chunk) {
+          var view = new Uint8Array(chunk);
+          var c = String.fromCharCode.apply(null, view);
 
-        expect(id).to.not.be.null;
-        chunks.push(char);
-      });
-      transfer.on("complete", function() {
-        expect(chunks).to.deep.equal(['c', 'o', 'n', 't', 'e', 'n', 't']);
-        done();
-      });
+          expect(id).to.not.be.Null;
+          chunks.push(c);
+        });
+        transfer.on("complete", function() {
+          expect(chunks).to.deep.equal(['c', 'o', 'n', 't', 'e', 'n', 't']);
+          done();
+        });
 
-      transfer.start();
-    });
+        transfer.start();
+      });
 
     it("should accepts a custom chunkSize", function(done) {
       var chunks = [];
@@ -111,20 +112,22 @@ describe("FileTransfer", function() {
 
   describe("#_onProgress", function() {
 
-    it("should update the progress attribute via a voodoo equation", function() {
-      transfer.seek = 6;
-      transfer._onProgress();
+    it("should update the progress attribute via a voodoo equation",
+      function() {
+        transfer.seek = 6;
+        transfer._onProgress();
 
-      expect(transfer.file.size).to.equal(7); // size of the blob
-      expect(transfer.get("progress")).to.equal(85); // percentage of progress
-    });
+        expect(transfer.file.size).to.equal(7); // size of the blob
+        expect(transfer.get("progress")).to.equal(85); // percentage of progress
+      });
+
   });
 
   describe("#append", function() {
 
     it("should trigger a chunk event", function(done) {
       incomingTransfer.on("chunk", function(id, c) {
-        expect(id).to.not.be.null;
+        expect(id).to.not.be.Null;
         expect(c).to.equal("chunk");
         done();
       });

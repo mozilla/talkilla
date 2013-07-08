@@ -1,4 +1,4 @@
-/* global app, Backbone */
+/* global app, Backbone, _ */
 /**
  * ChatApp models and collections.
  */
@@ -31,7 +31,7 @@
       var progress = this.get("progress");
       var json = {
         filename: this.filename,
-        progress: progress || 0,
+        progress: progress || 0
       };
 
       if (progress === 100)
@@ -55,8 +55,8 @@
       this.trigger("chunk", this.id, chunk);
 
       if (this.seek > this.size)
-        throw Error("Received more data than expected: " +
-                    this.seek + " instead of " + this.size);
+        throw new Error("Received more data than expected: " +
+                        this.seek + " instead of " + this.size);
     },
 
     _onChunk: function(event) {

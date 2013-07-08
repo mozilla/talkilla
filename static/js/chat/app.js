@@ -1,4 +1,4 @@
-/*global jQuery, Backbone, _*/
+/*global jQuery, Backbone, _, tnetbin */
 /* jshint unused: false */
 /**
  * Talkilla application.
@@ -175,7 +175,7 @@ var ChatApp = (function($, Backbone, _) {
     else if (event.type === "file:new")
       entry = new app.models.FileTransfer(event.message);
     else if (event.type === "file:chunk") {
-      var chunk = tnetbin.toArrayBuffer(event.message.chunk).buffer
+      var chunk = tnetbin.toArrayBuffer(event.message.chunk).buffer;
       var transfer = this.textChat.findWhere({id: event.message.id});
       transfer.append(chunk);
     }
@@ -190,7 +190,7 @@ var ChatApp = (function($, Backbone, _) {
   };
 
   ChatApp.prototype._onFileTransferCreated = function(entry) {
-   if (entry instanceof app.models.FileTransfer && entry.file) {
+    if (entry instanceof app.models.FileTransfer && entry.file) {
       var onFileChunk = this._onFileChunk.bind(this);
       var message = {
         id: entry.id,

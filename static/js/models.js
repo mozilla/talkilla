@@ -1,5 +1,5 @@
 /* global app, Backbone, StateMachine,
-   mozRTCPeerConnection, mozRTCSessionDescription */
+   mozRTCPeerConnection, mozRTCSessionDescription, tnetbin */
 /**
  * Talkilla models and collections.
  */
