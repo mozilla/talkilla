@@ -17,10 +17,10 @@ describe("CallView", function() {
     // XXX This should probably be a mock, but sinon mocks don't seem to want
     // to work with Backbone.
     media = {
-      answer: sandbox.stub(),
-      establish: sandbox.stub(),
-      initiate: sandbox.stub(),
-      terminate: sandbox.stub(),
+      answer: sandbox.spy(),
+      establish: sandbox.spy(),
+      initiate: sandbox.spy(),
+      terminate: sandbox.spy(),
       on: sandbox.stub()
     };
     call = new app.models.Call({}, {media: media});

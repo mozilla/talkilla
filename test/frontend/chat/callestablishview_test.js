@@ -20,10 +20,10 @@ describe('Call Establish View', function() {
     // XXX This should probably be a mock, but sinon mocks don't seem to want
     // to work with Backbone.
     media = {
-      answer: sandbox.stub(),
-      establish: sandbox.stub(),
-      initiate: sandbox.stub(),
-      terminate: sandbox.stub(),
+      answer: sandbox.spy(),
+      establish: sandbox.spy(),
+      initiate: sandbox.spy(),
+      terminate: sandbox.spy(),
       on: sandbox.stub()
     };
     peer = new app.models.User();
