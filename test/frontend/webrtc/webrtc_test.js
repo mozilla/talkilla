@@ -165,11 +165,32 @@ describe("WebRTC", function() {
         expect(webrtc.state.current).to.equal('pending');
       });
 
-      it("should add media stream to peer connection once obtained",
+      it("should add a video media stream to peer connection once obtained",
         function() {
-          webrtc.initiate();
+          webrtc.initiate({video: true});
 
           sinon.assert.calledOnce(webrtc.pc.addStream);
+        });
+
+      it("should add an audio media stream to peer connection once obtained",
+        function() {
+          webrtc.initiate({audio: true});
+
+          sinon.assert.calledOnce(webrtc.pc.addStream);
+        });
+
+      it("should add an AV media stream to peer connection once obtained",
+        function() {
+          webrtc.initiate({video: true, audio: true});
+
+          sinon.assert.calledOnce(webrtc.pc.addStream);
+        });
+
+      it("should not add media stream if none is requested",
+        function() {
+          webrtc.initiate({video: false, audio: false});
+
+          sinon.assert.notCalled(webrtc.pc.addStream);
         });
 
       it("should create an offer from the peer connection object",
@@ -208,7 +229,7 @@ describe("WebRTC", function() {
           webrtc.once('local-stream:ready', function(stream) {
             expect(stream).to.deep.equal(fakeStream);
             done();
-          }).initiate();
+          }).initiate({video: true, audio: true});
         });
 
       it("should emit the `offer-ready` event when the offer is ready",
@@ -374,7 +395,7 @@ describe("WebRTC", function() {
         webrtc.once("error", function(message) {
           expect(message).to.contain("gUM error");
           done();
-        }).initiate();
+        }).initiate({video: true, audio: true});
       });
 
       it("should handle errors from pc.addStream", function(done) {
@@ -385,7 +406,7 @@ describe("WebRTC", function() {
         webrtc.once("error", function(message) {
           expect(message).to.contain("addStream error");
           done();
-        }).initiate();
+        }).initiate({video: true, audio: true});
       });
 
       it("should handle errors from pc.createOffer", function(done) {
