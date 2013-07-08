@@ -74,7 +74,7 @@ describe("CallView", function() {
 
     });
 
-    describe("remote streams", function() {
+    describe("media streams", function() {
       beforeEach(function() {
         call.media = _.extend({}, Backbone.Events);
       });
