@@ -152,10 +152,13 @@
   WebRTC.prototype.terminate = function() {
     this.state.terminate();
 
-    if (this.pc.signalingState !== 'closed')
-      this.pc.close();
+    if (this.pc.signalingState === 'closed')
+      return this;
 
-    return this.trigger('connection-terminated');
+    this.once('ice:closed', this.trigger.bind(this, 'connection-terminated'));
+    this.pc.close();
+
+    return this;
   };
 
   // "private" methods
@@ -267,15 +270,8 @@
    * @return {Event} event
    */
   WebRTC.prototype._onIceConnectionStateChange = function() {
-    this.trigger('ice:change', this.pc.readyState);
-    this.trigger('ice:' + this.pc.readyState);
-  };
-
-  /**
-   * Executed when the current peer connection is closed.
-   */
-  WebRTC.prototype._onPeerConnectionClose = function() {
-    this.terminate();
+    this.trigger('ice:change', this.pc.iceConnectionState);
+    this.trigger('ice:' + this.pc.iceConnectionState);
   };
 
   /**
@@ -370,7 +366,6 @@
    */
   WebRTC.prototype._setupPeerConnection = function(pc) {
     pc.onaddstream = this._onAddStream.bind(this);
-    pc.onclose = this._onPeerConnectionClose.bind(this);
     pc.ondatachannel = this._onDataChannel.bind(this);
     pc.oniceconnectionstatechange = this._onIceConnectionStateChange.bind(this);
     pc.onremovestream = this._onRemoveStream.bind(this);

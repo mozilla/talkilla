@@ -92,8 +92,8 @@ describe("WebRTC", function() {
 
     it("should emit ice connection state change events", function(done) {
       var webrtc = new WebRTC();
-      webrtc.pc.readyState = 'xxx';
-      webrtc.on('ice:xxx', function() {
+      webrtc.pc.iceConnectionState = 'closed';
+      webrtc.on('ice:closed', function() {
         done();
       });
 
@@ -372,7 +372,7 @@ describe("WebRTC", function() {
       it("should emit the `connection-terminated` event", function(done) {
         webrtc.once('connection-terminated', function() {
           done();
-        }).terminate();
+        }).terminate().trigger('ice:closed');
       });
     });
   });
