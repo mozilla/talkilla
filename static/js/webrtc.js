@@ -48,13 +48,16 @@
   /* jshint camelcase:false */
   WebRTC.prototype.__defineGetter__('constraints', function() {
     var _constraints = this._constraints || defaultConstraints;
+
     if (!!this.options.forceFake)
       _constraints.fake = true;
+
     return _constraints;
   });
 
   WebRTC.prototype.__defineSetter__('constraints', function(constraints) {
     this._constraints = constraints || defaultConstraints;
+
     if (!!this.options.forceFake)
       this._constraints.fake = true;
   });
@@ -70,8 +73,10 @@
   WebRTC.prototype.initiate = function(constraints) {
     this.state.initiate();
     this.constraints = constraints;
+
     if (!this.constraints.video && !this.constraints.audio)
       return this._createOffer();
+
     return this._getMedia(function(localStream) {
       this.trigger('local-stream:ready', localStream)
           ._addLocalStream(localStream)
@@ -88,11 +93,13 @@
    */
   WebRTC.prototype.establish = function(answer) {
     this.state.establish();
+
     this.pc.setRemoteDescription(
       new mozRTCSessionDescription(answer),
       this.trigger.bind(this, 'connection-established'),
       this._handleError.bind(this, 'Unable to set remote answer description')
     );
+
     return this;
   };
 
@@ -105,8 +112,10 @@
   WebRTC.prototype.answer = function(offer) {
     this.state.answer();
     this.constraints = this._parseOfferConstraints(offer);
+
     if (!this.constraints.audio && !this.constraints.audio)
       return this._prepareAnswer(offer);
+
     return this._getMedia(function(localStream) {
       this.trigger('local-stream:ready', localStream)
           ._addLocalStream(localStream)
@@ -124,11 +133,13 @@
   WebRTC.prototype.send = function(data) {
     if (this.state.current !== 'ongoing')
       return this._handleError("Not connected, can't send data");
+
     try {
       this.dc.send(data);
     } catch(err) {
       return this._handleError("Couldn't send data", err);
     }
+
     return this.trigger('dc:message-out', data);
   };
 
@@ -140,8 +151,10 @@
    */
   WebRTC.prototype.terminate = function() {
     this.state.terminate();
+
     if (this.pc.signalingState !== 'closed')
       this.pc.close();
+
     return this.trigger('connection-terminated');
   };
 
@@ -158,6 +171,7 @@
     } catch (err) {
       return this._handleError('Unable to add local stream', err);
     }
+
     return this;
   };
 
@@ -171,6 +185,7 @@
       this._setAnswerDescription.bind(this),
       this._handleError.bind(this, 'Unable to create answer')
     );
+
     return this;
   };
 
@@ -184,6 +199,7 @@
       this._setOfferDescription.bind(this),
       this._handleError.bind(this, 'Unable to create offer')
     );
+
     return this;
   };
 
@@ -200,6 +216,7 @@
       this._handleError.bind(this, 'Unable to get user media, constraints=' +
                                    this.constraints.toSource())
     );
+
     return this;
   };
 
@@ -212,8 +229,10 @@
    */
   WebRTC.prototype._handleError = function(description, err) {
     var messageParts = [description];
+
     if (err && typeof err === "object")
       messageParts = messageParts.concat([':', err.name, err.message]);
+
     return this.trigger('error', messageParts.join(' '));
   };
 
@@ -236,8 +255,10 @@
       onerror: 'dc:error',
       onclose: 'dc:close'
     };
+
     for (var handler in eventsMap)
       event.channel[handler] = this.trigger.bind(this, eventsMap[handler]);
+
     this.trigger('dc:ready', event.channel);
   };
 
@@ -283,8 +304,10 @@
    */
   WebRTC.prototype._parseOfferConstraints = function(offer) {
     var sdp = offer && offer.sdp;
+
     if (!sdp)
       return this._handleError('No SDP offer to parse');
+
     return {
       video: sdp.contains('\nm=video '),
       audio: sdp.contains('\nm=audio ')
@@ -302,6 +325,7 @@
       this._createAnswer.bind(this),
       this._handleError.bind(this, 'Unable to set remote offer description')
     );
+
     return this;
   };
 
@@ -318,6 +342,7 @@
       this.trigger.bind(this, 'answer-ready', answer),
       this._handleError.bind(this, 'Unable to set local answer description')
     );
+
     return this;
   };
 
@@ -334,6 +359,7 @@
       this.trigger.bind(this, 'offer-ready', offer),
       this._handleError.bind(this, 'Unable to set local offer description')
     );
+
     return this;
   };
 
@@ -349,6 +375,7 @@
     pc.oniceconnectionstatechange = this._onIceConnectionStateChange.bind(this);
     pc.onremovestream = this._onRemoveStream.bind(this);
     pc.onsignalingstatechange = this._onSignalingStateChange.bind(this);
+
     return pc;
   };
 })(this);
