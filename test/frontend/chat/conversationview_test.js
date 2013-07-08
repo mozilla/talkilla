@@ -20,11 +20,15 @@ describe("ConversationView", function() {
       sandbox.stub(window, "close");
       oldtitle = document.title;
 
-      // Although we're not testing it in this set of tests, stub the WebRTCCall
-      // model's initialize function, as creating new media items
-      // (e.g. PeerConnection) takes a lot of time that we don't need to spend.
-      sandbox.stub(app.models.WebRTCCall.prototype, "initialize");
-      var media = new app.models.WebRTCCall();
+      // XXX This should probably be a mock, but sinon mocks don't seem to want
+      // to work with Backbone.
+      var media = {
+        answer: sandbox.spy(),
+        establish: sandbox.spy(),
+        initiate: sandbox.spy(),
+        terminate: sandbox.spy(),
+        on: sandbox.stub()
+      };
       call = new app.models.Call({}, {media: media});
       peer = new app.models.User();
       sandbox.stub(peer, "on");
