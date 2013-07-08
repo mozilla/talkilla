@@ -254,8 +254,8 @@
         throw new Error("missing parameter: el");
 
       this.call = options.call;
-      this.call.media.on('change:localStream', this._displayLocalVideo, this);
-      this.call.media.on('change:remoteStream', this._displayRemoteVideo, this);
+      this.call.media.on('local-stream:ready', this._displayLocalVideo, this);
+      this.call.media.on('remote-stream:ready', this._displayRemoteVideo, this);
 
       this.call.on('state:to:ongoing', this.ongoing, this);
       this.call.on('state:to:terminated', this.terminated, this);
@@ -269,21 +269,18 @@
       this.$el.hide();
     },
 
-    _displayLocalVideo: function() {
+    _displayLocalVideo: function(stream) {
       var localVideo = this.$('#local-video')[0];
       if (!localVideo)
         return this;
-      var localStream = this.call.media.get("localStream");
-      localVideo.mozSrcObject = localStream;
+      localVideo.mozSrcObject = stream;
       localVideo.play();
       return this;
     },
 
-    _displayRemoteVideo: function() {
+    _displayRemoteVideo: function(stream) {
       var remoteVideo = this.$('#remote-video')[0];
-      var remoteStream = this.call.media.get("remoteStream");
-
-      remoteVideo.mozSrcObject = remoteStream;
+      remoteVideo.mozSrcObject = stream;
       remoteVideo.play();
       return this;
     }
@@ -340,7 +337,7 @@
 
       this.collection.on('add', this.render, this);
 
-      this.media.on('dc.in.ready', function() {
+      this.media.on('dc:ready', function() {
         this.$('input').removeAttr('disabled');
       }, this);
 

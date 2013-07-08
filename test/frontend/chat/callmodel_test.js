@@ -1,4 +1,4 @@
-/* global app, chai, describe, it, sinon, beforeEach, afterEach */
+/* global _, Backbone, app, chai, describe, it, sinon, beforeEach, afterEach */
 
 /* jshint expr:true */
 var expect = chai.expect;
@@ -15,10 +15,10 @@ describe("Call", function() {
     // XXX This should probably be a mock, but sinon mocks don't seem to want
     // to work with Backbone.
     media = {
-      answer: sandbox.stub(),
-      establish: sandbox.stub(),
-      hangup: sandbox.stub(),
-      offer: sandbox.stub(),
+      answer: sandbox.spy(),
+      establish: sandbox.spy(),
+      initiate: sandbox.spy(),
+      terminate: sandbox.spy(),
       on: sandbox.stub()
     };
 
@@ -70,8 +70,8 @@ describe("Call", function() {
     it("should pass the call data to the media", function() {
       call.start(callData);
 
-      sinon.assert.calledOnce(media.offer);
-      sinon.assert.calledWithExactly(media.offer, callData);
+      sinon.assert.calledOnce(media.initiate);
+      sinon.assert.calledWithExactly(media.initiate, callData);
     });
 
     it("should raise an error if called twice", function() {
@@ -98,7 +98,7 @@ describe("Call", function() {
   });
 
   describe("#accept", function() {
-    var callData = {peer: "bob"};
+    var callData = {video: true, audio: true, peer: "bob", offer: {foo: 42}};
 
     it("should change the state from incoming to pending", function() {
       call.state.incoming();
@@ -111,26 +111,38 @@ describe("Call", function() {
       call.accept();
 
       sinon.assert.calledOnce(media.answer);
-      sinon.assert.calledWithExactly(media.answer, callData);
+      sinon.assert.calledWithExactly(media.answer, callData.offer);
     });
 
   });
 
   describe("#establish", function() {
-    var answer = {answer: {type: "type", sdp: "sdp"}};
+    var answerData = {answer: {type: "answer", sdp: "sdp"}};
 
-    it("should change the state from pending to ongoing", function() {
+    it("should not accept an invalid answer", function() {
       call.start({});
-      call.establish({});
-      expect(call.state.current).to.equal('ongoing');
+      function establish() {
+        call.establish({});
+      }
+      expect(establish).throws(Error);
+    });
+
+    it("should change the state from pending to ongoing", function(done) {
+      _.extend(media, Backbone.Events);
+      call.start({});
+      call.once('state:to:ongoing', done);
+      call.establish(answerData);
+      call.media.trigger('connection-established');
     });
 
     it("should pass the data to the media", function() {
+      _.extend(media, Backbone.Events);
+      media.establish = sandbox.stub();
       call.start({});
-      call.establish(answer);
+      call.establish(answerData);
 
       sinon.assert.calledOnce(media.establish);
-      sinon.assert.calledWithExactly(media.establish, answer);
+      sinon.assert.calledWithExactly(media.establish, answerData.answer);
     });
 
   });
@@ -156,18 +168,20 @@ describe("Call", function() {
     });
 
     it("should change the state from ongoing to terminated", function() {
+      _.extend(media, Backbone.Events);
       call.start({});
-      call.establish({});
+      call.establish({answer: {type: "answer", sdp: "sdp"}});
       call.hangup();
       expect(call.state.current).to.equal('terminated');
     });
 
     it("should call hangup on the media element", function() {
+      media.terminate = sandbox.stub();
       call.start({});
       call.hangup();
 
-      sinon.assert.calledOnce(media.hangup);
-      sinon.assert.calledWithExactly(media.hangup);
+      sinon.assert.calledOnce(media.terminate);
+      sinon.assert.calledWithExactly(media.terminate);
     });
 
   });

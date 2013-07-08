@@ -1,5 +1,5 @@
 /* global app, chai, describe, it, sinon, beforeEach, afterEach,
-   ChatApp, $, _, Backbone */
+   ChatApp, $, _, Backbone, WebRTC */
 
 /* jshint expr:true */
 var expect = chai.expect;
@@ -12,6 +12,19 @@ describe("ChatApp", function() {
     offer: {type: "answer", sdp: "fake"}
   };
 
+  function fakeSDP(str) {
+    return {
+      str: str,
+      contains: function(what) {
+        return this.str.indexOf(what) !== -1;
+      }
+    };
+  }
+
+  var fakeOffer = {type: "offer", sdp: fakeSDP("\nm=video aaa\nm=audio bbb")};
+  var fakeAnswer = {type: "answer", sdp: fakeSDP("\nm=video ccc\nm=audio ddd")};
+  var fakeDataChannel = {fakeDataChannel: true};
+
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
     app.port = {postEvent: sinon.spy()};
@@ -21,10 +34,28 @@ describe("ChatApp", function() {
       play: sandbox.stub(),
       pause: sandbox.stub()
     });
-    // Although we're not testing it in this set of tests, stub the WebRTCCall
-    // model's initialize function, as creating new media items
-    // (e.g. PeerConnection) takes a lot of time that we don't need to spend.
-    sandbox.stub(app.models.WebRTCCall.prototype, "initialize");
+
+    // mozRTCPeerConnection stub
+    sandbox.stub(window, "mozRTCPeerConnection").returns({
+      close: sandbox.spy(),
+      addStream: sandbox.spy(),
+      createAnswer: function(success) {
+        success(fakeAnswer);
+      },
+      createOffer: function(success) {
+        success(fakeOffer);
+      },
+      setLocalDescription: function(source, success) {
+        success(source);
+      },
+      setRemoteDescription: function(source, success) {
+        success(source);
+      },
+      createDataChannel: function() {
+        fakeDataChannel.send = sandbox.spy();
+        return fakeDataChannel;
+      }
+    });
 
     // This stops us changing the document's title unnecessarily
     sandbox.stub(app.views.ConversationView.prototype, "initialize");
@@ -184,8 +215,8 @@ describe("ChatApp", function() {
       expect(chatApp.call).to.be.an.instanceOf(app.models.Call);
     });
 
-    it("should have a webrtc call model", function() {
-      expect(chatApp.webrtc).to.be.an.instanceOf(app.models.WebRTCCall);
+    it("should have a webrtc object", function() {
+      expect(chatApp.webrtc).to.be.an.instanceOf(WebRTC);
     });
 
     it("should have a call view attached to the 'call' element" , function() {
@@ -391,7 +422,7 @@ describe("ChatApp", function() {
 
     describe("#_onTextChatEntryCreated", function() {
       it("should send data over data channel", function() {
-        var stub = sandbox.stub(app.models.WebRTCCall.prototype, "send");
+        var stub = sandbox.stub(WebRTC.prototype, "send");
         chatApp = new ChatApp();
         var entry = {foo: "bar"};
 
