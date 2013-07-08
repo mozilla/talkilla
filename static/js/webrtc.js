@@ -51,6 +51,8 @@
   WebRTC.prototype.initiate = function(constraints) {
     this.state.initiate();
     this.constraints = constraints;
+    if (!this.constraints.video && !this.constraints.audio)
+      return this._createOffer();
     return this._getMedia(function(localStream) {
       this.trigger('local-stream:ready', localStream)
           ._addLocalStream(localStream)
@@ -84,14 +86,12 @@
   WebRTC.prototype.answer = function(offer) {
     this.state.answer();
     this.constraints = this._parseOfferConstraints(offer);
+    if (!this.constraints.audio && !this.constraints.audio)
+      return this._prepareAnswer(offer);
     return this._getMedia(function(localStream) {
-      this.trigger('local-stream:ready', localStream);
-      this._addLocalStream(localStream);
-      this.pc.setRemoteDescription(
-        new mozRTCSessionDescription(offer),
-        this._createAnswer.bind(this),
-        this._handleError.bind(this, 'Unable to set remote offer description')
-      );
+      this.trigger('local-stream:ready', localStream)
+          ._addLocalStream(localStream)
+          ._prepareAnswer(offer);
     });
   };
 
@@ -295,6 +295,20 @@
       video: sdp.contains('\nm=video '),
       audio: sdp.contains('\nm=audio ')
     };
+  };
+
+  /**
+   * Prepares an answer based on passed offer.
+   * @param  {Object} offer
+   * @return {WebRTC}
+   */
+  WebRTC.prototype._prepareAnswer = function(offer) {
+    this.pc.setRemoteDescription(
+      new mozRTCSessionDescription(offer),
+      this._createAnswer.bind(this),
+      this._handleError.bind(this, 'Unable to set remote offer description')
+    );
+    return this;
   };
 
   /**
