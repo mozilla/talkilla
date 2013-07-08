@@ -96,7 +96,7 @@
 
     this.pc.setRemoteDescription(
       new mozRTCSessionDescription(answer),
-      this.trigger.bind(this, 'connection-established'),
+      this._prepareEstablishment.bind(this),
       this._handleError.bind(this, 'Unable to set remote answer description')
     );
 
@@ -308,6 +308,13 @@
       video: sdp.contains('\nm=video '),
       audio: sdp.contains('\nm=audio ')
     };
+  };
+
+  /**
+   * Prepares connection establishment.
+   */
+  WebRTC.prototype._prepareEstablishment = function() {
+    this.on('ice:connected', this.trigger.bind(this, 'connection-established'));
   };
 
   /**
