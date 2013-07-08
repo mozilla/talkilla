@@ -40,19 +40,31 @@ describe("ConversationView", function() {
     });
 
     it("should attach a given call model", function() {
-      var view = new app.views.ConversationView({call: call, peer: peer, textChat: textChat});
+      var view = new app.views.ConversationView({
+        call: call,
+        peer: peer,
+        textChat: textChat
+      });
 
       expect(view.call).to.equal(call);
     });
 
     it("should attach a given peer model", function() {
-      var view = new app.views.ConversationView({call: call, peer: peer, textChat: textChat});
+      var view = new app.views.ConversationView({
+        call: call,
+        peer: peer,
+        textChat: textChat
+      });
 
       expect(view.peer).to.equal(peer);
     });
 
     it("should have a textChat model", function() {
-      var view = new app.views.ConversationView({call: call, peer: peer, textChat: textChat});
+      var view = new app.views.ConversationView({
+        call: call,
+        peer: peer,
+        textChat: textChat
+      });
 
       expect(view.textChat).to.equal(textChat);
     });
@@ -79,7 +91,11 @@ describe("ConversationView", function() {
     });
 
     it("should attach to the app user model", function() {
-      new app.views.ConversationView({call: call, peer: peer, textChat: textChat});
+      new app.views.ConversationView({
+        call: call,
+        peer: peer,
+        textChat: textChat
+      });
 
       sinon.assert.called(peer.on);
       sinon.assert.calledWith(peer.on, "change:nick");
@@ -88,7 +104,11 @@ describe("ConversationView", function() {
     it("should update the document title on change of the peer's details",
       function() {
         peer.set({nick: "nick"});
-        new app.views.ConversationView({call: call, peer: peer, textChat: textChat});
+        new app.views.ConversationView({
+          call: call,
+          peer: peer,
+          textChat: textChat
+        });
 
         peer.on.args[0][1](peer);
 
@@ -97,7 +117,11 @@ describe("ConversationView", function() {
 
     it("should close the window when the call `offer-timeout` event is " +
        "triggered", function() {
-        new app.views.ConversationView({call: call, peer: peer, textChat: textChat});
+        new app.views.ConversationView({
+          call: call,
+          peer: peer,
+          textChat: textChat
+        });
 
         call.trigger('offer-timeout');
 
