@@ -333,7 +333,7 @@ describe("WebRTC", function() {
             answerer.once('answer-ready', function(answer) {
               offerer.once('connection-established', function() {
                 done();
-              }).establish(answer);
+              }).establish(answer).trigger('ice:connected');
             }).answer(offer);
           }).initiate();
         });
