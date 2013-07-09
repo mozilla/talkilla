@@ -130,7 +130,7 @@ var ChatApp = (function($, Backbone, _) {
 
   ChatApp.prototype._onCallEstablishment = function(data) {
     // text chat conversation
-    if (data.dataChannel)
+    if (data.textChat)
       return this.textChat.media.establish(data.answer);
 
     // video/audio call
@@ -152,12 +152,12 @@ var ChatApp = (function($, Backbone, _) {
       video: sdp.contains("\nm=video "),
       audio: sdp.contains("\nm=audio "),
       offer: data.offer,
-      dataChannel: !!data.dataChannel
+      textChat: !!data.textChat
     };
 
     // incoming text chat conversation
-    if (data.dataChannel)
-      return this.textChat.media.answer(options.offer);
+    if (data.textChat)
+      return this.textChat.answer(options.offer);
 
     // incoming video/audio call
     this.call.incoming(options);

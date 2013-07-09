@@ -128,6 +128,7 @@ Conversation.prototype = {
    * - offer  the sdp offer for the connection
    */
   callAccepted: function(data) {
+    dump(data);
     this.port.postEvent('talkilla.call-establishment', data);
   },
 
@@ -529,6 +530,7 @@ var handlers = {
    */
   'talkilla.text-chat-offer': function(event) {
     // Note: reusing server event for calls
+    event.data.textChat = true;
     _presenceSocketSendMessage(JSON.stringify({ 'call_offer': event.data }));
   },
 
@@ -541,6 +543,7 @@ var handlers = {
    */
   'talkilla.text-chat-answer': function(event) {
     // Note: reusing server event for calls
+    event.data.textChat = true;
     _presenceSocketSendMessage(JSON.stringify({ 'call_accepted': event.data }));
   },
 

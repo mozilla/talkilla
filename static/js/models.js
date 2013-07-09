@@ -58,27 +58,6 @@
           }.bind(this)
         }
       });
-
-      this.media.on("offer-ready", function(offer) {
-        this.trigger("send-offer", {
-          peer: this.peer.get("nick"),
-          offer: offer
-        });
-      }.bind(this));
-
-      this.media.on("answer-ready", function(answer) {
-        this.trigger("send-answer", {
-          peer: this.peer.get("nick"),
-          answer: answer
-        });
-
-        // XXX Change transition to complete/ongoing here as
-        // this is the best place we've got currently to know that
-        // the incoming call is now ongoing. When WebRTC platform
-        // support comes for connection notifications, we'll want
-        // to handle this differently.
-        this.state.complete();
-      }.bind(this));
     },
 
     /**
@@ -94,7 +73,16 @@
         callData: options,
         timeout: app.options.PENDING_CALL_TIMEOUT
       });
+
       this.state.start();
+
+      this.media.once("offer-ready", function(offer) {
+        this.trigger("send-offer", {
+          peer: this.peer.get("nick"),
+          offer: offer
+        });
+      }, this);
+
       this.media.initiate(options);
     },
 
@@ -131,6 +119,7 @@
         throw new Error("Invalid answer, can't establish connection.");
 
       clearTimeout(this.timer);
+
       this.media.once('connection-established', this.state.establish,
                                                 this.state);
       this.media.establish(answer);
@@ -141,7 +130,23 @@
      */
     accept: function() {
       var data = this.get('incomingData');
+
+      this.media.once("answer-ready", function(answer) {
+        this.trigger("send-answer", {
+          peer: this.peer.get("nick"),
+          answer: answer
+        });
+
+        // XXX Change transition to complete/ongoing here as
+        // this is the best place we've got currently to know that
+        // the incoming call is now ongoing. When WebRTC platform
+        // support comes for connection notifications, we'll want
+        // to handle this differently.
+        this.state.complete();
+      }, this);
+
       this.media.answer(data && data.offer);
+
       this.state.accept();
     },
 
@@ -205,25 +210,37 @@
       this.media = options && options.media;
       this.peer = options && options.peer;
 
-      this.media.on("offer-ready", function(offer) {
-        this.trigger("send-offer", {
-          peer: this.peer.get("nick"),
-          offer: offer,
-          dataChannel: true
-        });
-      }, this);
-
-      this.media.on("answer-ready", function(answer) {
-        this.trigger("send-answer", {
-          peer: this.peer.get("nick"),
-          answer: answer,
-          dataChannel: true
-        });
-      }, this);
-
       this.media.on('dc:message-in', function(event) {
         this.add(JSON.parse(event.data));
       }, this);
+
+      this.media.on('dc:close', function() {
+        this.terminate().reset();
+      });
+    },
+
+    initiate: function(constraints) {
+      this.media.once("offer-ready", function(offer) {
+        this.trigger("send-offer", {
+          peer: this.peer.get("nick"),
+          offer: offer,
+          textChat: true
+        });
+      }, this);
+
+      this.media.initiate(constraints);
+    },
+
+    answer: function(offer) {
+      this.media.once("answer-ready", function(answer) {
+        this.trigger("send-answer", {
+          peer: this.peer.get("nick"),
+          answer: answer,
+          textChat: true
+        });
+      }, this);
+
+      this.media.answer(offer);
     },
 
     /**
@@ -241,7 +258,9 @@
 
       this.media.once("dc:open", function() {
         this.send(JSON.stringify(entry.toJSON()));
-      }).initiate({video: false, audio: false});
+      });
+
+      this.initiate({video: false, audio: false});
     }
   });
 

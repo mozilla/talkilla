@@ -28,7 +28,8 @@
         {name: 'initiate',  from: 'ready',   to: 'pending'},
         {name: 'establish', from: 'pending', to: 'ongoing'},
         {name: 'answer',    from: 'ready',   to: 'ongoing'},
-        {name: 'terminate', from: '*',       to: 'terminated'}
+        {name: 'terminate', from: '*',       to: 'terminated'},
+        {name: 'reset',     from: '*',       to: 'ready'}
       ],
       callbacks: {
         onenterstate: function(event, from, to) {
@@ -121,6 +122,18 @@
           ._addLocalStream(localStream)
           ._prepareAnswer(offer);
     });
+  };
+
+  /**
+   * Resets the peer connection.
+   * @return {WebRTC}
+   */
+  WebRTC.prototype.reset = function() {
+    this.state.reset();
+    this.pc = this._setupPeerConnection(new mozRTCPeerConnection());
+    this.dc = this.pc.createDataChannel('dc', {});
+
+    return this;
   };
 
   /**
