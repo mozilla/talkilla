@@ -407,32 +407,5 @@ describe("ChatApp", function() {
           sinon.assert.calledWith(app.port.postEvent, "talkilla.call-answer");
         });
     });
-
-    describe("#_onDataChannelMessageIn", function() {
-      it("should append received data to the current text chat", function() {
-        var stub = sandbox.stub(app.models.TextChat.prototype, "add");
-        chatApp = new ChatApp();
-        var event = {data: JSON.stringify({foo: "bar"})};
-
-        chatApp._onDataChannelMessageIn(event);
-
-        sinon.assert.calledOnce(stub);
-        sinon.assert.calledWithExactly(stub, {foo: "bar"});
-      });
-    });
-
-    describe("#_onTextChatEntryCreated", function() {
-      it("should send data over data channel", function() {
-        var stub = sandbox.stub(WebRTC.prototype, "send");
-        chatApp = new ChatApp();
-        var entry = {foo: "bar"};
-
-        chatApp._onTextChatEntryCreated(entry);
-
-        sinon.assert.calledOnce(stub);
-        sinon.assert.calledWithExactly(stub, JSON.stringify(entry));
-      });
-    });
-
   });
 });

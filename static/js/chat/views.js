@@ -326,9 +326,12 @@
     },
 
     initialize: function(options) {
+      if (!options.sender)
+        throw new Error("missing parameter: sender");
       if (!options.collection)
         throw new Error("missing parameter: collection");
 
+      this.sender = options.sender;
       this.collection = options.collection;
 
       this.collection.on('add', this.render, this);
@@ -342,7 +345,7 @@
       $input.val('');
 
       this.collection.send({
-        nick: app.data.user.get("nick"),
+        nick: this.sender.get("nick"),
         message: message
       });
     },

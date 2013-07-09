@@ -19,7 +19,8 @@ describe("Call", function() {
       establish: sandbox.spy(),
       initiate: sandbox.spy(),
       terminate: sandbox.spy(),
-      on: sandbox.stub()
+      on: sandbox.stub(),
+      once: sandbox.stub()
     };
 
     peer = new app.models.User();
@@ -45,14 +46,6 @@ describe("Call", function() {
       expect(call.state.current).to.equal('ready');
     });
 
-    it("should listen to offer-ready from the media", function() {
-      sinon.assert.calledWith(media.on, "offer-ready");
-    });
-
-    it("should listen to answer-ready from the media", function() {
-      sinon.assert.calledWith(media.on, "answer-ready");
-    });
-
     it("should set instance attributes", function() {
       var call = new app.models.Call({peer: "larry"}, {media: media});
       expect(call.get("peer")).to.equal("larry");
@@ -66,6 +59,26 @@ describe("Call", function() {
       call.start({});
       expect(call.state.current).to.equal('pending');
     });
+
+    it("should listen to offer-ready from the media", function() {
+      call.start({});
+      sinon.assert.calledWith(media.once, "offer-ready");
+    });
+
+    it("should trigger send-offer with transport data on offer-ready",
+      function(done) {
+        call.media = _.extend(media, Backbone.Events);
+        peer.set("nick", "larry");
+        var fakeOffer = {peer: "larry", offer: {fake: true}};
+        call.once("send-offer", function(data) {
+          expect(data.offer).to.deep.equal(fakeOffer);
+          done();
+        });
+
+        call.start({});
+
+        call.media.trigger("offer-ready", fakeOffer);
+      });
 
     it("should pass the call data to the media", function() {
       call.start(callData);
@@ -100,11 +113,33 @@ describe("Call", function() {
   describe("#accept", function() {
     var callData = {video: true, audio: true, peer: "bob", offer: {foo: 42}};
 
+    it("should listen to answer-ready from the media", function() {
+      call.state.incoming();
+      call.accept();
+      sinon.assert.calledWith(media.once, "answer-ready");
+    });
+
     it("should change the state from incoming to pending", function() {
       call.state.incoming();
       call.accept();
       expect(call.state.current).to.equal('pending');
     });
+
+    it("should trigger send-answer with transport data on answer-ready",
+      function(done) {
+        call.media = _.extend(media, Backbone.Events);
+        peer.set("nick", "larry");
+        var fakeAnswer = {peer: "larry", answer: {fake: true}};
+        call.once("send-answer", function(data) {
+          expect(data.answer).to.deep.equal(fakeAnswer);
+          done();
+        });
+
+        call.incoming({});
+        call.accept({});
+
+        call.media.trigger("answer-ready", fakeAnswer);
+      });
 
     it("should pass the call data to the media", function() {
       call.incoming(callData);
@@ -218,57 +253,6 @@ describe("Call", function() {
     afterEach(function() {
       delete app.data.user;
       userModel = undefined;
-    });
-
-    describe("#offer-ready", function() {
-      it("should trigger send-offer with transport data", function() {
-        // Set up the data
-        var expectedData = {
-          peer: "larry",
-          offer: fakeSdp
-        };
-
-        // [0] gives the offer-ready call, [1] is the callback
-        media.on.args[0][1](fakeSdp);
-
-        sinon.assert.calledOnce(call.trigger);
-        sinon.assert.calledWithExactly(call.trigger, "send-offer",
-          expectedData);
-      });
-    });
-
-    describe("#answer-ready", function() {
-      var expectedData;
-
-      beforeEach(function() {
-        call.state.incoming();
-        call.state.accept();
-
-        // the state changes above, may activate the trigger, so reset it.
-        call.trigger.reset();
-
-        // Set up the data
-        expectedData = {
-          peer: "larry",
-          answer: fakeSdp
-        };
-      });
-
-      it("should trigger send-offer with transport data", function() {
-        // [1] gives the answer-ready call, [1] is the callback
-        media.on.args[1][1](fakeSdp);
-
-        sinon.assert.called(call.trigger);
-        sinon.assert.calledWith(call.trigger, "send-answer",
-          expectedData);
-      });
-
-      it("should change the state to ongoing", function() {
-        // [1] gives the answer-ready call, [1] is the callback
-        media.on.args[1][1](fakeSdp);
-
-        expect(call.state.current).to.be.equal("ongoing");
-      });
     });
   });
 });

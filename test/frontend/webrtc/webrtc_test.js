@@ -82,47 +82,49 @@ describe("WebRTC", function() {
       expect(webrtc.pc.onsignalingstatechange).to.be.a('function');
     });
 
-    it("should create a data channel object", function() {
+    it("should setup and configure a data channel", function() {
       var webrtc = new WebRTC();
 
       expect(webrtc.dc).to.deep.equal(fakeDataChannel);
     });
 
-    it("should emit the `remote-stream:ready` event when a remote media " +
-       "stream is added to the peer connection",
-      function(done) {
-        var webrtc = new WebRTC();
-        webrtc.on('remote-stream:ready', function() {
-          done();
-        });
-
-        webrtc.pc.onaddstream({});
-      });
-
-    it("should emit signaling state change events", function(done) {
-      var webrtc = new WebRTC();
-      webrtc.on('signaling:have-local-offer', function() {
-        done();
-      });
-
-      webrtc.pc.onsignalingstatechange('have-local-offer');
-    });
-
-    it("should emit ice connection state change events", function(done) {
-      var webrtc = new WebRTC();
-      webrtc.pc.iceConnectionState = 'closed';
-      webrtc.on('ice:closed', function() {
-        done();
-      });
-
-      webrtc.pc.oniceconnectionstatechange();
-    });
-
-    it("should configure and initialize a state machine", function() {
+    it("should setup and configure a state machine", function() {
       var webrtc = new WebRTC();
 
       expect(webrtc.state).to.be.an('object');
       expect(webrtc.state.current).to.equal('ready');
+    });
+
+    describe("constructor events", function() {
+      it("should emit the `remote-stream:ready` event when a remote media " +
+         "stream is added to the peer connection",
+        function(done) {
+          var webrtc = new WebRTC();
+          webrtc.on('remote-stream:ready', function() {
+            done();
+          });
+
+          webrtc.pc.onaddstream({});
+        });
+
+      it("should emit signaling state change events", function(done) {
+        var webrtc = new WebRTC();
+        webrtc.on('signaling:have-local-offer', function() {
+          done();
+        });
+
+        webrtc.pc.onsignalingstatechange('have-local-offer');
+      });
+
+      it("should emit ice connection state change events", function(done) {
+        var webrtc = new WebRTC();
+        webrtc.pc.iceConnectionState = 'closed';
+        webrtc.on('ice:closed', function() {
+          done();
+        });
+
+        webrtc.pc.oniceconnectionstatechange();
+      });
     });
   });
 
@@ -207,43 +209,45 @@ describe("WebRTC", function() {
           sinon.assert.calledOnce(webrtc.pc.createOffer);
         });
 
-      it("should emit a `change:state` event", function(done) {
-        webrtc.once('change:state', function(to, from, event) {
-          expect(event).to.equal('initiate');
-          expect(from).to.equal('ready');
-          expect(to).to.equal('pending');
-          done();
-        }).initiate();
-      });
-
-      it("should emit a `state:initiate` event", function(done) {
-        webrtc.once('state:initiate', function() {
-          done();
-        }).initiate();
-      });
-
-      it("should emit a `state:to:pending` event", function(done) {
-        webrtc.once('state:to:pending', function() {
-          done();
-        }).initiate();
-      });
-
-      it("should emit the `local-stream:ready` event when local stream is " +
-         "ready",
-        function(done) {
-          webrtc.once('local-stream:ready', function(stream) {
-            expect(stream).to.deep.equal(fakeStream);
-            done();
-          }).initiate({video: true, audio: true});
-        });
-
-      it("should emit the `offer-ready` event when the offer is ready",
-        function(done) {
-          webrtc.once('offer-ready', function(offer) {
-            expect(offer).to.deep.equal(fakeOffer);
+      describe("#initiate events", function() {
+        it("should emit a `change:state` event", function(done) {
+          webrtc.once('change:state', function(to, from, event) {
+            expect(event).to.equal('initiate');
+            expect(from).to.equal('ready');
+            expect(to).to.equal('pending');
             done();
           }).initiate();
         });
+
+        it("should emit a `state:initiate` event", function(done) {
+          webrtc.once('state:initiate', function() {
+            done();
+          }).initiate();
+        });
+
+        it("should emit a `state:to:pending` event", function(done) {
+          webrtc.once('state:to:pending', function() {
+            done();
+          }).initiate();
+        });
+
+        it("should emit the `local-stream:ready` event when local stream is " +
+           "ready",
+          function(done) {
+            webrtc.once('local-stream:ready', function(stream) {
+              expect(stream).to.deep.equal(fakeStream);
+              done();
+            }).initiate({video: true, audio: true});
+          });
+
+        it("should emit the `offer-ready` event when the offer is ready",
+          function(done) {
+            webrtc.once('offer-ready', function(offer) {
+              expect(offer).to.deep.equal(fakeOffer);
+              done();
+            }).initiate();
+          });
+      });
     });
 
     describe("#answer", function() {
@@ -251,27 +255,6 @@ describe("WebRTC", function() {
         webrtc.answer(fakeOffer);
 
         expect(webrtc.state.current).to.equal('ongoing');
-      });
-
-      it("should emit a `change:state` event", function(done) {
-        webrtc.once('change:state', function(to, from, event) {
-          expect(event).to.equal('answer');
-          expect(from).to.equal('ready');
-          expect(to).to.equal('ongoing');
-          done();
-        }).answer(fakeOffer);
-      });
-
-      it("should emit a `state:initiate` event", function(done) {
-        webrtc.once('state:answer', function() {
-          done();
-        }).answer(fakeOffer);
-      });
-
-      it("should emit a `state:to:pending` event", function(done) {
-        webrtc.once('state:to:ongoing', function() {
-          done();
-        }).answer(fakeOffer);
       });
 
       it("should extract media constraints from incoming offer", function() {
@@ -289,22 +272,45 @@ describe("WebRTC", function() {
           expect(webrtc.constraints.audio).to.equal(true);
         });
 
-      it("should emit the `local-stream:ready` event when local stream is " +
-         "ready",
-        function(done) {
-          webrtc.once('local-stream:ready', function(stream) {
-            expect(stream).to.deep.equal(fakeStream);
+      describe("#answer events", function() {
+        it("should emit a `change:state` event", function(done) {
+          webrtc.once('change:state', function(to, from, event) {
+            expect(event).to.equal('answer');
+            expect(from).to.equal('ready');
+            expect(to).to.equal('ongoing');
             done();
           }).answer(fakeOffer);
         });
 
-      it("should emit the `answer-ready` event when the answer is ready",
-        function(done) {
-          webrtc.once('answer-ready', function(answer) {
-            expect(answer).to.deep.equal(fakeAnswer);
+        it("should emit a `state:initiate` event", function(done) {
+          webrtc.once('state:answer', function() {
             done();
           }).answer(fakeOffer);
         });
+
+        it("should emit a `state:to:pending` event", function(done) {
+          webrtc.once('state:to:ongoing', function() {
+            done();
+          }).answer(fakeOffer);
+        });
+
+        it("should emit the `local-stream:ready` event when local stream is " +
+           "ready",
+          function(done) {
+            webrtc.once('local-stream:ready', function(stream) {
+              expect(stream).to.deep.equal(fakeStream);
+              done();
+            }).answer(fakeOffer);
+          });
+
+        it("should emit the `answer-ready` event when the answer is ready",
+          function(done) {
+            webrtc.once('answer-ready', function(answer) {
+              expect(answer).to.deep.equal(fakeAnswer);
+              done();
+            }).answer(fakeOffer);
+          });
+      });
     });
 
     describe("#establish", function() {
@@ -331,17 +337,19 @@ describe("WebRTC", function() {
         }).initiate();
       });
 
-      it("should emit the `connection-established` event when the " +
-         "communication is established",
-        function(done) {
-          offerer.once('offer-ready', function(offer) {
-            answerer.once('answer-ready', function(answer) {
-              offerer.once('connection-established', function() {
-                done();
-              }).establish(answer).trigger('ice:connected');
-            }).answer(offer);
-          }).initiate();
-        });
+      describe("events", function() {
+        it("should emit the `connection-established` event when the " +
+           "communication is established",
+          function(done) {
+            offerer.once('offer-ready', function(offer) {
+              answerer.once('answer-ready', function(answer) {
+                offerer.once('connection-established', function() {
+                  done();
+                }).establish(answer).trigger('ice:connected');
+              }).answer(offer);
+            }).initiate();
+          });
+      });
     });
 
     describe("#send", function() {
@@ -352,13 +360,24 @@ describe("WebRTC", function() {
 
       it("should send data over data channel",
         function() {
-          webrtc.state.current = 'ongoing';
+          webrtc.state.current = "ongoing";
 
-          webrtc.send('plop');
+          webrtc.send("plop");
 
           sinon.assert.calledOnce(webrtc.dc.send);
           sinon.assert.calledWithExactly(webrtc.dc.send, 'plop');
         });
+
+      describe("#send events", function() {
+        it("should emit the `dc:message-out` event", function(done) {
+          webrtc.state.current = "ongoing";
+
+          webrtc.once("dc:message-out", function(data) {
+            expect(data).to.deep.equal("plop");
+            done();
+          }).send("plop");
+        });
+      });
     });
 
     describe("#terminate", function() {
@@ -374,10 +393,12 @@ describe("WebRTC", function() {
         expect(webrtc.state.current).to.equal('terminated');
       });
 
-      it("should emit the `connection-terminated` event", function(done) {
-        webrtc.once('connection-terminated', function() {
-          done();
-        }).terminate().trigger('ice:closed');
+      describe("#terminate events", function() {
+        it("should emit the `connection-terminated` event", function(done) {
+          webrtc.once('connection-terminated', function() {
+            done();
+          }).terminate().trigger('ice:closed');
+        });
       });
     });
   });
@@ -391,7 +412,7 @@ describe("WebRTC", function() {
       webrtc.terminate().off();
     });
 
-    describe("#initiate", function() {
+    describe("#initiate error handling", function() {
       it("should handle errors from gUM", function(done) {
         navigator.mozGetUserMedia = function(c, s, error) {
           error(new Error("gUM error"));
@@ -437,7 +458,7 @@ describe("WebRTC", function() {
       });
     });
 
-    describe("#answer", function() {
+    describe("#answer error handling", function() {
       it("should handle errors from gUM", function(done) {
         navigator.mozGetUserMedia = function(c, s, error) {
           error(new Error("gUM error"));
@@ -483,7 +504,7 @@ describe("WebRTC", function() {
       });
     });
 
-    describe("#establish", function() {
+    describe("#establish error handling", function() {
       it("should handle errors from setRemoteDescription", function(done) {
         webrtc.pc.setRemoteDescription = function(obj, success, error) {
           error(new Error("setRemoteDescription error"));

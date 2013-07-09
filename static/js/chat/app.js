@@ -94,7 +94,8 @@ var ChatApp = (function($, Backbone, _) {
       peer: this.peer
     });
     this.textChatView = new app.views.TextChatView({
-      collection: this.textChat
+      collection: this.textChat,
+      sender: app.data.user
     });
 
     // Incoming events

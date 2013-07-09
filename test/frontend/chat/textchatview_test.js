@@ -7,7 +7,19 @@ var expect = chai.expect;
 describe("Text chat views", function() {
   "use strict";
 
+  function fakeSDP(str) {
+    return {
+      str: str,
+      contains: function(what) {
+        return this.str.indexOf(what) !== -1;
+      }
+    };
+  }
+
   var sandbox;
+  var fakeOffer = {type: "offer", sdp: fakeSDP("\nm=video aaa\nm=audio bbb")};
+  var fakeAnswer = {type: "answer", sdp: fakeSDP("\nm=video ccc\nm=audio ddd")};
+  var fakeDataChannel = {fakeDataChannel: true};
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
@@ -17,6 +29,33 @@ describe("Text chat views", function() {
       postEvent: sinon.spy()
     };
     _.extend(app.port, Backbone.Events);
+
+    // mozGetUserMedia stub
+    sandbox.stub(navigator, "mozGetUserMedia");
+
+    // mozRTCPeerConnection stub
+    sandbox.stub(window, "mozRTCPeerConnection").returns({
+      close: sandbox.spy(),
+      addStream: sandbox.spy(),
+      createAnswer: function(success) {
+        success(fakeAnswer);
+      },
+      createOffer: function(success) {
+        success(fakeOffer);
+      },
+      setLocalDescription: function(source, success) {
+        success(source);
+      },
+      setRemoteDescription: function(source, success) {
+        success(source);
+      },
+      createDataChannel: function() {
+        fakeDataChannel.send = sandbox.spy();
+        return fakeDataChannel;
+      }
+    });
+
+    app.data.user = new app.models.User();
   });
 
   afterEach(function() {
@@ -48,11 +87,6 @@ describe("Text chat views", function() {
         '</div>'
       ].join(''));
 
-      sandbox.stub(navigator, "mozGetUserMedia");
-      sandbox.stub(window, "mozRTCPeerConnection").returns({
-        createDataChannel: function() {}
-      });
-
       sandbox.stub(window, "Audio").returns({
         play: sinon.spy(),
         pause: sinon.spy()
@@ -70,7 +104,9 @@ describe("Text chat views", function() {
       media = new WebRTC();
       call = new app.models.Call({}, {media: media});
 
-      app.data.user.set("nick", "niko");
+      peer = new app.models.User();
+
+      app.data.user.set({nick: "niko"});
     });
 
     afterEach(function() {
@@ -79,6 +115,7 @@ describe("Text chat views", function() {
 
     it("should be empty by default", function() {
       var view = new app.views.TextChatView({
+        sender: app.data.user,
         collection: new app.models.TextChat([], {media: media, peer: peer})
       });
 
@@ -91,6 +128,7 @@ describe("Text chat views", function() {
 
     it("should update rendering when its collection is updated", function() {
       var view = new app.views.TextChatView({
+        sender: app.data.user,
         collection: new app.models.TextChat([
           {nick: "niko", message: "plop"},
           {nick: "jb", message: "hello"}
@@ -111,6 +149,7 @@ describe("Text chat views", function() {
 
     it("should allow the caller to send a first message", function(done) {
       var chatApp = new ChatApp();
+      app.data.user.set({nick: "niko"});
       var textChat = chatApp.textChatView.collection;
       chatApp.textChatView.collection.media.connected = true;
       app.port.trigger("talkilla.conversation-open", {peer: "niko"});
