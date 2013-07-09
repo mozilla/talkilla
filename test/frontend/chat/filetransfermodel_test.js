@@ -3,7 +3,7 @@
 /* jshint expr:true */
 var expect = chai.expect;
 
-describe("FileTransfer", function() {
+describe("FileTransfer Model", function() {
 
   var sandbox, transfer, incomingTransfer, blob;
 
