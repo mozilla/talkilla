@@ -20,14 +20,14 @@ class BrowserTest(unittest.TestCase):
         # ps aux|grep "node app"|grep -v grep|awk '{print $2}'|xargs kill
 
 
-# class SingleBrowserTest(mixins.WithBob, BrowserTest):
-#     def test_public_homepage(self):
-#         self.bob.get("http://127.0.0.1:3000/")
-#         self.bob.find_element_by_css_selector("button")
+class SingleBrowserTest(mixins.WithBob, BrowserTest):
+     def test_public_homepage(self):
+         self.bob.get("http://127.0.0.1:3000/")
+         self.bob.find_element_by_css_selector("button")
 
-#     def test_sidebar(self):
-#         self.bob.switch_to_frame("//#social-sidebar-browser")
-#         assert self.bob.title == "Talkilla Sidebar"
+     def test_sidebar(self):
+         self.bob.switch_to_frame("//#social-sidebar-browser")
+         assert self.bob.title == "Talkilla Sidebar"
 
 
 class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry, BrowserTest):
