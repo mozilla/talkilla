@@ -184,26 +184,32 @@ var ChatApp = (function($, Backbone, _) {
   };
 
   ChatApp.prototype._onTextChatEntryCreated = function(entry) {
+    // Send the message if we are the sender.
+    // I we are not, the message comes from a contact and we do not
+    // want to send it back.
     if (entry instanceof app.models.TextChatEntry &&
         entry.get('nick') === app.data.user.get("nick"))
       this.webrtc.send({type: "chat:message", message: entry.toJSON()});
   };
 
   ChatApp.prototype._onFileTransferCreated = function(entry) {
-    if (entry instanceof app.models.FileTransfer && entry.file) {
-      var onFileChunk = this._onFileChunk.bind(this);
-      var message = {
-        id: entry.id,
-        filename: entry.file.name,
-        size: entry.file.size
-      };
-      this.webrtc.send({type: "file:new", message: message});
+    // Check if we are the file sender. If we are not, the file
+    // transfer has been initiated by the other party.
+    if (!(entry instanceof app.models.FileTransfer && entry.file))
+      return;
 
-      entry.on("chunk", onFileChunk);
-      entry.on("complete", entry.off.bind(this, "chunk", onFileChunk));
+    var onFileChunk = this._onFileChunk.bind(this);
+    var message = {
+      id: entry.id,
+      filename: entry.file.name,
+      size: entry.file.size
+    };
+    this.webrtc.send({type: "file:new", message: message});
 
-      entry.start();
-    }
+    entry.on("chunk", onFileChunk);
+    entry.on("complete", entry.off.bind(this, "chunk", onFileChunk));
+
+    entry.start();
   };
 
   ChatApp.prototype._onFileChunk = function(id, chunk) {
