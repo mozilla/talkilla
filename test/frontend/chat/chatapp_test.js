@@ -396,7 +396,7 @@ describe("ChatApp", function() {
         sinon.assert.calledWithExactly(newTextChat, "data");
       });
 
-      it("should display a new file transfer to the current text chat",
+      it("should append a new file transfer to the current text chat",
         function() {
           sandbox.stub(app.models.TextChat.prototype, "add");
           var newFileTransfer = sandbox.stub(app.models, "FileTransfer");

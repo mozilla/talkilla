@@ -84,7 +84,7 @@ describe("FileTransfer Model", function() {
       transfer.start();
     });
 
-    it("should call complete when there is not chunk left", function(done) {
+    it("should call complete when there are no chunks left", function(done) {
       var chunks = [];
       transfer.on("chunk", function(id, chunk) {
         var view = new Uint8Array(chunk);

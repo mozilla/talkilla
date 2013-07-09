@@ -152,7 +152,6 @@
         this._readChunk();
       else
         this.trigger("complete", this.file);
-
     },
 
     _onProgress: function() {
