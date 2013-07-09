@@ -43,6 +43,10 @@ var ChatApp = (function($, Backbone, _) {
       console.error(message);
     });
 
+    this.webrtc.on("all", function(message) {
+      console.log.apply(console, arguments);
+    });
+
     this.call = new app.models.Call({}, {
       media: this.webrtc,
       peer: this.peer
@@ -85,7 +89,7 @@ var ChatApp = (function($, Backbone, _) {
     // TODO: prefill the chat with history
     var history = [];
     this.textChat = new app.models.TextChat(history, {
-      media: new app.models.WebRTCCall(null, {dataChannel: true}),
+      media: this.webrtc,
       peer: this.peer
     });
     this.textChatView = new app.views.TextChatView({
@@ -127,7 +131,7 @@ var ChatApp = (function($, Backbone, _) {
   ChatApp.prototype._onCallEstablishment = function(data) {
     // text chat conversation
     if (data.dataChannel)
-      return this.textChat.establish(data);
+      return this.textChat.media.establish(data.answer);
 
     // video/audio call
     this.call.establish(data);
@@ -153,7 +157,7 @@ var ChatApp = (function($, Backbone, _) {
 
     // incoming text chat conversation
     if (data.dataChannel)
-      return this.textChat.incoming(options);
+      return this.textChat.media.answer(options.offer);
 
     // incoming video/audio call
     this.call.incoming(options);

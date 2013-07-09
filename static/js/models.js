@@ -26,7 +26,7 @@
      * @param  {Object}  options     Model options
      *
      * Options:
-     * - {app.models.WebRTCCall}  media      Media object
+     * - {WebRTC}        media       Media object
      */
     initialize: function(attributes, options) {
       this.set(attributes || {});
@@ -221,21 +221,9 @@
         });
       }, this);
 
-      this.media.on('dc.in.message', function(event) {
+      this.media.on('dc:message-in', function(event) {
         this.add(JSON.parse(event.data));
       }, this);
-    },
-
-    incoming: function(options) {
-      this.media.answer(options);
-    },
-
-    /**
-     * Establish communication through data channel.
-     * @param  {Object} options
-     */
-    establish: function(options) {
-      this.media.establish(options);
     },
 
     /**
@@ -245,8 +233,15 @@
      */
     send: function(data) {
       var entry = this.add(data).at(this.length - 1);
-      if (entry)
-        this.media.send(entry.toJSON());
+      if (!entry)
+        return;
+
+      if (this.media.state.current === "ongoing")
+        return this.media.send(JSON.stringify(entry.toJSON()));
+
+      this.media.once("dc:open", function() {
+        this.send(JSON.stringify(entry.toJSON()));
+      }).initiate({video: false, audio: false});
     }
   });
 
