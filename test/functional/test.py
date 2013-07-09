@@ -7,13 +7,6 @@ import signal
 import subprocess
 import unittest
 
-#TEST_PROFILE_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)),
-#                                 "profile")
-#FF_BINARY = os.getenv("FF_BINARY",
-#                      "/Applications/FirefoxNightly.app/Contents/MacOS/firefox")
-#FF_PROFILE = os.getenv("FF_PROFILE", TEST_PROFILE_PATH)
-
-
 class BrowserTest(unittest.TestCase):
     def setUp(self):
         super(BrowserTest, self).setUp()
