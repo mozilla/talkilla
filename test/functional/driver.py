@@ -34,9 +34,10 @@ class Driver(WebDriver):
 
 
 def create(nick=None):
-    profile = FirefoxProfile()
-    for pref_name in USER_PREFS.keys():
-        profile.set_preference(pref_name, json.dumps(USER_PREFS[pref_name]))
+    #profile = FirefoxProfile()
+    #for pref_name in USER_PREFS.keys():
+#        profile.set_preference(pref_name, json.dumps(USER_PREFS[pref_name]))
     return Driver(command_executor=SELENIUM_COMMAND_EXECUTOR,
                   desired_capabilities={"browserName": "firefox"},
-                  browser_profile=profile, nick=nick)
+                  # browser_profile=profile, 
+                  nick=nick)
