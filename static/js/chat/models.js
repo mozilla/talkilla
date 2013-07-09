@@ -99,7 +99,7 @@
     toJSON: function() {
       var progress = this.get("progress");
       var json = {
-        filename: this.filename,
+        filename: _.escape(this.filename),
         progress: progress || 0
       };
 
