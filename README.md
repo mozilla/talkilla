@@ -81,7 +81,7 @@ First create a [virtualenv](https://pypi.python.org/pypi/virtualenv):
     $ cd /path/to/talkilla
     $ virtualenv `pwd`/.venv
 
-Acticate it:
+Activate it:
 
     $ source .venv/bin/activate
     (.venv) $
