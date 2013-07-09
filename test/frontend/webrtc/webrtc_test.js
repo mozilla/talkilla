@@ -250,8 +250,71 @@ describe("WebRTC", function() {
       });
     });
 
+    describe("#upgrade", function() {
+      it("should accept new media constraints", function() {
+        webrtc.state.current = 'ongoing';
+
+        webrtc.upgrade({audio: true, video: true});
+
+        expect(webrtc.constraints.audio).to.equal(true);
+        expect(webrtc.constraints.video).to.equal(true);
+      });
+
+      it("should throw if no new media constraints are provided", function() {
+        webrtc.state.current = 'ongoing';
+        function shouldThrow() {
+          webrtc.upgrade();
+        }
+
+        expect(shouldThrow).to.Throw(Error);
+      });
+
+      it("should transition state to `pending`", function() {
+        webrtc.state.current = 'ongoing';
+
+        webrtc.upgrade({audio: true, video: true});
+
+        expect(webrtc.state.current).to.equal('pending');
+      });
+
+      it("should initiate a new peer connection using provided constraints",
+        function() {
+          webrtc.state.current = 'ongoing';
+          sandbox.stub(webrtc, "initiate");
+          var newConstraints = {audio: true, video: true};
+
+          webrtc.upgrade(newConstraints);
+
+          sinon.assert.calledOnce(webrtc.initiate);
+          sinon.assert.calledWithExactly(webrtc.initiate, newConstraints);
+        });
+
+      describe("#upgrade events", function() {
+        it("should emit a `state:upgrade` event", function(done) {
+            webrtc.state.current = 'ongoing';
+            webrtc.once('state:upgrade', function() {
+              done();
+            }).upgrade({audio: true, video: true});
+          });
+
+        it("should emit a `state:to:pending` event", function(done) {
+          webrtc.state.current = 'ongoing';
+          webrtc.once('state:to:pending', function() {
+            done();
+          }).upgrade({audio: true, video: true});
+        });
+      });
+    });
+
     describe("#answer", function() {
       it("should transition state to `ongoing`", function() {
+        webrtc.answer(fakeOffer);
+
+        expect(webrtc.state.current).to.equal('ongoing');
+      });
+
+      it("should transition state to `ongoing` on upgrade", function() {
+        webrtc.state.current = "ongoing";
         webrtc.answer(fakeOffer);
 
         expect(webrtc.state.current).to.equal('ongoing');
@@ -264,7 +327,7 @@ describe("WebRTC", function() {
         expect(webrtc.constraints.audio).to.equal(true);
       });
 
-      it("should extract media constraints from diff incoming offer",
+      it("should extract media constraints from a different incoming offer",
         function() {
           webrtc.answer({type: "answer", sdp: fakeSDP("\nm=audio ddd")});
 

@@ -19,16 +19,16 @@
     this._constraints = {};
     this.options = options || {};
 
-    this._setupPeerConnection();
-
     this.state = StateMachine.create({
       initial: 'ready',
       events: [
-        {name: 'initiate',  from: 'ready',   to: 'pending'},
-        {name: 'establish', from: 'pending', to: 'ongoing'},
-        {name: 'answer',    from: 'ready',   to: 'ongoing'},
-        {name: 'terminate', from: '*',       to: 'terminated'},
-        {name: 'reset',     from: '*',       to: 'ready'}
+        {name: 'initiate',  from: 'ready',     to: 'pending'},
+        {name: 'establish', from: 'pending',   to: 'ongoing'},
+        {name: 'upgrade',   from: 'ongoing',   to: 'pending'},
+        {name: 'answer',    from: ['ready',
+                                   'ongoing'], to: 'ongoing'},
+        {name: 'terminate', from: '*',         to: 'terminated'},
+        {name: 'reset',     from: '*',         to: 'ready'}
       ],
       callbacks: {
         onenterstate: function(event, from, to) {
@@ -38,6 +38,8 @@
         }.bind(this)
       }
     });
+
+    this._setupPeerConnection();
   }
   exports.WebRTC = WebRTC;
 
@@ -85,6 +87,25 @@
   };
 
   /**
+   * Upgrades an established peer connection with new constraints.
+   * @param  {Object} constraints User media constraints
+   * @return {WebRTC}
+   */
+  WebRTC.prototype.upgrade = function(constraints) {
+    this.state.upgrade();
+
+    if (!constraints || typeof constraints !== "object")
+      throw new Error("upgrading needs new media constraints");
+    this.constraints = constraints;
+
+    // XXX: renegotiate connection once supported by the WebRTC API;
+    //      right now, reinitialize the current peer connection.
+    this._setupPeerConnection();
+
+    return this.initiate(constraints);
+  };
+
+  /**
    * Establishes the connection using the received answer.
    * @param  {Object} answer
    * @return {WebRTC}
@@ -104,7 +125,7 @@
   };
 
   /**
-   * Answers an incoming onnection offer.
+   * Answers an incoming initial or upgraded connection offer.
    * @param  {Object}  offer  Connection offer
    * @return {WebRTC}
    * @public
@@ -394,5 +415,7 @@
 
     this.pc = pc;
     this.dc = dc;
+
+    this.state.current = "ready";
   };
 })(this);
