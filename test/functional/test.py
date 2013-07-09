@@ -7,11 +7,11 @@ import signal
 import subprocess
 import unittest
 
-TEST_PROFILE_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                                 "profile")
-FF_BINARY = os.getenv("FF_BINARY",
-                      "/Applications/FirefoxNightly.app/Contents/MacOS/firefox")
-FF_PROFILE = os.getenv("FF_PROFILE", TEST_PROFILE_PATH)
+#TEST_PROFILE_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)),
+#                                 "profile")
+#FF_BINARY = os.getenv("FF_BINARY",
+#                      "/Applications/FirefoxNightly.app/Contents/MacOS/firefox")
+#FF_PROFILE = os.getenv("FF_PROFILE", TEST_PROFILE_PATH)
 
 
 class BrowserTest(unittest.TestCase):
@@ -79,8 +79,6 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry, BrowserTest):
 
         # Larry checks for the chat window
         self.larry.switch_to_frame("//chatbox")
-        # Shane, this is failing here
-
 
 if __name__ == "__main__":
     try:
