@@ -79,7 +79,7 @@
 }
 
 .sidebar .status-disconnected {
-  background: red;
+  display: none;
 }
 
 /**
