@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import json
 import os
 
-from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
 from selenium.webdriver.remote.webdriver import WebDriver
 
 from user_prefs import USER_PREFS
@@ -34,10 +32,6 @@ class Driver(WebDriver):
 
 
 def create(nick=None):
-    #profile = FirefoxProfile()
-    #for pref_name in USER_PREFS.keys():
-#        profile.set_preference(pref_name, json.dumps(USER_PREFS[pref_name]))
     return Driver(command_executor=SELENIUM_COMMAND_EXECUTOR,
                   desired_capabilities={"browserName": "firefox"},
-                  # browser_profile=profile, 
                   nick=nick)
