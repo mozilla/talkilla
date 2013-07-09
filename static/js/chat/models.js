@@ -133,6 +133,7 @@
 
       if (this.seek === this.size) {
         this.blob = new Blob(this.chunks);
+        this.chunks = [];
         this.trigger("complete", this.blob);
       }
       this.trigger("chunk", this.id, chunk);
