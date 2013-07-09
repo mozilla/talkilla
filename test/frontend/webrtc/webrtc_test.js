@@ -63,11 +63,29 @@ describe("WebRTC", function() {
   });
 
   describe("constructor", function() {
-    it("should accept and configure a peer connection object", function() {
-      var webrtc = new WebRTC(new mozRTCPeerConnection());
+    it("should accept and configure options", function() {
+      var fakeServers = [{foo: 1}, {bar: 2}];
+      var webrtc = new WebRTC({iceServers: fakeServers, forceFake: true});
+
+      expect(webrtc.options.iceServers).to.deep.equal(fakeServers);
+      expect(webrtc.options.forceFake).to.deep.equal(true);
+    });
+
+    it("should setup and configure a peer connection", function() {
+      var webrtc = new WebRTC();
 
       expect(webrtc.pc).to.be.a('object');
       expect(webrtc.pc.onaddstream).to.be.a('function');
+      expect(webrtc.pc.ondatachannel).to.be.a('function');
+      expect(webrtc.pc.oniceconnectionstatechange).to.be.a('function');
+      expect(webrtc.pc.onremovestream).to.be.a('function');
+      expect(webrtc.pc.onsignalingstatechange).to.be.a('function');
+    });
+
+    it("should create a data channel object", function() {
+      var webrtc = new WebRTC();
+
+      expect(webrtc.dc).to.deep.equal(fakeDataChannel);
     });
 
     it("should emit the `remote-stream:ready` event when a remote media " +
@@ -100,19 +118,6 @@ describe("WebRTC", function() {
       webrtc.pc.oniceconnectionstatechange();
     });
 
-    it("should create a peer connection object if none provided", function() {
-      var webrtc = new WebRTC();
-
-      expect(webrtc.pc).to.be.a('object');
-      expect(webrtc.pc.onaddstream).to.be.a('function');
-    });
-
-    it("should create a data channel object", function() {
-      var webrtc = new WebRTC();
-
-      expect(webrtc.dc).to.deep.equal(fakeDataChannel);
-    });
-
     it("should configure and initialize a state machine", function() {
       var webrtc = new WebRTC();
 
@@ -124,7 +129,7 @@ describe("WebRTC", function() {
   describe("constraints property", function() {
     it("should register constraints regarding the `forceFake` option",
       function() {
-        var webrtc = new WebRTC(null, {forceFake: true});
+        var webrtc = new WebRTC({forceFake: true});
 
         expect(webrtc.constraints.fake).to.equal(true);
       });

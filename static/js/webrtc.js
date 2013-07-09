@@ -10,17 +10,16 @@
    * WebRTC object constructor.
    *
    * Options are:
-   * - {Boolean} forceFake: Forces use of fake media streams.
+   * - {Object}  iceServers: Peer connection ICE servers (default: {})
+   * - {Boolean} forceFake:  Forces fake media streams (default: false)
    *
-   * @param {PeerConnection|undefined} pc       Peer connection object
    * @param {Object}                   options  Options
    */
-  function WebRTC(pc, options) {
+  function WebRTC(options) {
     this._constraints = {};
     this.options = options || {};
 
-    this.pc = this._setupPeerConnection(pc || new mozRTCPeerConnection());
-    this.dc = this.pc.createDataChannel('dc', {});
+    this._setupPeerConnection();
 
     this.state = StateMachine.create({
       initial: 'ready',
@@ -130,8 +129,7 @@
    */
   WebRTC.prototype.reset = function() {
     this.state.reset();
-    this.pc = this._setupPeerConnection(new mozRTCPeerConnection());
-    this.dc = this.pc.createDataChannel('dc', {});
+    this._setupPeerConnection();
 
     return this;
   };
@@ -384,13 +382,17 @@
    *
    * @param {RTCPeerConnection} pc
    */
-  WebRTC.prototype._setupPeerConnection = function(pc) {
+  WebRTC.prototype._setupPeerConnection = function() {
+    var pc = new mozRTCPeerConnection(this.options.iceServers);
+    var dc = pc.createDataChannel('dc', {});
+
     pc.onaddstream = this._onAddStream.bind(this);
     pc.ondatachannel = this._onDataChannel.bind(this);
     pc.oniceconnectionstatechange = this._onIceConnectionStateChange.bind(this);
     pc.onremovestream = this._onRemoveStream.bind(this);
     pc.onsignalingstatechange = this._onSignalingStateChange.bind(this);
 
-    return pc;
+    this.pc = pc;
+    this.dc = dc;
   };
 })(this);
