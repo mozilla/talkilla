@@ -87,6 +87,25 @@
     },
 
     /**
+     * Upgrades ongoing call with new media constraints.
+     *
+     * @param {Object} constraints object containing:
+     *
+     * - video: set to true to enable video
+     * - audio: set to true to enable audio
+     */
+    upgrade: function(constraints) {
+      this.media.once("offer-ready", function(offer) {
+        this.trigger("send-offer", {
+          peer: this.peer.get("nick"),
+          offer: offer
+        });
+      }, this);
+
+      this.media.upgrade(constraints);
+    },
+
+    /**
      * Starts a call based on an incoming call request
      * @param {Object} options object containing:
      *

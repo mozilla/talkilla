@@ -104,13 +104,19 @@
     },
 
     videoCall: function(event) {
-      // Really webrtc and calls should be set up on clicking a button
-      this.call.start({video: true, audio: true});
+      var constraints = {video: true, audio: true};
+      if (this.call.media.state.current === 'ready')
+        this.call.start(constraints);
+      else if (this.call.media.state.current === 'ongoing')
+        this.call.upgrade(constraints);
     },
 
     audioCall: function(event) {
-      // Really webrtc and calls should be set up on clicking a button
-      this.call.start({video: false, audio: true});
+      var constraints = {video: false, audio: true};
+      if (this.call.media.state.current === 'ready')
+        this.call.start(constraints);
+      else if (this.call.media.state.current === 'ongoing')
+        this.call.upgrade(constraints);
     },
 
     hangup: function(event) {
