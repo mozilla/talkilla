@@ -4,9 +4,6 @@ import os
 
 from selenium.webdriver.remote.webdriver import WebDriver
 
-from user_prefs import USER_PREFS
-
-
 SELENIUM_COMMAND_EXECUTOR = os.getenv("SELENIUM_COMMAND_EXECUTOR",
                                       "http://127.0.0.1:4444/wd/hub")
 
