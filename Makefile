@@ -21,11 +21,15 @@ runserver_dev:
 # XXX still need to make SOLO_FILE or equiv work with python; get rid of
 # debug_test glop; maybe we can ditch NODE_ENV?
 
+# XXX refactor this file to not invoke run_selenium_test.sh twice, and call
+# other targets
+
 selenium_all:
   # This command should include the directories from both the selenium and frontend targets
 	@env NO_LOCAL_CONFIG=true NODE_ENV=test \
-	    bin/run_selenium_test.sh test/functional/test.py \
-	    test/frontend/test_frontend.py
+	    bin/run_selenium_test.sh test/functional/test.py
+	@env NO_LOCAL_CONFIG=true NODE_ENV=test \
+	    bin/run_selenium_test.sh test/frontend/test_frontend.py
 
 selenium:
 	@env NO_LOCAL_CONFIG=true NODE_ENV=test \
