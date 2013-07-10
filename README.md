@@ -100,25 +100,10 @@ Run the tests:
 
 Debugging Functional Tests
 --------------------------
-It can useful to execute individual functional tests in the Node debugger.
-Example usage:
 
-1. (add a "debugger;" statement to the code where you want the debugger to break)
-2. # SOLO_FILE=chatwindow_test.js make debug_test
-3. (debug)
-4. (remove the debugger statement)
-
-Note that because most of the things in the webdriver-selenium API that
-look like imperative statements are actually magic things that cause most
-of the semantics of the commands be enqueued by the ControlFlow piece of
-the "promise manager" to be executed at some point in the future. It can
-take some experimenting to figure out where to usefully put the debugger
-statements.  It may be particularly useful to add a then() handler to the
-first promise-returning statement in the test you want to debug and put
-the debugger statement there.
-
-https://code.google.com/p/selenium/wiki/WebDriverJs#Writing_Tests has more
-details on how this stuff fits together.
+$ pip install ipdb
+$ easy_install readline
+$ python -m ipdb test/functional/test.py
 
 Contribution
 ------------
