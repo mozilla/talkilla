@@ -99,7 +99,6 @@
      * media.
      */
     incoming: function(options) {
-      console.log('call.incoming', options);
       this.set({
         incomingData: options
       });
@@ -116,7 +115,6 @@
      * media.
      */
     establish: function(options) {
-      console.log('call.establish', options);
       var answer = options && options.answer;
       if (!answer)
         throw new Error("Invalid answer, can't establish connection.");
@@ -197,7 +195,6 @@
      *      - {Object} callData  Current outgoing pending call data
      */
     _startTimer: function(options) {
-      console.log('_startTimer');
       if (!options || !options.timeout)
         return;
 

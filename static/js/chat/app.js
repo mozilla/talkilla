@@ -44,17 +44,9 @@ var ChatApp = (function($, Backbone, _) {
       console.error(message);
     });
 
-    this.webrtc.on("all", function() {
-      console.log.apply(console, ['webrtc'].concat([].slice.call(arguments)));
-    });
-
     this.call = new app.models.Call({}, {
       media: this.webrtc,
       peer: this.peer
-    });
-
-    this.call.on("all", function() {
-      console.log.apply(console, ['call'].concat([].slice.call(arguments)));
     });
 
     this.view = new app.views.ConversationView({
@@ -99,10 +91,6 @@ var ChatApp = (function($, Backbone, _) {
       peer: this.peer
     });
 
-    this.webrtc.on("all", function() {
-      console.log.apply(console, ['textchat'].concat([].slice.call(arguments)));
-    });
-
     this.textChatView = new app.views.TextChatView({
       collection: this.textChat,
       sender: app.data.user
@@ -132,9 +120,7 @@ var ChatApp = (function($, Backbone, _) {
 
     this.port.postEvent('talkilla.chat-window-ready', {});
 
-    this.port.on('talkilla.debug', function(event) {
-      console.log('WORKER', event.label, event.data);
-    });
+    this._setupDebugLogging();
   }
 
   // Outgoing calls
@@ -163,7 +149,6 @@ var ChatApp = (function($, Backbone, _) {
 
   // Incoming calls
   ChatApp.prototype._onIncomingConversation = function(data) {
-    console.log('_onIncomingConversation', data);
     this.peer.set({nick: data.peer});
 
     var sdp = data.offer.sdp;
@@ -186,7 +171,6 @@ var ChatApp = (function($, Backbone, _) {
   };
 
   ChatApp.prototype._onSendOffer = function(data) {
-    console.log('_onSendOffer', data);
     this.port.postEvent('talkilla.call-offer', data);
     if (!data.textChat)
       this.audioLibrary.play('outgoing');
@@ -229,6 +213,19 @@ var ChatApp = (function($, Backbone, _) {
     this.port.postEvent('talkilla.call-hangup', {
       peer: this.peer.get("nick")
     });
+  };
+
+  ChatApp.prototype._setupDebugLogging = function() {
+    if (!app.options.DEBUG)
+      return;
+
+    // app object events logging
+    ['webrtc', 'call', 'textChat'].forEach(function(prop) {
+      this[prop].on("all", function() {
+        var args = [].slice.call(arguments);
+        console.log.apply(console, ['chatapp.' + prop].concat(args));
+      });
+    }, this);
   };
 
   return ChatApp;
