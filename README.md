@@ -102,8 +102,9 @@ Debugging Functional Tests
 --------------------------
 
 $ pip install ipdb
-$ easy_install readline
+$ easy_install readline          // XXX try with brew instead
 $ python -m ipdb test/functional/test.py
+XXX paste in output & breakpoint setting here
 
 Contribution
 ------------
