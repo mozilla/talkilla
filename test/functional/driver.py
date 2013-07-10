@@ -27,6 +27,8 @@ class Driver(WebDriver):
         self.switch_to_frame("//#social-sidebar-browser")
         self.find_element_by_css_selector('#signout button').click()
 
+    def isSignedIn(self):
+        return self.find_element_by_css_selector("strong.nick").text != ""
 
 def create(nick=None):
     return Driver(command_executor=SELENIUM_COMMAND_EXECUTOR,
