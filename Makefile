@@ -18,12 +18,19 @@ runserver:
 runserver_dev:
 	@env NODE_ENV=development PORT=5000 node app.js
 
+# XXX still need to make SOLO_FILE or equiv work with python; get rid of
+# debug_test glop; maybe we can ditch NODE_ENV?
+
 selenium_all:
   # This command should include the directories from both the selenium and frontend targets
-	@env NO_LOCAL_CONFIG=true NODE_ENV=test bin/run_selenium_test.sh test/functional/ test/frontend/run_tests.js
+	@env NO_LOCAL_CONFIG=true NODE_ENV=test \
+	bin/run_selenium_test.sh test/functional/ \
+	test/frontend/run_tests.js
 
 selenium:
-	@env NO_LOCAL_CONFIG=true NODE_ENV=test bin/run_selenium_test.sh $(MOCHA_ARGS) test/functional/$(SOLO_FILE)
+	@env NO_LOCAL_CONFIG=true NODE_ENV=test \
+	bin/run_selenium_test.sh \
+	test/functional/$(SOLO_FILE)
 
 # Useful when testing a single file by setting SOLO_FILE and putting
 # debugger statement to force a breakpoint in the file you want to test.
