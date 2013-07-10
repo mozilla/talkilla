@@ -42,10 +42,10 @@ describe('Text chat models', function() {
       app.port.off();
     });
 
-    it('should listen to the data channel `dc.in.message` event', function() {
+    it('should listen to the data channel `dc:message-in` event', function() {
       var event = {data: JSON.stringify({nick: "niko", message: "hi"})};
 
-      chatApp.webrtc.trigger('dc.in.message', event);
+      chatApp.webrtc.trigger('dc:message-in', event);
 
       sinon.assert.calledOnce(chatApp._onDataChannelMessageIn);
       sinon.assert.calledWithExactly(chatApp._onDataChannelMessageIn, event);
