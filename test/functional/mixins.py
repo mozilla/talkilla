@@ -2,6 +2,7 @@
 
 import driver
 
+
 class WithBob(object):
     def setUp(self):
         super(WithBob, self).setUp()
