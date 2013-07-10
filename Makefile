@@ -24,13 +24,13 @@ runserver_dev:
 selenium_all:
   # This command should include the directories from both the selenium and frontend targets
 	@env NO_LOCAL_CONFIG=true NODE_ENV=test \
-	bin/run_selenium_test.sh test/functional/ \
-	test/frontend/run_tests.js
+	    bin/run_selenium_test.sh test/functional/test.py \
+	    test/frontend/test_frontend.py
 
 selenium:
 	@env NO_LOCAL_CONFIG=true NODE_ENV=test \
-	bin/run_selenium_test.sh \
-	test/functional/$(SOLO_FILE)
+    	bin/run_selenium_test.sh \
+	    test/functional/test.py
 
 # Useful when testing a single file by setting SOLO_FILE and putting
 # debugger statement to force a breakpoint in the file you want to test.
@@ -40,6 +40,7 @@ debug_test:
 	MOCHA_ARGS=debug $(MAKE) selenium
 
 frontend:
-	@env NO_LOCAL_CONFIG=true NODE_ENV=development bin/run_selenium_test.sh test/frontend/run_tests.js
+	@env NO_LOCAL_CONFIG=true NODE_ENV=development bin/run_selenium_test.sh \
+		test/frontend/test_frontend.py
 
 .PHONY: test
