@@ -29,6 +29,8 @@ class SingleBrowserTest(mixins.WithBob, BrowserTest):
         self.bob.switch_to_frame("//#social-sidebar-browser")
         assert self.bob.title == "Talkilla Sidebar"
 
+    # checks that even if the user reloads the sidebar from the context menu,
+    # she'll remain logged in.
     def test_login_persistence_over_reload(self):
         self.bob.signin()
         assert self.bob.isSignedIn()
