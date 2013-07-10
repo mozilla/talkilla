@@ -23,7 +23,7 @@ var browserDetection = (function ($) {
     var rvStart = ua.indexOf('rv:');
     var rvEnd = ua.indexOf(')', rvStart);
     var rv = parseInt(ua.substring(rvStart + 3, rvEnd), 10);
-    return ua.contains('firefox') && rv >= 23;
+    return ua.contains('firefox') && rv >= 24;
   };
 
   app.activateSocial = function(node, data) {
