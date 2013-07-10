@@ -94,15 +94,17 @@
   WebRTC.prototype.upgrade = function(constraints) {
     this.state.upgrade();
 
-    if (!constraints || typeof constraints !== "object")
-      throw new Error("upgrading needs new media constraints");
+    if (!constraints || typeof constraints !== 'object')
+      throw new Error('upgrading needs new media constraints');
     this.constraints = constraints;
 
     // XXX: renegotiate connection once supported by the WebRTC API;
     //      right now, reinitialize the current peer connection.
     this.once('connection-terminated', function() {
       this._setupPeerConnection();
-      this.initiate(constraints);
+      this.once('ice:connected', function() {
+        this.trigger('connection-upgraded');
+      }).initiate(constraints);
     }).terminate();
   };
 
@@ -303,8 +305,8 @@
    * @return {Event} event
    */
   WebRTC.prototype._onIceConnectionStateChange = function() {
-    this.trigger('ice:change', this.pc.iceConnectionState);
     this.trigger('ice:' + this.pc.iceConnectionState);
+    this.trigger('ice:change', this.pc.iceConnectionState);
   };
 
   /**
@@ -321,8 +323,8 @@
    * @param  {Event} event
    */
   WebRTC.prototype._onSignalingStateChange = function(event) {
-    this.trigger('signaling:change', event);
     this.trigger('signaling:' + event);
+    this.trigger('signaling:change', event);
   };
 
   /**

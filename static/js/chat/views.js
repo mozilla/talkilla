@@ -263,6 +263,7 @@
       this.call = options.call;
       this.call.media.on('local-stream:ready', this._displayLocalVideo, this);
       this.call.media.on('remote-stream:ready', this._displayRemoteVideo, this);
+      this.call.media.on('connection-upgraded', this.ongoing, this);
 
       this.call.on('state:to:ongoing', this.ongoing, this);
       this.call.on('state:to:terminated', this.terminated, this);

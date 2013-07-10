@@ -39,7 +39,7 @@
         events: [
           // Call initiation scenario
           {name: 'start',     from: 'ready',    to: 'pending'},
-          {name: 'establish', from: 'pending',  to: 'ongoing'},
+          {name: 'establish', from: ['ready', 'pending'],  to: 'ongoing'},
 
           // Incoming call scenario
           {name: 'incoming',  from: 'ready',    to: 'incoming'},
