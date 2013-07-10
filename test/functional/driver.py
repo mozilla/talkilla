@@ -7,6 +7,7 @@ from selenium.webdriver.remote.webdriver import WebDriver
 SELENIUM_COMMAND_EXECUTOR = os.getenv("SELENIUM_COMMAND_EXECUTOR",
                                       "http://127.0.0.1:4444/wd/hub")
 
+
 class Driver(WebDriver):
     nick = None
 
@@ -29,6 +30,7 @@ class Driver(WebDriver):
 
     def isSignedIn(self):
         return self.find_element_by_css_selector("strong.nick").text != ""
+
 
 def create(nick=None):
     return Driver(command_executor=SELENIUM_COMMAND_EXECUTOR,
