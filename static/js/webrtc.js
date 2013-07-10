@@ -100,9 +100,10 @@
 
     // XXX: renegotiate connection once supported by the WebRTC API;
     //      right now, reinitialize the current peer connection.
-    this._setupPeerConnection();
-
-    return this.initiate(constraints);
+    this.once('connection-terminated', function() {
+      this._setupPeerConnection();
+      this.initiate(constraints);
+    }).terminate();
   };
 
   /**

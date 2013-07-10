@@ -44,13 +44,17 @@ var ChatApp = (function($, Backbone, _) {
       console.error(message);
     });
 
-    this.webrtc.on("all", function(message) {
-      console.log.apply(console, arguments);
+    this.webrtc.on("all", function() {
+      console.log.apply(console, ['webrtc'].concat([].slice.call(arguments)));
     });
 
     this.call = new app.models.Call({}, {
       media: this.webrtc,
       peer: this.peer
+    });
+
+    this.call.on("all", function() {
+      console.log.apply(console, ['call'].concat([].slice.call(arguments)));
     });
 
     this.view = new app.views.ConversationView({
@@ -89,10 +93,16 @@ var ChatApp = (function($, Backbone, _) {
     // Text chat
     // TODO: prefill the chat with history
     var history = [];
+
     this.textChat = new app.models.TextChat(history, {
       media: this.webrtc,
       peer: this.peer
     });
+
+    this.webrtc.on("all", function() {
+      console.log.apply(console, ['textchat'].concat([].slice.call(arguments)));
+    });
+
     this.textChatView = new app.views.TextChatView({
       collection: this.textChat,
       sender: app.data.user
@@ -105,20 +115,26 @@ var ChatApp = (function($, Backbone, _) {
                  this._onIncomingConversation.bind(this));
     this.port.on('talkilla.call-establishment',
                  this._onCallEstablishment.bind(this));
+    this.port.on('talkilla.call-upgrade', this._onCallUpgrade.bind(this))
     this.port.on('talkilla.call-hangup', this._onCallShutdown.bind(this));
 
     // Outgoing events
-    this.call.on('send-offer', this._onSendCallOffer.bind(this));
-    this.call.on('send-answer', this._onSendCallAnswer.bind(this));
+    this.call.on('send-offer', this._onSendOffer.bind(this));
+    this.textChat.on('send-offer', this._onSendOffer.bind(this));
+    this.call.on('send-answer', this._onSendAnswer.bind(this));
+    this.textChat.on('send-answer', this._onSendAnswer.bind(this));
+
     this.call.on('offer-timeout', this._onCallOfferTimout.bind(this));
-    this.textChat.on('send-offer', this._onSendTextChatOffer.bind(this));
-    this.textChat.on('send-answer', this._onSendTextChatAnswer.bind(this));
 
     // Internal events
     this.call.on('state:accept', this._onCallAccepted.bind(this));
     window.addEventListener("unload", this._onCallHangup.bind(this));
 
     this.port.postEvent('talkilla.chat-window-ready', {});
+
+    this.port.on('talkilla.debug', function(event) {
+      console.log('WORKER', event.label, event.data);
+    });
   }
 
   // Outgoing calls
@@ -136,6 +152,7 @@ var ChatApp = (function($, Backbone, _) {
       return this.textChat.media.establish(data.answer);
 
     // video/audio call
+    this.call.media.state.current = "pending";
     this.call.establish(data);
   };
 
@@ -146,6 +163,7 @@ var ChatApp = (function($, Backbone, _) {
 
   // Incoming calls
   ChatApp.prototype._onIncomingConversation = function(data) {
+    console.log('_onIncomingConversation', data);
     this.peer.set({nick: data.peer});
 
     var sdp = data.offer.sdp;
@@ -154,7 +172,8 @@ var ChatApp = (function($, Backbone, _) {
       video: sdp.contains("\nm=video "),
       audio: sdp.contains("\nm=audio "),
       offer: data.offer,
-      textChat: !!data.textChat
+      textChat: !!data.textChat,
+      upgrade: !!data.upgrade
     };
 
     // incoming text chat conversation
@@ -166,22 +185,31 @@ var ChatApp = (function($, Backbone, _) {
     this.audioLibrary.play('incoming');
   };
 
-  ChatApp.prototype._onSendCallOffer = function(data) {
+  ChatApp.prototype._onSendOffer = function(data) {
+    console.log('_onSendOffer', data);
     this.port.postEvent('talkilla.call-offer', data);
-    // Now start the tone, as the offer is going out.
-    this.audioLibrary.play('outgoing');
+    if (!data.textChat)
+      this.audioLibrary.play('outgoing');
   };
 
-  ChatApp.prototype._onSendCallAnswer = function(data) {
+  ChatApp.prototype._onSendAnswer = function(data) {
     this.port.postEvent('talkilla.call-answer', data);
   };
 
-  ChatApp.prototype._onSendTextChatOffer = function(data) {
-    this.port.postEvent('talkilla.text-chat-offer', data);
-  };
+  ChatApp.prototype._onCallUpgrade = function(data) {
+    var sdp = data.offer.sdp;
 
-  ChatApp.prototype._onSendTextChatAnswer = function(data) {
-    this.port.postEvent('talkilla.text-chat-answer', data);
+    var options = {
+      video: sdp.contains("\nm=video "),
+      audio: sdp.contains("\nm=audio "),
+      offer: data.offer,
+      textChat: !!data.textChat,
+      upgrade: !!data.upgrade
+    };
+
+    this.call.incoming(options);
+    // XXX: call upgrades should probably be accepted manually
+    this.call.accept();
   };
 
   // Call Hangup

@@ -87,36 +87,19 @@
     },
 
     /**
-     * Upgrades ongoing call with new media constraints.
-     *
-     * @param {Object} constraints object containing:
-     *
-     * - video: set to true to enable video
-     * - audio: set to true to enable audio
-     */
-    upgrade: function(constraints) {
-      this.media.once("offer-ready", function(offer) {
-        this.trigger("send-offer", {
-          peer: this.peer.get("nick"),
-          offer: offer
-        });
-      }, this);
-
-      this.media.upgrade(constraints);
-    },
-
-    /**
      * Starts a call based on an incoming call request
      * @param {Object} options object containing:
      *
-     * - video: set to true to enable video
-     * - audio: set to true to enable audio
-     * - offer: information for the media object
+     * - video:   set to true to enable video
+     * - audio:   set to true to enable audio
+     * - offer:   information for the media object
+     * - upgrade: is it a connection upgrade?
      *
      * Other items may be set according to the requirements for the particular
      * media.
      */
     incoming: function(options) {
+      console.log('call.incoming', options);
       this.set({
         incomingData: options
       });
@@ -133,6 +116,7 @@
      * media.
      */
     establish: function(options) {
+      console.log('call.establish', options);
       var answer = options && options.answer;
       if (!answer)
         throw new Error("Invalid answer, can't establish connection.");
@@ -186,12 +170,34 @@
     },
 
     /**
+     * Upgrades ongoing call with new media constraints.
+     *
+     * @param {Object} constraints object containing:
+     *
+     * - video: set to true to enable video
+     * - audio: set to true to enable audio
+     */
+    upgrade: function(constraints) {
+      this.media.once("offer-ready", function(offer) {
+        this.trigger("send-offer", {
+          peer: this.peer.get("nick"),
+          offer: offer,
+          textChat: false,
+          upgrade: true
+        });
+      }, this);
+
+      this.media.upgrade(constraints);
+    },
+
+    /**
      * Starts the outgoing pending call timer.
      * @param {Object} options:
      *      - {Number} timeout   Timeout in ms
      *      - {Object} callData  Current outgoing pending call data
      */
     _startTimer: function(options) {
+      console.log('_startTimer');
       if (!options || !options.timeout)
         return;
 
@@ -264,7 +270,7 @@
 
     /**
      * Adds a new entry to the collection and sends it over data channel.
-     * TODO: send entry over data channel
+     * Schedules sending after the connection is established.
      * @param  {Object} data
      */
     send: function(data) {

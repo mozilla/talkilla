@@ -1,6 +1,4 @@
-/* global WebRTC,
-          afterEach, beforeEach, chai, describe, sinon, it,
-          mozRTCPeerConnection */
+/* global WebRTC, afterEach, beforeEach, chai, describe, sinon, it*/
 
 var expect = chai.expect;
 

@@ -104,19 +104,13 @@
     },
 
     videoCall: function(event) {
-      var constraints = {video: true, audio: true};
-      if (this.call.media.state.current === 'ready')
-        this.call.start(constraints);
-      else if (this.call.media.state.current === 'ongoing')
-        this.call.upgrade(constraints);
+      event.preventDefault();
+      this._processCall({video: true, audio: true});
     },
 
     audioCall: function(event) {
-      var constraints = {video: false, audio: true};
-      if (this.call.media.state.current === 'ready')
-        this.call.start(constraints);
-      else if (this.call.media.state.current === 'ongoing')
-        this.call.upgrade(constraints);
+      event.preventDefault();
+      this._processCall({video: false, audio: true});
     },
 
     hangup: function(event) {
@@ -143,6 +137,13 @@
       this.$('.btn-video').show();
       this.$('.btn-audio').show();
       this.$('.btn-hangup').hide();
+    },
+
+    _processCall: function(constraints) {
+      if (this.call.media.state.current === 'ongoing') {
+        return this.call.upgrade(constraints);
+      }
+      this.call.start(constraints);
     }
   });
 

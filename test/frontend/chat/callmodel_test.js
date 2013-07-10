@@ -241,7 +241,7 @@ describe("Call", function() {
   });
 
   describe("ready event handling", function() {
-    var fakeSdp = {type: "fake", sdp: "sdp"}, userModel;
+    var userModel;
 
     beforeEach(function() {
       peer.set({nick: "larry"});
