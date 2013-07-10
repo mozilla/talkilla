@@ -14,7 +14,7 @@ class Driver(WebDriver):
     def __init__(self, *args, **kwargs):
         if "nick" in kwargs and kwargs["nick"] is not None:
             self.nick = kwargs["nick"]
-            del kwargs["nick"]
+        del kwargs["nick"]
         super(Driver, self).__init__(*args, **kwargs)
 
     def signin(self):
