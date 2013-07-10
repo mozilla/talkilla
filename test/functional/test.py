@@ -29,6 +29,13 @@ class SingleBrowserTest(mixins.WithBob, BrowserTest):
         self.bob.switch_to_frame("//#social-sidebar-browser")
         assert self.bob.title == "Talkilla Sidebar"
 
+    def test_login_persistence_over_reload(self):
+        self.bob.signin()
+        assert self.bob.isSignedIn()
+
+        self.bob.refresh()
+
+        assert self.bob.isSignedIn()
 
 class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry, BrowserTest):
     def test_signin_users(self):
