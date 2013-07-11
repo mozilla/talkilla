@@ -88,7 +88,6 @@
     var arrays = []
     for (var i = 0; (i*2048) < len; i++)
       arrays.push(data.subarray((i * 2048), (i * 2048) + 2048));
-    console.log(arrays.length);
     return arrays;
   }
 

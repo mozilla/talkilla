@@ -135,6 +135,7 @@
     if (this.state.current !== 'ongoing')
       return this._handleError("Not connected, can't send data");
 
+    data = tnetbin.encode(data);
     try {
       this.dc.send(data);
     } catch(err) {
@@ -391,16 +392,13 @@
       preset: false
     });
 
-    dc.onopen = this.trigger.bind(this, "dc:ready", dc);
-
-    var eventsMap = {
-      onmessage: 'dc:message-in',
-      onerror: 'dc:error',
-      onclose: 'dc:close'
-    };
-
-    for (var handler in eventsMap)
-      dc[handler] = this.trigger.bind(this, eventsMap[handler]);
+    dc.onopen  = this.trigger.bind(this, "dc:ready", dc);
+    dc.onerror = this.trigger.bind(this, "dc:error");
+    dc.onclose = this.trigger.bind(this, "dc:close");
+    dc.onmessage = function(event) {
+      var data = tnetbin.decode(event.data).value;
+      this.trigger("dc:message-in", data);
+    }.bind(this);
 
     return dc;
   };
