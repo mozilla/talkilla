@@ -276,15 +276,19 @@ describe("WebRTC", function() {
       });
 
       it("should initiate a new peer connection using provided constraints",
-        function() {
+        function(done) {
           webrtc.state.current = 'ongoing';
-          sandbox.stub(webrtc, "initiate");
+          sandbox.stub(webrtc, 'initiate');
           var newConstraints = {audio: true, video: true};
 
-          webrtc.upgrade(newConstraints);
+          webrtc.on('connection-upgraded', function() {
+            sinon.assert.calledOnce(webrtc.initiate);
+            sinon.assert.calledWithExactly(webrtc.initiate, newConstraints);
+            done();
+          }).upgrade(newConstraints);
 
-          sinon.assert.calledOnce(webrtc.initiate);
-          sinon.assert.calledWithExactly(webrtc.initiate, newConstraints);
+          webrtc.trigger('connection-terminated');
+          webrtc.trigger('ice:connected');
         });
 
       describe("#upgrade events", function() {

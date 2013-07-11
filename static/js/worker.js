@@ -128,6 +128,7 @@ Conversation.prototype = {
    * - offer  the sdp offer for the connection
    */
   callAccepted: function(data) {
+    ports.broadcastDebug('conversation accepted', data);
     this.port.postEvent('talkilla.call-establishment', data);
   },
 
@@ -140,13 +141,14 @@ Conversation.prototype = {
    * - peer   the id of the other user.
    */
   callHangup: function(data) {
+    ports.broadcastDebug('conversation hangup', data);
     this.port.postEvent('talkilla.call-hangup', data);
   },
 
   /**
    * Upgrades current conversation.
    */
-  upgrade: function(data) {
+  callUpgrade: function(data) {
     ports.broadcastDebug('conversation upgrade', data);
     this.port.postEvent('talkilla.call-upgrade', data);
   }
@@ -275,7 +277,7 @@ var serverHandlers = {
   'incoming_call': function(data) {
     this.debug("incoming_call", data);
     if (data.upgrade)
-      currentConversation.upgrade(data);
+      currentConversation.callUpgrade(data);
     else
       currentConversation = new Conversation(data);
   },

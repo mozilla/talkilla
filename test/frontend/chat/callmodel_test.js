@@ -18,6 +18,7 @@ describe("Call", function() {
       answer: sandbox.spy(),
       establish: sandbox.spy(),
       initiate: sandbox.spy(),
+      upgrade: sandbox.spy(),
       terminate: sandbox.spy(),
       on: sandbox.stub(),
       once: sandbox.stub()
@@ -219,6 +220,44 @@ describe("Call", function() {
       sinon.assert.calledWithExactly(media.terminate);
     });
 
+  });
+
+  describe("#upgrade", function() {
+    it("should change the state from ready to pending", function() {
+      call.state.current = 'ongoing';
+      call.upgrade({});
+      expect(call.state.current).to.equal('pending');
+    });
+
+    it("should listen to offer-ready from the media", function() {
+      call.state.current = 'ongoing';
+      call.upgrade({});
+      sinon.assert.calledWith(media.once, "offer-ready");
+    });
+
+    it("should trigger send-offer with transport data on offer-ready",
+      function(done) {
+        call.state.current = 'ongoing';
+        call.media = _.extend(media, Backbone.Events);
+        peer.set("nick", "larry");
+        var fakeOffer = {peer: "larry", offer: {fake: true}};
+        call.once("send-offer", function(data) {
+          expect(data.offer).to.deep.equal(fakeOffer);
+          done();
+        });
+
+        call.upgrade({});
+
+        call.media.trigger("offer-ready", fakeOffer);
+      });
+
+    it("should pass new media constraints to the media", function() {
+      call.state.current = 'ongoing';
+      call.upgrade({audio: true});
+
+      sinon.assert.calledOnce(media.upgrade);
+      sinon.assert.calledWithExactly(media.upgrade, {audio: true});
+    });
   });
 
   describe("#_startTimer", function() {

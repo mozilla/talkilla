@@ -38,17 +38,19 @@
         initial: 'ready',
         events: [
           // Call initiation scenario
-          {name: 'start',     from: 'ready',    to: 'pending'},
-          {name: 'establish', from: ['ready', 'pending'],  to: 'ongoing'},
+          {name: 'start',     from: 'ready',     to: 'pending'},
+          {name: 'establish', from: ['ready',
+                                     'pending'], to: 'ongoing'},
+          {name: 'upgrade',   from: 'ongoing',   to: 'pending'},
 
           // Incoming call scenario
-          {name: 'incoming',  from: 'ready',    to: 'incoming'},
-          {name: 'accept',    from: 'incoming', to: 'pending'},
-          {name: 'ignore',    from: 'incoming', to: 'terminated'},
-          {name: 'complete',  from: 'pending',  to: 'ongoing'},
+          {name: 'incoming',  from: 'ready',     to: 'incoming'},
+          {name: 'accept',    from: 'incoming',  to: 'pending'},
+          {name: 'ignore',    from: 'incoming',  to: 'terminated'},
+          {name: 'complete',  from: 'pending',   to: 'ongoing'},
 
           // Call hangup
-          {name: 'hangup',    from: '*',        to: 'terminated'}
+          {name: 'hangup',    from: '*',         to: 'terminated'}
         ],
         callbacks: {
           onenterstate: function(event, from, to) {
@@ -176,6 +178,8 @@
      * - audio: set to true to enable audio
      */
     upgrade: function(constraints) {
+      this.state.upgrade();
+
       this.media.once("offer-ready", function(offer) {
         this.trigger("send-offer", {
           peer: this.peer.get("nick"),

@@ -158,4 +158,26 @@ describe("Conversation", function() {
         "talkilla.call-hangup", data);
     });
   });
+
+  describe("#callUpgrade" , function() {
+    beforeEach(function() {
+      currentConversation = new Conversation({});
+      currentConversation.port = {
+        postEvent: sandbox.spy()
+      };
+    });
+
+    it("should post a talkilla.call-upgrade to the conversation window",
+       function() {
+      var data = {
+        peer: "nicolas",
+        upgrade: true
+      };
+      currentConversation.callUpgrade(data);
+
+      sinon.assert.calledOnce(currentConversation.port.postEvent);
+      sinon.assert.calledWith(currentConversation.port.postEvent,
+        "talkilla.call-upgrade", data);
+    });
+  });
 });

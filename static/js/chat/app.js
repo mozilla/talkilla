@@ -103,7 +103,7 @@ var ChatApp = (function($, Backbone, _) {
                  this._onIncomingConversation.bind(this));
     this.port.on('talkilla.call-establishment',
                  this._onCallEstablishment.bind(this));
-    this.port.on('talkilla.call-upgrade', this._onCallUpgrade.bind(this))
+    this.port.on('talkilla.call-upgrade', this._onCallUpgrade.bind(this));
     this.port.on('talkilla.call-hangup', this._onCallShutdown.bind(this));
 
     // Outgoing events

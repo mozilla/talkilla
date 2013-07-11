@@ -94,6 +94,12 @@ describe("ChatApp", function() {
         "_onCallEstablishment", incomingCallData);
     });
 
+  it("should attach _onCallUpgrade to talkilla.call-upgrade",
+    function() {
+      assertEventTriggersHandler("talkilla.call-upgrade",
+        "_onCallUpgrade", incomingCallData);
+    });
+
   it("should attach _onIncomingConversation to talkilla.conversation-incoming",
     function() {
       assertEventTriggersHandler("talkilla.conversation-incoming",
@@ -124,14 +130,14 @@ describe("ChatApp", function() {
     sinon.assert.calledWithExactly(chatApp[handler], offer);
   }
 
-  it("should attach _onSendCallOffer to send-offer on the call model",
+  it("should attach _onSendOffer to send-offer on the call model",
     function() {
-    assertModelEventTriggersHandler("send-offer", "_onSendCallOffer");
+    assertModelEventTriggersHandler("send-offer", "_onSendOffer");
   });
 
-  it("should attach _onSendCallAnswer to send-answer on the webrtc model",
+  it("should attach _onSendAnswer to send-answer on the webrtc model",
     function() {
-    assertModelEventTriggersHandler("send-answer", "_onSendCallAnswer");
+    assertModelEventTriggersHandler("send-answer", "_onSendAnswer");
   });
 
   it("should post talkilla.chat-window-ready to the worker", function() {
@@ -366,7 +372,7 @@ describe("ChatApp", function() {
       });
     });
 
-    describe("#_onSendCallOffer", function() {
+    describe("#_onSendOffer", function() {
       var offer;
 
       beforeEach(function() {
@@ -378,14 +384,14 @@ describe("ChatApp", function() {
 
       it("should post an event to the worker when onSendOffer is called",
         function() {
-          chatApp._onSendCallOffer(offer);
+          chatApp._onSendOffer(offer);
 
           sinon.assert.calledOnce(app.port.postEvent);
           sinon.assert.calledWith(app.port.postEvent, "talkilla.call-offer");
         });
 
       it("should start the outgoing call sound", function() {
-        chatApp._onSendCallOffer(callData);
+        chatApp._onSendOffer(callData);
 
         sinon.assert.calledOnce(chatApp.audioLibrary.play);
         sinon.assert.calledWithExactly(chatApp.audioLibrary.play, "outgoing");
@@ -393,7 +399,7 @@ describe("ChatApp", function() {
 
     });
 
-    describe("#_onSendCallAnswer", function() {
+    describe("#_onSendAnswer", function() {
       it("should post an event to the worker when onSendAnsweris triggered",
         function() {
           var answer = {
@@ -401,7 +407,7 @@ describe("ChatApp", function() {
             type: 'type'
           };
 
-          chatApp._onSendCallAnswer(answer);
+          chatApp._onSendAnswer(answer);
 
           sinon.assert.calledOnce(app.port.postEvent);
           sinon.assert.calledWith(app.port.postEvent, "talkilla.call-answer");

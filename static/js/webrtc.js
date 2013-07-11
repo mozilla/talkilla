@@ -106,6 +106,11 @@
         this.trigger('connection-upgraded');
       }).initiate(constraints);
     }).terminate();
+
+    // force state to pending as we're actually waiting for pc reinitiation
+    this.state.current = "pending";
+
+    return this;
   };
 
   /**
