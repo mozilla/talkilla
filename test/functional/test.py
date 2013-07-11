@@ -77,8 +77,8 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry, BrowserTest):
         self.bob.implicitly_wait(4000)
         self.bob.find_element_by_css_selector("ul.nav-list>li>a").click()
 
-        # Bob checks for his own chat window
-        self.bob.switch_to_frame("//chatbox")
+        # Larry checks for the chat window
+        self.larry.switch_to_frame("//chatbox")
 
 if __name__ == "__main__":
     try:
