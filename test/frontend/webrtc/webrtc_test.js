@@ -59,6 +59,7 @@ describe("WebRTC", function() {
   });
 
   afterEach(function() {
+    webrtc = null;
     sandbox.restore();
   });
 
@@ -489,6 +490,43 @@ describe("WebRTC", function() {
           done();
         }).initiate().establish(fakeOffer);
       });
+    });
+  });
+
+  describe("Data Channel handling", function() {
+    beforeEach(function() {
+      webrtc = new WebRTC();
+    });
+
+    it("should emit a 'dc:ready' event on open", function(done) {
+      webrtc.once('dc:ready', function(dc) {
+        expect(dc).to.be.equal(webrtc.dc);
+        done();
+      }).dc.onopen();
+    });
+
+    it("should emit a 'dc:message-in' event on receiving a message",
+      function(done) {
+        var message = {data: "fake"};
+        webrtc.once('dc:message-in', function(event) {
+          expect(event).to.deep.equal(message);
+          done();
+        }).dc.onmessage(message);
+      });
+
+    it("should emit a 'dc:error' event on receiving an error",
+      function(done) {
+        var message = {data: "fake"};
+        webrtc.once('dc:error', function(event) {
+          expect(event).to.deep.equal(message);
+          done();
+        }).dc.onerror(message);
+      });
+
+    it("should emit a 'dc:close' event on being closed", function(done) {
+      webrtc.once('dc:close', function() {
+        done();
+      }).dc.onclose();
     });
   });
 });

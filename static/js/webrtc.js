@@ -20,7 +20,7 @@
     this.options = options || {};
 
     this.pc = this._setupPeerConnection(pc || new mozRTCPeerConnection());
-    this.dc = this.pc.createDataChannel('dc', {});
+    this.dc = this._setupDataChannel(this.pc, 0);
 
     this.state = StateMachine.create({
       initial: 'ready',
@@ -93,10 +93,11 @@
    */
   WebRTC.prototype.establish = function(answer) {
     this.state.establish();
+    this._prepareEstablishment();
 
     this.pc.setRemoteDescription(
       new mozRTCSessionDescription(answer),
-      this._prepareEstablishment.bind(this),
+      function() {},
       this._handleError.bind(this, 'Unable to set remote answer description')
     );
 
@@ -251,18 +252,8 @@
    * Executed on incoming data channel.
    * @param  {RTCDataChannelEvent} event
    */
-  WebRTC.prototype._onDataChannel = function(event) {
-    var eventsMap = {
-      onopen: 'dc:open',
-      onmessage: 'dc:message-in',
-      onerror: 'dc:error',
-      onclose: 'dc:close'
-    };
-
-    for (var handler in eventsMap)
-      event.channel[handler] = this.trigger.bind(this, eventsMap[handler]);
-
-    this.trigger('dc:ready', event.channel);
+  WebRTC.prototype._onDataChannel = function() {
+    console.error("Unexpected call to _onDataChannel - negotiated channel?");
   };
 
   /**
@@ -379,5 +370,38 @@
     pc.onsignalingstatechange = this._onSignalingStateChange.bind(this);
 
     return pc;
+  };
+
+  /**
+   * Configures a data channel, registering local event listeners.
+   *
+   * @param {RTCPeerConnection} pc
+   * @param {short}             id of the data channel to create
+   */
+  WebRTC.prototype._setupDataChannel = function(pc, id) {
+    var dc = pc.createDataChannel('dc', {
+      // We set up a non-negotiated channel with a specific id, this
+      // way we know exactly which channel we're expecting to communicate
+      // with.
+      id: id,
+      negotiated: false,
+      // Stream and preset parameters enable backwards compatibility
+      // from Firefox 24 until bug 892441 is fixed.
+      stream: id,
+      preset: false
+    });
+
+    dc.onopen = this.trigger.bind(this, "dc:ready", dc);
+
+    var eventsMap = {
+      onmessage: 'dc:message-in',
+      onerror: 'dc:error',
+      onclose: 'dc:close'
+    };
+
+    for (var handler in eventsMap)
+      dc[handler] = this.trigger.bind(this, eventsMap[handler]);
+
+    return dc;
   };
 })(this);

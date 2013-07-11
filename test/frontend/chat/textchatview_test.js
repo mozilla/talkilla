@@ -46,7 +46,10 @@ describe("Text chat views", function() {
 
       sandbox.stub(navigator, "mozGetUserMedia");
       sandbox.stub(window, "mozRTCPeerConnection").returns({
-        createDataChannel: function() {}
+        createDataChannel: function() {
+          // Mock a dataChannel object.
+          return {};
+        }
       });
 
 
