@@ -14,7 +14,8 @@
    * Fired when #start() is called and the pending call timeout is reached with
    * no response from the other side.
    * @event offer-timeout
-   * @param {Object} options Current call start options (see #start)
+   * @param {Object} options An object containing one attribute, peer, with
+   *                         the value as the peer's nick.
    */
   app.models.Call = Backbone.Model.extend({
     timer: undefined,
@@ -27,6 +28,7 @@
      *
      * Options:
      * - {app.models.WebRTCCall}  media      Media object
+     * - {app.models.User}        peer       The peer for the conversation
      */
     initialize: function(attributes, options) {
       this.set(attributes || {});
@@ -91,7 +93,6 @@
      */
     start: function(options) {
       this._startTimer({
-        callData: options,
         timeout: app.options.PENDING_CALL_TIMEOUT
       });
       this.state.start();
@@ -172,7 +173,7 @@
         return;
 
       var onTimeout = function() {
-        this.trigger('offer-timeout', options.callData);
+        this.trigger('offer-timeout', {peer: this.peer.get("nick")});
       }.bind(this);
 
       this.timer = setTimeout(onTimeout, options.timeout);
