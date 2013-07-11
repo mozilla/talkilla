@@ -257,13 +257,6 @@
   };
 
   /**
-   * Executed when a data channel is opened.
-   */
-  WebRTC.prototype._onDataChannelOpen = function() {
-    this.trigger('dc:ready', this.dc);
-  };
-
-  /**
    * Executed when the ICE connection state changes.
    * @return {Event} event
    */
@@ -398,7 +391,7 @@
       preset: false
     });
 
-    dc.onopen = this._onDataChannelOpen.bind(this);
+    dc.onopen = this.trigger.bind(this, "dc:ready", dc);
 
     var eventsMap = {
       onmessage: 'dc:message-in',
