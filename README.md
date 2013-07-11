@@ -70,39 +70,25 @@ To run the front-end unit tests standalone:
 2. Visit http://localhost:5000/test/frontend/index.html
 
 
-Integration Tests
+Functional Tests
 -----------------
 
-You'll need Python 2.7+ and the [selenium](https://pypi.python.org/pypi/selenium)
-package in order to run the integration tests suite.
-
-First create a [virtualenv](https://pypi.python.org/pypi/virtualenv):
+You'll need Python 2.7+ and
+[virtualenv](https://pypi.python.org/pypi/virtualenv):
 
     $ cd /path/to/talkilla
-    $ virtualenv `pwd`/.venv
 
-Activate it:
+Run the tests, bootstrapping necessary dependencies from the net:
+
+    $ make selenium
+
+Activate virtualenv in your shell if you wish to run or debug tests by hand:
 
     $ source .venv/bin/activate
     (.venv) $
 
-Install the `selenium` package using [pip](https://pypi.python.org/pypi/pip):
-
-    (.venv) $ pip install selenium
-
-Start the selenium server:
-
-    (.venv) $ bin/selenium.sh start
-
-Run the tests:
-
-    (.venv) $ python test/functional/test.py
-
 Debugging Functional Tests
 --------------------------
-
-$ pip install ipdb
-$ easy_install readline          // XXX try with brew instead
 $ python -m ipdb test/functional/test_SingleBrowser.py
 XXX paste in output & breakpoint setting here
 

@@ -20,6 +20,16 @@ install() {
         tar -xjf $FIREFOX_BZIP2_FILENAME
         echo "Done."
     fi
+    bootstrap_python
+}
+
+bootstrap_python() {
+    if [ ! -d  .venv ]; then
+        echo "Bootstrapping functional testing dependencies"
+        virtualenv `pwd`/.venv
+        . .venv/bin/activate
+        pip install -r require.pip
+    fi
 }
 
 start() {
