@@ -1,4 +1,4 @@
-/* global StateMachine, Backbone, _,
+/* global StateMachine, Backbone, _, tnetbin,
           mozRTCPeerConnection, mozRTCSessionDescription */
 
 (function(exports) {
