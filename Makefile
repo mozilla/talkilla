@@ -27,7 +27,7 @@ runserver_dev:
 selenium_all:
   # This command should include the directories from both the selenium and frontend targets
 	@env NO_LOCAL_CONFIG=true NODE_ENV=test \
-	    bin/run_selenium_test.sh test/functional/test.py
+	    bin/run_selenium_test.sh -m unittest discover test/functional
 	@env NO_LOCAL_CONFIG=true NODE_ENV=test \
 	    bin/run_selenium_test.sh test/frontend/frontend_all_units_test.py
 
@@ -45,6 +45,6 @@ debug_test:
 
 frontend:
 	@env NO_LOCAL_CONFIG=true NODE_ENV=development bin/run_selenium_test.sh \
-		test/frontend/frontend_all_units.py
+		test/frontend/frontend_all_units_test.py
 
 .PHONY: test
