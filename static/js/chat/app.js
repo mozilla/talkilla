@@ -1,4 +1,4 @@
-/*global jQuery, Backbone, _, WebRTC*/
+/*global jQuery, Backbone, _, tnetbin, WebRTC*/
 /* jshint unused: false */
 /**
  * Talkilla application.
@@ -48,12 +48,6 @@ var ChatApp = (function($, Backbone, _) {
       peer: this.peer
     });
 
-    this.view = new app.views.ConversationView({
-      call: this.call,
-      peer: this.peer,
-      el: 'body'
-    });
-
     this.callControlsView = new app.views.CallControlsView({
       call: this.call,
       el: $("#call-controls")
@@ -88,6 +82,13 @@ var ChatApp = (function($, Backbone, _) {
       call: this.call
     });
 
+    this.view = new app.views.ConversationView({
+      call: this.call,
+      textChat: this.textChat,
+      peer: this.peer,
+      el: 'body'
+    });
+
     // Incoming events
     this.port.on('talkilla.conversation-open',
                  this._onConversationOpen.bind(this));
@@ -106,7 +107,8 @@ var ChatApp = (function($, Backbone, _) {
 
     // Data channels
     this.webrtc.on('dc:message-in', this._onDataChannelMessageIn.bind(this));
-    this.textChat.on('entry.created', this._onTextChatEntryCreated.bind(this));
+    this.textChat.on('add', this._onTextChatEntryCreated.bind(this));
+    this.textChat.on('add', this._onFileTransferCreated.bind(this));
 
     // Internal events
     window.addEventListener("unload", this._onCallHangup.bind(this));
@@ -171,11 +173,52 @@ var ChatApp = (function($, Backbone, _) {
 
   // Text chat & data channel event listeners
   ChatApp.prototype._onDataChannelMessageIn = function(event) {
-    this.textChat.add(JSON.parse(event.data));
+    var entry;
+
+    if (event.type === "chat:message")
+      entry = new app.models.TextChatEntry(event.message);
+    else if (event.type === "file:new")
+      entry = new app.models.FileTransfer(event.message);
+    else if (event.type === "file:chunk") {
+      var chunk = tnetbin.toArrayBuffer(event.message.chunk).buffer;
+      var transfer = this.textChat.findWhere({id: event.message.id});
+      transfer.append(chunk);
+    }
+
+    this.textChat.add(entry);
   };
 
   ChatApp.prototype._onTextChatEntryCreated = function(entry) {
-    this.webrtc.send(JSON.stringify(entry));
+    // Send the message if we are the sender.
+    // I we are not, the message comes from a contact and we do not
+    // want to send it back.
+    if (entry instanceof app.models.TextChatEntry &&
+        entry.get('nick') === app.data.user.get("nick"))
+      this.webrtc.send({type: "chat:message", message: entry.toJSON()});
+  };
+
+  ChatApp.prototype._onFileTransferCreated = function(entry) {
+    // Check if we are the file sender. If we are not, the file
+    // transfer has been initiated by the other party.
+    if (!(entry instanceof app.models.FileTransfer && entry.file))
+      return;
+
+    var onFileChunk = this._onFileChunk.bind(this);
+    var message = {
+      id: entry.id,
+      filename: entry.file.name,
+      size: entry.file.size
+    };
+    this.webrtc.send({type: "file:new", message: message});
+
+    entry.on("chunk", onFileChunk);
+    entry.on("complete", entry.off.bind(this, "chunk", onFileChunk));
+
+    entry.start();
+  };
+
+  ChatApp.prototype._onFileChunk = function(id, chunk) {
+    this.webrtc.send({type: "file:chunk", message: {id: id, chunk: chunk}});
   };
 
   return ChatApp;
