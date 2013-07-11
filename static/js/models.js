@@ -91,7 +91,6 @@
      */
     start: function(options) {
       this._startTimer({
-        callData: options,
         timeout: app.options.PENDING_CALL_TIMEOUT
       });
       this.state.start();
@@ -172,7 +171,7 @@
         return;
 
       var onTimeout = function() {
-        this.trigger('offer-timeout', options.callData);
+        this.trigger('offer-timeout', {peer: this.peer.get("nick")});
       }.bind(this);
 
       this.timer = setTimeout(onTimeout, options.timeout);
