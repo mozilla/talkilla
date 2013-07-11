@@ -133,6 +133,23 @@ describe("WebRTC", function() {
       });
   });
 
+  describe("static methods", function () {
+    describe("#parseOfferConstraints", function() {
+      it("should parse an offer SDP to retrieve media constraints", function() {
+        var constraints = WebRTC.parseOfferConstraints(fakeOffer);
+
+        expect(constraints.audio).to.equal(true);
+        expect(constraints.video).to.equal(true);
+      });
+
+      it("should throw if no valid offer passed", function() {
+        expect(function() {
+          WebRTC.parseOfferConstraints({});
+        }).to.Throw(Error);
+      });
+    });
+  });
+
   describe("prototype", function() {
     beforeEach(function() {
       webrtc = new WebRTC();

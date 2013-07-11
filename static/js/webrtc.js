@@ -44,7 +44,7 @@
 
   _.extend(WebRTC.prototype, Backbone.Events);
 
-  // public API
+  // public properties
 
   /* jshint camelcase:false */
   WebRTC.prototype.__defineGetter__('constraints', function() {
@@ -63,6 +63,28 @@
       this._constraints.fake = true;
   });
   /* jshint camelcase:true */
+
+  // static methods
+
+  /**
+   * Extracts media constraints from an offer SDP.
+   * @param  {Object}  offer  Offer object
+   * @return {Object}         Media constraints object
+   * @private
+   */
+  WebRTC.parseOfferConstraints = function(offer) {
+    var sdp = offer && offer.sdp;
+
+    if (!sdp)
+      throw new Error('No SDP offer to parse');
+
+    return {
+      video: sdp.contains('\nm=video '),
+      audio: sdp.contains('\nm=audio ')
+    };
+  };
+
+  // public prototype
 
   /**
    * Initiates an outgoing connection.
@@ -140,7 +162,7 @@
    */
   WebRTC.prototype.answer = function(offer) {
     this.state.answer();
-    this.constraints = this._parseOfferConstraints(offer);
+    this.constraints = WebRTC.parseOfferConstraints(offer);
 
     if (!this.constraints.video && !this.constraints.audio)
       return this._prepareAnswer(offer);
@@ -330,24 +352,6 @@
   WebRTC.prototype._onSignalingStateChange = function(event) {
     this.trigger('signaling:' + event);
     this.trigger('signaling:change', event);
-  };
-
-  /**
-   * Extracts media constraints from an offer SDP.
-   * @param  {Object}  offer  Offer object
-   * @return {Object}         Media constraints object
-   * @private
-   */
-  WebRTC.prototype._parseOfferConstraints = function(offer) {
-    var sdp = offer && offer.sdp;
-
-    if (!sdp)
-      return this._handleError('No SDP offer to parse');
-
-    return {
-      video: sdp.contains('\nm=video '),
-      audio: sdp.contains('\nm=audio ')
-    };
   };
 
   /**

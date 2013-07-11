@@ -151,15 +151,11 @@ var ChatApp = (function($, Backbone, _) {
   ChatApp.prototype._onIncomingConversation = function(data) {
     this.peer.set({nick: data.peer});
 
-    var sdp = data.offer.sdp;
-
-    var options = {
-      video: sdp.contains("\nm=video "),
-      audio: sdp.contains("\nm=audio "),
+    var options = _.extend(WebRTC.parseOfferConstraints(data.offer), {
       offer: data.offer,
       textChat: !!data.textChat,
       upgrade: !!data.upgrade
-    };
+    });
 
     // incoming text chat conversation
     if (data.textChat)
