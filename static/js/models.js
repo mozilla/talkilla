@@ -41,7 +41,8 @@
           {name: 'start',     from: 'ready',     to: 'pending'},
           {name: 'establish', from: ['ready',
                                      'pending'], to: 'ongoing'},
-          {name: 'upgrade',   from: 'ongoing',   to: 'pending'},
+          {name: 'upgrade',   from: ['ready',
+                                     'ongoing'], to: 'pending'},
 
           // Incoming call scenario
           {name: 'incoming',  from: 'ready',     to: 'incoming'},
