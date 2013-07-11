@@ -122,10 +122,11 @@
    */
   WebRTC.prototype.establish = function(answer) {
     this.state.establish();
+    this._prepareEstablishment();
 
     this.pc.setRemoteDescription(
       new mozRTCSessionDescription(answer),
-      this._prepareEstablishment.bind(this),
+      function() {},
       this._handleError.bind(this, 'Unable to set remote answer description')
     );
 
