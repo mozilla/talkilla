@@ -15,6 +15,8 @@
    * @param {Object}                   options  Options
    */
   function WebRTC(options) {
+    this.pc = undefined;
+    this.dc = undefined;
     this._constraints = {};
     this.options = options || {};
 
@@ -37,8 +39,6 @@
         }.bind(this)
       }
     });
-
-    this._setupPeerConnection();
   }
   exports.WebRTC = WebRTC;
 
@@ -95,6 +95,7 @@
    */
   WebRTC.prototype.initiate = function(constraints) {
     this.state.initiate();
+    this._setupPeerConnection();
     this.constraints = constraints;
 
     if (!this.constraints.video && !this.constraints.audio)
@@ -122,7 +123,7 @@
     // XXX: renegotiate connection once supported by the WebRTC API;
     //      right now, reinitialize the current peer connection.
     this.once('connection-terminated', function() {
-      this._setupPeerConnection();
+      this.state.current = "ready";
       this.once('ice:connected', function() {
         this.trigger('connection-upgraded');
       }).initiate(constraints);
@@ -162,6 +163,7 @@
    */
   WebRTC.prototype.answer = function(offer) {
     this.state.answer();
+    this._setupPeerConnection();
     this.constraints = WebRTC.parseOfferConstraints(offer);
 
     if (!this.constraints.video && !this.constraints.audio)
@@ -427,7 +429,5 @@
 
     this.pc = pc;
     this.dc = dc;
-
-    this.state.current = "ready";
   };
 })(this);
