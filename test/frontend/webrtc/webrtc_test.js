@@ -62,10 +62,8 @@ describe("WebRTC", function() {
 
   describe("constructor", function() {
     it("should accept and configure options", function() {
-      var fakeServers = [{foo: 1}, {bar: 2}];
-      var webrtc = new WebRTC({iceServers: fakeServers, forceFake: true});
+      var webrtc = new WebRTC({forceFake: true});
 
-      expect(webrtc.options.iceServers).to.deep.equal(fakeServers);
       expect(webrtc.options.forceFake).to.deep.equal(true);
     });
 

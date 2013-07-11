@@ -10,7 +10,6 @@
    * WebRTC object constructor.
    *
    * Options are:
-   * - {Object}  iceServers: Peer connection ICE servers (default: {})
    * - {Boolean} forceFake:  Forces fake media streams (default: false)
    *
    * @param {Object}                   options  Options
@@ -413,7 +412,7 @@
    * @param {RTCPeerConnection} pc
    */
   WebRTC.prototype._setupPeerConnection = function() {
-    var pc = new mozRTCPeerConnection(this.options.iceServers);
+    var pc = new mozRTCPeerConnection();
     var dc = pc.createDataChannel('dc', {});
 
     pc.onaddstream = this._onAddStream.bind(this);
