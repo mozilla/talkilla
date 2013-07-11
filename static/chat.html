@@ -8,6 +8,18 @@
   <link rel="stylesheet" media="all" href="css/style.css">
 </head>
 <body>
+  <!-- Call Controls -->
+  <div id="call-controls">
+    <ul class="controls">
+      <li class="btn-video"><a href="#" title="Start a video call">
+        <img src="../img/btn-video.png"></a></li>
+      <li class="btn-audio"><a href="#" title="Start an audio call">
+        <img src="../img/btn-audio.png"></a></li>
+      <li class="btn-hangup hide"><a href="#" title="Hang up">
+        <img src="../img/btn-hangup.png"></a></li>
+    </ul>
+  </div>
+
   <!-- Call Offer -->
   <div id="offer" class="pending hide">
     <p class="avatar">
@@ -45,15 +57,7 @@
       <strong class="callee"></strong>
       <video id="remote-video" class="remote-video"></video>
       <video id="local-video" class="local-video" muted></video>
-      <ul class="controls">
-        <li class="btn-video"><a href="#" title="Start a video call">
-          <img src="../img/btn-video.png"></a></li>
-        <li class="btn-audio"><a href="#" title="Start an audio call">
-          <img src="../img/btn-audio.png"></a></li>
-        <li class="btn-hangup"><a href="#" title="Hang up">
-          <img src="../img/btn-hangup.png"></a></li>
-      </ul>
-    </div>
+   </div>
   </div>
   <!-- /Call view -->
 
@@ -73,7 +77,10 @@
   <script src="vendor/backbone-1.0.0.js"></script>
   <script src="vendor/bootstrap-2.1.1/js/bootstrap.js"></script>
   <script src="vendor/state-machine-2.2.0.js"></script>
+  <script src="vendor/tnetbin.js"></script>
+  <script src="js/webrtc.js"></script>
   <script src="js/chat/app.js"></script>
+  <script src="js/chat/models.js"></script>
   <script src="js/port.js"></script>
   <script src="js/models.js"></script>
   <script src="js/utils.js"></script>

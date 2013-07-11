@@ -1,5 +1,4 @@
-/* global app, Backbone, StateMachine,
-   mozRTCPeerConnection, mozRTCSessionDescription */
+/* global app, Backbone, StateMachine */
 /**
  * Talkilla models and collections.
  */
@@ -10,13 +9,13 @@
    * Call model.
    *
    * Attributes:
-   * - {String} peer
    * - {Object} incomingData
    *
    * Fired when #start() is called and the pending call timeout is reached with
    * no response from the other side.
    * @event offer-timeout
-   * @param {Object} options Current call start options (see #start)
+   * @param {Object} options An object containing one attribute, peer, with
+   *                         the value as the peer's nick.
    */
   app.models.Call = Backbone.Model.extend({
     timer: undefined,
@@ -29,11 +28,13 @@
      *
      * Options:
      * - {app.models.WebRTCCall}  media      Media object
+     * - {app.models.User}        peer       The peer for the conversation
      */
     initialize: function(attributes, options) {
       this.set(attributes || {});
 
       this.media = options && options.media;
+      this.peer = options && options.peer;
 
       this.state = StateMachine.create({
         initial: 'ready',
@@ -55,20 +56,21 @@
           onenterstate: function(event, from, to) {
             this.trigger("change:state", to, from, event);
             this.trigger("state:" + event);
+            this.trigger("state:to:" + to);
           }.bind(this)
         }
       });
 
       this.media.on("offer-ready", function(offer) {
         this.trigger("send-offer", {
-          peer: this.get("peer"),
+          peer: this.peer.get("nick"),
           offer: offer
         });
       }.bind(this));
 
       this.media.on("answer-ready", function(answer) {
         this.trigger("send-answer", {
-          peer: this.get("peer"),
+          peer: this.peer.get("nick"),
           answer: answer
         });
 
@@ -86,34 +88,30 @@
      *
      * @param {Object} options object containing:
      *
-     * - peer: The id of the user to be called
      * - video: set to true to enable video
      * - audio: set to true to enable audio
      */
     start: function(options) {
       this._startTimer({
-        callData: options,
         timeout: app.options.PENDING_CALL_TIMEOUT
       });
-      this.set({peer: options.peer});
       this.state.start();
-      this.media.offer(options);
+      this.media.initiate(options);
     },
 
     /**
      * Starts a call based on an incoming call request
      * @param {Object} options object containing:
      *
-     * - peer:  The id of the peer user
      * - video: set to true to enable video
      * - audio: set to true to enable audio
+     * - offer: information for the media object
      *
      * Other items may be set according to the requirements for the particular
      * media.
      */
     incoming: function(options) {
       this.set({
-        peer: options.peer,
         incomingData: options
       });
       this.state.incoming();
@@ -123,20 +121,28 @@
      * Completes the connection for an outbound call
      * @param {Object} options object containing:
      *
+     * - answer: {Object} answer object
+     *
      * Other items may be set according to the requirements for the particular
      * media.
      */
     establish: function(options) {
+      var answer = options && options.answer;
+      if (!answer)
+        throw new Error("Invalid answer, can't establish connection.");
+
       clearTimeout(this.timer);
-      this.state.establish();
-      this.media.establish(options);
+      this.media.once('connection-established', this.state.establish,
+                                                this.state);
+      this.media.establish(answer);
     },
 
     /**
      * Accepts a pending incoming call.
      */
     accept: function() {
-      this.media.answer(this.get('incomingData'));
+      var data = this.get('incomingData');
+      this.media.answer(data && data.offer);
       this.state.accept();
     },
 
@@ -153,7 +159,7 @@
     hangup: function() {
       clearTimeout(this.timer);
       this.state.hangup();
-      this.media.hangup();
+      this.media.terminate();
     },
 
     /**
@@ -167,205 +173,10 @@
         return;
 
       var onTimeout = function() {
-        this.trigger('offer-timeout', options.callData);
+        this.trigger('offer-timeout', {peer: this.peer.get("nick")});
       }.bind(this);
 
       this.timer = setTimeout(onTimeout, options.timeout);
-    }
-  });
-
-  /**
-   * WebRTC call model
-   *
-   * @class WebRTCCall
-   * @constructor
-   *
-   * Attributes:
-   *
-   * - {Boolean} audio: enable audio stream
-   * - {Boolean} video: enable video stream
-   * - {Boolean} fake: use fake streams
-   *
-   * Fired when a SDP offer is available (see #offer).
-   * @event offer-ready
-   * @param {Object} offer An SDP offer
-   *
-   * Fired when a SDP answer is available (see #answer).
-   * @event answer-ready
-   * @param {Object} answer An SDP answer
-   *
-   *
-   * Example:
-   *
-   * var webrtc = new app.models.WebRTCCall();
-   *
-   * // Caller side
-   * webrtc.on('offer-ready', function(offer) {
-   *   sendOffer(offer);
-   * });
-   * webrtc.offer()
-   *
-   * // Callee side
-   * webrtc.on('answer-ready', function(answer) {
-   *   sendAnswer(answer);
-   * }
-   * webrtc.answer(offer);
-   *
-   * // Once the caller receive the answer
-   * webrtc.establish(answer)
-   *
-   * // Both sides
-   * webrtc.on("change:localStream", function() {
-   *   localVideo.mozSrcObject = webrtc.get("localStream");
-   *   localVideo.play();
-   * });
-   * webrtc.on("change:remoteStream", function() {
-   *   remoteVideo.mozSrcObject = webrtc.get("remoteStream");
-   *   remoteVideo.play();
-   * });
-   */
-  app.models.WebRTCCall = Backbone.Model.extend({
-    pc: undefined, // peer connection
-    dcIn: undefined, // data channel in
-    dcOut: undefined, // data channel out
-
-    initialize: function() {
-      this.pc = new mozRTCPeerConnection();
-      this.dcOut = this.pc.createDataChannel('dc', {});
-
-      this.pc.onaddstream = function(event) {
-        this.set("remoteStream", event.stream);
-      }.bind(this);
-
-      // data channel for incoming calls
-      this.pc.ondatachannel = function(event) {
-        this.dcIn = this._setupDataChannelIn(event.channel);
-        this.trigger('dc.in.ready', event);
-      }.bind(this);
-
-      this._onError = this._onError.bind(this);
-    },
-
-    /**
-     * Create a SDP offer after calling getUserMedia. In case of
-     * success, it triggers an offer-ready event with the created offer.
-     * @param {Object} options object containing:
-     *
-     * - video: set to true to enable video
-     * - audio: set to true to enable audio
-     */
-    offer: function(options) {
-      this.set({video: options.video, audio: options.audio});
-      var callback = this.trigger.bind(this, "offer-ready");
-      this._getMedia(this._createOffer.bind(this, callback), this._onError);
-    },
-
-    /**
-     * Establish a WebRTC p2p connection.
-     * @param {Object} options object containing:
-     *
-     * - answer: the answer (sdp) to add to the peer connection
-     */
-    establish: function(options) {
-      var answerDescription = new mozRTCSessionDescription(options.answer);
-      var cb = function() {};
-      this.pc.setRemoteDescription(answerDescription, cb, this._onError);
-    },
-
-    /**
-     * Create a SDP answer after calling getUserMedia. In case of
-     * success, it triggers an answer-ready event with the created answer.
-     * @param {Object} options object containing:
-     *
-     * - video: set to true to enable video
-     * - audio: set to true to enable audio
-     * - offer: the offer (sdp) to respond to.
-     */
-    answer: function(options) {
-      this.set({video: options.video, audio: options.audio});
-      var callback = this.trigger.bind(this, "answer-ready");
-      var createAnswer = this._createAnswer.bind(this, options.offer, callback);
-      this._getMedia(createAnswer, this._onError);
-    },
-
-    send: function(data) {
-      if (!this.dcOut)
-        return this._onError('no data channel connection available');
-      this.dcOut.send(data);
-    },
-
-    /**
-     * Close the p2p connection.
-     */
-    hangup: function() {
-      if (this.pc && this.pc.signalingState !== "closed")
-        this.pc.close();
-    },
-
-    _createOffer: function(callback) {
-      if (!this.get('video') && !this.get('audio'))
-        return this._onError("Call type has not been defined");
-
-      this.pc.createOffer(function(offer) {
-        var cb = callback.bind(this, offer);
-        this.pc.setLocalDescription(offer, cb, this._onError);
-      }.bind(this), this._onError);
-    },
-
-    _createAnswer: function(offer, callback) {
-      if (!this.get('video') && !this.get('audio'))
-        return this._onError("Call type has not been defined");
-
-      var offerDescription = new mozRTCSessionDescription(offer);
-      this.pc.setRemoteDescription(offerDescription, function() {
-        this.pc.createAnswer(function(answer) {
-          var cb = callback.bind(this, answer);
-          this.pc.setLocalDescription(answer, cb, this._onError);
-        }.bind(this), this._onError);
-      }.bind(this), this._onError);
-    },
-
-    _getMedia: function(callback, errback) {
-      var constraints = {
-        video: !!this.get('video'),
-        audio: !!this.get('audio'),
-        fake:  !!this.get('fake')
-      };
-
-      var cb = function (localStream) {
-        this.pc.addStream(localStream);
-        this.set("localStream", localStream);
-        callback();
-      }.bind(this);
-
-      navigator.mozGetUserMedia(constraints, cb, errback);
-    },
-
-    _setupDataChannelIn: function(channel) {
-      channel.binaryType = 'blob';
-
-      channel.onopen = function(event) {
-        this.trigger('dc.in.open', event);
-      }.bind(this);
-
-      channel.onmessage = function(event) {
-        this.trigger('dc.in.message', event);
-      }.bind(this);
-
-      channel.onerror = function(event) {
-        this.trigger('dc.in.error', event);
-      }.bind(this);
-
-      channel.onclose = function(event) {
-        this.trigger('dc.in.close', event);
-      }.bind(this);
-
-      return channel;
-    },
-
-    _onError: function(error) {
-      // XXX Better error logging and handling
-      console.error("WebRTCCall error: " + error);
     }
   });
 
@@ -381,13 +192,7 @@
   });
 
   app.models.TextChat = Backbone.Collection.extend({
-    model: app.models.TextChatEntry,
-
-    newEntry: function(data) {
-      var entry = this.add(data).at(this.length - 1);
-      if (entry)
-        this.trigger('entry.created', entry);
-    }
+    model: app.models.TextChatEntry
   });
 
   app.models.User = Backbone.Model.extend({

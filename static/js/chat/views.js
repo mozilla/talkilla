@@ -7,9 +7,9 @@
   "use strict";
 
   /**
-   * Chat View (overall)
+   * Conversation View (overall)
    */
-  app.views.ChatView = Backbone.View.extend({
+  app.views.ConversationView = Backbone.View.extend({
     events: {
       'dragover': 'dragover',
       'drop': 'drop'
@@ -19,11 +19,17 @@
       options = options || {};
       if (!options.call)
         throw new Error("missing parameter: call");
+      if (!options.peer)
+        throw new Error("missing parameter: peer");
+      if (!options.textChat)
+        throw new Error("missing parameter: textChat");
 
       this.call = options.call;
+      this.peer = options.peer;
+      this.textChat = options.textChat;
 
-      this.call.on('change:peer', function(to) {
-        document.title = to.get("peer");
+      this.peer.on('change:nick', function(to) {
+        document.title = to.get("nick");
       });
 
       this.call.on('offer-timeout', function() {
@@ -34,7 +40,8 @@
 
     _checkDragTypes: function(types) {
       if (!types.contains("text/x-moz-url") &&
-          !types.contains("text/x-moz-text-internal"))
+          !types.contains("text/x-moz-text-internal") &&
+          !types.contains("application/x-moz-file"))
         return false;
       return true;
     },
@@ -52,6 +59,7 @@
     },
 
     drop: function(event) {
+      var url;
       var dataTransfer = event.originalEvent.dataTransfer;
 
       if (!this._checkDragTypes(dataTransfer.types))
@@ -59,16 +67,86 @@
 
       event.preventDefault();
 
-      var url;
-      var tabData = dataTransfer.getData("text/x-moz-text-internal");
-      var urlData = dataTransfer.getData("text/x-moz-url");
+      if (dataTransfer.types.contains("application/x-moz-file")) {
+        // File Transfer
+        _.each(dataTransfer.files, function(file) {
+          var transfer =
+            new app.models.FileTransfer({file: file}, {chunkSize: 512 * 1024});
+          this.textChat.add(transfer);
+        }.bind(this));
+      } else if (dataTransfer.types.contains("text/x-moz-url")) {
+        url = dataTransfer.getData("text/x-moz-url");
+        url = url.split('\n')[0]; // get rid of the title
+        this.$('#textchat [name="message"]').val(url).focus();
+      } else if (dataTransfer.types.contains("text/x-moz-text-internal")) {
+        url = dataTransfer.getData("text/x-moz-text-internal");
+        this.$('#textchat [name="message"]').val(url).focus();
+      }
+    }
+  });
 
-      if (urlData)
-        url = urlData.split('\n')[0]; // get rid of the title
-      else if (tabData)
-        url = tabData;
+  /**
+   * Call controls view
+   */
+  app.views.CallControlsView = Backbone.View.extend({
 
-      this.$('#textchat [name="message"]').val(url).focus();
+    events: {
+      'click .btn-video a': 'videoCall',
+      'click .btn-audio a': 'audioCall',
+      'click .btn-hangup a': 'hangup'
+    },
+
+    initialize: function(options) {
+      options = options || {};
+      if (!options.call)
+        throw new Error("missing parameter: call");
+      if (!options.el)
+        throw new Error("missing parameter: el");
+
+      this.call = options.call;
+
+      this.call.on('state:to:pending state:to:incoming',
+                   this._callPending, this);
+      this.call.on('state:to:ongoing',
+                   this._callOngoing, this);
+      this.call.on('state:to:terminated',
+                   this._callInactive, this);
+    },
+
+    videoCall: function(event) {
+      // Really webrtc and calls should be set up on clicking a button
+      this.call.start({video: true, audio: true});
+    },
+
+    audioCall: function(event) {
+      // Really webrtc and calls should be set up on clicking a button
+      this.call.start({video: false, audio: true});
+    },
+
+    hangup: function(event) {
+      if (event)
+        event.preventDefault();
+
+      window.close(); // XXX: actually terminate the call and leave the
+                      // conversation window open (eg. for text chat)
+    },
+
+    _callPending: function() {
+      this.$el.hide();
+    },
+
+    _callOngoing: function() {
+      this.$el.show();
+      this.$('.btn-video').hide();
+      this.$('.btn-audio').hide();
+      this.$('.btn-hangup').show();
+    },
+
+    _callInactive: function() {
+      this.$el.show();
+      this.$('.btn-video').show();
+      this.$('.btn-audio').show();
+      this.$('.btn-hangup').hide();
     }
   });
 
@@ -137,6 +215,10 @@
 
     initialize: function(options) {
       options = options || {};
+      if (!options.peer)
+        throw new Error("missing parameter: peer");
+
+      this.peer = options.peer;
 
       this.model.on("change:state", this._handleStateChanges.bind(this));
     },
@@ -161,7 +243,7 @@
     render: function() {
       // XXX: update caller's avatar, though we'd need to access peer
       //      as a User model instance
-      var peer = this.model.get('peer');
+      var peer = this.peer.get('nick');
       var formattedText = this.outgoingTextTemplate({peer: peer});
       this.$('.outgoing-text').text(formattedText);
 
@@ -174,10 +256,6 @@
    */
   app.views.CallView = Backbone.View.extend({
 
-    events: {
-      'click .btn-hangup a': 'hangup'
-    },
-
     initialize: function(options) {
       options = options || {};
       if (!options.call)
@@ -186,54 +264,33 @@
         throw new Error("missing parameter: el");
 
       this.call = options.call;
-      this.call.media.on('change:localStream', this._displayLocalVideo, this);
-      this.call.media.on('change:remoteStream', this._displayRemoteVideo, this);
+      this.call.media.on('local-stream:ready', this._displayLocalVideo, this);
+      this.call.media.on('remote-stream:ready', this._displayRemoteVideo, this);
 
-      options.call.on('change:state', function(to) {
-        if (to === "ongoing")
-          this.ongoing();
-        else if (to === "terminated")
-          this.terminated();
-      }, this);
-    },
-
-    hangup: function(event) {
-      if (event)
-        event.preventDefault();
-
-      window.close(); // XXX: actually terminate the call and leave the
-                      // conversation window open (eg. for text chat)
+      this.call.on('state:to:ongoing', this.ongoing, this);
+      this.call.on('state:to:terminated', this.terminated, this);
     },
 
     ongoing: function() {
       this.$el.show();
-      this.$('.btn-video').hide();
-      this.$('.btn-audio').hide();
-      this.$('.btn-hangup').show();
     },
 
     terminated: function() {
       this.$el.hide();
-      this.$('.btn-video').show();
-      this.$('.btn-audio').show();
-      this.$('.btn-hangup').hide();
     },
 
-    _displayLocalVideo: function() {
+    _displayLocalVideo: function(stream) {
       var localVideo = this.$('#local-video')[0];
       if (!localVideo)
         return this;
-      var localStream = this.call.media.get("localStream");
-      localVideo.mozSrcObject = localStream;
+      localVideo.mozSrcObject = stream;
       localVideo.play();
       return this;
     },
 
-    _displayRemoteVideo: function() {
+    _displayRemoteVideo: function(stream) {
       var remoteVideo = this.$('#remote-video')[0];
-      var remoteStream = this.call.media.get("remoteStream");
-
-      remoteVideo.mozSrcObject = remoteStream;
+      remoteVideo.mozSrcObject = stream;
       remoteVideo.play();
       return this;
     }
@@ -269,13 +326,38 @@
   });
 
   /**
+   * File transfer view.
+   */
+  app.views.FileTransferView = Backbone.View.extend({
+    tagName: 'li',
+
+    template: _.template('<strong><%= filename %>:' +
+                         '<% if (progress < 100) { %>' +
+                           '</strong> <%= progress %>%' +
+                         '<% } else { %>' +
+                           '<a href="<%= url %>" download="<%= filename %>">' +
+                             'Save' +
+                           '</a>' +
+                         '<% } %>'),
+
+    initialize: function() {
+      this.model.on("change", this.render, this);
+    },
+
+    render: function() {
+      this.$el.html(this.template(this.model.toJSON()));
+      return this;
+    }
+  });
+
+  /**
    * Text chat conversation view.
    */
   app.views.TextChatView = Backbone.View.extend({
     el: '#textchat', // XXX: uncouple the selector from this view
 
     events: {
-      'submit form': 'send'
+      'submit form': 'sendMessage'
     },
 
     initialize: function(options) {
@@ -290,7 +372,7 @@
 
       this.collection.on('add', this.render, this);
 
-      this.media.on('dc.in.ready', function() {
+      this.media.on('dc:ready', function() {
         this.$('input').removeAttr('disabled');
       }, this);
 
@@ -302,27 +384,43 @@
       }.bind(this));
     },
 
-    send: function(event) {
+    sendMessage: function(event) {
       event.preventDefault();
       var $input = this.$('form input[name="message"]');
       var message = $input.val().trim();
 
       $input.val('');
 
-      this.collection.newEntry({
+      this.collection.add(new app.models.TextChatEntry({
         nick: app.data.user.get("nick"),
         message: message
-      });
+      }));
+    },
+
+    sendFile: function(event) {
+      var file = event.target.files[0];
+      var transfer =
+        new app.models.FileTransfer({file: file}, {chunkSize: 512});
+      this.collection.add(transfer);
     },
 
     render: function() {
       var $ul = this.$('ul').empty();
+
       this.collection.each(function(entry) {
-        var view = new app.views.TextChatEntryView({model: entry});
+        var view;
+
+        if (entry instanceof app.models.TextChatEntry)
+          view = new app.views.TextChatEntryView({model: entry});
+        else if (entry instanceof app.models.FileTransfer)
+          view = new app.views.FileTransferView({model: entry});
+
         $ul.append(view.render().$el);
       });
+
       var ul = $ul.get(0);
       ul.scrollTop = ul.scrollTopMax;
+
       return this;
     }
   });

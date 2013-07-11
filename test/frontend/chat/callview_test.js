@@ -1,4 +1,5 @@
-/* global app, chai, describe, it, sinon, beforeEach, afterEach, $ */
+/* global Backbone, _, app, chai, describe, it, sinon, beforeEach, afterEach,
+   $ */
 
 /* jshint expr:true */
 var expect = chai.expect;
@@ -13,11 +14,15 @@ describe("CallView", function() {
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
-    // Although we're not testing it in this set of tests, stub the WebRTCCall
-    // model's initialize function, as creating new media items
-    // (e.g. PeerConnection) takes a lot of time that we don't need to spend.
-    sandbox.stub(app.models.WebRTCCall.prototype, "initialize");
-    media = new app.models.WebRTCCall();
+    // XXX This should probably be a mock, but sinon mocks don't seem to want
+    // to work with Backbone.
+    media = {
+      answer: sandbox.spy(),
+      establish: sandbox.spy(),
+      initiate: sandbox.spy(),
+      terminate: sandbox.spy(),
+      on: sandbox.stub()
+    };
     call = new app.models.Call({}, {media: media});
   });
 
@@ -58,81 +63,45 @@ describe("CallView", function() {
 
         sandbox.stub(app.views.CallView.prototype, "ongoing");
         sandbox.stub(app.views.CallView.prototype, "terminated");
-        callView = new app.views.CallView({el: {}, call: call});
+        callView = new app.views.CallView({el: $("#call"), call: call});
       });
 
-      it("should attach to change:state events on the call model", function() {
-        sinon.assert.calledOnce(call.on);
-        sinon.assert.calledWith(call.on, 'change:state');
+      it("should attach to state:to:... events on the call model", function() {
+        sinon.assert.calledTwice(call.on);
+        sinon.assert.calledWith(call.on, 'state:to:ongoing');
+        sinon.assert.calledWith(call.on, 'state:to:terminated');
       });
 
-      it("should call CallView#ongoing() when change:state goes to the " +
-         "ongoing state",
+    });
+
+    describe("media streams", function() {
+      beforeEach(function() {
+        call.media = _.extend({}, Backbone.Events);
+      });
+
+      it("should call #_displayLocalVideo when local media stream is ready",
         function() {
-          var changeStateCallback = call.on.args[0][1].bind(callView);
-          changeStateCallback("ongoing");
+          sandbox.stub(app.views.CallView.prototype, "_displayLocalVideo");
+          var callView = new app.views.CallView({el: el, call: call});
+          call.media.trigger("local-stream:ready", {local: true});
 
-          sinon.assert.calledOnce(callView.ongoing);
+          sinon.assert.calledOnce(callView._displayLocalVideo);
+          sinon.assert.calledWithExactly(callView._displayLocalVideo,
+                                         {local: true});
         });
 
-      it("should call CallView#terminated() when change:state goes to the " +
-         "terminated state", function() {
-          var changeStateCallback = call.on.args[0][1].bind(callView);
-          changeStateCallback("terminated");
+      it("should call #_displayRemoteVideo when remote media stream is ready",
+        function() {
+          sandbox.stub(app.views.CallView.prototype, "_displayRemoteVideo");
+          var callView = new app.views.CallView({el: el, call: call});
+          call.media.trigger("remote-stream:ready", {remote: true});
 
-          sinon.assert.calledOnce(callView.terminated);
+          sinon.assert.calledOnce(callView._displayRemoteVideo);
+          sinon.assert.calledWithExactly(callView._displayRemoteVideo,
+                                         {remote: true});
         });
     });
 
-    it("should call #_displayLocalVideo when the webrtc model sets localStream",
-      function () {
-        sandbox.stub(app.views.CallView.prototype, "_displayLocalVideo");
-        var callView = new app.views.CallView({el: el, call: call});
-
-        call.media.set("localStream", fakeLocalStream);
-
-        sinon.assert.calledOnce(callView._displayLocalVideo);
-      });
-
-    it("should call #_displayRemoteVideo when webrtc model sets remoteStream",
-      function () {
-        sandbox.stub(app.views.CallView.prototype, "_displayRemoteVideo");
-        var callView = new app.views.CallView({el: el, call: call});
-
-        call.media.set("remoteStream", fakeRemoteStream);
-
-        sinon.assert.calledOnce(callView._displayRemoteVideo);
-      });
-
-  });
-
-  describe("events", function() {
-    it("should call hangup() when a click event is fired on the hangup button",
-      function() {
-        var el = $('<ul><li class="btn-hangup"><a href="#"></a></li></li>');
-        $("#fixtures").append(el);
-        sandbox.stub(app.views.CallView.prototype, "initialize");
-        sandbox.stub(app.views.CallView.prototype, "hangup");
-        var callView = new app.views.CallView({el: el});
-
-        $(el).find('a').trigger("click");
-
-        sinon.assert.calledOnce(callView.hangup);
-      });
-  });
-
-  describe("#hangup", function() {
-
-    it('should close the window', function() {
-      var el = $('<div><div id="local-video"></div></div>');
-      $("#fixtures").append(el);
-      var callView = new app.views.CallView({el: el, call: call});
-      sandbox.stub(window, "close");
-
-      callView.hangup();
-
-      sinon.assert.calledOnce(window.close);
-    });
   });
 
   describe("#ongoing", function() {
@@ -166,7 +135,6 @@ describe("CallView", function() {
       el = $('<div><div id="local-video"></div></div>');
       $("#fixtures").append(el);
       callView = new app.views.CallView({el: el, call: call});
-      call.media.set("localStream", fakeLocalStream, {silent: true});
 
       videoElement = el.find('#local-video')[0];
       videoElement.play = sandbox.spy();
@@ -174,14 +142,14 @@ describe("CallView", function() {
 
     it("should attach the local stream to the local-video element",
       function() {
-        callView._displayLocalVideo();
+        callView._displayLocalVideo(fakeLocalStream);
 
         expect(videoElement.mozSrcObject).to.equal(fakeLocalStream);
       });
 
     it("should call play on the local-video element",
       function() {
-        callView._displayLocalVideo();
+        callView._displayLocalVideo(fakeLocalStream);
 
         sinon.assert.calledOnce(videoElement.play);
       });
@@ -194,7 +162,6 @@ describe("CallView", function() {
       el = $('<div><div id="remote-video"></div></div>');
       $("#fixtures").append(el);
       callView = new app.views.CallView({el: el, call: call});
-      call.media.set("remoteStream", fakeRemoteStream, {silent: true});
 
       videoElement = el.find('#remote-video')[0];
       videoElement.play = sandbox.spy();
@@ -202,7 +169,7 @@ describe("CallView", function() {
 
     it("should attach the remote stream to the 'remove-video' element",
       function() {
-        callView._displayRemoteVideo();
+        callView._displayRemoteVideo(fakeRemoteStream);
 
         expect(el.find('#remote-video')[0].mozSrcObject).
           to.equal(fakeRemoteStream);
@@ -210,7 +177,7 @@ describe("CallView", function() {
 
     it("should play the remote videoStream",
       function() {
-        callView._displayRemoteVideo();
+        callView._displayRemoteVideo(fakeRemoteStream);
 
         sinon.assert.calledOnce(videoElement.play);
       });

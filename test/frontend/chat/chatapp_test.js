@@ -1,5 +1,5 @@
 /* global app, chai, describe, it, sinon, beforeEach, afterEach,
-   ChatApp, $, _, Backbone */
+   ChatApp, $, _, Backbone, WebRTC */
 
 /* jshint expr:true */
 var expect = chai.expect;
@@ -11,6 +11,20 @@ describe("ChatApp", function() {
     peer: "alice",
     offer: {type: "answer", sdp: "fake"}
   };
+  var chunk;
+
+  function fakeSDP(str) {
+    return {
+      str: str,
+      contains: function(what) {
+        return this.str.indexOf(what) !== -1;
+      }
+    };
+  }
+
+  var fakeOffer = {type: "offer", sdp: fakeSDP("\nm=video aaa\nm=audio bbb")};
+  var fakeAnswer = {type: "answer", sdp: fakeSDP("\nm=video ccc\nm=audio ddd")};
+  var fakeDataChannel = {fakeDataChannel: true};
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
@@ -21,13 +35,36 @@ describe("ChatApp", function() {
       play: sandbox.stub(),
       pause: sandbox.stub()
     });
-    // Although we're not testing it in this set of tests, stub the WebRTCCall
-    // model's initialize function, as creating new media items
-    // (e.g. PeerConnection) takes a lot of time that we don't need to spend.
-    sandbox.stub(app.models.WebRTCCall.prototype, "initialize");
+
+    // mozRTCPeerConnection stub
+    sandbox.stub(window, "mozRTCPeerConnection").returns({
+      close: sandbox.spy(),
+      addStream: sandbox.spy(),
+      createAnswer: function(success) {
+        success(fakeAnswer);
+      },
+      createOffer: function(success) {
+        success(fakeOffer);
+      },
+      setLocalDescription: function(source, success) {
+        success(source);
+      },
+      setRemoteDescription: function(source, success) {
+        success(source);
+      },
+      createDataChannel: function() {
+        fakeDataChannel.send = sandbox.spy();
+        return fakeDataChannel;
+      }
+    });
 
     // This stops us changing the document's title unnecessarily
-    sandbox.stub(app.views.ChatView.prototype, "initialize");
+    sandbox.stub(app.views.ConversationView.prototype, "initialize");
+
+    chunk = new ArrayBuffer(22*2);
+    var view = new Uint16Array(chunk);
+    for (var i=0; i < 22; i++)
+      view[i] = 'data'.charCodeAt(i);
   });
 
   afterEach(function() {
@@ -50,11 +87,12 @@ describe("ChatApp", function() {
     sinon.assert.calledWithExactly(chatApp[handler], data);
   }
 
-  it("should attach _onStartingCall to talkilla.call-start", function() {
-    "use strict";
-    assertEventTriggersHandler("talkilla.call-start",
-      "_onStartingCall", callData);
-  });
+  it("should attach _onConversationOpen to talkilla.conversation-open",
+    function() {
+      "use strict";
+      assertEventTriggersHandler("talkilla.conversation-open",
+        "_onConversationOpen", callData);
+    });
 
   it("should attach _onCallEstablishment to talkilla.call-establishment",
     function() {
@@ -133,7 +171,15 @@ describe("ChatApp", function() {
 
     sinon.assert.calledOnce(app.views.CallEstablishView);
     sinon.assert.calledWithExactly(app.views.CallEstablishView,
-      { model: chatApp.call, el: $("#establish") });
+      { model: chatApp.call, peer: chatApp.peer, el: $("#establish") });
+  });
+
+  it("should initialize a peer model", function() {
+    sandbox.stub(app.models, "User");
+    chatApp = new ChatApp();
+
+    // This currently gets called twice because of app.data.user
+    sinon.assert.called(app.models.User);
   });
 
   describe("ChatApp (constructed)", function () {
@@ -167,16 +213,16 @@ describe("ChatApp", function() {
       $("#fixtures").empty();
     });
 
-    it("should have a chat view" , function() {
-      expect(chatApp.view).to.be.an.instanceOf(app.views.ChatView);
+    it("should have a conversation view" , function() {
+      expect(chatApp.view).to.be.an.instanceOf(app.views.ConversationView);
     });
 
     it("should have a call model" , function() {
       expect(chatApp.call).to.be.an.instanceOf(app.models.Call);
     });
 
-    it("should have a webrtc call model", function() {
-      expect(chatApp.webrtc).to.be.an.instanceOf(app.models.WebRTCCall);
+    it("should have a webrtc object", function() {
+      expect(chatApp.webrtc).to.be.an.instanceOf(WebRTC);
     });
 
     it("should have a call view attached to the 'call' element" , function() {
@@ -184,28 +230,12 @@ describe("ChatApp", function() {
       expect(chatApp.callView.el).to.equal(callFixture[0]);
     });
 
-    describe("#_onStartingCall", function() {
+    describe("#_onConversationOpen", function() {
 
       it("should set the peer", function() {
-        chatApp._onStartingCall(callData);
+        chatApp._onConversationOpen(callData);
 
-        expect(chatApp.call.get('peer')).to.equal(callData.peer);
-      });
-
-      it("should start the call", function() {
-        sandbox.stub(chatApp.call, "start");
-
-        chatApp._onStartingCall(callData);
-
-        sinon.assert.calledOnce(chatApp.call.start);
-        sinon.assert.calledWithExactly(chatApp.call.start, callData);
-      });
-
-      it("should start the outgoing call sound", function() {
-        chatApp._onStartingCall(callData);
-
-        sinon.assert.calledOnce(chatApp.audioLibrary.play);
-        sinon.assert.calledWithExactly(chatApp.audioLibrary.play, "outgoing");
+        expect(chatApp.peer.get("nick")).to.equal(callData.peer);
       });
     });
 
@@ -213,7 +243,7 @@ describe("ChatApp", function() {
       it("should set the peer", function() {
         chatApp._onIncomingCall(incomingCallData);
 
-        expect(chatApp.call.get('peer')).to.equal(incomingCallData.peer);
+        expect(chatApp.peer.get("nick")).to.equal(incomingCallData.peer);
       });
 
       it("should set the call as incoming", function() {
@@ -222,7 +252,8 @@ describe("ChatApp", function() {
         chatApp._onIncomingCall(incomingCallData);
 
         sinon.assert.calledOnce(chatApp.call.incoming);
-        sinon.assert.calledWithExactly(chatApp.call.incoming, incomingCallData);
+        sinon.assert.calledWithExactly(chatApp.call.incoming,
+         {offer: incomingCallData.offer, video: true, audio: true});
       });
 
       it("should play the incoming call sound", function() {
@@ -314,7 +345,7 @@ describe("ChatApp", function() {
       });
 
       it("should post a talkilla.call-hangup event to the worker", function() {
-        chatApp.call.set("peer", "florian");
+        chatApp.peer.set({"nick": "florian"});
         chatApp._onCallHangup();
         sinon.assert.calledOnce(app.port.postEvent);
         sinon.assert.calledWith(app.port.postEvent,
@@ -341,18 +372,30 @@ describe("ChatApp", function() {
     });
 
     describe("#_onSendOffer", function() {
+      var offer;
+
+      beforeEach(function() {
+        offer = {
+          sdp: 'sdp',
+          type: 'type'
+        };
+      });
+
       it("should post an event to the worker when onSendOffer is called",
         function() {
-          var offer = {
-            sdp: 'sdp',
-            type: 'type'
-          };
-
           chatApp._onSendOffer(offer);
 
           sinon.assert.calledOnce(app.port.postEvent);
           sinon.assert.calledWith(app.port.postEvent, "talkilla.call-offer");
         });
+
+      it("should start the outgoing call sound", function() {
+        chatApp._onSendOffer(callData);
+
+        sinon.assert.calledOnce(chatApp.audioLibrary.play);
+        sinon.assert.calledWithExactly(chatApp.audioLibrary.play, "outgoing");
+      });
+
     });
 
     describe("#_onSendAnswer", function() {
@@ -371,29 +414,129 @@ describe("ChatApp", function() {
     });
 
     describe("#_onDataChannelMessageIn", function() {
-      it("should append received data to the current text chat", function() {
-        var stub = sandbox.stub(app.models.TextChat.prototype, "add");
+
+      it("should append received message to the current text chat", function() {
+        sandbox.stub(app.models.TextChat.prototype, "add");
+        var newTextChat = sandbox.stub(app.models, "TextChatEntry");
+        var event = {type: "chat:message", message: "data"};
         chatApp = new ChatApp();
-        var event = {data: JSON.stringify({foo: "bar"})};
 
         chatApp._onDataChannelMessageIn(event);
 
-        sinon.assert.calledOnce(stub);
-        sinon.assert.calledWithExactly(stub, {foo: "bar"});
+        sinon.assert.calledOnce(newTextChat);
+        sinon.assert.calledWithExactly(newTextChat, "data");
+      });
+
+      it("should append a new file transfer to the current text chat",
+        function() {
+          sandbox.stub(app.models.TextChat.prototype, "add");
+          var newFileTransfer = sandbox.stub(app.models, "FileTransfer");
+          var event = {type: "file:new", message: "data"};
+          chatApp = new ChatApp();
+
+          chatApp._onDataChannelMessageIn(event);
+
+          sinon.assert.calledOnce(newFileTransfer);
+          sinon.assert.calledWithExactly(newFileTransfer, "data");
+        });
+
+      it("should append data to a previous started file transfer", function() {
+        sandbox.stub(app.views, "TextChatView");
+        var transfer = new app.models.FileTransfer({filename: "foo", size: 10});
+        var event =
+          {type: "file:chunk", message: {id: transfer.id, chunk: chunk}};
+        sandbox.stub(transfer, "append");
+        chatApp = new ChatApp();
+        chatApp.textChat.add(transfer);
+
+        chatApp._onDataChannelMessageIn(event);
+        sinon.assert.calledOnce(transfer.append);
+        sinon.assert.calledWithExactly(transfer.append, chunk);
       });
     });
 
     describe("#_onTextChatEntryCreated", function() {
       it("should send data over data channel", function() {
-        var stub = sandbox.stub(app.models.WebRTCCall.prototype, "send");
+        var stub = sandbox.stub(WebRTC.prototype, "send");
+        var entry = new app.models.TextChatEntry({nick: "foo", message: "bar"});
+        var message = {type: "chat:message", message: entry.toJSON()};
         chatApp = new ChatApp();
-        var entry = {foo: "bar"};
+        app.data.user.set("nick", "foo");
 
         chatApp._onTextChatEntryCreated(entry);
 
         sinon.assert.calledOnce(stub);
-        sinon.assert.calledWithExactly(stub, JSON.stringify(entry));
+        sinon.assert.calledWithExactly(stub, message);
       });
+    });
+
+    describe("#_onFileTransferCreated", function() {
+      var blob;
+
+      beforeEach(function() {
+        blob = new Blob(["abcdefghij"]);
+        blob.name = "foo";
+      });
+
+      it("should notify of a new file via data channel", function() {
+        var dcSend = sandbox.stub(WebRTC.prototype, "send");
+        var entry = new app.models.FileTransfer({file: blob}, {chunkSize: 1});
+        var message = {type: "file:new", message: {id: entry.id,
+                                                   filename: "foo",
+                                                   size: 10}};
+        chatApp = new ChatApp();
+        chatApp._onFileTransferCreated(entry);
+
+        sinon.assert.calledOnce(dcSend);
+        sinon.assert.calledWithExactly(dcSend, message);
+      });
+
+      it("should bind _onFileChunk on the chunk event triggered by the entry",
+        function() {
+          sandbox.stub(ChatApp.prototype, "_onFileChunk");
+          sandbox.stub(WebRTC.prototype, "send");
+          var entry = new app.models.FileTransfer({file: blob}, {chunkSize: 1});
+          sandbox.stub(entry, "off");
+          chatApp = new ChatApp();
+          chatApp._onFileTransferCreated(entry);
+
+          entry.trigger("chunk", "chunk");
+
+          sinon.assert.calledOnce(chatApp._onFileChunk);
+          sinon.assert.calledWithExactly(chatApp._onFileChunk, "chunk");
+
+          entry.trigger("complete");
+
+          sinon.assert.calledOnce(entry.off);
+          sinon.assert.calledWith(chatApp._onFileChunk, "chunk");
+        });
+
+      it("should not send anything if the entry is not a FileTransfer",
+        function() {
+          var dcSend = sandbox.stub(WebRTC.prototype, "send");
+          var entry = {};
+          chatApp = new ChatApp();
+          chatApp._onFileTransferCreated(entry);
+
+          sinon.assert.notCalled(dcSend);
+        });
+    });
+
+    describe("#_onFileChunk", function() {
+
+      it("should send chunks over data channel", function() {
+        var dcSend = sandbox.stub(WebRTC.prototype, "send");
+        var entry = new app.models.FileTransfer({size: 10, filename: "bar"});
+        var message = {type: "file:chunk",
+                       message: {id: entry.id, chunk: "chunk"}};
+        chatApp = new ChatApp();
+
+        chatApp._onFileChunk(entry.id, "chunk");
+
+        sinon.assert.calledOnce(dcSend);
+        sinon.assert.calledWithExactly(dcSend, message);
+      });
+
     });
 
   });

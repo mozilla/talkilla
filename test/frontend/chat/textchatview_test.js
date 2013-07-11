@@ -1,5 +1,5 @@
 /* global app, chai, describe, it, sinon, beforeEach, afterEach,
-   ChatApp, $ */
+   ChatApp, $, WebRTC */
 
 /* jshint expr:true */
 var expect = chai.expect;
@@ -16,6 +16,7 @@ describe("Text chat views", function() {
 
   afterEach(function() {
     sandbox.restore();
+    app.port.off();
   });
 
   describe('TextChatEntryView', function() {
@@ -45,7 +46,10 @@ describe("Text chat views", function() {
 
       sandbox.stub(navigator, "mozGetUserMedia");
       sandbox.stub(window, "mozRTCPeerConnection").returns({
-        createDataChannel: function() {}
+        createDataChannel: function() {
+          // Mock a dataChannel object.
+          return {};
+        }
       });
 
 
@@ -55,9 +59,15 @@ describe("Text chat views", function() {
       });
 
       // This stops us changing the document's title unnecessarily
-      sandbox.stub(app.views.ChatView.prototype, "initialize");
+      sandbox.stub(app.views.ConversationView.prototype, "initialize");
 
-      call = new app.models.Call({}, {media: new app.models.WebRTCCall()});
+      // port stubs
+      app.port.on = sandbox.stub();
+      app.port.postEvent = sandbox.stub();
+      app.port.trigger = sandbox.stub();
+
+      sandbox.stub(WebRTC.prototype, "send");
+      call = new app.models.Call({}, {media: new WebRTC()});
       chatApp = new ChatApp();
 
       app.data.user.set("nick", "niko");
@@ -100,7 +110,7 @@ describe("Text chat views", function() {
 
     it("should allow the caller to send a first message", function(done) {
       var textChat = chatApp.textChatView.collection;
-      app.port.trigger("talkilla.call-start", {peer: "niko"});
+      app.port.trigger("talkilla.conversation-open", {peer: "niko"});
       expect(textChat).to.have.length.of(0);
 
       textChat.once("add", function(entry) {
@@ -150,6 +160,87 @@ describe("Text chat views", function() {
           expect(textChatView.$el.is(":visible")).to.be.equal(false);
         });
     });
+
+    describe("#sendFile", function() {
+      var textChatView;
+
+      beforeEach(function() {
+        sandbox.stub(call, "on");
+
+        textChatView = new app.views.TextChatView({
+          call: call,
+          collection: new app.models.TextChat()
+        });
+      });
+
+      it("should add a FileTransfer model to the collection", function() {
+        var file = "fakeFile";
+        var chunkSize = 512;
+        var event = {target: {files: [file]}};
+        sandbox.stub(textChatView.collection, "add", function(transfer) {
+          expect(transfer.file).to.equal(file);
+          expect(transfer.options.chunkSize).to.equal(chunkSize);
+        });
+
+        textChatView.sendFile(event);
+
+        sinon.assert.calledOnce(textChatView.collection.add);
+      });
+
+    });
+
+    describe("#render", function() {
+      var textChatView, textChat, blob;
+
+      beforeEach(function() {
+        sandbox.stub(call, "on");
+
+        textChat = new app.models.TextChat();
+        textChatView = new app.views.TextChatView({
+          call: call,
+          collection: textChat
+        });
+
+        blob = new Blob(['content'], {type: 'plain/text'});
+      });
+
+      it("should render a FileTransferView", function() {
+        sandbox.stub(app.views.FileTransferView.prototype, "render",
+          function() {
+            return this;
+          });
+        textChat.add(new app.models.FileTransfer({file: blob},
+                                                 {chunkSize: 512}));
+        app.views.FileTransferView.prototype.render.reset();
+
+        textChatView.render();
+
+        sinon.assert.calledOnce(app.views.FileTransferView.prototype.render);
+      });
+    });
+  });
+});
+
+describe("FileTransferView", function() {
+  var sandbox;
+
+  beforeEach(function() {
+    sandbox = sinon.sandbox.create();
   });
 
+  afterEach(function() {
+    sandbox.restore();
+  });
+
+  it("should bind render to model change events", function() {
+    sandbox.stub(app.views.FileTransferView.prototype, "render");
+
+    var file = {name: "toto", size: 10};
+    var transfer = new app.models.FileTransfer({file: file}, {chunkSize: 1});
+    var view = new app.views.FileTransferView({model: transfer});
+
+    transfer.trigger("change");
+
+    sinon.assert.calledOnce(view.render);
+  });
 });
