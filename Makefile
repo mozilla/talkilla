@@ -29,7 +29,7 @@ selenium_all:
 	@env NO_LOCAL_CONFIG=true NODE_ENV=test \
 	    bin/run_selenium_test.sh test/functional/test.py
 	@env NO_LOCAL_CONFIG=true NODE_ENV=test \
-	    bin/run_selenium_test.sh test/frontend/test_frontend.py
+	    bin/run_selenium_test.sh test/frontend/frontend_all_units_test.py
 
 selenium:
 	@env NO_LOCAL_CONFIG=true NODE_ENV=test \
@@ -45,6 +45,6 @@ debug_test:
 
 frontend:
 	@env NO_LOCAL_CONFIG=true NODE_ENV=development bin/run_selenium_test.sh \
-		test/frontend/test_frontend.py
+		test/frontend/frontend_all_units.py
 
 .PHONY: test
