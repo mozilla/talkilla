@@ -1,6 +1,6 @@
 /* global WebRTC,
           afterEach, beforeEach, chai, describe, sinon, it,
-          mozRTCPeerConnection */
+          tnetbin, mozRTCPeerConnection */
 
 var expect = chai.expect;
 
@@ -353,7 +353,8 @@ describe("WebRTC", function() {
           webrtc.send('plop');
 
           sinon.assert.calledOnce(webrtc.dc.send);
-          sinon.assert.calledWithExactly(webrtc.dc.send, 'plop');
+          sinon.assert.calledWithExactly(webrtc.dc.send,
+                                         tnetbin.encode('plop'));
         });
     });
 
@@ -507,9 +508,9 @@ describe("WebRTC", function() {
 
     it("should emit a 'dc:message-in' event on receiving a message",
       function(done) {
-        var message = {data: "fake"};
+        var message = {data: tnetbin.encode("fake")};
         webrtc.once('dc:message-in', function(event) {
-          expect(event).to.deep.equal(message);
+          expect(event).to.equal("fake");
           done();
         }).dc.onmessage(message);
       });
