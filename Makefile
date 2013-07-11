@@ -18,9 +18,6 @@ runserver:
 runserver_dev:
 	@env NODE_ENV=development PORT=5000 node app.js
 
-# XXX still need to make SOLO_FILE or equiv work with python; get rid of
-# debug_test glop; maybe we can ditch NODE_ENV?
-
 # XXX refactor this file to not invoke run_selenium_test.sh twice, and call
 # other targets
 
@@ -35,13 +32,6 @@ selenium:
 	@env NO_LOCAL_CONFIG=true NODE_ENV=test \
     	bin/run_selenium_test.sh \
 	    test/functional/test.py
-
-# Useful when testing a single file by setting SOLO_FILE and putting
-# debugger statement to force a breakpoint in the file you want to test.
-# See README.md for more details.
-#
-debug_test:
-	MOCHA_ARGS=debug $(MAKE) selenium
 
 frontend:
 	@env NO_LOCAL_CONFIG=true NODE_ENV=development bin/run_selenium_test.sh \
