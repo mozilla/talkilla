@@ -103,7 +103,7 @@ Debugging Functional Tests
 
 $ pip install ipdb
 $ easy_install readline          // XXX try with brew instead
-$ python -m ipdb test/functional/test.py
+$ python -m ipdb test/functional/test_SingleBrowser.py
 XXX paste in output & breakpoint setting here
 
 Contribution
