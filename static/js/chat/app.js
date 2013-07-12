@@ -1,4 +1,4 @@
-/*global jQuery, Backbone, _, tnetbin, WebRTC*/
+/*global jQuery, Backbone, _, WebRTC*/
 /* jshint unused: false */
 /**
  * Talkilla application.

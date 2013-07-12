@@ -1,8 +1,8 @@
-/* global app, Backbone, _ */
+/* global app, Backbone, _, tnetbin */
 /**
  * ChatApp models and collections.
  */
-(function(app, Backbone) {
+(function(app, Backbone, tnetbin) {
   "use strict";
 
   /**
@@ -165,5 +165,129 @@
       this.reader.readAsArrayBuffer(blob);
     }
   });
-})(app, Backbone);
+
+  app.models.TextChatEntry = Backbone.Model.extend({
+    defaults: {nick: undefined,
+               message: undefined,
+               date: new Date().getTime()}
+  });
+
+  app.models.TextChat = Backbone.Collection.extend({
+    model: app.models.TextChatEntry,
+
+    media: undefined,
+    peer: undefined,
+
+    initialize: function(attributes, options) {
+      if (!options || !options.media)
+        throw new Error('TextChat model needs a `media` option');
+      if (!options || !options.peer)
+        throw new Error('TextChat model needs a `peer` option');
+
+      this.media = options && options.media;
+      this.peer = options && options.peer;
+
+      this.media.on('dc:message-in', this._onDcMessageIn.bind(this));
+      this.on('add', this._onTextChatEntryCreated.bind(this));
+      this.on('add', this._onFileTransferCreated.bind(this));
+
+      this.media.on('dc:close', function() {
+        this.terminate().reset();
+      });
+    },
+
+    initiate: function(constraints) {
+      this.media.once("offer-ready", function(offer) {
+        this.trigger("send-offer", {
+          peer: this.peer.get("nick"),
+          offer: offer,
+          textChat: true
+        });
+      }, this);
+
+      this.media.initiate(constraints);
+    },
+
+    answer: function(offer) {
+      this.media.once("answer-ready", function(answer) {
+        this.trigger("send-answer", {
+          peer: this.peer.get("nick"),
+          answer: answer,
+          textChat: true
+        });
+      }, this);
+
+      this.media.answer(offer);
+    },
+
+    establish: function(answer) {
+      this.media.establish(answer);
+    },
+
+    /**
+     * Adds a new entry to the collection and sends it over data channel.
+     * Schedules sending after the connection is established.
+     * @param  {Object} entry
+     */
+    send: function(entry) {
+      if (this.media.state.current === "ongoing")
+        return this.media.send(entry);
+
+      this.media.once("dc:ready", function() {
+        this.send(entry);
+      });
+
+      if (this.media.state.current !== "pending")
+        this.initiate({video: false, audio: false});
+    },
+
+    _onDcMessageIn: function(event) {
+      var entry;
+
+      if (event.type === "chat:message")
+        entry = new app.models.TextChatEntry(event.message);
+      else if (event.type === "file:new")
+        entry = new app.models.FileTransfer(event.message);
+      else if (event.type === "file:chunk") {
+        var chunk = tnetbin.toArrayBuffer(event.message.chunk).buffer;
+        var transfer = this.findWhere({id: event.message.id});
+        transfer.append(chunk);
+      }
+
+      this.add(entry);
+    },
+
+    _onTextChatEntryCreated: function(entry) {
+      // Send the message if we are the sender.
+      // I we are not, the message comes from a contact and we do not
+      // want to send it back.
+      if (entry instanceof app.models.TextChatEntry &&
+          entry.get('nick') === app.data.user.get("nick"))
+        this.send({type: "chat:message", message: entry.toJSON()});
+    },
+
+    _onFileTransferCreated: function(entry) {
+      // Check if we are the file sender. If we are not, the file
+      // transfer has been initiated by the other party.
+      if (!(entry instanceof app.models.FileTransfer && entry.file))
+        return;
+
+      var onFileChunk = this._onFileChunk.bind(this);
+      this.send({type: "file:new", message: {
+        id: entry.id,
+        filename: entry.file.name,
+        size: entry.file.size
+      }});
+
+      entry.on("chunk", onFileChunk);
+      entry.on("complete", entry.off.bind(this, "chunk", onFileChunk));
+
+      entry.start();
+    },
+
+    _onFileChunk: function(id, chunk) {
+      this.send({type: "file:chunk", message: {id: id, chunk: chunk}});
+    }
+  });
+})(app, Backbone, tnetbin);
 
