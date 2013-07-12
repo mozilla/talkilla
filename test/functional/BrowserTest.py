@@ -10,7 +10,7 @@ import unittest
 class BrowserTest(unittest.TestCase):
     def setUp(self):
         super(BrowserTest, self).setUp()
-        app_cmd = 'PORT=3000 NODE_ENV=test node app.js'
+        app_cmd = 'PORT=3000 NO_LOCAL_CONFIG=true NODE_ENV=test node app.js'
         self.node_app = subprocess.Popen(app_cmd, stdout=subprocess.PIPE,
                                          shell=True, preexec_fn=os.setsid)
 
