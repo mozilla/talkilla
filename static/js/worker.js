@@ -97,12 +97,11 @@ Conversation.prototype = {
    * for it, so it can set the window up with the required info.
    *
    * @param {AbstractPort}  port  The Port instance associated with the window
-   * @param {Object}        data  Incoming call offer data
    */
-  windowOpened: function(port, data) {
+  windowOpened: function(port) {
     this.port = port;
 
-    if (!data && _currentUserData.userName) {
+    if (_currentUserData.userName) {
       // If there's currenty a logged in user,
       port.postEvent('talkilla.login-success', {
         username: _currentUserData.userName
@@ -138,7 +137,7 @@ Conversation.prototype = {
    *
    * @param data The data associated with the call. Consisting of:
    *
-   * - peer   the id of the other user.
+   * - peer   the id of the other user
    */
   callHangup: function(data) {
     ports.broadcastDebug('conversation hangup', data);
@@ -147,6 +146,11 @@ Conversation.prototype = {
 
   /**
    * Upgrades current conversation.
+   *
+   * @param data The data associated with the call. Consisting of:
+   *
+   * - peer   the id of the other user
+   * - offer  the new sdp offer for the connection
    */
   callUpgrade: function(data) {
     ports.broadcastDebug('conversation upgrade', data);

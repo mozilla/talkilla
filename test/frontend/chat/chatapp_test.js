@@ -294,6 +294,30 @@ describe("ChatApp", function() {
       });
     });
 
+    describe("#_onCallUpgrade", function() {
+      it("should set the call as incoming", function() {
+        sandbox.stub(chatApp.call, "accept");
+        sandbox.stub(chatApp.call, "incoming");
+        var upgradeData = {offer: fakeOffer, upgrade: true};
+
+        chatApp._onCallUpgrade(upgradeData);
+
+        sinon.assert.calledOnce(chatApp.call.incoming);
+        sinon.assert.calledWithMatch(chatApp.call.incoming,
+         {offer: upgradeData.offer, video: true, audio: true});
+      });
+
+      it("should automatically accept the call upgrade", function() {
+        sandbox.stub(chatApp.call, "accept");
+        sandbox.stub(chatApp.call, "incoming");
+        var upgradeData = {offer: fakeOffer, upgrade: true};
+
+        chatApp._onCallUpgrade(upgradeData);
+
+        sinon.assert.calledOnce(chatApp.call.accept);
+      });
+    });
+
     describe("#_onCallOfferTimout", function() {
 
       it("should post the `talkilla.offer-timeout` event to the worker",

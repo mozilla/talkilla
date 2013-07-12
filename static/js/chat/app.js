@@ -178,15 +178,11 @@ var ChatApp = (function($, Backbone, _) {
   };
 
   ChatApp.prototype._onCallUpgrade = function(data) {
-    var sdp = data.offer.sdp;
-
-    var options = {
-      video: sdp.contains("\nm=video "),
-      audio: sdp.contains("\nm=audio "),
+    var options = _.extend(WebRTC.parseOfferConstraints(data.offer), {
       offer: data.offer,
       textChat: !!data.textChat,
       upgrade: !!data.upgrade
-    };
+    });
 
     this.call.incoming(options);
     // XXX: call upgrades should probably be accepted manually
