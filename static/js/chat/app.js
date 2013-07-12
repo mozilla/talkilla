@@ -1,4 +1,4 @@
-/*global jQuery, Backbone, _, WebRTC*/
+/*global jQuery, Backbone, _, tnetbin, WebRTC*/
 /* jshint unused: false */
 /**
  * Talkilla application.
@@ -49,12 +49,6 @@ var ChatApp = (function($, Backbone, _) {
       peer: this.peer
     });
 
-    this.view = new app.views.ConversationView({
-      call: this.call,
-      peer: this.peer,
-      el: 'body'
-    });
-
     this.callControlsView = new app.views.CallControlsView({
       call: this.call,
       el: $("#call-controls")
@@ -96,6 +90,13 @@ var ChatApp = (function($, Backbone, _) {
       sender: app.data.user
     });
 
+    this.view = new app.views.ConversationView({
+      call: this.call,
+      textChat: this.textChat,
+      peer: this.peer,
+      el: 'body'
+    });
+
     // Incoming events
     this.port.on('talkilla.conversation-open',
                  this._onConversationOpen.bind(this));
@@ -116,6 +117,8 @@ var ChatApp = (function($, Backbone, _) {
 
     // Internal events
     this.call.on('state:accept', this._onCallAccepted.bind(this));
+
+    // Internal events
     window.addEventListener("unload", this._onCallHangup.bind(this));
 
     this.port.postEvent('talkilla.chat-window-ready', {});
@@ -211,6 +214,7 @@ var ChatApp = (function($, Backbone, _) {
     });
   };
 
+  // if debug is enabled, verbosely log object events to the console
   ChatApp.prototype._setupDebugLogging = function() {
     if (!app.options.DEBUG)
       return;

@@ -21,9 +21,12 @@
         throw new Error("missing parameter: call");
       if (!options.peer)
         throw new Error("missing parameter: peer");
+      if (!options.textChat)
+        throw new Error("missing parameter: textChat");
 
       this.call = options.call;
       this.peer = options.peer;
+      this.textChat = options.textChat;
 
       this.peer.on('change:nick', function(to) {
         document.title = to.get("nick");
@@ -37,7 +40,8 @@
 
     _checkDragTypes: function(types) {
       if (!types.contains("text/x-moz-url") &&
-          !types.contains("text/x-moz-text-internal"))
+          !types.contains("text/x-moz-text-internal") &&
+          !types.contains("application/x-moz-file"))
         return false;
       return true;
     },
@@ -55,6 +59,7 @@
     },
 
     drop: function(event) {
+      var url;
       var dataTransfer = event.originalEvent.dataTransfer;
 
       if (!this._checkDragTypes(dataTransfer.types))
@@ -62,16 +67,21 @@
 
       event.preventDefault();
 
-      var url;
-      var tabData = dataTransfer.getData("text/x-moz-text-internal");
-      var urlData = dataTransfer.getData("text/x-moz-url");
-
-      if (urlData)
-        url = urlData.split('\n')[0]; // get rid of the title
-      else if (tabData)
-        url = tabData;
-
-      this.$('#textchat [name="message"]').val(url).focus();
+      if (dataTransfer.types.contains("application/x-moz-file")) {
+        // File Transfer
+        _.each(dataTransfer.files, function(file) {
+          var transfer =
+            new app.models.FileTransfer({file: file}, {chunkSize: 512 * 1024});
+          this.textChat.add(transfer);
+        }.bind(this));
+      } else if (dataTransfer.types.contains("text/x-moz-url")) {
+        url = dataTransfer.getData("text/x-moz-url");
+        url = url.split('\n')[0]; // get rid of the title
+        this.$('#textchat [name="message"]').val(url).focus();
+      } else if (dataTransfer.types.contains("text/x-moz-text-internal")) {
+        url = dataTransfer.getData("text/x-moz-text-internal");
+        this.$('#textchat [name="message"]').val(url).focus();
+      }
     }
   });
 
@@ -324,13 +334,38 @@
   });
 
   /**
+   * File transfer view.
+   */
+  app.views.FileTransferView = Backbone.View.extend({
+    tagName: 'li',
+
+    template: _.template('<strong><%= filename %>:' +
+                         '<% if (progress < 100) { %>' +
+                           '</strong> <%= progress %>%' +
+                         '<% } else { %>' +
+                           '<a href="<%= url %>" download="<%= filename %>">' +
+                             'Save' +
+                           '</a>' +
+                         '<% } %>'),
+
+    initialize: function() {
+      this.model.on("change", this.render, this);
+    },
+
+    render: function() {
+      this.$el.html(this.template(this.model.toJSON()));
+      return this;
+    }
+  });
+
+  /**
    * Text chat conversation view.
    */
   app.views.TextChatView = Backbone.View.extend({
     el: '#textchat', // XXX: uncouple the selector from this view
 
     events: {
-      'submit form': 'send'
+      'submit form': 'sendMessage'
     },
 
     initialize: function(options) {
@@ -345,27 +380,43 @@
       this.collection.on('add', this.render, this);
     },
 
-    send: function(event) {
+    sendMessage: function(event) {
       event.preventDefault();
       var $input = this.$('form input[name="message"]');
       var message = $input.val().trim();
 
       $input.val('');
 
-      this.collection.send({
+      this.collection.add(new app.models.TextChatEntry({
         nick: this.sender.get("nick"),
         message: message
-      });
+      }));
+    },
+
+    sendFile: function(event) {
+      var file = event.target.files[0];
+      var transfer =
+        new app.models.FileTransfer({file: file}, {chunkSize: 512});
+      this.collection.add(transfer);
     },
 
     render: function() {
       var $ul = this.$('ul').empty();
+
       this.collection.each(function(entry) {
-        var view = new app.views.TextChatEntryView({model: entry});
+        var view;
+
+        if (entry instanceof app.models.TextChatEntry)
+          view = new app.views.TextChatEntryView({model: entry});
+        else if (entry instanceof app.models.FileTransfer)
+          view = new app.views.FileTransferView({model: entry});
+
         $ul.append(view.render().$el);
       });
+
       var ul = $ul.get(0);
       ul.scrollTop = ul.scrollTopMax;
+
       return this;
     }
   });

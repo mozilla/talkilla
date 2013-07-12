@@ -129,20 +129,6 @@ describe('Text chat models', function() {
       });
     });
 
-    describe("events", function() {
-      it('should listen to the data channel `dc:message-in` event', function() {
-        var textChat = createTextChat();
-        sandbox.stub(textChat, "add");
-        var event = {data: JSON.stringify({nick: "niko", message: "hi"})};
-
-        textChat.media.trigger('dc:message-in', event);
-
-        sinon.assert.calledOnce(textChat.add);
-        sinon.assert.calledWithExactly(textChat.add,
-                                       {nick: "niko", message: "hi"});
-      });
-    });
-
   });
 
 });

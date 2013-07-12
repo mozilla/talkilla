@@ -2,7 +2,7 @@
 /**
  * Talkilla models and collections.
  */
-(function(app, Backbone, StateMachine) {
+(function(app, Backbone, StateMachine, tnetbin) {
   "use strict";
 
   /**
@@ -14,7 +14,8 @@
    * Fired when #start() is called and the pending call timeout is reached with
    * no response from the other side.
    * @event offer-timeout
-   * @param {Object} options Current call start options (see #start)
+   * @param {Object} options An object containing one attribute, peer, with
+   *                         the value as the peer's nick.
    */
   app.models.Call = Backbone.Model.extend({
     timer: undefined,
@@ -22,11 +23,13 @@
 
     /**
      * Call model constructor.
-     * @param  {Object}  attributes  Model attributes
-     * @param  {Object}  options     Model options
+     * @param  {Object}     attributes  Model attributes
+     * @param  {Object}     options     Model options
      *
      * Options:
-     * - {WebRTC}        media       Media object
+     *
+     * - {WebRTC}           media       Media object
+     * - {app.models.User}  peer        The peer for the conversation
      */
     initialize: function(attributes, options) {
       this.set(attributes || {});
@@ -73,7 +76,6 @@
      */
     start: function(options) {
       this._startTimer({
-        callData: options,
         timeout: app.options.PENDING_CALL_TIMEOUT
       });
 
@@ -204,7 +206,7 @@
         return;
 
       var onTimeout = function() {
-        this.trigger('offer-timeout', options.callData);
+        this.trigger('offer-timeout', {peer: this.peer.get("nick")});
       }.bind(this);
 
       this.timer = setTimeout(onTimeout, options.timeout);
@@ -237,9 +239,9 @@
       this.media = options && options.media;
       this.peer = options && options.peer;
 
-      this.media.on('dc:message-in', function(event) {
-        this.add(JSON.parse(event.data));
-      }, this);
+      this.media.on('dc:message-in', this._onDcMessageIn.bind(this));
+      this.on('add', this._onTextChatEntryCreated.bind(this));
+      this.on('add', this._onFileTransferCreated.bind(this));
 
       this.media.on('dc:close', function() {
         this.terminate().reset();
@@ -273,21 +275,62 @@
     /**
      * Adds a new entry to the collection and sends it over data channel.
      * Schedules sending after the connection is established.
-     * @param  {Object} data
+     * @param  {Object} entry
      */
-    send: function(data) {
-      var entry = this.add(data).at(this.length - 1);
-      if (!entry)
+    send: function(entry) {
+      if (this.media.state.current === "ongoing")
+        return this.media.send(entry);
+
+      this.media.once("dc:open", this.media.send);
+      this.initiate({video: false, audio: false});
+    },
+
+    _onDcMessageIn: function(event) {
+      var entry;
+
+      if (event.type === "chat:message")
+        entry = new app.models.TextChatEntry(event.message);
+      else if (event.type === "file:new")
+        entry = new app.models.FileTransfer(event.message);
+      else if (event.type === "file:chunk") {
+        var chunk = tnetbin.toArrayBuffer(event.message.chunk).buffer;
+        var transfer = this.findWhere({id: event.message.id});
+        transfer.append(chunk);
+      }
+
+      this.add(entry);
+    },
+
+    _onTextChatEntryCreated: function(entry) {
+      // Send the message if we are the sender.
+      // I we are not, the message comes from a contact and we do not
+      // want to send it back.
+      if (entry instanceof app.models.TextChatEntry &&
+          entry.get('nick') === app.data.user.get("nick"))
+        this.send({type: "chat:message", message: entry.toJSON()});
+    },
+
+    _onFileTransferCreated: function(entry) {
+      // Check if we are the file sender. If we are not, the file
+      // transfer has been initiated by the other party.
+      if (!(entry instanceof app.models.FileTransfer && entry.file))
         return;
 
-      if (this.media.state.current === "ongoing")
-        return this.media.send(JSON.stringify(entry.toJSON()));
+      var onFileChunk = this._onFileChunk.bind(this);
+      this.send({type: "file:new", message: {
+        id: entry.id,
+        filename: entry.file.name,
+        size: entry.file.size
+      }});
 
-      this.media.once("dc:open", function() {
-        this.send(JSON.stringify(entry.toJSON()));
-      });
+      entry.on("chunk", onFileChunk);
+      entry.on("complete", entry.off.bind(this, "chunk", onFileChunk));
 
-      this.initiate({video: false, audio: false});
+      entry.start();
+    },
+
+    _onFileChunk: function(id, chunk) {
+      this.send({type: "file:chunk", message: {id: id, chunk: chunk}});
     }
   });
 

@@ -1,4 +1,4 @@
-/* global StateMachine, Backbone, _,
+/* global StateMachine, Backbone, _, tnetbin,
           mozRTCPeerConnection, mozRTCSessionDescription */
 
 (function(exports) {
@@ -198,6 +198,7 @@
     if (this.state.current !== 'ongoing')
       return this._handleError("Not connected, can't send data");
 
+    data = tnetbin.encode(data);
     try {
       this.dc.send(data);
     } catch(err) {
@@ -315,18 +316,8 @@
    * Executed on incoming data channel.
    * @param  {RTCDataChannelEvent} event
    */
-  WebRTC.prototype._onDataChannel = function(event) {
-    var eventsMap = {
-      onopen: 'dc:open',
-      onmessage: 'dc:message-in',
-      onerror: 'dc:error',
-      onclose: 'dc:close'
-    };
-
-    for (var handler in eventsMap)
-      event.channel[handler] = this.trigger.bind(this, eventsMap[handler]);
-
-    this.trigger('dc:ready', event.channel);
+  WebRTC.prototype._onDataChannel = function() {
+    console.error("Unexpected call to _onDataChannel - negotiated channel?");
   };
 
   /**
@@ -418,16 +409,44 @@
    * @param {RTCPeerConnection} pc
    */
   WebRTC.prototype._setupPeerConnection = function() {
-    var pc = new mozRTCPeerConnection();
-    var dc = pc.createDataChannel('dc', {});
+    this.pc = new mozRTCPeerConnection();
+    this.dc = this._setupDataChannel(this.pc, 0);
 
-    pc.onaddstream = this._onAddStream.bind(this);
-    pc.ondatachannel = this._onDataChannel.bind(this);
-    pc.oniceconnectionstatechange = this._onIceConnectionStateChange.bind(this);
-    pc.onremovestream = this._onRemoveStream.bind(this);
-    pc.onsignalingstatechange = this._onSignalingStateChange.bind(this);
+    this.pc.onaddstream = this._onAddStream.bind(this);
+    this.pc.ondatachannel = this._onDataChannel.bind(this);
+    this.pc.oniceconnectionstatechange =
+      this._onIceConnectionStateChange.bind(this);
+    this.pc.onremovestream = this._onRemoveStream.bind(this);
+    this.pc.onsignalingstatechange = this._onSignalingStateChange.bind(this);
+  };
 
-    this.pc = pc;
-    this.dc = dc;
+  /**
+   * Configures a data channel, registering local event listeners.
+   *
+   * @param {RTCPeerConnection} pc
+   * @param {short}             id of the data channel to create
+   */
+  WebRTC.prototype._setupDataChannel = function(pc, id) {
+    var dc = pc.createDataChannel('dc', {
+      // We set up a non-negotiated channel with a specific id, this
+      // way we know exactly which channel we're expecting to communicate
+      // with.
+      id: id,
+      negotiated: false,
+      // Stream and preset parameters enable backwards compatibility
+      // from Firefox 24 until bug 892441 is fixed.
+      stream: id,
+      preset: false
+    });
+
+    dc.onopen  = this.trigger.bind(this, "dc:ready", dc);
+    dc.onerror = this.trigger.bind(this, "dc:error");
+    dc.onclose = this.trigger.bind(this, "dc:close");
+    dc.onmessage = function(event) {
+      var data = tnetbin.decode(event.data).value;
+      this.trigger("dc:message-in", data);
+    }.bind(this);
+
+    return dc;
   };
 })(this);

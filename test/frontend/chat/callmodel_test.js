@@ -261,20 +261,28 @@ describe("Call", function() {
   });
 
   describe("#_startTimer", function() {
+    beforeEach(function() {
+      peer.set({nick: "bob"});
+    });
+
+    afterEach(function() {
+      peer.set({nick: undefined});
+    });
+
     it("should setup a timer and trigger the `offer-timeout` event on timeout",
       function(done) {
-        var callData = {foo: "bar"};
         sandbox.stub(call, "trigger");
         expect(call.timer).to.be.a("undefined");
 
-        call._startTimer({timeout: 3000, callData: callData});
+        call._startTimer({timeout: 3000});
 
         expect(call.timer).to.be.a("number");
 
         sandbox.clock.tick(3000);
 
         sinon.assert.calledOnce(call.trigger);
-        sinon.assert.calledWithExactly(call.trigger, "offer-timeout", callData);
+        sinon.assert.calledWithExactly(call.trigger, "offer-timeout",
+                                       {peer: "bob"});
         done();
       });
   });
@@ -290,6 +298,7 @@ describe("Call", function() {
     });
 
     afterEach(function() {
+      peer.set({nick: undefined});
       delete app.data.user;
       userModel = undefined;
     });

@@ -23,5 +23,9 @@ after_success:
       echo "This is a pull request, not requesting deployment";
       exit 0;
     fi
+  - if [[ "$TRAVIS_BRANCH" != "master" ]]; then
+      echo "Non-master branch, not requesting deployment";
+      exit 0;
+    fi
   - echo "Requesting deployment"
   - curl --data '' http://talkilla-deployer.mozillalabs.com/check

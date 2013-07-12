@@ -1,4 +1,5 @@
-/* global WebRTC, afterEach, beforeEach, chai, describe, sinon, it*/
+/* global WebRTC, tnetbin,
+          afterEach, beforeEach, chai, describe, sinon, it */
 
 var expect = chai.expect;
 
@@ -57,6 +58,7 @@ describe("WebRTC", function() {
   });
 
   afterEach(function() {
+    webrtc = null;
     sandbox.restore();
   });
 
@@ -453,13 +455,14 @@ describe("WebRTC", function() {
           webrtc.send("plop");
 
           sinon.assert.calledOnce(webrtc.dc.send);
-          sinon.assert.calledWithExactly(webrtc.dc.send, 'plop');
+          sinon.assert.calledWithExactly(webrtc.dc.send,
+                                         tnetbin.encode('plop'));
         });
 
       describe("#send events", function() {
         it("should emit the `dc:message-out` event", function(done) {
           webrtc.once("dc:message-out", function(data) {
-            expect(data).to.deep.equal("plop");
+            expect(data).to.deep.equal(tnetbin.encode("plop"));
             done();
           }).send("plop");
         });
@@ -519,7 +522,7 @@ describe("WebRTC", function() {
             setLocalDescription: function(obj, success) {
               success(obj);
             },
-            createOffer: function(success, error) {
+            createOffer: function(success) {
               success();
             }
           };
@@ -664,6 +667,51 @@ describe("WebRTC", function() {
           done();
         }).initiate().establish(fakeOffer);
       });
+    });
+  });
+
+  describe("Data Channel handling", function() {
+    beforeEach(function() {
+      webrtc = new WebRTC();
+    });
+
+    it("should emit a 'dc:ready' event on open", function(done) {
+      webrtc.once('dc:ready', function(dc) {
+        expect(dc).to.be.equal(webrtc.dc);
+        done();
+      }).initiate();
+
+      webrtc.dc.onopen();
+    });
+
+    it("should emit a 'dc:message-in' event on receiving a message",
+      function(done) {
+        var message = {data: tnetbin.encode("fake")};
+        webrtc.once('dc:message-in', function(event) {
+          expect(event).to.equal("fake");
+          done();
+        }).initiate();
+
+        webrtc.dc.onmessage(message);
+      });
+
+    it("should emit a 'dc:error' event on receiving an error",
+      function(done) {
+        var message = {data: "fake"};
+        webrtc.once('dc:error', function(event) {
+          expect(event).to.deep.equal(message);
+          done();
+        }).initiate();
+
+        webrtc.dc.onerror(message);
+      });
+
+    it("should emit a 'dc:close' event on being closed", function(done) {
+      webrtc.once('dc:close', function() {
+        done();
+      }).initiate();
+
+      webrtc.dc.onclose();
     });
   });
 });
