@@ -88,14 +88,6 @@ describe("Text chat views", function() {
         '</div>'
       ].join(''));
 
-      sandbox.stub(navigator, "mozGetUserMedia");
-      sandbox.stub(window, "mozRTCPeerConnection").returns({
-        createDataChannel: function() {
-          // Mock a dataChannel object.
-          return {};
-        }
-      });
-
       sandbox.stub(window, "Audio").returns({
         play: sinon.spy(),
         pause: sinon.spy()
@@ -175,43 +167,6 @@ describe("Text chat views", function() {
       $("#textchat form").trigger("submit");
     });
 
-    describe("Change events", function() {
-      var textChatView;
-
-      beforeEach(function() {
-        sandbox.stub(call, "on");
-
-        textChatView = new app.views.TextChatView({
-          call: call,
-          collection: new app.models.TextChat()
-        });
-      });
-
-      it("should attach to change:state events on the call model", function() {
-        sinon.assert.calledOnce(call.on);
-        sinon.assert.calledWith(call.on, 'change:state');
-      });
-
-      it("should show the element when change:state goes to ongoing",
-        function() {
-          textChatView.$el.hide();
-
-          call.on.args[0][1]("ongoing");
-
-          expect(textChatView.$el.is(":visible")).to.be.equal(true);
-        });
-
-
-      it("should hide the element when change:state goes to something !ongoing",
-        function() {
-          textChatView.$el.show();
-
-          call.on.args[0][1]("dummy");
-
-          expect(textChatView.$el.is(":visible")).to.be.equal(false);
-        });
-    });
-
     describe("#sendFile", function() {
       var textChatView;
 
@@ -219,8 +174,9 @@ describe("Text chat views", function() {
         sandbox.stub(call, "on");
 
         textChatView = new app.views.TextChatView({
+          sender: app.data.user,
           call: call,
-          collection: new app.models.TextChat()
+          collection: new app.models.TextChat(null, {media: media, peer: peer})
         });
       });
 
@@ -246,8 +202,9 @@ describe("Text chat views", function() {
       beforeEach(function() {
         sandbox.stub(call, "on");
 
-        textChat = new app.models.TextChat();
+        textChat = new app.models.TextChat(null, {media: media, peer: peer});
         textChatView = new app.views.TextChatView({
+          sender: app.data.user,
           call: call,
           collection: textChat
         });
