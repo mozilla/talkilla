@@ -42,8 +42,7 @@
         events: [
           // Call initiation scenario
           {name: 'start',     from: 'ready',     to: 'pending'},
-          {name: 'establish', from: ['ready',
-                                     'pending'], to: 'ongoing'},
+          {name: 'establish', from: 'pending',   to: 'ongoing'},
           {name: 'upgrade',   from: ['ready',
                                      'ongoing'], to: 'pending'},
 
