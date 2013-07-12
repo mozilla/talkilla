@@ -173,7 +173,6 @@ describe('Text chat models', function() {
       });
 
     it("should append data to a previous started file transfer", function() {
-      sandbox.stub(app.views, "TextChatView");
       var transfer = new app.models.FileTransfer({filename: "foo", size: 10});
       var chunk = new ArrayBuffer(22*2);
       var event = {
