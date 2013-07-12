@@ -28,7 +28,7 @@ bootstrap_python() {
         echo "Bootstrapping functional testing dependencies"
         virtualenv `pwd`/.venv
         . .venv/bin/activate
-        pip install -r require.pip
+        pip install -r bin/require.pip
     fi
 }
 
