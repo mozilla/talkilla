@@ -272,6 +272,10 @@
       this.media.answer(offer);
     },
 
+    establish: function(answer) {
+      this.media.establish(answer);
+    },
+
     /**
      * Adds a new entry to the collection and sends it over data channel.
      * Schedules sending after the connection is established.
@@ -281,8 +285,12 @@
       if (this.media.state.current === "ongoing")
         return this.media.send(entry);
 
-      this.media.once("dc:open", this.media.send);
-      this.initiate({video: false, audio: false});
+      this.media.once("dc:ready", function() {
+        this.send(entry);
+      });
+
+      if (this.media.state.current !== "pending")
+        this.initiate({video: false, audio: false});
     },
 
     _onDcMessageIn: function(event) {
