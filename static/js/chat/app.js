@@ -138,10 +138,9 @@ var ChatApp = (function($, Backbone, _) {
   ChatApp.prototype._onCallEstablishment = function(data) {
     // text chat conversation
     if (data.textChat)
-      return this.textChat.media.establish(data.answer);
+      return this.textChat.establish(data.answer);
 
     // video/audio call
-    this.call.media.state.current = "pending";
     this.call.establish(data);
   };
 
