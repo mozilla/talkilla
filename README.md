@@ -71,10 +71,10 @@ To run the front-end unit tests standalone:
 
 
 Functional Tests
------------------
+----------------
 
 You'll need Python 2.7+ and
-[virtualenv](https://pypi.python.org/pypi/virtualenv):
+[virtualenv](https://pypi.python.org/pypi/virtualenv).
 
     $ cd /path/to/talkilla
 
@@ -82,15 +82,35 @@ Run the tests, bootstrapping necessary dependencies from the net:
 
     $ make selenium
 
-Activate virtualenv in your shell if you wish to run or debug tests by hand:
 
+Working With Individual Functional Test Files
+---------------------------------------------
+
+Run one test file:
+
+    $ ./bin/run_selenium_test.sh test/functional/test_SingleBrowser.py
+
+Debugging a single test:
+
+    # start selenium and get the right stuff in your $PATH
+    $ ./bin/selenium.sh start
     $ source .venv/bin/activate
     (.venv) $
 
-Debugging Functional Tests
---------------------------
-$ python -m ipdb test/functional/test_SingleBrowser.py
-XXX paste in output & breakpoint setting here
+    # If you're on a Mac, be sure you've installed readline in your
+    # virtualenv first, using easy_install and NOT using pip:
+    (.venv) $ easy_install readline
+
+    # start debugging the file you care about
+    (.venv) $ python -m ipdb test/functional/test_SingleBrowser.py
+
+    # set breakpoint on the 1st line of test_public_homepage & continue
+    ipdb> b 11
+    ipdb> c
+
+    # breakpoint has fired; see what else you can do
+    ipdb> help
+
 
 Contribution
 ------------
