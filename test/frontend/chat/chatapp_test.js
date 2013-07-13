@@ -11,7 +11,6 @@ describe("ChatApp", function() {
     peer: "alice",
     offer: {type: "answer", sdp: "fake"}
   };
-  var chunk;
 
   function fakeSDP(str) {
     return {
@@ -60,17 +59,13 @@ describe("ChatApp", function() {
 
     // This stops us changing the document's title unnecessarily
     sandbox.stub(app.views.ConversationView.prototype, "initialize");
-
-    chunk = new ArrayBuffer(22*2);
-    var view = new Uint16Array(chunk);
-    for (var i=0; i < 22; i++)
-      view[i] = 'data'.charCodeAt(i);
   });
 
   afterEach(function() {
     app.port.off();
     sandbox.restore();
     chatApp = null;
+    app.options.DEBUG = false;
   });
 
   function assertEventTriggersHandler(event, handler, data) {
@@ -442,6 +437,62 @@ describe("ChatApp", function() {
           sinon.assert.calledOnce(app.port.postEvent);
           sinon.assert.calledWith(app.port.postEvent, "talkilla.call-answer");
         });
+    });
+
+    describe("Object events listeners", function() {
+      var chatApp;
+
+      beforeEach(function () {
+        sandbox.stub(WebRTC.prototype, "on");
+        sandbox.stub(app.models.TextChat.prototype, "on");
+        sandbox.stub(app.models.Call.prototype, "on");
+      });
+
+      describe("debugging enabled", function() {
+        beforeEach(function () {
+          app.options.DEBUG = true;
+          chatApp = new ChatApp();
+        });
+
+        it("should listen to all Call object events when debug is enabled",
+          function() {
+            sinon.assert.calledWith(chatApp.call.on, "all");
+          });
+
+        it("should listen to all TextChat object events when debug is enabled",
+          function() {
+            sinon.assert.calledWith(chatApp.textChat.on, "all");
+          });
+
+        it("should listen to all WebRTC object events when debug is enabled",
+          function() {
+            sinon.assert.calledWith(chatApp.webrtc.on, "all");
+          });
+      });
+
+      describe("debugging disabled", function() {
+        beforeEach(function () {
+          app.options.DEBUG = false;
+          chatApp = new ChatApp();
+        });
+
+        it("should not listen to all Call object events when debug is disabled",
+          function() {
+            sinon.assert.neverCalledWith(chatApp.call.on, "all");
+          });
+
+        it("should not listen to all TextChat object events when debug is " +
+           "disabled",
+          function() {
+            sinon.assert.neverCalledWith(chatApp.textChat.on, "all");
+          });
+
+        it("should not listen to all WebRTC object events when debug is " +
+           "disabled",
+          function() {
+            sinon.assert.neverCalledWith(chatApp.call.on, "all");
+          });
+      });
     });
   });
 });
