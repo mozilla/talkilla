@@ -32,6 +32,10 @@
         document.title = to.get("nick");
       });
 
+      this.call.media.on('local-stream:ready remote-stream:ready', function() {
+        this.$el.addClass('has-video');
+      }, this);
+
       this.call.on('offer-timeout', function() {
         // outgoing call didn't go through, close the window
         window.close();
@@ -114,12 +118,12 @@
     },
 
     videoCall: function(event) {
-      // Really webrtc and calls should be set up on clicking a button
+      event.preventDefault();
       this.call.start({video: true, audio: true});
     },
 
     audioCall: function(event) {
-      // Really webrtc and calls should be set up on clicking a button
+      event.preventDefault();
       this.call.start({video: false, audio: true});
     },
 
@@ -266,6 +270,7 @@
       this.call = options.call;
       this.call.media.on('local-stream:ready', this._displayLocalVideo, this);
       this.call.media.on('remote-stream:ready', this._displayRemoteVideo, this);
+      this.call.media.on('connection-upgraded', this.ongoing, this);
 
       this.call.on('state:to:ongoing', this.ongoing, this);
       this.call.on('state:to:terminated', this.terminated, this);
@@ -361,27 +366,15 @@
     },
 
     initialize: function(options) {
-      if (!options.call)
-        throw new Error("missing parameter: call");
+      if (!options.sender)
+        throw new Error("missing parameter: sender");
       if (!options.collection)
         throw new Error("missing parameter: collection");
 
+      this.sender = options.sender;
       this.collection = options.collection;
-      this.call = options.call;
-      this.media = options.call.media;
 
       this.collection.on('add', this.render, this);
-
-      this.media.on('dc:ready', function() {
-        this.$('input').removeAttr('disabled');
-      }, this);
-
-      this.call.on('change:state', function(to) {
-        if (to === "ongoing")
-          this.$el.show();
-        else if (to !== "ongoing")
-          this.$el.hide();
-      }.bind(this));
     },
 
     sendMessage: function(event) {
@@ -392,7 +385,7 @@
       $input.val('');
 
       this.collection.add(new app.models.TextChatEntry({
-        nick: app.data.user.get("nick"),
+        nick: this.sender.get("nick"),
         message: message
       }));
     },

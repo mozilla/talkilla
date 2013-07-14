@@ -27,7 +27,8 @@ describe("Call Controls View", function() {
       establish: sandbox.spy(),
       initiate: sandbox.spy(),
       terminate: sandbox.spy(),
-      on: sandbox.stub()
+      on: sandbox.stub(),
+      state: {current: "ready"}
     };
     call = new app.models.Call({}, {media: media});
   });
@@ -143,7 +144,7 @@ describe("Call Controls View", function() {
   });
 
   describe("Call Control Handling", function() {
-    var callControlsView;
+    var callControlsView, fakeClickEvent;
 
     beforeEach(function() {
       var el = $('<div><div id="local-video"></div></div>');
@@ -151,18 +152,33 @@ describe("Call Controls View", function() {
 
       callControlsView = new app.views.CallControlsView({
         el: 'fakeDom',
-        call:call
+        call: call
       });
+
+      fakeClickEvent = {preventDefault: sandbox.spy()};
     });
 
     describe("#videoCall", function() {
       it("should start the video call", function() {
         sandbox.stub(call, "start");
 
-        callControlsView.videoCall();
+        callControlsView.videoCall(fakeClickEvent);
 
+        sinon.assert.calledOnce(fakeClickEvent.preventDefault);
         sinon.assert.calledOnce(call.start);
         sinon.assert.calledWithExactly(call.start,
+          {audio: true, video: true});
+      });
+
+      it("should upgrade to a video call", function() {
+        sandbox.stub(call, "upgrade");
+        call.media.state.current = "ongoing";
+
+        callControlsView.videoCall(fakeClickEvent);
+
+        sinon.assert.calledOnce(fakeClickEvent.preventDefault);
+        sinon.assert.calledOnce(call.upgrade);
+        sinon.assert.calledWithExactly(call.upgrade,
           {audio: true, video: true});
       });
     });
@@ -171,8 +187,9 @@ describe("Call Controls View", function() {
       it("should start the audio call", function() {
         sandbox.stub(call, "start");
 
-        callControlsView.audioCall();
+        callControlsView.audioCall(fakeClickEvent);
 
+        sinon.assert.calledOnce(fakeClickEvent.preventDefault);
         sinon.assert.calledOnce(call.start);
         sinon.assert.calledWithExactly(call.start,
           {audio: true, video: false});
