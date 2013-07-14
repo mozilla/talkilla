@@ -15,6 +15,7 @@ describe("Call", function() {
     // XXX This should probably be a mock, but sinon mocks don't seem to want
     // to work with Backbone.
     media = {
+      state: {current: 'ready'},
       answer: sandbox.spy(),
       establish: sandbox.spy(),
       initiate: sandbox.spy(),
@@ -93,6 +94,15 @@ describe("Call", function() {
       expect(call.start).to.Throw();
     });
 
+    it("should silently upgrade a call if currently ongoing", function() {
+      sandbox.stub(call, "upgrade");
+      call.media.state.current = "ongoing";
+
+      call.start({video: true});
+
+      sinon.assert.calledOnce(call.upgrade);
+      sinon.assert.calledWithExactly(call.upgrade, {video: true});
+    });
   });
 
   describe("#incoming", function() {

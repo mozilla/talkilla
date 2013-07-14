@@ -66,17 +66,18 @@
     },
 
     /**
-     * Starts an outbound call.
+     * Starts or upgrade an outbound call.
      *
-     * @param {Object} options object containing:
+     * @param {Object} constraints object containing:
      *
      * - video: set to true to enable video
      * - audio: set to true to enable audio
      */
-    start: function(options) {
-      this._startTimer({
-        timeout: app.options.PENDING_CALL_TIMEOUT
-      });
+    start: function(constraints) {
+      if (this.media.state.current === 'ongoing')
+        return this.upgrade(constraints);
+
+      this._startTimer({timeout: app.options.PENDING_CALL_TIMEOUT});
 
       this.state.start();
 
@@ -87,7 +88,7 @@
         });
       }, this);
 
-      this.media.initiate(options);
+      this.media.initiate(constraints);
     },
 
     /**

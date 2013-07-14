@@ -115,12 +115,12 @@
 
     videoCall: function(event) {
       event.preventDefault();
-      this._processCall({video: true, audio: true});
+      this.call.start({video: true, audio: true});
     },
 
     audioCall: function(event) {
       event.preventDefault();
-      this._processCall({video: false, audio: true});
+      this.call.start({video: false, audio: true});
     },
 
     hangup: function(event) {
@@ -147,13 +147,6 @@
       this.$('.btn-video').show();
       this.$('.btn-audio').show();
       this.$('.btn-hangup').hide();
-    },
-
-    _processCall: function(constraints) {
-      if (this.call.media.state.current === 'ongoing') {
-        return this.call.upgrade(constraints);
-      }
-      this.call.start(constraints);
     }
   });
 
