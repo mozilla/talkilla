@@ -32,6 +32,10 @@
         document.title = to.get("nick");
       });
 
+      this.call.media.on('local-stream:ready remote-stream:ready', function() {
+        this.$el.addClass('has-video');
+      }, this);
+
       this.call.on('offer-timeout', function() {
         // outgoing call didn't go through, close the window
         window.close();
