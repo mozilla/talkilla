@@ -4,6 +4,9 @@
 import mixins
 import unittest
 import BrowserTest
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 
 class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
@@ -77,6 +80,8 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
         self.larry.acceptCall()
 
         # Larry sees the call
+        wait = WebDriverWait(self.larry, 5)
+        wait.until(EC.visibility_of_element_located((By.ID, "call")))
         assert self.larry.find_element_by_id("call").is_displayed()
 
         # Bob sees the call
