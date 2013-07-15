@@ -8,8 +8,6 @@ SELENIUM_COMMAND_EXECUTOR = os.getenv("SELENIUM_COMMAND_EXECUTOR",
                                       "http://127.0.0.1:4444/wd/hub")
 
 MS_PER_SEC = 1000
-IMPLICITLY_WAIT_TIMEOUT = 4 * MS_PER_SEC
-
 
 class Driver(WebDriver):
     nick = None
@@ -39,5 +37,4 @@ def create(nick=None):
     driver = Driver(command_executor=SELENIUM_COMMAND_EXECUTOR,
                     desired_capabilities={"browserName": "firefox"},
                     nick=nick)
-    driver.implicitly_wait(IMPLICITLY_WAIT_TIMEOUT)
     return driver
