@@ -382,6 +382,9 @@
       var $input = this.$('form input[name="message"]');
       var message = $input.val().trim();
 
+      if (!message)
+        return;
+
       $input.val('');
 
       this.collection.add(new app.models.TextChatEntry({

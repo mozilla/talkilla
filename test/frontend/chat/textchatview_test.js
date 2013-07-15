@@ -167,6 +167,18 @@ describe("Text chat views", function() {
       $("#textchat form").trigger("submit");
     });
 
+    it("should not allow the caller to send an empty message",
+      function() {
+        var chatApp = new ChatApp();
+        var textChat = chatApp.textChatView.collection;
+        sandbox.stub(textChat, "add");
+
+        $('#textchat [name="message"]').val("");
+        $("#textchat form").trigger("submit");
+
+        sinon.assert.callCount(textChat.add, 0);
+      });
+
     describe("#render", function() {
       var textChatView, textChat, blob;
 
