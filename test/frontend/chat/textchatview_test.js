@@ -1,4 +1,4 @@
-/* global app, chai, describe, it, sinon, beforeEach, afterEach,
+/* global app, Backbone, _, chai, describe, it, sinon, beforeEach, afterEach,
    ChatApp, $, WebRTC */
 
 /* jshint expr:true */
@@ -7,11 +7,55 @@ var expect = chai.expect;
 describe("Text chat views", function() {
   "use strict";
 
+  function fakeSDP(str) {
+    return {
+      str: str,
+      contains: function(what) {
+        return this.str.indexOf(what) !== -1;
+      }
+    };
+  }
+
   var sandbox;
+  var fakeOffer = {type: "offer", sdp: fakeSDP("\nm=video aaa\nm=audio bbb")};
+  var fakeAnswer = {type: "answer", sdp: fakeSDP("\nm=video ccc\nm=audio ddd")};
+  var fakeDataChannel = {fakeDataChannel: true};
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
     sandbox.stub(window, "open");
+    app.port = {
+      on: sinon.spy(),
+      postEvent: sinon.spy()
+    };
+    _.extend(app.port, Backbone.Events);
+
+    // mozGetUserMedia stub
+    sandbox.stub(navigator, "mozGetUserMedia");
+
+    // mozRTCPeerConnection stub
+    sandbox.stub(window, "mozRTCPeerConnection").returns({
+      close: sandbox.spy(),
+      addStream: sandbox.spy(),
+      createAnswer: function(success) {
+        success(fakeAnswer);
+      },
+      createOffer: function(success) {
+        success(fakeOffer);
+      },
+      setLocalDescription: function(source, success) {
+        success(source);
+      },
+      setRemoteDescription: function(source, success) {
+        success(source);
+      },
+      createDataChannel: function() {
+        fakeDataChannel.send = sandbox.spy();
+        return fakeDataChannel;
+      }
+    });
+
+    app.data.user = new app.models.User();
   });
 
   afterEach(function() {
@@ -34,7 +78,7 @@ describe("Text chat views", function() {
 
   describe('TextChatView', function() {
 
-    var chatApp, call;
+    var call, media, peer;
 
     beforeEach(function() {
       $('body').append([
@@ -43,15 +87,6 @@ describe("Text chat views", function() {
         '  <form><input name="message"></form>',
         '</div>'
       ].join(''));
-
-      sandbox.stub(navigator, "mozGetUserMedia");
-      sandbox.stub(window, "mozRTCPeerConnection").returns({
-        createDataChannel: function() {
-          // Mock a dataChannel object.
-          return {};
-        }
-      });
-
 
       sandbox.stub(window, "Audio").returns({
         play: sinon.spy(),
@@ -67,10 +102,12 @@ describe("Text chat views", function() {
       app.port.trigger = sandbox.stub();
 
       sandbox.stub(WebRTC.prototype, "send");
-      call = new app.models.Call({}, {media: new WebRTC()});
-      chatApp = new ChatApp();
+      media = new WebRTC();
+      call = new app.models.Call({}, {media: media});
 
-      app.data.user.set("nick", "niko");
+      peer = new app.models.User();
+
+      app.data.user.set({nick: "niko"});
     });
 
     afterEach(function() {
@@ -79,21 +116,24 @@ describe("Text chat views", function() {
 
     it("should be empty by default", function() {
       var view = new app.views.TextChatView({
-        call: call,
-        collection: new app.models.TextChat()
+        sender: app.data.user,
+        collection: new app.models.TextChat([], {media: media, peer: peer})
       });
+
       expect(view.collection).to.have.length.of(0);
+
       view.render();
+
       expect(view.$('ul').html()).to.equal('');
     });
 
     it("should update rendering when its collection is updated", function() {
       var view = new app.views.TextChatView({
-        call: call,
+        sender: app.data.user,
         collection: new app.models.TextChat([
           {nick: "niko", message: "plop"},
           {nick: "jb", message: "hello"}
-        ])
+        ], {media: media, peer: peer})
       });
       expect(view.collection).to.have.length.of(2);
 
@@ -109,7 +149,10 @@ describe("Text chat views", function() {
     });
 
     it("should allow the caller to send a first message", function(done) {
+      var chatApp = new ChatApp();
+      app.data.user.set({nick: "niko"});
       var textChat = chatApp.textChatView.collection;
+      chatApp.textChatView.collection.media.connected = true;
       app.port.trigger("talkilla.conversation-open", {peer: "niko"});
       expect(textChat).to.have.length.of(0);
 
@@ -126,6 +169,7 @@ describe("Text chat views", function() {
 
     it("should not allow the caller to send an empty message",
       function() {
+        var chatApp = new ChatApp();
         var textChat = chatApp.textChatView.collection;
         sandbox.stub(textChat, "add");
 
@@ -135,43 +179,6 @@ describe("Text chat views", function() {
         sinon.assert.callCount(textChat.add, 0);
       });
 
-    describe("Change events", function() {
-      var textChatView;
-
-      beforeEach(function() {
-        sandbox.stub(call, "on");
-
-        textChatView = new app.views.TextChatView({
-          call: call,
-          collection: new app.models.TextChat()
-        });
-      });
-
-      it("should attach to change:state events on the call model", function() {
-        sinon.assert.calledOnce(call.on);
-        sinon.assert.calledWith(call.on, 'change:state');
-      });
-
-      it("should show the element when change:state goes to ongoing",
-        function() {
-          textChatView.$el.hide();
-
-          call.on.args[0][1]("ongoing");
-
-          expect(textChatView.$el.is(":visible")).to.be.equal(true);
-        });
-
-
-      it("should hide the element when change:state goes to something !ongoing",
-        function() {
-          textChatView.$el.show();
-
-          call.on.args[0][1]("dummy");
-
-          expect(textChatView.$el.is(":visible")).to.be.equal(false);
-        });
-    });
-
     describe("#sendFile", function() {
       var textChatView;
 
@@ -179,8 +186,9 @@ describe("Text chat views", function() {
         sandbox.stub(call, "on");
 
         textChatView = new app.views.TextChatView({
+          sender: app.data.user,
           call: call,
-          collection: new app.models.TextChat()
+          collection: new app.models.TextChat(null, {media: media, peer: peer})
         });
       });
 
@@ -206,8 +214,9 @@ describe("Text chat views", function() {
       beforeEach(function() {
         sandbox.stub(call, "on");
 
-        textChat = new app.models.TextChat();
+        textChat = new app.models.TextChat(null, {media: media, peer: peer});
         textChatView = new app.views.TextChatView({
+          sender: app.data.user,
           call: call,
           collection: textChat
         });

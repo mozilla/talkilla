@@ -48,7 +48,19 @@ var SidebarApp = (function($, Backbone, _) {
     });
 
     this.port.postEvent("talkilla.sidebar-ready", {nick: options.nick});
+
+    this._setupDebugLogging();
   }
+
+  SidebarApp.prototype._setupDebugLogging = function() {
+    if (!app.options.DEBUG)
+      return;
+
+    // worker port events logging
+    this.port.on('talkilla.debug', function(event) {
+      console.log('worker event', event.label, event.data);
+    });
+  };
 
   return SidebarApp;
 })(jQuery, Backbone, _);
