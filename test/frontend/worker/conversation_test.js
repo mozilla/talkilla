@@ -87,11 +87,13 @@ describe("Conversation", function() {
         currentConversation.windowOpened(port);
 
         sinon.assert.called(port.postEvent);
-        sinon.assert.calledWith(port.postEvent, "talkilla.conversation-open",
-          data);
+        sinon.assert.calledWith(port.postEvent,
+                                "talkilla.conversation-open",
+                                data);
       });
 
-    it("should post a talkilla.call-incoming event for an incoming call",
+    it("should post a talkilla.conversation-incoming event for an " +
+       "incoming call",
       function() {
         data.offer = {sdp: "fake"};
         currentConversation = new Conversation(data);
@@ -99,8 +101,9 @@ describe("Conversation", function() {
         currentConversation.windowOpened(port);
 
         sinon.assert.called(port.postEvent);
-        sinon.assert.calledWith(port.postEvent, "talkilla.call-incoming",
-          data);
+        sinon.assert.calledWith(port.postEvent,
+                                "talkilla.conversation-incoming",
+                                data);
 
       });
 
@@ -153,6 +156,28 @@ describe("Conversation", function() {
       sinon.assert.calledOnce(currentConversation.port.postEvent);
       sinon.assert.calledWith(currentConversation.port.postEvent,
         "talkilla.call-hangup", data);
+    });
+  });
+
+  describe("#callUpgrade" , function() {
+    beforeEach(function() {
+      currentConversation = new Conversation({});
+      currentConversation.port = {
+        postEvent: sandbox.spy()
+      };
+    });
+
+    it("should post a talkilla.call-upgrade to the conversation window",
+       function() {
+      var data = {
+        peer: "nicolas",
+        upgrade: true
+      };
+      currentConversation.callUpgrade(data);
+
+      sinon.assert.calledOnce(currentConversation.port.postEvent);
+      sinon.assert.calledWith(currentConversation.port.postEvent,
+        "talkilla.call-upgrade", data);
     });
   });
 });

@@ -37,6 +37,16 @@ describe("serverHandlers", function() {
       expect(currentConversation).to.be.an.instanceOf(Conversation);
       expect(currentConversation.data).to.deep.equal(data);
     });
+
+    it("should upgrade an ongoing conversation object with updated call data",
+       function() {
+      currentConversation = {callUpgrade: sandbox.spy()};
+      var upgradeData = {upgrade: true};
+
+      serverHandlers.incoming_call(upgradeData);
+
+      sinon.assert.calledOnce(currentConversation.callUpgrade);
+    });
   });
 
   describe("#call_accepted", function() {
