@@ -8,7 +8,7 @@ SELENIUM_COMMAND_EXECUTOR = os.getenv("SELENIUM_COMMAND_EXECUTOR",
                                       "http://127.0.0.1:4444/wd/hub")
 
 MS_PER_SEC = 1000
-IMPLICITLY_WAIT_TIMEOUT = 0.5 * MS_PER_SEC
+IMPLICITLY_WAIT_TIMEOUT = 4 * MS_PER_SEC
 
 
 class Driver(WebDriver):
