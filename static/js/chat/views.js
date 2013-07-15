@@ -390,13 +390,6 @@
       }));
     },
 
-    sendFile: function(event) {
-      var file = event.target.files[0];
-      var transfer =
-        new app.models.FileTransfer({file: file}, {chunkSize: 512});
-      this.collection.add(transfer);
-    },
-
     render: function() {
       var $ul = this.$('ul').empty();
 

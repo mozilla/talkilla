@@ -167,35 +167,6 @@ describe("Text chat views", function() {
       $("#textchat form").trigger("submit");
     });
 
-    describe("#sendFile", function() {
-      var textChatView;
-
-      beforeEach(function() {
-        sandbox.stub(call, "on");
-
-        textChatView = new app.views.TextChatView({
-          sender: app.data.user,
-          call: call,
-          collection: new app.models.TextChat(null, {media: media, peer: peer})
-        });
-      });
-
-      it("should add a FileTransfer model to the collection", function() {
-        var file = "fakeFile";
-        var chunkSize = 512;
-        var event = {target: {files: [file]}};
-        sandbox.stub(textChatView.collection, "add", function(transfer) {
-          expect(transfer.file).to.equal(file);
-          expect(transfer.options.chunkSize).to.equal(chunkSize);
-        });
-
-        textChatView.sendFile(event);
-
-        sinon.assert.calledOnce(textChatView.collection.add);
-      });
-
-    });
-
     describe("#render", function() {
       var textChatView, textChat, blob;
 
