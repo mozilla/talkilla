@@ -43,7 +43,4 @@ class FrontEndSuite(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    try:
-        unittest.main()
-    except KeyboardInterrupt:
-        print "\nInterrupted."
+    unittest.main(catchbreak=True)
