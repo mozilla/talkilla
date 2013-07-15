@@ -1,4 +1,3 @@
-user_pref("media.navigator.permission.disabled", true);
 user_pref("media.peerconnection.default_iceservers", "[]");
 user_pref("media.peerconnection.use_document_iceservers", false);
 user_pref("social.activeProviders", "{\"http://localhost:3000\":1}");
