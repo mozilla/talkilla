@@ -33,6 +33,20 @@ class Driver(WebDriver):
     def isSignedIn(self):
         return self.find_element_by_css_selector("strong.nick").text != ""
 
+    def openConversation(self):
+        self.find_element_by_css_selector("ul.nav-list>li>a").click()
+
+        self.switch_to_frame("//chatbox")
+
+    def startCall(self, video):
+        if video:
+            self.find_element_by_css_selector(".btn-video>a").click()
+        else:
+            self.find_element_by_css_selector(".btn-audio>a").click()
+
+    def acceptCall(self):
+        self.find_element_by_css_selector(".btn-accept").click()
+
 
 def create(nick=None):
     driver = Driver(command_executor=SELENIUM_COMMAND_EXECUTOR,
