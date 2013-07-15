@@ -3,6 +3,19 @@ test: jshint mocha selenium_all
 install:
 	@npm install
 
+.PHONY: lint
+lint: jshint flake8
+
+# bootstrap our python virtual environment if it's not there
+.venv:
+	virtualenv `pwd`/.venv
+	source .venv/bin/activate && pip install -r bin/require.pip
+
+# flake8 is a python linter
+PYTHON_SOURCES = test/functional/*.py test/frontend/*.py
+flake8: .venv
+	source .venv/bin/activate && flake8 $(PYTHON_SOURCES)
+
 jshint:
 	@./node_modules/jshint/bin/jshint *.js static test
 
