@@ -217,7 +217,7 @@
   WebRTC.prototype.terminate = function() {
     this.state.terminate();
 
-    if (this.pc.signalingState === 'closed')
+    if (!this.pc || this.pc.signalingState === 'closed')
       return this;
 
     this.once('ice:closed', this.trigger.bind(this, 'connection-terminated'));
