@@ -38,7 +38,6 @@ class Driver(WebDriver):
 
         self.switch_to_frame("//chatbox")
 
-
     def startCall(self, video):
         if video:
             self.find_element_by_css_selector(".btn-video>a").click()
