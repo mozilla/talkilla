@@ -34,7 +34,7 @@ var ChatApp = (function($, Backbone, _) {
     app.data.user = new app.models.User();
     this.peer = new app.models.User();
 
-    this.webrtc = new WebRTC(null, {
+    this.webrtc = new WebRTC({
       forceFake: !!(app.options && app.options.FAKE_MEDIA_STREAMS)
     });
 
