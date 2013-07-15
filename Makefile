@@ -1,5 +1,5 @@
 .PHONY: test
-test: jshint mocha selenium_all
+test: lint mocha selenium_all
 
 install:
 	@npm install
