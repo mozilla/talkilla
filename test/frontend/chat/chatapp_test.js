@@ -11,7 +11,6 @@ describe("ChatApp", function() {
     peer: "alice",
     offer: {type: "answer", sdp: "fake"}
   };
-  var chunk;
 
   function fakeSDP(str) {
     return {
@@ -60,17 +59,13 @@ describe("ChatApp", function() {
 
     // This stops us changing the document's title unnecessarily
     sandbox.stub(app.views.ConversationView.prototype, "initialize");
-
-    chunk = new ArrayBuffer(22*2);
-    var view = new Uint16Array(chunk);
-    for (var i=0; i < 22; i++)
-      view[i] = 'data'.charCodeAt(i);
   });
 
   afterEach(function() {
     app.port.off();
     sandbox.restore();
     chatApp = null;
+    app.options.DEBUG = false;
   });
 
   function assertEventTriggersHandler(event, handler, data) {
@@ -100,10 +95,11 @@ describe("ChatApp", function() {
         "_onCallEstablishment", incomingCallData);
     });
 
-  it("should attach _onIncomingCall to talkilla.call-incoming", function() {
-    assertEventTriggersHandler("talkilla.call-incoming",
-      "_onIncomingCall", incomingCallData);
-  });
+  it("should attach _onIncomingConversation to talkilla.conversation-incoming",
+    function() {
+      assertEventTriggersHandler("talkilla.conversation-incoming",
+        "_onIncomingConversation", incomingCallData);
+    });
 
   it("should attach _onCallShutdown to talkilla.call-hangup", function() {
     assertEventTriggersHandler("talkilla.call-hangup",
@@ -239,25 +235,38 @@ describe("ChatApp", function() {
       });
     });
 
-    describe("#_onIncomingCall", function() {
+    describe("#_onIncomingConversation", function() {
       it("should set the peer", function() {
-        chatApp._onIncomingCall(incomingCallData);
+        chatApp._onIncomingConversation(incomingCallData);
 
         expect(chatApp.peer.get("nick")).to.equal(incomingCallData.peer);
+      });
+
+      it("should not set the peer if upgrading a call", function() {
+        var incomingCallDataUpgrade = {
+          peer: "alice",
+          upgrade: true,
+          offer: {type: "answer", sdp: "fake"}
+        };
+
+        chatApp.peer.set({nick: "bob"});
+        chatApp._onIncomingConversation(incomingCallDataUpgrade);
+
+        expect(chatApp.peer.get("nick")).to.equal("bob");
       });
 
       it("should set the call as incoming", function() {
         sandbox.stub(chatApp.call, "incoming");
 
-        chatApp._onIncomingCall(incomingCallData);
+        chatApp._onIncomingConversation(incomingCallData);
 
         sinon.assert.calledOnce(chatApp.call.incoming);
-        sinon.assert.calledWithExactly(chatApp.call.incoming,
-         {offer: incomingCallData.offer, video: true, audio: true});
+        sinon.assert.calledWithMatch(chatApp.call.incoming,
+         {offer: incomingCallData.offer, video: false, audio: false});
       });
 
       it("should play the incoming call sound", function() {
-        chatApp._onIncomingCall(incomingCallData);
+        chatApp._onIncomingConversation(incomingCallData);
 
         sinon.assert.calledOnce(chatApp.audioLibrary.play);
         sinon.assert.calledWithExactly(chatApp.audioLibrary.play, "incoming");
@@ -413,131 +422,60 @@ describe("ChatApp", function() {
         });
     });
 
-    describe("#_onDataChannelMessageIn", function() {
+    describe("Object events listeners", function() {
+      var chatApp;
 
-      it("should append received message to the current text chat", function() {
-        sandbox.stub(app.models.TextChat.prototype, "add");
-        var newTextChat = sandbox.stub(app.models, "TextChatEntry");
-        var event = {type: "chat:message", message: "data"};
-        chatApp = new ChatApp();
-
-        chatApp._onDataChannelMessageIn(event);
-
-        sinon.assert.calledOnce(newTextChat);
-        sinon.assert.calledWithExactly(newTextChat, "data");
+      beforeEach(function () {
+        sandbox.stub(WebRTC.prototype, "on");
+        sandbox.stub(app.models.TextChat.prototype, "on");
+        sandbox.stub(app.models.Call.prototype, "on");
       });
 
-      it("should append a new file transfer to the current text chat",
-        function() {
-          sandbox.stub(app.models.TextChat.prototype, "add");
-          var newFileTransfer = sandbox.stub(app.models, "FileTransfer");
-          var event = {type: "file:new", message: "data"};
+      describe("debugging enabled", function() {
+        beforeEach(function () {
+          app.options.DEBUG = true;
           chatApp = new ChatApp();
-
-          chatApp._onDataChannelMessageIn(event);
-
-          sinon.assert.calledOnce(newFileTransfer);
-          sinon.assert.calledWithExactly(newFileTransfer, "data");
         });
 
-      it("should append data to a previous started file transfer", function() {
-        sandbox.stub(app.views, "TextChatView");
-        var transfer = new app.models.FileTransfer({filename: "foo", size: 10});
-        var event =
-          {type: "file:chunk", message: {id: transfer.id, chunk: chunk}};
-        sandbox.stub(transfer, "append");
-        chatApp = new ChatApp();
-        chatApp.textChat.add(transfer);
+        it("should listen to all Call object events when debug is enabled",
+          function() {
+            sinon.assert.calledWith(chatApp.call.on, "all");
+          });
 
-        chatApp._onDataChannelMessageIn(event);
-        sinon.assert.calledOnce(transfer.append);
-        sinon.assert.calledWithExactly(transfer.append, chunk);
-      });
-    });
+        it("should listen to all TextChat object events when debug is enabled",
+          function() {
+            sinon.assert.calledWith(chatApp.textChat.on, "all");
+          });
 
-    describe("#_onTextChatEntryCreated", function() {
-      it("should send data over data channel", function() {
-        var stub = sandbox.stub(WebRTC.prototype, "send");
-        var entry = new app.models.TextChatEntry({nick: "foo", message: "bar"});
-        var message = {type: "chat:message", message: entry.toJSON()};
-        chatApp = new ChatApp();
-        app.data.user.set("nick", "foo");
-
-        chatApp._onTextChatEntryCreated(entry);
-
-        sinon.assert.calledOnce(stub);
-        sinon.assert.calledWithExactly(stub, message);
-      });
-    });
-
-    describe("#_onFileTransferCreated", function() {
-      var blob;
-
-      beforeEach(function() {
-        blob = new Blob(["abcdefghij"]);
-        blob.name = "foo";
+        it("should listen to all WebRTC object events when debug is enabled",
+          function() {
+            sinon.assert.calledWith(chatApp.webrtc.on, "all");
+          });
       });
 
-      it("should notify of a new file via data channel", function() {
-        var dcSend = sandbox.stub(WebRTC.prototype, "send");
-        var entry = new app.models.FileTransfer({file: blob}, {chunkSize: 1});
-        var message = {type: "file:new", message: {id: entry.id,
-                                                   filename: "foo",
-                                                   size: 10}};
-        chatApp = new ChatApp();
-        chatApp._onFileTransferCreated(entry);
-
-        sinon.assert.calledOnce(dcSend);
-        sinon.assert.calledWithExactly(dcSend, message);
-      });
-
-      it("should bind _onFileChunk on the chunk event triggered by the entry",
-        function() {
-          sandbox.stub(ChatApp.prototype, "_onFileChunk");
-          sandbox.stub(WebRTC.prototype, "send");
-          var entry = new app.models.FileTransfer({file: blob}, {chunkSize: 1});
-          sandbox.stub(entry, "off");
+      describe("debugging disabled", function() {
+        beforeEach(function () {
+          app.options.DEBUG = false;
           chatApp = new ChatApp();
-          chatApp._onFileTransferCreated(entry);
-
-          entry.trigger("chunk", "chunk");
-
-          sinon.assert.calledOnce(chatApp._onFileChunk);
-          sinon.assert.calledWithExactly(chatApp._onFileChunk, "chunk");
-
-          entry.trigger("complete");
-
-          sinon.assert.calledOnce(entry.off);
-          sinon.assert.calledWith(chatApp._onFileChunk, "chunk");
         });
 
-      it("should not send anything if the entry is not a FileTransfer",
-        function() {
-          var dcSend = sandbox.stub(WebRTC.prototype, "send");
-          var entry = {};
-          chatApp = new ChatApp();
-          chatApp._onFileTransferCreated(entry);
+        it("should not listen to all Call object events when debug is disabled",
+          function() {
+            sinon.assert.neverCalledWith(chatApp.call.on, "all");
+          });
 
-          sinon.assert.notCalled(dcSend);
-        });
-    });
+        it("should not listen to all TextChat object events when debug is " +
+           "disabled",
+          function() {
+            sinon.assert.neverCalledWith(chatApp.textChat.on, "all");
+          });
 
-    describe("#_onFileChunk", function() {
-
-      it("should send chunks over data channel", function() {
-        var dcSend = sandbox.stub(WebRTC.prototype, "send");
-        var entry = new app.models.FileTransfer({size: 10, filename: "bar"});
-        var message = {type: "file:chunk",
-                       message: {id: entry.id, chunk: "chunk"}};
-        chatApp = new ChatApp();
-
-        chatApp._onFileChunk(entry.id, "chunk");
-
-        sinon.assert.calledOnce(dcSend);
-        sinon.assert.calledWithExactly(dcSend, message);
+        it("should not listen to all WebRTC object events when debug is " +
+           "disabled",
+          function() {
+            sinon.assert.neverCalledWith(chatApp.call.on, "all");
+          });
       });
-
     });
-
   });
 });

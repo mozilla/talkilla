@@ -1,4 +1,4 @@
-/*global jQuery, Backbone, _, tnetbin, WebRTC*/
+/*global jQuery, Backbone, _, WebRTC*/
 /* jshint unused: false */
 /**
  * Talkilla application.
@@ -34,7 +34,7 @@ var ChatApp = (function($, Backbone, _) {
     app.data.user = new app.models.User();
     this.peer = new app.models.User();
 
-    this.webrtc = new WebRTC(null, {
+    this.webrtc = new WebRTC({
       forceFake: !!(app.options && app.options.FAKE_MEDIA_STREAMS)
     });
 
@@ -76,10 +76,17 @@ var ChatApp = (function($, Backbone, _) {
     });
 
     // Text chat
-    this.textChat = new app.models.TextChat();
+    // TODO: prefill the chat with history
+    var history = [];
+
+    this.textChat = new app.models.TextChat(history, {
+      media: this.webrtc,
+      peer: this.peer
+    });
+
     this.textChatView = new app.views.TextChatView({
       collection: this.textChat,
-      call: this.call
+      sender: app.data.user
     });
 
     this.view = new app.views.ConversationView({
@@ -92,28 +99,29 @@ var ChatApp = (function($, Backbone, _) {
     // Incoming events
     this.port.on('talkilla.conversation-open',
                  this._onConversationOpen.bind(this));
-    this.port.on('talkilla.call-incoming', this._onIncomingCall.bind(this));
+    this.port.on('talkilla.conversation-incoming',
+                 this._onIncomingConversation.bind(this));
     this.port.on('talkilla.call-establishment',
                  this._onCallEstablishment.bind(this));
     this.port.on('talkilla.call-hangup', this._onCallShutdown.bind(this));
 
     // Outgoing events
     this.call.on('send-offer', this._onSendOffer.bind(this));
+    this.textChat.on('send-offer', this._onSendOffer.bind(this));
     this.call.on('send-answer', this._onSendAnswer.bind(this));
+    this.textChat.on('send-answer', this._onSendAnswer.bind(this));
+
     this.call.on('offer-timeout', this._onCallOfferTimout.bind(this));
 
     // Internal events
     this.call.on('state:accept', this._onCallAccepted.bind(this));
 
-    // Data channels
-    this.webrtc.on('dc:message-in', this._onDataChannelMessageIn.bind(this));
-    this.textChat.on('add', this._onTextChatEntryCreated.bind(this));
-    this.textChat.on('add', this._onFileTransferCreated.bind(this));
-
     // Internal events
     window.addEventListener("unload", this._onCallHangup.bind(this));
 
     this.port.postEvent('talkilla.chat-window-ready', {});
+
+    this._setupDebugLogging();
   }
 
   // Outgoing calls
@@ -126,6 +134,11 @@ var ChatApp = (function($, Backbone, _) {
   };
 
   ChatApp.prototype._onCallEstablishment = function(data) {
+    // text chat conversation
+    if (data.textChat)
+      return this.textChat.establish(data.answer);
+
+    // video/audio call
     this.call.establish(data);
   };
 
@@ -135,17 +148,29 @@ var ChatApp = (function($, Backbone, _) {
   };
 
   // Incoming calls
-  ChatApp.prototype._onIncomingCall = function(data) {
-    this.peer.set({nick: data.peer});
-    // XXX Assume both video and audio call for now
-    this.call.incoming({video: true, audio: true, offer: data.offer});
+  ChatApp.prototype._onIncomingConversation = function(data) {
+    if (!data.upgrade)
+      this.peer.set({nick: data.peer});
+
+    var options = _.extend(WebRTC.parseOfferConstraints(data.offer), {
+      offer: data.offer,
+      textChat: !!data.textChat,
+      upgrade: !!data.upgrade
+    });
+
+    // incoming text chat conversation
+    if (data.textChat)
+      return this.textChat.answer(options.offer);
+
+    // incoming video/audio call
+    this.call.incoming(options);
     this.audioLibrary.play('incoming');
   };
 
   ChatApp.prototype._onSendOffer = function(data) {
     this.port.postEvent('talkilla.call-offer', data);
-    // Now start the tone, as the offer is going out.
-    this.audioLibrary.play('outgoing');
+    if (!data.textChat)
+      this.audioLibrary.play('outgoing');
   };
 
   ChatApp.prototype._onSendAnswer = function(data) {
@@ -171,54 +196,18 @@ var ChatApp = (function($, Backbone, _) {
     });
   };
 
-  // Text chat & data channel event listeners
-  ChatApp.prototype._onDataChannelMessageIn = function(event) {
-    var entry;
-
-    if (event.type === "chat:message")
-      entry = new app.models.TextChatEntry(event.message);
-    else if (event.type === "file:new")
-      entry = new app.models.FileTransfer(event.message);
-    else if (event.type === "file:chunk") {
-      var chunk = tnetbin.toArrayBuffer(event.message.chunk).buffer;
-      var transfer = this.textChat.findWhere({id: event.message.id});
-      transfer.append(chunk);
-    }
-
-    this.textChat.add(entry);
-  };
-
-  ChatApp.prototype._onTextChatEntryCreated = function(entry) {
-    // Send the message if we are the sender.
-    // I we are not, the message comes from a contact and we do not
-    // want to send it back.
-    if (entry instanceof app.models.TextChatEntry &&
-        entry.get('nick') === app.data.user.get("nick"))
-      this.webrtc.send({type: "chat:message", message: entry.toJSON()});
-  };
-
-  ChatApp.prototype._onFileTransferCreated = function(entry) {
-    // Check if we are the file sender. If we are not, the file
-    // transfer has been initiated by the other party.
-    if (!(entry instanceof app.models.FileTransfer && entry.file))
+  // if debug is enabled, verbosely log object events to the console
+  ChatApp.prototype._setupDebugLogging = function() {
+    if (!app.options.DEBUG)
       return;
 
-    var onFileChunk = this._onFileChunk.bind(this);
-    var message = {
-      id: entry.id,
-      filename: entry.file.name,
-      size: entry.file.size
-    };
-    this.webrtc.send({type: "file:new", message: message});
-
-    entry.on("chunk", onFileChunk);
-    entry.on("complete", entry.off.bind(this, "chunk", onFileChunk));
-
-    entry.start();
-  };
-
-  ChatApp.prototype._onFileChunk = function(id, chunk) {
-    this.webrtc.send({type: "file:chunk", message: {id: id, chunk: chunk}});
+    // app object events logging
+    ['webrtc', 'call', 'textChat'].forEach(function(prop) {
+      this[prop].on("all", function() {
+        var args = [].slice.call(arguments);
+        console.log.apply(console, ['chatapp.' + prop].concat(args));
+      });
+    }, this);
   };
 
   return ChatApp;

@@ -15,11 +15,13 @@ describe("SidebarApp", function() {
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
     sandbox.stub(app.port, "postEvent");
+    sandbox.stub(app.port, "on");
     app.data.user = new app.models.User();
   });
 
   afterEach(function() {
     sandbox.restore();
+    app.options.DEBUG = false;
   });
 
   describe("#constructor", function() {
@@ -67,5 +69,14 @@ describe("SidebarApp", function() {
       sinon.assert.calledWithExactly(app.port.postEvent,
                                      "talkilla.sidebar-ready", {nick: "toto"});
     });
+
+    it("should listen to the `talkilla.debug` event when debug is enabled",
+      function() {
+        app.options.DEBUG = true;
+        new SidebarApp({nick: "toto"});
+
+        sinon.assert.calledOnce(app.port.on);
+        sinon.assert.calledWith(app.port.on, "talkilla.debug");
+      });
   });
 });

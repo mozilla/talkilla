@@ -32,7 +32,7 @@ describe("ConversationView", function() {
       call = new app.models.Call({}, {media: media});
       peer = new app.models.User();
       sandbox.stub(peer, "on");
-      textChat = new app.models.TextChat();
+      textChat = new app.models.TextChat(null, {media: media, peer: peer});
 
       sandbox.stub(call, "on");
     });
