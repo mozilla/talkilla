@@ -50,7 +50,4 @@ class SingleBrowserTest(mixins.WithBob, BrowserTest.BrowserTest):
 
 
 if __name__ == "__main__":
-    try:
-        unittest.main()
-    except KeyboardInterrupt:
-        print "\nInterrupted."
+    unittest.main(catchbreak=True)

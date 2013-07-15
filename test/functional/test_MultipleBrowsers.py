@@ -57,7 +57,4 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
         self.bob.switch_to_frame("//chatbox")
 
 if __name__ == "__main__":
-    try:
-        unittest.main()
-    except KeyboardInterrupt:
-        print "\nInterrupted."
+    unittest.main(catchbreak=True)
