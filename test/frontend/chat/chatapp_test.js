@@ -95,12 +95,6 @@ describe("ChatApp", function() {
         "_onCallEstablishment", incomingCallData);
     });
 
-  it("should attach _onCallUpgrade to talkilla.call-upgrade",
-    function() {
-      assertEventTriggersHandler("talkilla.call-upgrade",
-        "_onCallUpgrade", incomingCallData);
-    });
-
   it("should attach _onIncomingConversation to talkilla.conversation-incoming",
     function() {
       assertEventTriggersHandler("talkilla.conversation-incoming",
@@ -248,6 +242,19 @@ describe("ChatApp", function() {
         expect(chatApp.peer.get("nick")).to.equal(incomingCallData.peer);
       });
 
+      it("should not set the peer if upgrading a call", function() {
+        var incomingCallDataUpgrade = {
+          peer: "alice",
+          upgrade: true,
+          offer: {type: "answer", sdp: "fake"}
+        };
+
+        chatApp.peer.set({nick: "bob"});
+        chatApp._onIncomingConversation(incomingCallDataUpgrade);
+
+        expect(chatApp.peer.get("nick")).to.equal("bob");
+      });
+
       it("should set the call as incoming", function() {
         sandbox.stub(chatApp.call, "incoming");
 
@@ -286,30 +293,6 @@ describe("ChatApp", function() {
 
         sinon.assert.calledOnce(chatApp.call.establish);
         sinon.assert.calledWithExactly(chatApp.call.establish, answer);
-      });
-    });
-
-    describe("#_onCallUpgrade", function() {
-      it("should set the call as incoming", function() {
-        sandbox.stub(chatApp.call, "accept");
-        sandbox.stub(chatApp.call, "incoming");
-        var upgradeData = {offer: fakeOffer, upgrade: true};
-
-        chatApp._onCallUpgrade(upgradeData);
-
-        sinon.assert.calledOnce(chatApp.call.incoming);
-        sinon.assert.calledWithMatch(chatApp.call.incoming,
-         {offer: upgradeData.offer, video: true, audio: true});
-      });
-
-      it("should automatically accept the call upgrade", function() {
-        sandbox.stub(chatApp.call, "accept");
-        sandbox.stub(chatApp.call, "incoming");
-        var upgradeData = {offer: fakeOffer, upgrade: true};
-
-        chatApp._onCallUpgrade(upgradeData);
-
-        sinon.assert.calledOnce(chatApp.call.accept);
       });
     });
 

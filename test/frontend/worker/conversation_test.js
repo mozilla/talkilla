@@ -167,8 +167,8 @@ describe("Conversation", function() {
       };
     });
 
-    it("should post a talkilla.call-upgrade to the conversation window",
-       function() {
+    it("should post a talkilla.talkilla.conversation-incoming to " +
+       "the conversation window", function() {
       var data = {
         peer: "nicolas",
         upgrade: true
@@ -177,7 +177,7 @@ describe("Conversation", function() {
 
       sinon.assert.calledOnce(currentConversation.port.postEvent);
       sinon.assert.calledWith(currentConversation.port.postEvent,
-        "talkilla.call-upgrade", data);
+        "talkilla.conversation-incoming", data);
     });
   });
 });
