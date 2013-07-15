@@ -103,7 +103,6 @@ var ChatApp = (function($, Backbone, _) {
                  this._onIncomingConversation.bind(this));
     this.port.on('talkilla.call-establishment',
                  this._onCallEstablishment.bind(this));
-    this.port.on('talkilla.call-upgrade', this._onCallUpgrade.bind(this));
     this.port.on('talkilla.call-hangup', this._onCallShutdown.bind(this));
 
     // Outgoing events
@@ -150,7 +149,8 @@ var ChatApp = (function($, Backbone, _) {
 
   // Incoming calls
   ChatApp.prototype._onIncomingConversation = function(data) {
-    this.peer.set({nick: data.peer});
+    if (!data.upgrade)
+      this.peer.set({nick: data.peer});
 
     var options = _.extend(WebRTC.parseOfferConstraints(data.offer), {
       offer: data.offer,
@@ -175,18 +175,6 @@ var ChatApp = (function($, Backbone, _) {
 
   ChatApp.prototype._onSendAnswer = function(data) {
     this.port.postEvent('talkilla.call-answer', data);
-  };
-
-  ChatApp.prototype._onCallUpgrade = function(data) {
-    var options = _.extend(WebRTC.parseOfferConstraints(data.offer), {
-      offer: data.offer,
-      textChat: !!data.textChat,
-      upgrade: !!data.upgrade
-    });
-
-    this.call.incoming(options);
-    // XXX: call upgrades should probably be accepted manually
-    this.call.accept();
   };
 
   // Call Hangup

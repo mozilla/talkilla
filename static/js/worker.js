@@ -154,7 +154,7 @@ Conversation.prototype = {
    */
   callUpgrade: function(data) {
     ports.broadcastDebug('conversation upgrade', data);
-    this.port.postEvent('talkilla.call-upgrade', data);
+    this.port.postEvent('talkilla.conversation-incoming', data);
   }
 };
 
