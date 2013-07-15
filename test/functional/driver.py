@@ -9,6 +9,7 @@ SELENIUM_COMMAND_EXECUTOR = os.getenv("SELENIUM_COMMAND_EXECUTOR",
 
 MS_PER_SEC = 1000
 
+
 class Driver(WebDriver):
     nick = None
 
