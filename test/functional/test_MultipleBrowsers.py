@@ -50,7 +50,6 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
         self.larry.signin()
 
         # Bob calls Larry
-        self.bob.implicitly_wait(4000)
         self.bob.find_element_by_css_selector("ul.nav-list>li>a").click()
 
         # Bob checks for his own chat window
