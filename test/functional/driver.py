@@ -33,7 +33,6 @@ class Driver(WebDriver):
         return self.find_element_by_css_selector("strong.nick").text != ""
 
     def openConversation(self):
-        self.implicitly_wait(4000)
         self.find_element_by_css_selector("ul.nav-list>li>a").click()
 
         self.switch_to_frame("//chatbox")
