@@ -20,7 +20,6 @@ class SingleBrowserTest(mixins.WithBob, BrowserTest):
         """ Checks that even if the user reloads the sidebar from the context
             menu, she'll remain logged in.
         """
-        self.bob.switchToSidebar()
         self.bob.signin()
 
         self.bob.refresh()

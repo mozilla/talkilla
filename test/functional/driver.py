@@ -12,8 +12,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 SELENIUM_COMMAND_EXECUTOR = os.getenv("SELENIUM_COMMAND_EXECUTOR",
                                       "http://127.0.0.1:4444/wd/hub")
 
-MS_PER_SEC = 1000
-
 
 class Driver(WebDriver):
     nick = None
@@ -78,6 +76,10 @@ class Driver(WebDriver):
         input_text.send_keys(message)
         input_text.send_keys(Keys.RETURN)
 
+    # replace switchToFrame logic with something like this?
+    #
+    #       wait = WebDriverWait(self, WEBDRIVER_WAIT_TIMEOUT)
+    #       wait.until(EC.frame_to_be_available_and_switch_to_it("//chatbox"))
     def switchToFrame(self, locator, timeout=5):
         """ Wait for a frame to become available, then switch to it.
 
@@ -89,7 +91,7 @@ class Driver(WebDriver):
 
             Returns: Driver
         """
-        def switch(driver):
+        def switch(_):
             try:
                 self.switch_to_frame(locator)
                 return True
@@ -107,6 +109,9 @@ class Driver(WebDriver):
 
     def switchToSidebar(self):
         """Switches to the Social API sidebar."""
+        # XXX get rid of this unnecessary call to switchToSidebar
+        # that currently just so happens to help us win a race
+        self.switchToFrame("//#social-sidebar-browser")
         return self.switchToFrame("//#social-sidebar-browser")
 
     def waitForElement(self, css_selector, timeout=5, visible=None):
