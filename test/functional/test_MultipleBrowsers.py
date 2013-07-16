@@ -55,16 +55,16 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry, BrowserTest):
         self.bob.signin()
 
         self.bob.openConversationWith("larry").sendChatMessage("hi!")
-        self.assertChatMessageContains(self.bob, "hi!", item=1)
-        self.assertChatMessageContains(self.larry, "hi!", item=1)
+        self.assertChatMessageContains(self.bob, "hi!", line=1)
+        self.assertChatMessageContains(self.larry, "hi!", line=1)
 
         self.larry.sendChatMessage("yay!")
-        self.assertChatMessageContains(self.bob, "yay!", item=2)
-        self.assertChatMessageContains(self.larry, "yay!", item=2)
+        self.assertChatMessageContains(self.bob, "yay!", line=2)
+        self.assertChatMessageContains(self.larry, "yay!", line=2)
 
         self.bob.sendChatMessage("ok")
-        self.assertChatMessageContains(self.bob, "ok", item=3)
-        self.assertChatMessageContains(self.larry, "ok", item=3)
+        self.assertChatMessageContains(self.bob, "ok", line=3)
+        self.assertChatMessageContains(self.larry, "ok", line=3)
 
 if __name__ == "__main__":
     unittest.main(catchbreak=True)

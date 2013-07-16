@@ -28,11 +28,11 @@ class BrowserTest(unittest.TestCase):
     def tearDown(self):
         kill_app(self.node_app)
 
-    def assertChatMessageContains(self, driver, message, item=1):
+    def assertChatMessageContains(self, driver, message, line=1):
         driver.switchToChatWindow()
         css_selector = "#textchat li"
-        if item > 1:
-            css_selector += ":nth-child(%d)" % item
+        if line > 1:
+            css_selector += ":nth-child(%d)" % line
         try:
             self.assertElementTextContains(driver, css_selector, message)
         except AssertionError, err:

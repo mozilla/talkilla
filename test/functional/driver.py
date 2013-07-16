@@ -25,7 +25,7 @@ class Driver(WebDriver):
         super(Driver, self).__init__(*args, **kwargs)
 
     def openConversationWith(self, nick):
-        """ Opens a new conversation window with the user matching provided
+        """ Opens a new conversation window with the user matching the provided
             nick.
 
             Args:
