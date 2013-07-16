@@ -28,7 +28,7 @@ start() {
         exit 1
     fi
     # options are listed at http://code.google.com/p/selenium/wiki/FirefoxDriver
-    java -jar $SELENIUM_JAR_FILENAME -Dwebdriver.firefox.bin=$PWD/bin/firefox -Dwebdriver.log.file=$PWD/console.log -Dwebdriver.firefox.logfile=$PWD/firefox.log &>/dev/null &
+    java -jar $SELENIUM_JAR_FILENAME -Dwebdriver.firefox.bin=$PWD/bin/firefox -Dwebdriver.log.file=$PWD/console.log -Dwebdriver.firefox.logfile=$PWD/firefox.log &
     PID=$!
     echo $PID > $SELENIUM_PID_FILE
     CODE="000"
@@ -47,6 +47,8 @@ stop() {
     cat $SELENIUM_PID_FILE | xargs kill -15
     rm -f $SELENIUM_PID_FILE
     echo "Selenium server stopped"
+    cat $PWD/firefox.log
+    cat $PWD/console.log
 }
 
 case "$1" in
