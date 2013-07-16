@@ -77,8 +77,6 @@
       if (this.media.state.current === 'ongoing')
         return this.upgrade(constraints);
 
-      this._startTimer({timeout: app.options.PENDING_CALL_TIMEOUT});
-
       this.state.start();
 
       this.media.once("offer-ready", function(offer) {
@@ -86,6 +84,7 @@
           peer: this.peer.get("nick"),
           offer: offer
         });
+        this._startTimer({timeout: app.options.PENDING_CALL_TIMEOUT});
       }, this);
 
       this.media.initiate(constraints);
@@ -190,6 +189,7 @@
           textChat: false,
           upgrade: true
         });
+        this._startTimer({timeout: app.options.PENDING_CALL_TIMEOUT});
       }, this);
 
       this.media.upgrade(constraints);

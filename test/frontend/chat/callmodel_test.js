@@ -67,21 +67,6 @@ describe("Call", function() {
       sinon.assert.calledWith(media.once, "offer-ready");
     });
 
-    it("should trigger send-offer with transport data on offer-ready",
-      function(done) {
-        call.media = _.extend(media, Backbone.Events);
-        peer.set("nick", "larry");
-        var fakeOffer = {peer: "larry", offer: {fake: true}};
-        call.once("send-offer", function(data) {
-          expect(data.offer).to.deep.equal(fakeOffer);
-          done();
-        });
-
-        call.start({});
-
-        call.media.trigger("offer-ready", fakeOffer);
-      });
-
     it("should pass the call data to the media", function() {
       call.start(callData);
 
@@ -102,6 +87,34 @@ describe("Call", function() {
 
       sinon.assert.calledOnce(call.upgrade);
       sinon.assert.calledWithExactly(call.upgrade, {video: true});
+    });
+
+    describe("send-offer", function() {
+      var fakeOffer = {peer: "larry", offer: {fake: true}};
+
+      beforeEach(function() {
+        sandbox.stub(call, "_startTimer");
+        call.media = _.extend(media, Backbone.Events);
+        peer.set("nick", "larry");
+
+        call.start({});
+      });
+
+      it("should trigger send-offer with transport data on offer-ready",
+        function(done) {
+          call.once("send-offer", function(data) {
+            expect(data.offer).to.deep.equal(fakeOffer);
+            done();
+          });
+
+          call.media.trigger("offer-ready", fakeOffer);
+        });
+
+      it("should trigger a timer for timing out an offer", function() {
+        call.media.trigger("offer-ready", fakeOffer);
+
+        sinon.assert.calledOnce(call._startTimer);
+      });
     });
   });
 
@@ -245,28 +258,41 @@ describe("Call", function() {
       sinon.assert.calledWith(media.once, "offer-ready");
     });
 
-    it("should trigger send-offer with transport data on offer-ready",
-      function(done) {
-        call.state.current = 'ongoing';
-        call.media = _.extend(media, Backbone.Events);
-        peer.set("nick", "larry");
-        var fakeOffer = {peer: "larry", offer: {fake: true}};
-        call.once("send-offer", function(data) {
-          expect(data.offer).to.deep.equal(fakeOffer);
-          done();
-        });
-
-        call.upgrade({});
-
-        call.media.trigger("offer-ready", fakeOffer);
-      });
-
     it("should pass new media constraints to the media", function() {
       call.state.current = 'ongoing';
       call.upgrade({audio: true});
 
       sinon.assert.calledOnce(media.upgrade);
       sinon.assert.calledWithExactly(media.upgrade, {audio: true});
+    });
+
+    describe("send-offer", function() {
+      var fakeOffer = {peer: "larry", offer: {fake: true}};
+
+      beforeEach(function() {
+        sandbox.stub(call, "_startTimer");
+        call.state.current = 'ongoing';
+        call.media = _.extend(media, Backbone.Events);
+        peer.set("nick", "larry");
+
+        call.upgrade({});
+      });
+
+      it("should trigger send-offer with transport data on offer-ready",
+        function(done) {
+          call.once("send-offer", function(data) {
+            expect(data.offer).to.deep.equal(fakeOffer);
+            done();
+          });
+
+          call.media.trigger("offer-ready", fakeOffer);
+        });
+
+      it("should trigger a timer for timing out an offer", function() {
+        call.media.trigger("offer-ready", fakeOffer);
+
+        sinon.assert.calledOnce(call._startTimer);
+      });
     });
   });
 
