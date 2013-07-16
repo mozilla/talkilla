@@ -33,15 +33,16 @@ class BrowserTest(unittest.TestCase):
         if cls.node_app is not None:
             kill_app(cls.node_app)
 
-    def assertChatMessageExists(self, driver, message, item=1):
+    def assertChatMessageContains(self, driver, message, item=1):
         driver.switchToChatWindow()
         css_selector = "#textchat li"
         if item > 1:
             css_selector += ":nth-child(%d)" % item
         try:
             self.assertElementTextContains(driver, css_selector, message)
-        except AssertionError, e:
-            raise AssertionError(u"Expected chat message doesn't exists; " + e)
+        except AssertionError, err:
+            raise AssertionError(u'Chat message containing "%s" not found; %s'
+                                 % (message, err))
 
     def assertElementTextContains(self, driver, css_selector, text,
                                   visible=None):
@@ -73,7 +74,7 @@ class BrowserTest(unittest.TestCase):
     def assertElementsCount(self, driver, css_selector, length):
         elements = driver.find_elements_by_css_selector(css_selector)
         if len(elements) != length:
-            raise AssertionError(u"%s does not match %d elements" % (
+            raise AssertionError(u"%s does not contain %d elements" % (
                 css_selector, length))
 
     def assertIncomingCall(self, driver):
@@ -96,5 +97,6 @@ class BrowserTest(unittest.TestCase):
         self.assertElementNotVisible(driver, "#signout")
 
     def assertTitleEquals(self, driver, title):
-        if driver.title != "Talkilla Sidebar":
-            raise AssertionError(u"Title does not equal to %s" % title)
+        if driver.title != title:
+            raise AssertionError(u'Title does not equal "%s"; got "%s"' % (
+                title, driver.title))

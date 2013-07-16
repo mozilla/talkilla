@@ -155,11 +155,10 @@ class Driver(WebDriver):
                 return EC.invisibility_of_element_located(locator)
             return lambda _: driver.find_elements_by_css_selector(css_selector)
 
+        message = u"Couldn't find elems matching %s (visibility check: %s)" % (
+            css_selector, visible)
         WebDriverWait(self, timeout, poll_frequency=.25).until(
-            get_element_checker(self, visible),
-            message=u"Couldn't find elements matching %s (visible:%s)" % (
-                css_selector, visible)
-        )
+            get_element_checker(self, visible), message=message)
 
         return self.find_elements_by_css_selector(css_selector)
 
