@@ -10,13 +10,13 @@ lint: jshint flake8
 # bootstrap our python virtual environment if it's not there
 .venv:
 	virtualenv `pwd`/.venv
-	source .venv/bin/activate && pip install -r bin/require.pip
+	. .venv/bin/activate && pip install -r bin/require.pip
 
 # flake8 is a python linter
 PYTHON_SOURCES = test/functional/*.py test/frontend/*.py
 .PHONY: flake8
 flake8: .venv
-	source .venv/bin/activate && flake8 $(PYTHON_SOURCES)
+	. .venv/bin/activate && flake8 $(PYTHON_SOURCES)
 
 .PHONY: jshint
 jshint:
