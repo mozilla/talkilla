@@ -1,38 +1,55 @@
-test: jshint mocha selenium_all
+.PHONY: test
+test: lint mocha selenium_all
 
 install:
 	@npm install
 
+.PHONY: lint
+lint: jshint flake8
+
+# bootstrap our python virtual environment if it's not there
+.venv:
+	virtualenv `pwd`/.venv
+	source .venv/bin/activate && pip install -r bin/require.pip
+
+# flake8 is a python linter
+PYTHON_SOURCES = test/functional/*.py test/frontend/*.py
+.PHONY: flake8
+flake8: .venv
+	source .venv/bin/activate && flake8 $(PYTHON_SOURCES)
+
+.PHONY: jshint
 jshint:
 	@./node_modules/jshint/bin/jshint *.js static test
 
+.PHONY: mocha
 mocha:
   # Run tests in both production and development mode so that we can check
   # for any issues with the different configurations.
 	@env NODE_ENV=development ./node_modules/mocha/bin/mocha --reporter spec
 	@env NODE_ENV=production ./node_modules/mocha/bin/mocha --reporter spec
 
+.PHONY: runserver
 runserver:
 	@env NODE_ENV=production PORT=5000 node app.js
 
+.PHONY: runserver_dev
 runserver_dev:
 	@env NODE_ENV=development PORT=5000 node app.js
 
-selenium_all:
-  # This command should include the directories from both the selenium and frontend targets
-	@env NO_LOCAL_CONFIG=true NODE_ENV=test bin/run_selenium_test.sh test/functional/ test/frontend/run_tests.js
+# XXX refactor this file to not invoke run_selenium_test.sh twice, and call
+# other targets
 
+.PHONY: selenium_all
+selenium_all: selenium frontend
+
+.PHONY: selenium
 selenium:
-	@env NO_LOCAL_CONFIG=true NODE_ENV=test bin/run_selenium_test.sh $(MOCHA_ARGS) test/functional/$(SOLO_FILE)
+	@env NO_LOCAL_CONFIG=true NODE_ENV=test \
+	    bin/run_selenium_test.sh -m unittest discover test/functional
 
-# Useful when testing a single file by setting SOLO_FILE and putting
-# debugger statement to force a breakpoint in the file you want to test.
-# See README.md for more details.
-#
-debug_test:
-	MOCHA_ARGS=debug $(MAKE) selenium
-
+.PHONY: frontend
 frontend:
-	@env NO_LOCAL_CONFIG=true NODE_ENV=development bin/run_selenium_test.sh test/frontend/run_tests.js
+	@env NO_LOCAL_CONFIG=true NODE_ENV=development bin/run_selenium_test.sh \
+		test/frontend/frontend_all_units_test.py
 
-.PHONY: test
