@@ -18,7 +18,7 @@ before_install:
 install:
   - ls -l
   - ls -l virtualenv
-  - pip install -r ./bin/require.pip --use-mirrors
+  - pip install --install-option="--prefix=$HOME/.local" -r require.pip --use-mirrors
 
 virtualenv:
   system_site_packages: true
