@@ -24,6 +24,7 @@ describe("serverHandlers", function() {
 
     afterEach(function() {
       browserPort = undefined;
+      currentConversation = undefined;
     });
 
     it("should create a new conversation object with the call data",
@@ -37,6 +38,23 @@ describe("serverHandlers", function() {
       expect(currentConversation).to.be.an.instanceOf(Conversation);
       expect(currentConversation.data).to.deep.equal(data);
     });
+
+    it("should try to re-use an existing conversation object",
+      function() {
+        currentConversation = new Conversation({peer: "florian"});
+
+        sandbox.stub(currentConversation, "handleIncomingCall");
+
+        var data = {
+          peer: "alice",
+          offer: {type: "fake", sdp: "sdp" }
+        };
+        serverHandlers.incoming_call(data);
+
+        sinon.assert.calledOnce(currentConversation.handleIncomingCall);
+        sinon.assert.calledWith(currentConversation.handleIncomingCall,
+                                data);
+      });
   });
 
   describe("#call_accepted", function() {

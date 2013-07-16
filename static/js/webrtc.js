@@ -10,25 +10,26 @@
    * WebRTC object constructor.
    *
    * Options are:
-   * - {Boolean} forceFake: Forces use of fake media streams.
+   * - {Boolean} forceFake:  Forces fake media streams (default: false)
    *
-   * @param {PeerConnection|undefined} pc       Peer connection object
    * @param {Object}                   options  Options
    */
-  function WebRTC(pc, options) {
+  function WebRTC(options) {
+    this.pc = undefined;
+    this.dc = undefined;
     this._constraints = {};
     this.options = options || {};
-
-    this.pc = this._setupPeerConnection(pc || new mozRTCPeerConnection());
-    this.dc = this._setupDataChannel(this.pc, 0);
 
     this.state = StateMachine.create({
       initial: 'ready',
       events: [
-        {name: 'initiate',  from: 'ready',   to: 'pending'},
-        {name: 'establish', from: 'pending', to: 'ongoing'},
-        {name: 'answer',    from: 'ready',   to: 'ongoing'},
-        {name: 'terminate', from: '*',       to: 'terminated'}
+        {name: 'initiate',  from: 'ready',     to: 'pending'},
+        {name: 'establish', from: 'pending',   to: 'ongoing'},
+        {name: 'upgrade',   from: 'ongoing',   to: 'pending'},
+        {name: 'answer',    from: ['ready',
+                                   'ongoing'], to: 'ongoing'},
+        {name: 'terminate', from: '*',         to: 'terminated'},
+        {name: 'reset',     from: '*',         to: 'ready'}
       ],
       callbacks: {
         onenterstate: function(event, from, to) {
@@ -43,7 +44,7 @@
 
   _.extend(WebRTC.prototype, Backbone.Events);
 
-  // public API
+  // public properties
 
   /* jshint camelcase:false */
   WebRTC.prototype.__defineGetter__('constraints', function() {
@@ -63,6 +64,28 @@
   });
   /* jshint camelcase:true */
 
+  // static methods
+
+  /**
+   * Extracts media constraints from an offer SDP.
+   * @param  {Object}  offer  Offer object
+   * @return {Object}         Media constraints object
+   * @private
+   */
+  WebRTC.parseOfferConstraints = function(offer) {
+    var sdp = offer && offer.sdp;
+
+    if (!sdp)
+      throw new Error('No SDP offer to parse');
+
+    return {
+      video: sdp.contains('\nm=video '),
+      audio: sdp.contains('\nm=audio ')
+    };
+  };
+
+  // public prototype
+
   /**
    * Initiates an outgoing connection.
    * @param  {Object}  constraints  Media constraints
@@ -72,6 +95,7 @@
    */
   WebRTC.prototype.initiate = function(constraints) {
     this.state.initiate();
+    this._setupPeerConnection();
     this.constraints = constraints;
 
     if (!this.constraints.video && !this.constraints.audio)
@@ -82,6 +106,33 @@
           ._addLocalStream(localStream)
           ._createOffer();
     });
+  };
+
+  /**
+   * Upgrades an established peer connection with new constraints.
+   * @param  {Object} constraints User media constraints
+   * @return {WebRTC}
+   */
+  WebRTC.prototype.upgrade = function(constraints) {
+    this.state.upgrade();
+
+    if (!constraints || typeof constraints !== 'object')
+      throw new Error('upgrading needs new media constraints');
+    this.constraints = constraints;
+
+    // XXX: renegotiate connection once supported by the WebRTC API;
+    //      right now, reinitialize the current peer connection.
+    this.once('connection-terminated', function() {
+      this.state.current = "ready";
+      this.once('ice:connected', function() {
+        this.trigger('connection-upgraded');
+      }).initiate(constraints);
+    }).terminate();
+
+    // force state to pending as we're actually waiting for pc reinitiation
+    this.state.current = "pending";
+
+    return this;
   };
 
   /**
@@ -105,14 +156,15 @@
   };
 
   /**
-   * Answers an incoming onnection offer.
+   * Answers an incoming initial or upgraded connection offer.
    * @param  {Object}  offer  Connection offer
    * @return {WebRTC}
    * @public
    */
   WebRTC.prototype.answer = function(offer) {
     this.state.answer();
-    this.constraints = this._parseOfferConstraints(offer);
+    this._setupPeerConnection();
+    this.constraints = WebRTC.parseOfferConstraints(offer);
 
     if (!this.constraints.video && !this.constraints.audio)
       return this._prepareAnswer(offer);
@@ -122,6 +174,17 @@
           ._addLocalStream(localStream)
           ._prepareAnswer(offer);
     });
+  };
+
+  /**
+   * Resets the peer connection.
+   * @return {WebRTC}
+   */
+  WebRTC.prototype.reset = function() {
+    this.state.reset();
+    this._setupPeerConnection();
+
+    return this;
   };
 
   /**
@@ -154,7 +217,7 @@
   WebRTC.prototype.terminate = function() {
     this.state.terminate();
 
-    if (this.pc.signalingState === 'closed')
+    if (!this.pc || this.pc.signalingState === 'closed')
       return this;
 
     this.once('ice:closed', this.trigger.bind(this, 'connection-terminated'));
@@ -262,8 +325,8 @@
    * @return {Event} event
    */
   WebRTC.prototype._onIceConnectionStateChange = function() {
-    this.trigger('ice:change', this.pc.iceConnectionState);
     this.trigger('ice:' + this.pc.iceConnectionState);
+    this.trigger('ice:change', this.pc.iceConnectionState);
   };
 
   /**
@@ -280,26 +343,8 @@
    * @param  {Event} event
    */
   WebRTC.prototype._onSignalingStateChange = function(event) {
-    this.trigger('signaling:change', event);
     this.trigger('signaling:' + event);
-  };
-
-  /**
-   * Extracts media constraints from an offer SDP.
-   * @param  {Object}  offer  Offer object
-   * @return {Object}         Media constraints object
-   * @private
-   */
-  WebRTC.prototype._parseOfferConstraints = function(offer) {
-    var sdp = offer && offer.sdp;
-
-    if (!sdp)
-      return this._handleError('No SDP offer to parse');
-
-    return {
-      video: sdp.contains('\nm=video '),
-      audio: sdp.contains('\nm=audio ')
-    };
+    this.trigger('signaling:change', event);
   };
 
   /**
@@ -363,14 +408,16 @@
    *
    * @param {RTCPeerConnection} pc
    */
-  WebRTC.prototype._setupPeerConnection = function(pc) {
-    pc.onaddstream = this._onAddStream.bind(this);
-    pc.ondatachannel = this._onDataChannel.bind(this);
-    pc.oniceconnectionstatechange = this._onIceConnectionStateChange.bind(this);
-    pc.onremovestream = this._onRemoveStream.bind(this);
-    pc.onsignalingstatechange = this._onSignalingStateChange.bind(this);
+  WebRTC.prototype._setupPeerConnection = function() {
+    this.pc = new mozRTCPeerConnection();
+    this.dc = this._setupDataChannel(this.pc, 0);
 
-    return pc;
+    this.pc.onaddstream = this._onAddStream.bind(this);
+    this.pc.ondatachannel = this._onDataChannel.bind(this);
+    this.pc.oniceconnectionstatechange =
+      this._onIceConnectionStateChange.bind(this);
+    this.pc.onremovestream = this._onRemoveStream.bind(this);
+    this.pc.onsignalingstatechange = this._onSignalingStateChange.bind(this);
   };
 
   /**

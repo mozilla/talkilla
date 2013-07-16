@@ -87,11 +87,13 @@ describe("Conversation", function() {
         currentConversation.windowOpened(port);
 
         sinon.assert.called(port.postEvent);
-        sinon.assert.calledWith(port.postEvent, "talkilla.conversation-open",
-          data);
+        sinon.assert.calledWith(port.postEvent,
+                                "talkilla.conversation-open",
+                                data);
       });
 
-    it("should post a talkilla.call-incoming event for an incoming call",
+    it("should post a talkilla.conversation-incoming event for an " +
+       "incoming call",
       function() {
         data.offer = {sdp: "fake"};
         currentConversation = new Conversation(data);
@@ -99,8 +101,9 @@ describe("Conversation", function() {
         currentConversation.windowOpened(port);
 
         sinon.assert.called(port.postEvent);
-        sinon.assert.calledWith(port.postEvent, "talkilla.call-incoming",
-          data);
+        sinon.assert.calledWith(port.postEvent,
+                                "talkilla.conversation-incoming",
+                                data);
 
       });
 
@@ -110,6 +113,66 @@ describe("Conversation", function() {
         currentConversation.windowOpened(port);
 
         sinon.assert.calledOnce(storeContact);
+      });
+  });
+
+  describe("#handleIncomingCall", function() {
+    var port, initData;
+
+    beforeEach(function() {
+      // Avoid touching the contacts db which we haven't initialized.
+      sandbox.stub(window, "storeContact");
+      _currentUserData = new UserData({_userName: "romain"});
+      port = {
+        postEvent: sandbox.spy()
+      };
+      initData = {
+        peer: "florian"
+      };
+
+      currentConversation = new Conversation(initData);
+      currentConversation.windowOpened(port);
+    });
+
+    afterEach(function() {
+      port = undefined;
+      _currentUserData = undefined;
+      currentConversation = undefined;
+    });
+
+    it("should return false if the conversation is not for the peer",
+      function() {
+        var data = {
+          peer: "jb"
+        };
+
+        var result = currentConversation.handleIncomingCall(data);
+
+        expect(result).to.be.equal(false);
+      });
+
+    it("should return true if the conversation is for the peer",
+      function() {
+        var result = currentConversation.handleIncomingCall(initData);
+
+        expect(result).to.be.equal(true);
+      });
+
+    it("should post a talkilla.conversation-incoming event for an " +
+       "incoming call", function() {
+        var incomingData = {
+          offer: {
+            sdp: "fake"
+          },
+          peer: "florian"
+        };
+
+        currentConversation.handleIncomingCall(incomingData);
+
+        sinon.assert.called(port.postEvent);
+        sinon.assert.calledWith(port.postEvent,
+                                "talkilla.conversation-incoming",
+                                incomingData);
       });
   });
 
@@ -155,4 +218,5 @@ describe("Conversation", function() {
         "talkilla.call-hangup", data);
     });
   });
+
 });

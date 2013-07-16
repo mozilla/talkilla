@@ -88,7 +88,6 @@ function Conversation(data) {
   this.data = data;
   this.port = undefined;
 
-  // Open the window for this conversation
   browserPort.postEvent('social.request-chat', 'chat.html');
 }
 
@@ -97,7 +96,7 @@ Conversation.prototype = {
    * Call to tell the conversation that a window has been opened
    * for it, so it can set the window up with the required info.
    *
-   * @param port The Port instance associated with the window.
+   * @param {AbstractPort}  port  The Port instance associated with the window
    */
   windowOpened: function(port) {
     this.port = port;
@@ -109,13 +108,37 @@ Conversation.prototype = {
       });
     }
 
+    this._sendCall();
+  },
+
+  /**
+   * Returns true if this conversation window is for the specified
+   * peer and the incoming call data is passed to that window.
+   *
+   * @param peer The id of the peer to compare with.
+   */
+  handleIncomingCall: function(data) {
+    ports.broadcastDebug('handle incoming call', data);
+    if (this.data.peer !== data.peer)
+      return false;
+
+    this.data = data;
+
+    this._sendCall();
+    return true;
+  },
+
+  /**
+   * Sends call information to the conversation window.
+   */
+  _sendCall: function() {
     storeContact(this.data.peer);
 
     var topic = this.data.offer ?
-      "talkilla.call-incoming" :
+      "talkilla.conversation-incoming" :
       "talkilla.conversation-open";
 
-    port.postEvent(topic, this.data);
+    this.port.postEvent(topic, this.data);
   },
 
   /**
@@ -128,6 +151,7 @@ Conversation.prototype = {
    * - offer  the sdp offer for the connection
    */
   callAccepted: function(data) {
+    ports.broadcastDebug('conversation accepted', data);
     this.port.postEvent('talkilla.call-establishment', data);
   },
 
@@ -137,9 +161,10 @@ Conversation.prototype = {
    *
    * @param data The data associated with the call. Consisting of:
    *
-   * - peer   the id of the other user.
+   * - peer   the id of the other user
    */
   callHangup: function(data) {
+    ports.broadcastDebug('conversation hangup', data);
     this.port.postEvent('talkilla.call-hangup', data);
   }
 };
@@ -254,22 +279,46 @@ function updateCurrentUsers(data) {
 }
 
 var serverHandlers = {
+  'debug': function(label, data) {
+    ports.broadcastDebug("server event: " + label, data);
+  },
+
   'users': function(data) {
+    this.debug("users", data);
     updateCurrentUsers(data);
     ports.broadcastEvent("talkilla.users", currentUsers);
   },
 
   'incoming_call': function(data) {
+    this.debug("incoming_call", data);
+
+    // If we're in a conversation, and it is not with the peer,
+    // then ignore it
+    if (currentConversation) {
+      // If the currentConversation window can handle the incoming call
+      // data (e.g. peer matches) then just handle it.
+      if (currentConversation.handleIncomingCall(data))
+        return;
+
+      // XXX currently, we can't handle more than one conversation
+      // window open, so just ignore it.
+      return;
+    }
+
     currentConversation = new Conversation(data);
   },
 
   'call_accepted': function(data) {
+    this.debug("call_accepted", data);
     currentConversation.callAccepted(data);
   },
 
   'call_hangup': function(data) {
-    currentConversation.callHangup(data);
-    currentConversation = undefined;
+    this.debug("call_hangup", data);
+    if (currentConversation) {
+      currentConversation.callHangup(data);
+      currentConversation = undefined;
+    }
   }
 };
 
@@ -501,21 +550,23 @@ var handlers = {
   /**
    * The data for talkilla.call-offer is:
    *
-   * - peer:  the person you are calling
-   * - offer: an RTCSessionDescription containing the sdp data for the call.
+   * - peer:     the person you are calling
+   * - textChat: is this a text chat offer?
+   * - offer:    an RTCSessionDescription containing the sdp data for the call.
    */
   'talkilla.call-offer': function(event) {
-    _presenceSocketSendMessage(JSON.stringify({ 'call_offer': event.data }));
+    _presenceSocketSendMessage(JSON.stringify({'call_offer': event.data}));
   },
 
   /**
    * The data for talkilla.call-answer is:
    *
-   * - peer:  the person who is calling you
-   * - offer: an RTCSessionDescription containing the sdp data for the call.
+   * - peer:     the person who is calling you
+   * - textChat: is this a text chat offer?
+   * - offer:    an RTCSessionDescription containing the sdp data for the call.
    */
-  'talkilla.call-answer': function (event) {
-    _presenceSocketSendMessage(JSON.stringify({ 'call_accepted': event.data }));
+  'talkilla.call-answer': function(event) {
+    _presenceSocketSendMessage(JSON.stringify({'call_accepted': event.data}));
   },
 
   /**
@@ -524,7 +575,7 @@ var handlers = {
    * - peer: the person you are talking to.
    */
   'talkilla.call-hangup': function (event) {
-    _presenceSocketSendMessage(JSON.stringify({ 'call_hangup': event.data }));
+    _presenceSocketSendMessage(JSON.stringify({'call_hangup': event.data}));
     currentConversation = undefined;
   }
 };
@@ -610,6 +661,16 @@ PortCollection.prototype = {
   broadcastEvent: function(topic, data) {
     for (var id in this.ports)
       this.ports[id].postEvent(topic, data);
+  },
+
+  /**
+   * Broadcast debug informations to all ports.
+   */
+  broadcastDebug: function(label, data) {
+    if (!_config.DEBUG)
+      return;
+    for (var id in this.ports)
+      this.ports[id].postEvent("talkilla.debug", {label: label, data: data});
   },
 
   /**
