@@ -20,7 +20,6 @@ class BrowserTest(unittest.TestCase):
         env.update({"PORT": "3000",
                     "NO_LOCAL_CONFIG": "true",
                     "NODE_ENV": "test"})
-        print env
         self.node_app = subprocess.Popen(cmd, env=env)
         self.addCleanup(kill_app, self.node_app)
 

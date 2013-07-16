@@ -326,8 +326,6 @@ app.start = function(serverPort, callback) {
 
   app.set('config', config);
 
-  console.log("listening on " + serverPort);
-
   server = http.createServer(this);
   _createWebSocketServer();
   server.listen(serverPort,
