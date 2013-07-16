@@ -41,7 +41,7 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry, BrowserTest):
         self.larry.signin()
 
         self.bob.openConversationWith("larry").startCall(True)
-        self.assertPendingCall(self.bob)
+        self.assertPendingOutgoingCall(self.bob)
 
         self.larry.switchToChatWindow()
         self.assertIncomingCall(self.larry)
