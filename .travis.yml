@@ -18,9 +18,6 @@ before_install:
 install:
   - pip install --install-option="--prefix=$HOME/.local" -r require.pip --use-mirrors
 
-virtualenv:
-  system_site_packages: true
-
 # The /check url below will check to see if the repository is updated and deploy
 # if necessary.
 after_success:
