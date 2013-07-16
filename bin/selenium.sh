@@ -26,7 +26,7 @@ install() {
 bootstrap_python() {
     if [ ! -d  .venv ]; then
         echo "Bootstrapping functional testing dependencies"
-        $HOME/.local/virtualenv `pwd`/.venv
+        virtualenv `pwd`/.venv
         . .venv/bin/activate
         pip install -r bin/require.pip
     fi
