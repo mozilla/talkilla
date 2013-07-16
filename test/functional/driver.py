@@ -45,14 +45,14 @@ class Driver(WebDriver):
         if not self.nick:
             raise RuntimeError("No nick provided")
         self.switchToSidebar()
-        self.find_element_by_id("nick").send_keys(self.nick)
-        self.find_element_by_id("submit").click()
+        self.waitForElement("#nick").send_keys(self.nick)
+        self.clickElement("#submit")
         return self
 
     def signout(self):
         """Signs the user out."""
         self.switchToSidebar()
-        self.find_element_by_css_selector('#signout button').click()
+        self.clickElement('#signout button')
         return self
 
     def startCall(self, video):
@@ -89,13 +89,16 @@ class Driver(WebDriver):
 
             Returns: Driver
         """
-        def test_switching(driver):
+        def switch(driver):
             try:
                 self.switch_to_frame(locator)
                 return True
             except:
                 return False
-        WebDriverWait(self, timeout, poll_frequency=.25).until(test_switching)
+        msg = u"Couldn't switch to frame: %s; timeout of %ss. exhausted" % (
+            locator, timeout)
+        WebDriverWait(self, timeout, poll_frequency=.25).until(switch,
+                                                               message=msg)
         return self
 
     def switchToChatWindow(self):

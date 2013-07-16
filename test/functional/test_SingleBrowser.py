@@ -12,18 +12,19 @@ class SingleBrowserTest(mixins.WithBob, BrowserTest.BrowserTest):
         self.bob.find_element_by_css_selector("button")
 
     def test_sidebar(self):
-        self.bob.switch_to_frame("//#social-sidebar-browser")
-        assert self.bob.title == "Talkilla Sidebar"
+        self.bob.switchToSidebar()
+        self.assertTitleEquals(self.bob, "Talkilla Sidebar")
 
-    # checks that even if the user reloads the sidebar from the context menu,
-    # she'll remain logged in.
     def test_login_persistence_over_reload(self):
-        self.bob.switch_to_frame("//#social-sidebar-browser")
+        """ Checks that even if the user reloads the sidebar from the context
+            menu, she'll remain logged in.
+        """
+        self.bob.switchToSidebar()
         self.bob.signin()
 
         self.bob.refresh()
 
-        assert self.bob.isSignedIn()
+        self.assertSignedInAs(self.bob, "bob")
 
     # test that the user remains logged in across browser restarts
     def test_login_persistence_over_restart(self):
@@ -39,14 +40,14 @@ class SingleBrowserTest(mixins.WithBob, BrowserTest.BrowserTest):
 
         # inject the cookies into sidebar domain, as they include our login
         # state
-        self.bob.switch_to_frame("//#social-sidebar-browser")
+        self.bob.switchToSidebar()
         for cookie in cookies:
             self.bob.add_cookie(cookie)
 
         # force a refresh so that the page sees the cookies
         self.bob.refresh()
 
-        assert self.bob.isSignedIn()
+        self.assertSignedInAs(self.bob, "bob")
 
 
 if __name__ == "__main__":

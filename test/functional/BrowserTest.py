@@ -95,3 +95,7 @@ class BrowserTest(unittest.TestCase):
 
     def assertSignedOut(self, driver):
         self.assertElementNotVisible(driver, "#signout")
+
+    def assertTitleEquals(self, driver, title):
+        if driver.title != "Talkilla Sidebar":
+            raise AssertionError(u"Title does not equal to %s" % title)
