@@ -20,7 +20,7 @@ install() {
         tar -xjf $FIREFOX_BZIP2_FILENAME
         echo "Done."
     fi
-    bootstrap_python
+#    bootstrap_python
 }
 
 bootstrap_python() {

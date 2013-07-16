@@ -16,7 +16,7 @@ before_install:
   - "export DISPLAY=:99.0"
   - "sh -e /etc/init.d/xvfb start"
 install:
-  - pip install -r require.pip --use-mirrors
+  - pip install -r ./bin/require.pip --use-mirrors
 
 virtualenv:
   system_site_packages: true
