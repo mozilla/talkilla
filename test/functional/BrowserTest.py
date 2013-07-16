@@ -16,7 +16,8 @@ class BrowserTest(unittest.TestCase):
 
     def setUp(self):
         cmd = ("node", "app.js")
-        env = {"PORT": "3000", "NO_LOCAL_CONFIG": "true", "NODE_ENV": "test"}
+        env = os.environ.copy()
+        env.update({"PORT": "3000", "NO_LOCAL_CONFIG": "true", "NODE_ENV": "test"})
         self.node_app = subprocess.Popen(cmd, env=env)
         self.addCleanup(kill_app, self.node_app)
 
