@@ -151,7 +151,7 @@ describe("Conversation", function() {
         expect(result).to.be.equal(false);
       });
 
-    it("should return true if the conversation is not for the peer",
+    it("should return true if the conversation is for the peer",
       function() {
         var result = currentConversation.handleIncomingCall(initData);
 
@@ -171,8 +171,8 @@ describe("Conversation", function() {
 
         sinon.assert.called(port.postEvent);
         sinon.assert.calledWith(port.postEvent,
-          "talkilla.conversation-incoming",
-          incomingData);
+                                "talkilla.conversation-incoming",
+                                incomingData);
       });
   });
 
