@@ -116,6 +116,66 @@ describe("Conversation", function() {
       });
   });
 
+  describe("#handleIncomingCall", function() {
+    var port, initData;
+
+    beforeEach(function() {
+      // Avoid touching the contacts db which we haven't initialized.
+      sandbox.stub(window, "storeContact");
+      _currentUserData = new UserData({_userName: "romain"});
+      port = {
+        postEvent: sandbox.spy()
+      };
+      initData = {
+        peer: "florian"
+      };
+
+      currentConversation = new Conversation(initData);
+      currentConversation.windowOpened(port);
+    });
+
+    afterEach(function() {
+      port = undefined;
+      _currentUserData = undefined;
+      currentConversation = undefined;
+    });
+
+    it("should return false if the conversation is not for the peer",
+      function() {
+        var data = {
+          peer: "jb"
+        };
+
+        var result = currentConversation.handleIncomingCall(data);
+
+        expect(result).to.be.equal(false);
+      });
+
+    it("should return true if the conversation is for the peer",
+      function() {
+        var result = currentConversation.handleIncomingCall(initData);
+
+        expect(result).to.be.equal(true);
+      });
+
+    it("should post a talkilla.conversation-incoming event for an " +
+       "incoming call", function() {
+        var incomingData = {
+          offer: {
+            sdp: "fake"
+          },
+          peer: "florian"
+        };
+
+        currentConversation.handleIncomingCall(incomingData);
+
+        sinon.assert.called(port.postEvent);
+        sinon.assert.calledWith(port.postEvent,
+                                "talkilla.conversation-incoming",
+                                incomingData);
+      });
+  });
+
   describe("#callAccepted", function() {
     beforeEach(function() {
       currentConversation = new Conversation({});
@@ -159,25 +219,4 @@ describe("Conversation", function() {
     });
   });
 
-  describe("#callUpgrade" , function() {
-    beforeEach(function() {
-      currentConversation = new Conversation({});
-      currentConversation.port = {
-        postEvent: sandbox.spy()
-      };
-    });
-
-    it("should post a talkilla.talkilla.conversation-incoming to " +
-       "the conversation window", function() {
-      var data = {
-        peer: "nicolas",
-        upgrade: true
-      };
-      currentConversation.callUpgrade(data);
-
-      sinon.assert.calledOnce(currentConversation.port.postEvent);
-      sinon.assert.calledWith(currentConversation.port.postEvent,
-        "talkilla.conversation-incoming", data);
-    });
-  });
 });
