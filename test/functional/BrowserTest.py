@@ -28,11 +28,6 @@ class BrowserTest(unittest.TestCase):
     def tearDown(self):
         kill_app(self.node_app)
 
-    @classmethod
-    def tearDownClass(cls):
-        if cls.node_app is not None:
-            kill_app(cls.node_app)
-
     def assertChatMessageContains(self, driver, message, item=1):
         driver.switchToChatWindow()
         css_selector = "#textchat li"
