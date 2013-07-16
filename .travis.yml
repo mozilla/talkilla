@@ -16,8 +16,6 @@ before_install:
   - "export DISPLAY=:99.0"
   - "sh -e /etc/init.d/xvfb start"
 install:
-  - ls -l
-  - ls -l virtualenv
   - pip install --install-option="--prefix=$HOME/.local" -r require.pip --use-mirrors
 
 virtualenv:
