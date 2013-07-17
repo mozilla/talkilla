@@ -10,7 +10,7 @@ class WithBob(object):
 
     def tearDown(self):
         super(WithBob, self).tearDown()
-        self.bob.close()
+        self.bob.quit()
 
 
 class WithLarry(object):
@@ -20,4 +20,4 @@ class WithLarry(object):
 
     def tearDown(self):
         super(WithLarry, self).tearDown()
-        self.larry.close()
+        self.larry.quit()
