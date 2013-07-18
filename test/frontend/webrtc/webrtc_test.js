@@ -19,6 +19,17 @@ describe("WebRTC", function() {
   var fakeAnswer = {type: "answer", sdp: fakeSDP("\nm=video ccc\nm=audio ddd")};
   var fakeStream = {fakeStream: true};
   var fakeDataChannel = {fakeDataChannel: true};
+  var audioStreamTrack = {enabled:true};
+  var videoStreamTrack = {enabled:true};
+
+  var mediaStream = {
+    getAudioTracks: function() {
+      return [audioStreamTrack];
+    },
+    getVideoTracks: function() {
+      return [videoStreamTrack];
+    }
+  };
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
@@ -42,6 +53,9 @@ describe("WebRTC", function() {
       createDataChannel: function() {
         fakeDataChannel.send = sandbox.spy();
         return fakeDataChannel;
+      },
+      getLocalStreams: function() {
+        return [mediaStream];
       }
     });
 
@@ -492,6 +506,29 @@ describe("WebRTC", function() {
             done();
           }).terminate().trigger('ice:closed');
         });
+      });
+    });
+
+    describe("#setMuteState", function() {
+      beforeEach(function() {
+        webrtc = new WebRTC();
+        webrtc.initiate();
+        audioStreamTrack.enabled = true;
+        videoStreamTrack.enabled = true;
+      });
+
+      it("should set the mute status for audio tracks", function() {
+        webrtc.setMuteState('audio', true);
+
+        expect(audioStreamTrack.enabled).to.be.equal(false);
+        expect(videoStreamTrack.enabled).to.be.equal(true);
+      });
+
+      it("should set the mute status for video tracks", function() {
+        webrtc.setMuteState('video', true);
+
+        expect(audioStreamTrack.enabled).to.be.equal(true);
+        expect(videoStreamTrack.enabled).to.be.equal(false);
       });
     });
   });

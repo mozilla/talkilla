@@ -226,6 +226,27 @@
     return this;
   };
 
+  /**
+   * Mutes all the video or audio streams on the connection
+   * @param {String}  type The type of stream to mute, values are
+   *                       'audio' or 'video'
+   * @param {Boolean} mute True to mute the stream, false to unmute
+   */
+  WebRTC.prototype.setMuteState = function(type, mute) {
+    var streams = this.pc.getLocalStreams();
+
+    function muteTrack(track) {
+      track.enabled = !mute;
+    }
+
+    streams.forEach(function(stream) {
+      if (type === 'audio')
+        stream.getAudioTracks().forEach(muteTrack, this);
+      else if (type === 'video')
+        stream.getVideoTracks().forEach(muteTrack, this);
+    }, this);
+  };
+
   // "private" methods
 
   /**
