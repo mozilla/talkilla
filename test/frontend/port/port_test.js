@@ -1,5 +1,4 @@
-/* global app, Backbone, describe, it, beforeEach, afterEach, sinon, chai,
-          Port */
+/* global Backbone, describe, it, beforeEach, afterEach, sinon, chai, Port */
 var expect = chai.expect;
 
 describe("app.port", function() {
