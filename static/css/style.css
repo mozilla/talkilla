@@ -151,10 +151,35 @@
 }
 
 #call-controls .controls li {
-  height: 24px;
-  padding: 0 4px;
-  float: left;
   border-right: 1px solid #d6d6d6;
+  float: left;
+}
+
+#call-controls .controls li a {
+  display: block;
+  height: 16px;
+  width: 16px;
+  margin: 4px;
+}
+
+.btn-video a {
+  background: url(../img/btn-video.png);
+}
+
+.btn-audio a {
+  background: url(../img/btn-audio.png);
+}
+
+.btn-hangup a {
+  background: url(../img/btn-hangup.png);
+}
+
+.btn-audio-mute a {
+  background: url(../img/btn-audio-mute.png);
+}
+
+.btn-audio-mute.active a {
+  background: url(../img/btn-audio-unmute.png);
 }
 
 /**
