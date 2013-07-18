@@ -1,39 +1,56 @@
-/* global app, describe, it, beforeEach, afterEach, sinon */
+/* global app, describe, it, beforeEach, afterEach, sinon, Port */
 
 describe("UserEntryView", function() {
-  var sandbox;
+  var sandbox, sidebarApp;
+
+  function createFakeSidebarApp() {
+    // exposes a global sidebarApp for view consumption
+    // XXX: FIX THAT
+    window.sidebarApp = {
+      user: new app.models.User(),
+      port: new Port()
+    };
+    return window.sidebarApp;
+  }
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
+
+    // mozSocial "mock"
+    navigator.mozSocial = {
+      getWorker: function() {
+        return {
+          port: {postMessage: sinon.spy()}
+        };
+      }
+    };
+
+    sandbox.stub(Port.prototype, "postEvent");
+
+    sidebarApp = createFakeSidebarApp();
+    sidebarApp.openConversation = sandbox.spy();
   });
 
   afterEach(function() {
     sandbox.restore();
+    window.sidebarApp = undefined;
   });
 
   describe("#call", function() {
-    it("should send a talkilla.conversation-open message", function () {
+    it("should ask the app to open a new conversation", function () {
       var view = new app.views.UserEntryView();
-      sandbox.stub(app.port, "postEvent");
 
       var clickEvent = {
         preventDefault: function() {},
         currentTarget: {
-          getAttribute: function (attr) {
-            if (attr === 'rel')
-              return "william";
-
-            return undefined;
-          }
+          getAttribute: function() {return "william";}
         }
       };
 
       view.openConversation(clickEvent);
 
-      sinon.assert.calledOnce(app.port.postEvent);
-      sinon.assert.calledWith(app.port.postEvent,
-                              "talkilla.conversation-open",
-                              { peer: "william" });
+      sinon.assert.calledOnce(sidebarApp.openConversation);
+      sinon.assert.calledWith(sidebarApp.openConversation, "william");
     });
   });
 });
