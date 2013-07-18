@@ -106,6 +106,7 @@ Conversation.prototype = {
       port.postEvent('talkilla.login-success', {
         username: _currentUserData.userName
       });
+      this.data.user = _currentUserData.userName;
     }
 
     storeContact(this.data.peer);
@@ -153,6 +154,7 @@ Conversation.prototype = {
    * - offer  the new sdp offer for the connection
    */
   callUpgrade: function(data) {
+    data.user = _currentUserData.userName;
     ports.broadcastDebug('conversation upgrade', data);
     this.port.postEvent('talkilla.conversation-incoming', data);
   }

@@ -1,4 +1,4 @@
-/*global jQuery, Backbone, _, WebRTC*/
+/*global jQuery, Backbone, _, Port, WebRTC*/
 /* jshint unused: false */
 /**
  * Talkilla application.
@@ -28,10 +28,10 @@ var ChatApp = (function($, Backbone, _) {
   };
 
   function ChatApp() {
-    this.port = app.port;
+    this.port = app.port = new Port();
     // XXX app.data.user probably shouldn't be global, but this is synced
     // with the sidebar so needs to be reworked at the same time.
-    app.data.user = new app.models.User();
+    this.user = app.data.user = new app.models.User();
     this.peer = new app.models.User();
 
     this.webrtc = new WebRTC({
@@ -86,7 +86,7 @@ var ChatApp = (function($, Backbone, _) {
 
     this.textChatView = new app.views.TextChatView({
       collection: this.textChat,
-      sender: app.data.user
+      sender: this.user
     });
 
     this.view = new app.views.ConversationView({
@@ -95,6 +95,9 @@ var ChatApp = (function($, Backbone, _) {
       peer: this.peer,
       el: 'body'
     });
+
+    // User events
+    this.user.on('signout', this._onUserSignout.bind(this));
 
     // Incoming events
     this.port.on('talkilla.conversation-open',
@@ -126,6 +129,7 @@ var ChatApp = (function($, Backbone, _) {
 
   // Outgoing calls
   ChatApp.prototype._onConversationOpen = function(data) {
+    this.user.set({nick: data.user});
     this.peer.set({nick: data.peer});
   };
 
@@ -149,6 +153,8 @@ var ChatApp = (function($, Backbone, _) {
 
   // Incoming calls
   ChatApp.prototype._onIncomingConversation = function(data) {
+    this.user.set({nick: data.user});
+
     if (!data.upgrade)
       this.peer.set({nick: data.peer});
 
@@ -194,6 +200,11 @@ var ChatApp = (function($, Backbone, _) {
     this.port.postEvent('talkilla.call-hangup', {
       peer: this.peer.get("nick")
     });
+  };
+
+  ChatApp.prototype._onUserSignout = function() {
+    // ensure this chat window is closed when the user signs out
+    window.close();
   };
 
   // if debug is enabled, verbosely log object events to the console

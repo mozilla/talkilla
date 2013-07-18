@@ -1,4 +1,4 @@
-/* global app, Backbone, _, jQuery */
+/* global app, sidebarApp, Backbone, _, jQuery */
 /**
  * Talkilla Backbone views.
  */
@@ -55,15 +55,13 @@
     notifications: [],
 
     initialize: function() {
-      app.data.user.on('signin', function() {
-        this.clear();
-      }.bind(this));
+      // XXX: why the hell do we need to check for this here?!
+      if (!window.sidebarApp)
+        return;
 
-      app.data.user.on('signout', function() {
-        this.clear();
-      }.bind(this));
+      sidebarApp.user.on('signin signout', this.clear, this);
 
-      app.port.on('talkilla.offer-timeout', function(callData) {
+      sidebarApp.port.on('talkilla.offer-timeout', function(callData) {
         app.utils.notifyUI("The other party, " + callData.peer +
                            ", did not respond", "error");
       });
@@ -122,9 +120,7 @@
 
     openConversation: function(event) {
       event.preventDefault();
-      app.port.postEvent('talkilla.conversation-open', {
-        peer: event.currentTarget.getAttribute('rel')
-      });
+      sidebarApp.openConversation(event.currentTarget.getAttribute('rel'));
     },
 
     render: function() {
@@ -257,7 +253,7 @@
       var nick = $.trim(field.val());
       if (!nick)
         return app.utils.notifyUI('please enter a nickname');
-      app.port.login(nick);
+      sidebarApp.login(nick);
       field.val('');
     },
 
@@ -268,7 +264,7 @@
      */
     signout: function(event) {
       event.preventDefault();
-      app.port.logout();
+      sidebarApp.logout();
     }
   });
 })(app, Backbone, _, jQuery);
