@@ -69,27 +69,48 @@ To run the front-end unit tests standalone:
 
 2. Visit http://localhost:5000/test/frontend/index.html
 
-Debugging Functional Tests
---------------------------
-It can useful to execute individual functional tests in the Node debugger.
-Example usage:
 
-1. (add a "debugger;" statement to the code where you want the debugger to break)
-2. # SOLO_FILE=chatwindow_test.js make debug_test
-3. (debug)
-4. (remove the debugger statement)
+Functional Tests
+----------------
 
-Note that because most of the things in the webdriver-selenium API that
-look like imperative statements are actually magic things that cause most
-of the semantics of the commands be enqueued by the ControlFlow piece of
-the "promise manager" to be executed at some point in the future. It can
-take some experimenting to figure out where to usefully put the debugger
-statements.  It may be particularly useful to add a then() handler to the
-first promise-returning statement in the test you want to debug and put
-the debugger statement there.
+You'll need Python 2.7+ and
+[virtualenv](https://pypi.python.org/pypi/virtualenv).
 
-https://code.google.com/p/selenium/wiki/WebDriverJs#Writing_Tests has more
-details on how this stuff fits together.
+    $ cd /path/to/talkilla
+
+Run the tests, bootstrapping necessary dependencies from the net:
+
+    $ make selenium
+
+
+Working With Individual Functional Test Files
+---------------------------------------------
+
+Run one test file:
+
+    $ ./bin/run_selenium_test.sh test/functional/test_SingleBrowser.py
+
+Debugging a single test:
+
+    # start selenium and get the right stuff in your $PATH
+    $ ./bin/selenium.sh start
+    $ source .venv/bin/activate
+    (.venv) $
+
+    # If you're on a Mac, be sure you've installed readline in your
+    # virtualenv first, using easy_install and NOT using pip:
+    (.venv) $ easy_install readline
+
+    # start debugging the file you care about
+    (.venv) $ python -m ipdb test/functional/test_SingleBrowser.py
+
+    # set breakpoint on the 1st line of test_public_homepage & continue
+    ipdb> b 11
+    ipdb> c
+
+    # breakpoint has fired; see what else you can do
+    ipdb> help
+
 
 Contribution
 ------------
@@ -103,4 +124,3 @@ License
 All source code here is available under the
 [MPL 2.0](https://mozilla.org/MPL/2.0/) license, unless otherwise
 indicated.
-
