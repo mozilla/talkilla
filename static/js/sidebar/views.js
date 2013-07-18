@@ -11,10 +11,12 @@
   app.views.AppView = Backbone.View.extend({
     el: 'body',
 
-    initialize: function() {
+    initialize: function(options) {
       this.notifications = new app.views.NotificationsView();
       this.login = new app.views.LoginView();
-      this.users = new app.views.UsersView();
+      this.users = new app.views.UsersView({
+        collection: options && options.users
+      });
     },
 
     render: function() {
@@ -141,21 +143,13 @@
     activeNotification: null,
 
     initialize: function() {
-      app.data.users = this.collection = new app.models.UserSet();
-
-      this.collection.on('change', function() {
-        this.render();
-      }.bind(this));
-
-      this.collection.on('reset', function() {
-        this.render();
-      }.bind(this));
+      this.collection.on('reset change', this.render, this);
 
       // purge the list on sign out
       app.data.user.on('signout', function() {
         this.collection.reset();
         this.callee = undefined;
-      }.bind(this));
+      }, this);
     },
 
     /**

@@ -9,16 +9,14 @@ describe("UsersView", function() {
       sandbox = sinon.sandbox.create();
       app.data.user = new app.models.User();
       app.data.user.on = sandbox.spy();
-      usersView = new app.views.UsersView();
+      usersView = new app.views.UsersView({
+        collection: new app.models.UserSet()
+      });
     });
 
     afterEach(function() {
       usersView = undefined;
       sandbox.restore();
-    });
-
-    it("should create a new UserSet collection", function() {
-      expect(app.data.users).to.be.an.instanceOf(app.models.UserSet);
     });
 
     it("should listen to the user model for signout", function() {

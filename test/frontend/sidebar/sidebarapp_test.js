@@ -8,6 +8,16 @@ describe("SidebarApp", function() {
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
+
+    // mozSocial "mock"
+    window.navigator.mozSocial = {
+      getWorker: function() {
+        return {port: {}};
+      }
+    };
+
+    sandbox.stub(app.views, "AppView");
+
     sandbox.stub(Port.prototype, "postEvent");
   });
 
@@ -18,17 +28,8 @@ describe("SidebarApp", function() {
 
   describe("#constructor", function() {
     beforeEach(function() {
-      sandbox.stub(app.views, "AppView");
-
       // User prototype methods stubs
       sandbox.stub(app.models.User.prototype, "on");
-
-      // mozSocial "mock"
-      window.navigator.mozSocial = {
-        getWorker: function() {
-          return {port: {}};
-        }
-      };
 
       // jQuery.cookie stubs
       sandbox.stub(window.jQuery, "removeCookie");
@@ -46,6 +47,18 @@ describe("SidebarApp", function() {
       expect(sidebarApp.port).to.be.an.instanceOf(Port);
     });
 
+    it("should create a user", function() {
+      var sidebarApp = new SidebarApp();
+
+      expect(sidebarApp.user).to.be.an.instanceOf(app.models.User);
+    });
+
+    it("should create a user list", function() {
+      var sidebarApp = new SidebarApp();
+
+      expect(sidebarApp.users).to.be.an.instanceOf(app.models.UserSet);
+    });
+
     it("should listen to the user model for signout", function() {
       sandbox.stub(Port.prototype, "on");
 
@@ -55,13 +68,22 @@ describe("SidebarApp", function() {
       sinon.assert.calledWith(sidebarApp.user.on, "signout");
     });
 
-    it("should reset user data on signout", function() {
+    it("should reset user data on logout success", function() {
       var sidebarApp = new SidebarApp();
       sidebarApp.user.set({nick: "jb"});
 
       sidebarApp.port.trigger("talkilla.logout-success");
 
       expect(sidebarApp.user.get('nick')).to.be.a("undefined");
+    });
+
+    it("should reset the user list on logout success", function() {
+      var sidebarApp = new SidebarApp();
+      sidebarApp.users.add({nick: "niko"});
+
+      sidebarApp.port.trigger("talkilla.logout-success");
+
+      expect(sidebarApp.users).to.have.length.of(0);
     });
 
     it("should post talkilla.sidebar-ready to the worker", function() {
@@ -80,6 +102,20 @@ describe("SidebarApp", function() {
 
         sinon.assert.called(sidebarApp.port.on);
         sinon.assert.calledWith(sidebarApp.port.on, "talkilla.debug");
+      });
+
+    it("should listen to the `talkilla.users` event and update user list",
+      function() {
+        var sidebarApp = new SidebarApp();
+
+        sidebarApp.port.trigger("talkilla.users", [
+          {nick: "bob"},
+          {nick: "bill"}
+        ]);
+
+        expect(sidebarApp.users).to.have.length.of(2);
+        expect(sidebarApp.users.at(0).get('nick')).to.equal("bob");
+        expect(sidebarApp.users.at(1).get('nick')).to.equal("bill");
       });
   });
 

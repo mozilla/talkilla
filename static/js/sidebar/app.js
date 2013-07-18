@@ -33,17 +33,24 @@ var SidebarApp = (function($, Backbone, _) {
   function SidebarApp(options) {
     options = options || {};
 
-    // app.data.user is kept for BC
+    this.port = app.port = new Port();
+
+    // XXX app.data.user is kept here for BC
     this.user = app.data.user = new app.models.User({
       nick: options && options.nick
     });
-    this.port = app.port = new Port();
-    this.view = new app.views.AppView();
+
+    this.users = new app.models.UserSet();
+
+    this.view = new app.views.AppView(null, {
+      users: this.users
+    });
 
     // user events
     this.user.on("signout", this._onUserSignout.bind(this));
 
     // port events
+    this.port.on('talkilla.users', this._onUserListReceived.bind(this));
     this.port.on("talkilla.login-success", this._onLoginSuccess.bind(this));
     this.port.on("talkilla.login-failure", this._onLoginFailure.bind(this));
     this.port.on("talkilla.logout-success", this._onLogoutSuccess.bind(this));
@@ -89,7 +96,9 @@ var SidebarApp = (function($, Backbone, _) {
 
   SidebarApp.prototype._onLogoutSuccess = function() {
     $.removeCookie('nick');
+    this.user.clear();
     app.data.user.clear();
+    this.users.reset();
   };
 
   SidebarApp.prototype._onError = function(error) {
@@ -112,6 +121,11 @@ var SidebarApp = (function($, Backbone, _) {
     // hooks.
     var user = app.data.user;
     app.data = { user: user };
+    this.users.reset();
+  };
+
+  SidebarApp.prototype._onUserListReceived = function(users) {
+    this.users.reset(users);
   };
 
   SidebarApp.prototype._setupDebugLogging = function() {
