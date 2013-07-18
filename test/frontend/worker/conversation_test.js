@@ -161,6 +161,7 @@ describe("Conversation", function() {
 
   describe("#callUpgrade" , function() {
     beforeEach(function() {
+      _currentUserData = new UserData({_userName: "jb"});
       currentConversation = new Conversation({});
       currentConversation.port = {
         postEvent: sandbox.spy()
