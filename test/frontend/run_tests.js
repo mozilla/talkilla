@@ -13,6 +13,8 @@ var serverHttpBase = 'http://' + serverHost + ':' + serverPort;
 var testUrls = [
   '/test/frontend/index.html',
   '/test/frontend/chat/index.html',
+  '/test/frontend/port/index.html',
+  '/test/frontend/sidebar/index.html',
   '/test/frontend/webrtc/index.html',
   '/test/frontend/worker/index.html'
 ].map(function(path) {
