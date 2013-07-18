@@ -1,4 +1,4 @@
-/* global $, app, chai, describe, it, beforeEach, afterEach, sinon, Port,
+/* global app, chai, describe, it, beforeEach, afterEach, sinon, Port,
           SidebarApp */
 /* jshint expr:true */
 var expect = chai.expect;

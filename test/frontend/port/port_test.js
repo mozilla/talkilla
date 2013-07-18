@@ -1,4 +1,5 @@
-/* global Backbone, describe, it, beforeEach, afterEach, sinon, chai, app */
+/* global app, Backbone, describe, it, beforeEach, afterEach, sinon, chai,
+          Port */
 var expect = chai.expect;
 
 describe("app.port", function() {
@@ -9,7 +10,6 @@ describe("app.port", function() {
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
     postMessageSpy = sinon.spy();
-    mozSocialBackup = navigator.mozSocial;
     fakePort = {postMessage: postMessageSpy};
     navigator.mozSocial = {
       getWorker: function() {
@@ -18,7 +18,6 @@ describe("app.port", function() {
         };
       }
     };
-    app.port._port = undefined; // reset _port singleton
   });
 
   afterEach(function() {
@@ -27,7 +26,10 @@ describe("app.port", function() {
   });
 
   it("should implement Backbone.Events interface", function() {
-    expect(app.port).to.include.keys(Object.keys(Backbone.Events));
+    console.log(Object.keys(new Port()), Object.keys(Backbone.Events));
+    var port = new Port();
+
+    expect(port).to.include.keys(Object.keys(Backbone.Events));
   });
 
   it("should be able to trigger and subscribe to events", function(done) {
