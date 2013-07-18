@@ -82,4 +82,40 @@ describe("SidebarApp", function() {
         sinon.assert.calledWith(sidebarApp.port.on, "talkilla.debug");
       });
   });
+
+  describe("#login", function() {
+    it("should post the talkilla.login event with user's nick", function() {
+      var sidebarApp = new SidebarApp();
+
+      sidebarApp.login("toto");
+
+      sinon.assert.called(sidebarApp.port.postEvent, "talkilla.login");
+      sinon.assert.calledWithExactly(sidebarApp.port.postEvent,
+                                     "talkilla.login", {username: "toto"});
+    });
+  });
+
+  describe("#logout", function() {
+    it("should post the talkilla.logout event", function() {
+      var sidebarApp = new SidebarApp();
+
+      sidebarApp.logout();
+
+      sinon.assert.called(sidebarApp.port.postEvent, "talkilla.logout");
+    });
+  });
+
+  describe("#openConversation", function() {
+    it("should post the talkilla.conversation-open event", function() {
+      var sidebarApp = new SidebarApp({nick: "toto"});
+
+      sidebarApp.openConversation("jb");
+
+      sinon.assert.called(sidebarApp.port.postEvent,
+                          "talkilla.conversation-open");
+      sinon.assert.calledWithExactly(sidebarApp.port.postEvent,
+                                     "talkilla.conversation-open",
+                                     {user: "toto", peer: "jb"});
+    });
+  });
 });

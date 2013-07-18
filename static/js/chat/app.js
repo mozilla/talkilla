@@ -29,8 +29,7 @@ var ChatApp = (function($, Backbone, _) {
 
   function ChatApp() {
     this.port = app.port = new Port();
-    // XXX app.data.user probably shouldn't be global, but this is synced
-    // with the sidebar so needs to be reworked at the same time.
+    // app.data.user is kept for BC
     this.user = app.data.user = new app.models.User();
     this.peer = new app.models.User();
 

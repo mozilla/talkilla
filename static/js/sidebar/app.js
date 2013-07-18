@@ -33,7 +33,10 @@ var SidebarApp = (function($, Backbone, _) {
   function SidebarApp(options) {
     options = options || {};
 
-    this.user = app.data.user = new app.models.User();
+    // app.data.user is kept for BC
+    this.user = app.data.user = new app.models.User({
+      nick: options && options.nick
+    });
     this.port = app.port = new Port();
     this.view = new app.views.AppView();
 
