@@ -16,7 +16,7 @@ describe("Text chat views", function() {
     };
   }
 
-  var sandbox;
+  var sandbox, user;
   var fakeOffer = {type: "offer", sdp: fakeSDP("\nm=video aaa\nm=audio bbb")};
   var fakeAnswer = {type: "answer", sdp: fakeSDP("\nm=video ccc\nm=audio ddd")};
   var fakeDataChannel = {fakeDataChannel: true};
@@ -29,6 +29,15 @@ describe("Text chat views", function() {
       postEvent: sinon.spy()
     };
     _.extend(app.port, Backbone.Events);
+
+    // mozSocial "mock"
+    navigator.mozSocial = {
+      getWorker: function() {
+        return {
+          port: {postMessage: sinon.spy()}
+        };
+      }
+    };
 
     // mozGetUserMedia stub
     sandbox.stub(navigator, "mozGetUserMedia");
@@ -55,10 +64,11 @@ describe("Text chat views", function() {
       }
     });
 
-    app.data.user = new app.models.User();
+    user = app.data.user = new app.models.User();
   });
 
   afterEach(function() {
+    user.clear();
     sandbox.restore();
     app.port.off();
   });
@@ -107,7 +117,7 @@ describe("Text chat views", function() {
 
       peer = new app.models.User();
 
-      app.data.user.set({nick: "niko"});
+      user.set({nick: "niko"});
     });
 
     afterEach(function() {
@@ -116,7 +126,7 @@ describe("Text chat views", function() {
 
     it("should be empty by default", function() {
       var view = new app.views.TextChatView({
-        sender: app.data.user,
+        sender: user,
         collection: new app.models.TextChat([], {media: media, peer: peer})
       });
 
@@ -128,8 +138,9 @@ describe("Text chat views", function() {
     });
 
     it("should update rendering when its collection is updated", function() {
+      user.set({nick: "niko"});
       var view = new app.views.TextChatView({
-        sender: app.data.user,
+        sender: user,
         collection: new app.models.TextChat([
           {nick: "niko", message: "plop"},
           {nick: "jb", message: "hello"}
@@ -150,15 +161,16 @@ describe("Text chat views", function() {
 
     it("should allow the caller to send a first message", function(done) {
       var chatApp = new ChatApp();
-      app.data.user.set({nick: "niko"});
       var textChat = chatApp.textChatView.collection;
-      chatApp.textChatView.collection.media.connected = true;
-      app.port.trigger("talkilla.conversation-open", {peer: "niko"});
+      chatApp.port.trigger("talkilla.conversation-open", {
+        peer: "niko",
+        user: "jb"
+      });
       expect(textChat).to.have.length.of(0);
 
       textChat.once("add", function(entry) {
         expect(entry).to.be.an.instanceOf(app.models.TextChatEntry);
-        expect(entry.get("nick")).to.equal("niko");
+        expect(entry.get("nick")).to.equal("jb");
         expect(entry.get("message")).to.equal("plop");
         done();
       });

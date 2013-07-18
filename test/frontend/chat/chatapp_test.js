@@ -1,5 +1,5 @@
 /* global app, chai, describe, it, sinon, beforeEach, afterEach,
-   ChatApp, $, _, Backbone, WebRTC */
+   ChatApp, $, _, Backbone, Port, WebRTC */
 
 /* jshint expr:true */
 var expect = chai.expect;
@@ -34,6 +34,15 @@ describe("ChatApp", function() {
       play: sandbox.stub(),
       pause: sandbox.stub()
     });
+
+    // mozSocial "mock"
+    navigator.mozSocial = {
+      getWorker: function() {
+        return {
+          port: {postMessage: sinon.spy()}
+        };
+      }
+    };
 
     // mozRTCPeerConnection stub
     sandbox.stub(window, "mozRTCPeerConnection").returns({
@@ -136,10 +145,12 @@ describe("ChatApp", function() {
   });
 
   it("should post talkilla.chat-window-ready to the worker", function() {
+      sandbox.stub(Port.prototype, "postEvent");
+
       chatApp = new ChatApp();
 
-      sinon.assert.calledOnce(app.port.postEvent);
-      sinon.assert.calledWithExactly(app.port.postEvent,
+      sinon.assert.calledOnce(chatApp.port.postEvent);
+      sinon.assert.calledWithExactly(chatApp.port.postEvent,
         "talkilla.chat-window-ready", {});
     });
 
@@ -171,7 +182,8 @@ describe("ChatApp", function() {
   });
 
   it("should initialize a peer model", function() {
-    sandbox.stub(app.models, "User");
+    sandbox.stub(app.models, "User").returns({on: sandbox.spy()});
+
     chatApp = new ChatApp();
 
     // This currently gets called twice because of app.data.user
@@ -194,10 +206,6 @@ describe("ChatApp", function() {
 
       chatApp = new ChatApp();
 
-      // Reset the postEvent spy as the ChatApp constructor already
-      // triggered a talkilla.chat-window-ready event. We do not want
-      // this trigger to mess with our following tests.
-      app.port.postEvent.reset();
       // Some functions only test a little bit, and don't stub everything, so
       // stub mozGetUserMedia as that tends to let callbacks happen which
       // can cause unexpected sending of data to worker ports.
@@ -297,6 +305,9 @@ describe("ChatApp", function() {
     });
 
     describe("#_onCallOfferTimout", function() {
+      beforeEach(function() {
+        sandbox.stub(Port.prototype, "postEvent");
+      });
 
       it("should post the `talkilla.offer-timeout` event to the worker",
         function() {
@@ -343,19 +354,23 @@ describe("ChatApp", function() {
 
     describe("#_onCallHangup", function() {
       beforeEach(function() {
+        sandbox.stub(Port.prototype, "postEvent");
         sandbox.stub(chatApp.call, "hangup");
         chatApp.call.state.current = "ongoing";
       });
 
       it("should hangup the call", function() {
         chatApp._onCallHangup();
+
         sinon.assert.calledOnce(chatApp.call.hangup);
         sinon.assert.calledWithExactly(chatApp.call.hangup);
       });
 
       it("should post a talkilla.call-hangup event to the worker", function() {
         chatApp.peer.set({"nick": "florian"});
+
         chatApp._onCallHangup();
+
         sinon.assert.calledOnce(app.port.postEvent);
         sinon.assert.calledWith(app.port.postEvent,
                                 "talkilla.call-hangup", {peer: "florian"});
@@ -384,6 +399,7 @@ describe("ChatApp", function() {
       var offer;
 
       beforeEach(function() {
+        sandbox.stub(Port.prototype, "postEvent");
         offer = {
           sdp: 'sdp',
           type: 'type'
@@ -408,8 +424,9 @@ describe("ChatApp", function() {
     });
 
     describe("#_onSendAnswer", function() {
-      it("should post an event to the worker when onSendAnsweris triggered",
+      it("should post an event to the worker when onSendAnswer is triggered",
         function() {
+          sandbox.stub(Port.prototype, "postEvent");
           var answer = {
             sdp: 'sdp',
             type: 'type'
