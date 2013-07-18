@@ -1,22 +1,14 @@
-/* global app, chai, describe, it, beforeEach, afterEach, sinon, SidebarApp */
+/* global $, app, chai, describe, it, beforeEach, afterEach, sinon, Port,
+          SidebarApp */
 /* jshint expr:true */
 var expect = chai.expect;
-
-describe("App", function() {
-  it("should exist", function() {
-    expect(app).to.exist;
-  });
-
-});
 
 describe("SidebarApp", function() {
   var sandbox;
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
-    sandbox.stub(app.port, "postEvent");
-    sandbox.stub(app.port, "on");
-    app.data.user = new app.models.User();
+    sandbox.stub(Port.prototype, "postEvent");
   });
 
   afterEach(function() {
@@ -25,12 +17,21 @@ describe("SidebarApp", function() {
   });
 
   describe("#constructor", function() {
-    var userData;
-
     beforeEach(function() {
       sandbox.stub(app.views, "AppView");
-      userData = app.data.user;
-      userData.on = sandbox.spy();
+
+      // User prototype methods stubs
+      sandbox.stub(app.models.User.prototype, "on");
+
+      // mozSocial "mock"
+      window.navigator.mozSocial = {
+        getWorker: function() {
+          return {port: {}};
+        }
+      };
+
+      // jQuery.cookie stubs
+      sandbox.stub(window.jQuery, "removeCookie");
     });
 
     it("should create an AppView", function() {
@@ -39,44 +40,46 @@ describe("SidebarApp", function() {
       sinon.assert.calledOnce(app.views.AppView);
     });
 
-    it("should listen to the user model for signout", function() {
-      new SidebarApp();
+    it("should create a port", function() {
+      var sidebarApp = new SidebarApp();
 
-      sinon.assert.calledOnce(userData.on);
-      sinon.assert.calledWith(userData.on, "signout");
+      expect(sidebarApp.port).to.be.an.instanceOf(Port);
     });
 
-    it("should reset all data apart from user data on signout", function() {
-      userData.clear = sandbox.spy();
+    it("should listen to the user model for signout", function() {
+      sandbox.stub(Port.prototype, "on");
 
-      // Save the current user data.
-      var savedUserData = userData;
+      var sidebarApp = new SidebarApp();
 
-      // Add some extra data.
-      app.data.random = true;
+      sinon.assert.called(sidebarApp.user.on);
+      sinon.assert.calledWith(sidebarApp.user.on, "signout");
+    });
 
-      // Create the app and call the signout callback function.
-      new SidebarApp();
-      userData.on.args[0][1]();
+    it("should reset user data on signout", function() {
+      var sidebarApp = new SidebarApp();
+      sidebarApp.user.set({nick: "jb"});
 
-      expect(app.data).to.deep.equal({user: savedUserData});
+      sidebarApp.port.trigger("talkilla.logout-success");
+
+      expect(sidebarApp.user.get('nick')).to.be.a("undefined");
     });
 
     it("should post talkilla.sidebar-ready to the worker", function() {
-      new SidebarApp({nick: "toto"});
+      var sidebarApp = new SidebarApp({nick: "toto"});
 
-      sinon.assert.calledOnce(app.port.postEvent);
-      sinon.assert.calledWithExactly(app.port.postEvent,
+      sinon.assert.calledOnce(sidebarApp.port.postEvent);
+      sinon.assert.calledWithExactly(sidebarApp.port.postEvent,
                                      "talkilla.sidebar-ready", {nick: "toto"});
     });
 
     it("should listen to the `talkilla.debug` event when debug is enabled",
       function() {
+        sandbox.stub(Port.prototype, "on");
         app.options.DEBUG = true;
-        new SidebarApp({nick: "toto"});
+        var sidebarApp = new SidebarApp({nick: "toto"});
 
-        sinon.assert.calledOnce(app.port.on);
-        sinon.assert.calledWith(app.port.on, "talkilla.debug");
+        sinon.assert.called(sidebarApp.port.on);
+        sinon.assert.calledWith(sidebarApp.port.on, "talkilla.debug");
       });
   });
 });
