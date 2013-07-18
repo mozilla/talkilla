@@ -11,6 +11,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 SELENIUM_COMMAND_EXECUTOR = os.getenv("SELENIUM_COMMAND_EXECUTOR",
                                       "http://127.0.0.1:4444/wd/hub")
+BASE_APP_URL = "http://localhost:3000"
+DEFAULT_WAIT_TIMEOUT = 5
 
 
 class Driver(WebDriver):
@@ -76,45 +78,70 @@ class Driver(WebDriver):
         input_text.send_keys(message)
         input_text.send_keys(Keys.RETURN)
 
-    # replace switchToFrame logic with something like this?
-    #
-    #       wait = WebDriverWait(self, WEBDRIVER_WAIT_TIMEOUT)
-    #       wait.until(EC.frame_to_be_available_and_switch_to_it("//chatbox"))
-    def switchToFrame(self, locator, timeout=5):
+    def switchToFrame(self, locator, expected_url,
+                      timeout=DEFAULT_WAIT_TIMEOUT):
         """ Wait for a frame to become available, then switch to it.
 
             Args:
-            - localtor: Frame locator string
+            - locator: Frame locator string
+            - expected_url: Used to ensure that we've ended up in the new
+                frame.  Note that (e.g.) chat window tests will need to append
+                a hash value or something similar to ensure the URL is unique
+                so that switching from one chat window to another does the
+                right thing.
 
             Kwargs:
             - timeout: Operation timeout in seconds
 
             Returns: Driver
         """
-        def switch(_):
-            try:
-                self.switch_to_frame(locator)
-                return True
-            except:
+        wait = WebDriverWait(self, timeout)
+        wait.until(EC.frame_to_be_available_and_switch_to_it(locator))
+
+        def wait_for_correct_document(_):
+
+            current_url = self.current_url  # cache to avoid extra wire calls
+
+            # if frame switches are failing, uncomment the following line to
+            # help debug:
+            #print "self.current_url = ", current_url
+
+            if current_url != expected_url:
+                # getting here may have been caused by the previous wait having
+                # been called too soon before the server switched to the right
+                # document.  Do it again, just in case.
+                #
+                # if, on the other hand, the cause was that the previous wait
+                # was called an appropriate time, this shouldn't hurt us.
+                #
+                # (one or might FirefoxDriver change might make this
+                # unnecessary.  yuck.  ideally, Marionette won't have this
+                # problem, and when we switch to it, we'll be able to ditch
+                # this nested wait.  we'll see).
+                wait2 = WebDriverWait(self, timeout)
+                wait2.until(EC.frame_to_be_available_and_switch_to_it(locator))
                 return False
-        msg = u"Couldn't switch to frame: %s; timeout of %ss. exhausted" % (
-            locator, timeout)
-        WebDriverWait(self, timeout, poll_frequency=.25).until(switch,
-                                                               message=msg)
+
+            return True
+
+        msg = u"timed out waiting for %s to be %s after %ss seconds" % (
+            locator, expected_url, timeout)
+        WebDriverWait(self, timeout, poll_frequency=.25).until(
+            wait_for_correct_document, message=msg)
         return self
 
     def switchToChatWindow(self):
         """Switches to the Social API chat window."""
-        return self.switchToFrame("//chatbox")
+        return self.switchToFrame("//chatbox",
+                                  BASE_APP_URL + "/chat.html")
 
     def switchToSidebar(self):
         """Switches to the Social API sidebar."""
-        # XXX get rid of this unnecessary call to switchToSidebar
-        # that currently just so happens to help us win a race
-        self.switchToFrame("//#social-sidebar-browser")
-        return self.switchToFrame("//#social-sidebar-browser")
+        return self.switchToFrame("//#social-sidebar-browser",
+                                  BASE_APP_URL + "/sidebar.html")
 
-    def waitForElement(self, css_selector, timeout=5, visible=None):
+    def waitForElement(self, css_selector, timeout=DEFAULT_WAIT_TIMEOUT,
+                       visible=None):
         """ Waits for a single DOM element matching the provided CSS selector
             do be available.
 
@@ -136,7 +163,8 @@ class Driver(WebDriver):
             return elements[0]
         raise NoSuchElementException("No element matching " + css_selector)
 
-    def waitForElements(self, css_selector, timeout=5, visible=None):
+    def waitForElements(self, css_selector, timeout=DEFAULT_WAIT_TIMEOUT,
+                        visible=None):
         """ Waits for DOM elements matching the provided CSS selector to be
             available.
 
