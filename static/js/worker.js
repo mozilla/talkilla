@@ -120,8 +120,12 @@ Conversation.prototype = {
    */
   handleIncomingCall: function(data) {
     ports.broadcastDebug('handle incoming call', data);
+
     if (this.data.peer !== data.peer)
       return false;
+
+    if (_currentUserData)
+      data.user = _currentUserData.userName;
 
     this.data = data;
 
@@ -167,20 +171,6 @@ Conversation.prototype = {
   callHangup: function(data) {
     ports.broadcastDebug('conversation hangup', data);
     this.port.postEvent('talkilla.call-hangup', data);
-  },
-
-  /**
-   * Upgrades current conversation.
-   *
-   * @param data The data associated with the call. Consisting of:
-   *
-   * - peer   the id of the other user
-   * - offer  the new sdp offer for the connection
-   */
-  callUpgrade: function(data) {
-    data.user = _currentUserData.userName;
-    ports.broadcastDebug('conversation upgrade', data);
-    this.port.postEvent('talkilla.conversation-incoming', data);
   }
 };
 
