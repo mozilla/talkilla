@@ -97,16 +97,20 @@
     events: {
       'click .btn-video a': 'videoCall',
       'click .btn-audio a': 'audioCall',
-      'click .btn-hangup a': 'hangup'
+      'click .btn-hangup a': 'hangup',
+      'click .btn-audio-mute a': 'audioMuteToggle'
     },
 
     initialize: function(options) {
       options = options || {};
       if (!options.call)
         throw new Error("missing parameter: call");
+      if (!options.media)
+        throw new Error("missing parameter: media");
       if (!options.el)
         throw new Error("missing parameter: el");
 
+      this.media = options.media;
       this.call = options.call;
 
       this.call.on('state:to:pending state:to:incoming',
@@ -135,6 +139,18 @@
                       // conversation window open (eg. for text chat)
     },
 
+    audioMuteToggle: function(event) {
+      if (event)
+        event.preventDefault();
+
+      var button = this.$('.btn-audio-mute');
+
+      button.toggleClass('active');
+
+      this.media.setMuteState('audio',
+                              button.hasClass('active'));
+    },
+
     _callPending: function() {
       this.$el.hide();
     },
@@ -144,6 +160,7 @@
       this.$('.btn-video').hide();
       this.$('.btn-audio').hide();
       this.$('.btn-hangup').show();
+      this.$('.btn-audio-mute').show();
     },
 
     _callInactive: function() {
@@ -151,6 +168,7 @@
       this.$('.btn-video').show();
       this.$('.btn-audio').show();
       this.$('.btn-hangup').hide();
+      this.$('.btn-audio-mute').hide();
     }
   });
 

@@ -50,6 +50,7 @@ var ChatApp = (function($, Backbone, _) {
 
     this.callControlsView = new app.views.CallControlsView({
       call: this.call,
+      media: this.webrtc,
       el: $("#call-controls")
     });
 
