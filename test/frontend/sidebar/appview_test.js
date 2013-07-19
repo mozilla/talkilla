@@ -18,21 +18,21 @@ describe("AppView", function() {
     });
 
     it("should add initialize a notifications property", function() {
-      var appView = new app.views.AppView();
+      var appView = new app.views.AppView({users: []});
 
       expect(appView.notifications).to.be.an.instanceOf(
         app.views.NotificationsView);
     });
 
     it("should add initialize a login property", function() {
-      var appView = new app.views.AppView();
+      var appView = new app.views.AppView({users: []});
 
       expect(appView.login).to.be.an.instanceOf(
         app.views.LoginView);
     });
 
     it("should add initialize a users property", function() {
-      var appView = new app.views.AppView();
+      var appView = new app.views.AppView({users: []});
 
       expect(appView.users).to.be.an.instanceOf(app.views.UsersView);
     });

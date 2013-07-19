@@ -148,12 +148,6 @@
 
     initialize: function() {
       this.collection.on('reset change', this.render, this);
-
-      // purge the list on sign out
-      app.data.user.on('signout', function() {
-        this.collection.reset();
-        this.callee = undefined;
-      }, this);
     },
 
     /**
@@ -167,7 +161,7 @@
       this.views = [];
       this.collection.chain().reject(function(user) {
         // filter out current signed in user, if any
-        if (!app.data.user.isLoggedIn())
+        if (!app.data.user.isLoggedIn()) // XXX: get rid of app.data.user
           return false;
         return user.get('nick') === app.data.user.get('nick');
       }).each(function(user) {
@@ -192,7 +186,7 @@
       }).pluck('el').value();
       this.$('ul').append(userList);
       // show/hide element regarding auth status
-      if (app.data.user.isLoggedIn())
+      if (app.data.user.isLoggedIn()) // XXX: get rid of app.data.user
         this.$el.show();
       else
         this.$el.hide();
@@ -224,6 +218,7 @@
     },
 
     initialize: function() {
+      // XXX: get rid of app.data.user
       app.data.user.on('change', function() {
         this.render();
       }.bind(this));
