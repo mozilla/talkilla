@@ -13,7 +13,7 @@ install() {
         curl $SELENIUM_JAR_URL > $SELENIUM_JAR_FILENAME
         echo "Selenium server install in $SELENIUM_JAR_FILENAME"
     fi
-    if [[ (`uname` != "Darwin") && (!(-e /usr/bin/firefox-nightly)) ]]; then
+    if [[ (`uname` != "Darwin") && (!(-e /usr/bin/firefox-nightly)) && (! -f $FIREFOX_BZIP2_FILENAME) ]]; then
         echo "Downloading $FIREFOX_BZIP2_URL"
         curl $FIREFOX_BZIP2_URL > $FIREFOX_BZIP2_FILENAME
         echo "Unpacking $FIREFOX_BZIP2_FILENAME"
