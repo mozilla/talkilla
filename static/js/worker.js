@@ -109,13 +109,37 @@ Conversation.prototype = {
       this.data.user = _currentUserData.userName;
     }
 
+    this._sendCall();
+  },
+
+  /**
+   * Returns true if this conversation window is for the specified
+   * peer and the incoming call data is passed to that window.
+   *
+   * @param peer The id of the peer to compare with.
+   */
+  handleIncomingCall: function(data) {
+    ports.broadcastDebug('handle incoming call', data);
+    if (this.data.peer !== data.peer)
+      return false;
+
+    this.data = data;
+
+    this._sendCall();
+    return true;
+  },
+
+  /**
+   * Sends call information to the conversation window.
+   */
+  _sendCall: function() {
     storeContact(this.data.peer);
 
     var topic = this.data.offer ?
       "talkilla.conversation-incoming" :
       "talkilla.conversation-open";
 
-    port.postEvent(topic, this.data);
+    this.port.postEvent(topic, this.data);
   },
 
   /**
@@ -282,10 +306,21 @@ var serverHandlers = {
 
   'incoming_call': function(data) {
     this.debug("incoming_call", data);
-    if (data.upgrade)
-      currentConversation.callUpgrade(data);
-    else
-      currentConversation = new Conversation(data);
+
+    // If we're in a conversation, and it is not with the peer,
+    // then ignore it
+    if (currentConversation) {
+      // If the currentConversation window can handle the incoming call
+      // data (e.g. peer matches) then just handle it.
+      if (currentConversation.handleIncomingCall(data))
+        return;
+
+      // XXX currently, we can't handle more than one conversation
+      // window open, so just ignore it.
+      return;
+    }
+
+    currentConversation = new Conversation(data);
   },
 
   'call_accepted': function(data) {
