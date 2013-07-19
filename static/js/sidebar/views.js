@@ -12,6 +12,10 @@
     el: 'body',
 
     initialize: function(options) {
+      options = options || {};
+      if (!options.users)
+        throw new Error("missing parameter: users");
+
       this.notifications = new app.views.NotificationsView();
       this.login = new app.views.LoginView();
       this.users = new app.views.UsersView({

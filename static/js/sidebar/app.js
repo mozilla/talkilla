@@ -42,7 +42,7 @@ var SidebarApp = (function($, Backbone, _) {
 
     this.users = new app.models.UserSet();
 
-    this.view = new app.views.AppView(null, {
+    this.view = new app.views.AppView({
       users: this.users
     });
 
