@@ -2,7 +2,7 @@
 
 FIREFOX_BZIP2_FILENAME="firefox-25.0a1.en-US.linux-x86_64.tar.bz2"
 FIREFOX_BZIP2_URL="http://ftp.mozilla.org/pub/mozilla.org/firefox/nightly/latest-mozilla-central/$FIREFOX_BZIP2_FILENAME"
-SELENIUM_JAR_FILENAME="selenium-server-standalone-2.32.0b.jar"
+SELENIUM_JAR_FILENAME="selenium-server-standalone-2.33.0a.jar"
 SELENIUM_JAR_URL="http://people.mozilla.com/~mbanner2/talkilla/$SELENIUM_JAR_FILENAME"
 SELENIUM_PID_FILE="/tmp/selenium-server-pid"
 PWD=`pwd`
@@ -13,12 +13,22 @@ install() {
         curl $SELENIUM_JAR_URL > $SELENIUM_JAR_FILENAME
         echo "Selenium server install in $SELENIUM_JAR_FILENAME"
     fi
-    if [[ (`uname` != "Darwin") && (!(-e /usr/bin/firefox-nightly)) ]]; then
+    if [[ (`uname` != "Darwin") && (!(-e /usr/bin/firefox-nightly)) && (! -f $FIREFOX_BZIP2_FILENAME) ]]; then
         echo "Downloading $FIREFOX_BZIP2_URL"
         curl $FIREFOX_BZIP2_URL > $FIREFOX_BZIP2_FILENAME
         echo "Unpacking $FIREFOX_BZIP2_FILENAME"
         tar -xjf $FIREFOX_BZIP2_FILENAME
         echo "Done."
+    fi
+    bootstrap_python
+}
+
+bootstrap_python() {
+    if [ ! -d  .venv ]; then
+        echo "Bootstrapping functional testing dependencies"
+        virtualenv `pwd`/.venv
+        . .venv/bin/activate
+        pip install -r bin/require.pip
     fi
 }
 
@@ -36,7 +46,7 @@ start() {
         CODE=$(curl -sL -w "%{http_code}" http://localhost:4444/wd/hub -o /dev/null)
         sleep 0.1
     done
-    echo "Selenium server started"
+    echo "Selenium server started ($SELENIUM_JAR_FILENAME, pid=$PID)"
 }
 
 stop() {

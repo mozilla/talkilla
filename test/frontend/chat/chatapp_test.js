@@ -284,15 +284,25 @@ describe("ChatApp", function() {
     });
 
     describe("#_onCallEstablishment", function() {
+      var answer;
+
+      beforeEach(function() {
+        answer = {answer: "fake"};
+        sandbox.stub(chatApp.call, "establish");
+      });
 
       it("should set the call as established", function() {
-        var answer = {};
-        sandbox.stub(chatApp.call, "establish");
-
         chatApp._onCallEstablishment(answer);
 
         sinon.assert.calledOnce(chatApp.call.establish);
         sinon.assert.calledWithExactly(chatApp.call.establish, answer);
+      });
+
+      it("should stop the outgoing call sound", function() {
+        chatApp._onCallEstablishment(answer);
+
+        sinon.assert.calledOnce(chatApp.audioLibrary.stop);
+        sinon.assert.calledWithExactly(chatApp.audioLibrary.stop, "outgoing");
       });
     });
 
@@ -408,7 +418,7 @@ describe("ChatApp", function() {
     });
 
     describe("#_onSendAnswer", function() {
-      it("should post an event to the worker when onSendAnsweris triggered",
+      it("should post an event to the worker when onSendAnswer is triggered",
         function() {
           var answer = {
             sdp: 'sdp',
