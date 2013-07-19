@@ -140,6 +140,8 @@ var ChatApp = (function($, Backbone, _) {
 
     // video/audio call
     this.call.establish(data);
+
+    this.audioLibrary.stop('outgoing');
   };
 
   ChatApp.prototype._onCallOfferTimout = function(callData) {
