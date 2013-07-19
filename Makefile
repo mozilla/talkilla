@@ -41,7 +41,7 @@ runserver_dev:
 # other targets
 
 .PHONY: selenium_all
-selenium_all: selenium frontend
+selenium_all: frontend selenium
 
 .PHONY: selenium
 selenium:
