@@ -432,11 +432,11 @@
       // way we know exactly which channel we're expecting to communicate
       // with.
       id: id,
-      negotiated: false,
+      negotiated: true,
       // Stream and preset parameters enable backwards compatibility
       // from Firefox 24 until bug 892441 is fixed.
       stream: id,
-      preset: false
+      preset: true
     });
 
     dc.onopen  = this.trigger.bind(this, "dc:ready", dc);
