@@ -428,7 +428,7 @@
    */
   WebRTC.prototype._setupDataChannel = function(pc, id) {
     var dc = pc.createDataChannel('dc', {
-      // We set up a non-negotiated channel with a specific id, this
+      // We set up a pre-negotiated channel with a specific id, this
       // way we know exactly which channel we're expecting to communicate
       // with.
       id: id,
