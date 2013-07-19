@@ -49,6 +49,7 @@ var ChatApp = (function($, Backbone, _) {
 
     this.callControlsView = new app.views.CallControlsView({
       call: this.call,
+      media: this.webrtc,
       el: $("#call-controls")
     });
 
@@ -143,6 +144,8 @@ var ChatApp = (function($, Backbone, _) {
 
     // video/audio call
     this.call.establish(data);
+
+    this.audioLibrary.stop('outgoing');
   };
 
   ChatApp.prototype._onCallOfferTimout = function(callData) {

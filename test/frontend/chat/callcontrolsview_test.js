@@ -12,6 +12,7 @@ describe("Call Controls View", function() {
            '<li class="btn-video"><a href="#"></a></li>' +
            '<li class="btn-audio"><a href="#"></a></li>' +
            '<li class="btn-hangup"><a href="#"></a></li>' +
+           '<li class="btn-audio-mute"><a href="#"></a></li>' +
            '</ul>');
     // Just to hide it from the screen.
     $(el).hide();
@@ -27,6 +28,7 @@ describe("Call Controls View", function() {
       establish: sandbox.spy(),
       initiate: sandbox.spy(),
       terminate: sandbox.spy(),
+      setMuteState: sandbox.spy(),
       on: sandbox.stub(),
       state: {current: "ready"}
     };
@@ -43,16 +45,28 @@ describe("Call Controls View", function() {
     it("should attach a given call model", function() {
       var callControlsView = new app.views.CallControlsView({
         el: 'fakeDom',
-        call: call
+        call: call,
+        media: media
       });
 
       expect(callControlsView.call).to.equal(call);
     });
 
+    it("should attach a given media object", function() {
+      var callControlsView = new app.views.CallControlsView({
+        el: 'fakeDom',
+        call: call,
+        media: media
+      });
+
+      expect(callControlsView.media).to.equal(media);
+    });
+
     it("should attach a given element", function() {
       var callControlsView = new app.views.CallControlsView({
         el: 'fakeDom',
-        call: call
+        call: call,
+        media: media
       });
 
       expect(callControlsView.call).to.equal(call);
@@ -65,9 +79,19 @@ describe("Call Controls View", function() {
       expect(shouldExplode).to.Throw(Error, /missing parameter: call/);
     });
 
+    it("should throw an error when no media object is given", function() {
+      function shouldExplode() {
+        new app.views.CallControlsView({el: 'fakeDom', call: 'fakeCall'});
+      }
+      expect(shouldExplode).to.Throw(Error, /missing parameter: media/);
+    });
+
     it("should throw an error when no el parameter is given", function() {
       function shouldExplode() {
-        new app.views.CallControlsView({call: 'fakeWebrtc'});
+        new app.views.CallControlsView({
+          call: 'fakeWebrtc',
+          media: 'fakeMedia'
+        });
       }
       expect(shouldExplode).to.Throw(Error, /missing parameter: el/);
     });
@@ -79,7 +103,8 @@ describe("Call Controls View", function() {
         sandbox.stub(call, "on");
         callControlsView = new app.views.CallControlsView({
           el: 'fakeDom',
-          call: call
+          call: call,
+          media: media
         });
       });
 
@@ -117,6 +142,7 @@ describe("Call Controls View", function() {
       sandbox.stub(app.views.CallControlsView.prototype, "videoCall");
       sandbox.stub(app.views.CallControlsView.prototype, "audioCall");
       sandbox.stub(app.views.CallControlsView.prototype, "hangup");
+      sandbox.stub(app.views.CallControlsView.prototype, "audioMuteToggle");
       callControlsView = new app.views.CallControlsView({el: el});
     });
 
@@ -141,6 +167,13 @@ describe("Call Controls View", function() {
         sinon.assert.calledOnce(callControlsView.hangup);
       });
 
+    it("should call audioMuteToggle() when a click event is fired on the" +
+      " audio mute button", function() {
+        $(el).find('.btn-audio-mute a').trigger("click");
+
+        sinon.assert.calledOnce(callControlsView.audioMuteToggle);
+      });
+
   });
 
   describe("Call Control Handling", function() {
@@ -151,8 +184,9 @@ describe("Call Controls View", function() {
       $("#fixtures").append(el);
 
       callControlsView = new app.views.CallControlsView({
-        el: 'fakeDom',
-        call: call
+        el: $("#fixtures"),
+        call: call,
+        media: media
       });
 
       fakeClickEvent = {preventDefault: sandbox.spy()};
@@ -206,6 +240,24 @@ describe("Call Controls View", function() {
       });
     });
 
+    describe("#audioMuteToggle", function() {
+      beforeEach(function() {
+        $('.btn-audio-mute').removeClass('active');
+      });
+
+      it('should toggle the class on the button', function() {
+        callControlsView.audioMuteToggle();
+
+        expect($('.btn-audio-mute').hasClass("active")).to.be.equal(true);
+      });
+
+      it('should set the audio mute state', function() {
+        callControlsView.audioMuteToggle();
+
+        sinon.assert.calledOnce(media.setMuteState);
+        sinon.assert.calledWithExactly(media.setMuteState, 'audio', true);
+      });
+    });
   });
 
   describe("Call State Handling", function() {
