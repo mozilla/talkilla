@@ -19,20 +19,26 @@ TEST_URLS = [SERVER_PREFIX + p for p in [
 ]]
 
 
+def kill_app(app):
+    os.kill(app.pid, signal.SIGTERM)
+
+
 class FrontEndSuite(unittest.TestCase):
     def setUp(self):
         super(FrontEndSuite, self).setUp()
-        app_cmd = 'PORT=3000 NODE_ENV=test node app.js'
-        self.node_app = subprocess.Popen(app_cmd, stdout=subprocess.PIPE,
-                                         shell=True, preexec_fn=os.setsid)
+        cmd = ("node", "app.js")
+        env = os.environ.copy()
+        env.update({"PORT": "3000",
+                    "NO_LOCAL_CONFIG": "true",
+                    "NODE_ENV": "test"})
+        self.node_app = subprocess.Popen(cmd, env=env)
+        self.addCleanup(kill_app, self.node_app)
         self.drvr = driver.create()
         self.drvr.implicitly_wait(20)
 
     def tearDown(self):
         self.drvr.quit()
-        os.killpg(self.node_app.pid, signal.SIGTERM)
-        self.node_app.kill()
-        # ps aux|grep "node app"|grep -v grep|awk '{print $2}'|xargs kill
+        kill_app(self.node_app)
 
     def test_frontend_pages_for_zero_failures(self):
         for url in TEST_URLS:
