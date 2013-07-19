@@ -11,12 +11,6 @@ import driver
 
 
 SERVER_PREFIX = 'http://localhost:3000/test/frontend/'
-TEST_URLS = [SERVER_PREFIX + p for p in [
-    'index.html',
-    'chat/index.html',
-    'webrtc/index.html',
-    'worker/index.html'
-]]
 
 
 def kill_app(app):
@@ -40,12 +34,23 @@ class FrontEndSuite(unittest.TestCase):
         self.drvr.quit()
         kill_app(self.node_app)
 
-    def test_frontend_pages_for_zero_failures(self):
-        for url in TEST_URLS:
-            self.drvr.get(url)
-            self.drvr.find_element_by_id('complete')
-            failNode = self.drvr.find_element_by_css_selector('.failures > em')
-            assert failNode.text == "0"
+    def check_page_for_zero_failures(self, url):
+        self.drvr.get(url)
+        self.drvr.find_element_by_id('complete')
+        failNode = self.drvr.find_element_by_css_selector('.failures > em')
+        assert failNode.text == "0"
+
+    def test_index_html(self):
+        self.check_page_for_zero_failures(SERVER_PREFIX + "index.html")
+
+    def test_chat_index_html(self):
+        self.check_page_for_zero_failures(SERVER_PREFIX + "chat/index.html")
+
+    def test_webrtc_index_html(self):
+        self.check_page_for_zero_failures(SERVER_PREFIX + "webrtc/index.html")
+
+    def test_worker_index_html(self):
+        self.check_page_for_zero_failures(SERVER_PREFIX + "worker/index.html")
 
 
 if __name__ == "__main__":

@@ -49,5 +49,5 @@ selenium:
 
 .PHONY: frontend
 frontend:
-	bin/run_selenium_test.sh test/frontend/frontend_all_units_test.py
+	bin/run_selenium_test.sh -m unittest discover test/frontend
 
