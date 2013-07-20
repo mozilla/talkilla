@@ -1,4 +1,4 @@
-/* global app, describe, it, beforeEach, afterEach, sinon, Port */
+/* global app, describe, it, beforeEach, afterEach, sinon, AppPort */
 
 describe("UserEntryView", function() {
   var sandbox, sidebarApp;
@@ -8,7 +8,7 @@ describe("UserEntryView", function() {
     // XXX: FIX THAT
     window.sidebarApp = {
       user: new app.models.User(),
-      port: new Port()
+      port: new AppPort()
     };
     return window.sidebarApp;
   }
@@ -25,7 +25,7 @@ describe("UserEntryView", function() {
       }
     };
 
-    sandbox.stub(Port.prototype, "postEvent");
+    sandbox.stub(AppPort.prototype, "postEvent");
 
     sidebarApp = createFakeSidebarApp();
     sidebarApp.openConversation = sandbox.spy();

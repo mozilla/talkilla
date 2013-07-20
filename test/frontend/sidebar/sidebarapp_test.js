@@ -1,4 +1,4 @@
-/* global app, chai, describe, it, beforeEach, afterEach, sinon, Port,
+/* global app, chai, describe, it, beforeEach, afterEach, sinon, AppPort,
           SidebarApp */
 /* jshint expr:true */
 var expect = chai.expect;
@@ -18,7 +18,7 @@ describe("SidebarApp", function() {
 
     sandbox.stub(app.views, "AppView");
 
-    sandbox.stub(Port.prototype, "postEvent");
+    sandbox.stub(AppPort.prototype, "postEvent");
   });
 
   afterEach(function() {
@@ -44,7 +44,7 @@ describe("SidebarApp", function() {
     it("should create a port", function() {
       var sidebarApp = new SidebarApp();
 
-      expect(sidebarApp.port).to.be.an.instanceOf(Port);
+      expect(sidebarApp.port).to.be.an.instanceOf(AppPort);
     });
 
     it("should create a user", function() {
@@ -60,7 +60,7 @@ describe("SidebarApp", function() {
     });
 
     it("should listen to the user model for signout", function() {
-      sandbox.stub(Port.prototype, "on");
+      sandbox.stub(AppPort.prototype, "on");
 
       var sidebarApp = new SidebarApp();
 
@@ -96,7 +96,7 @@ describe("SidebarApp", function() {
 
     it("should listen to the `talkilla.debug` event when debug is enabled",
       function() {
-        sandbox.stub(Port.prototype, "on");
+        sandbox.stub(AppPort.prototype, "on");
         app.options.DEBUG = true;
         var sidebarApp = new SidebarApp({nick: "toto"});
 
@@ -120,7 +120,7 @@ describe("SidebarApp", function() {
 
     it("should listen to the `talkilla.offer-timeout` port event",
       function() {
-        sandbox.stub(Port.prototype, "on");
+        sandbox.stub(AppPort.prototype, "on");
         var sidebarApp = new SidebarApp();
 
         new app.views.NotificationsView({user: sidebarApp.user});

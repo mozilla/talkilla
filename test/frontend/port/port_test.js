@@ -1,19 +1,18 @@
-/* global Backbone, describe, it, beforeEach, afterEach, sinon, chai, Port */
+/* global Backbone, describe, it, beforeEach, afterEach, sinon, chai, AppPort */
 var expect = chai.expect;
 
-describe("app.port", function() {
+describe("AppPort", function() {
   "use strict";
 
-  var sandbox, mozSocialBackup, fakePort, postMessageSpy;
+  var sandbox, mozSocialBackup, postMessageSpy;
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
     postMessageSpy = sinon.spy();
-    fakePort = {postMessage: postMessageSpy};
     navigator.mozSocial = {
       getWorker: function() {
         return {
-          port: fakePort
+          port: {postMessage: postMessageSpy}
         };
       }
     };
@@ -27,7 +26,7 @@ describe("app.port", function() {
   it("should implement Backbone.Events interface", function() {
     var proto = Object.keys(Backbone.Events);
 
-    var port = new Port();
+    var port = new AppPort();
 
     expect(Object.getPrototypeOf(port)).to.include.keys(proto);
   });
@@ -35,7 +34,7 @@ describe("app.port", function() {
   it("should be able to trigger and subscribe to events", function(done) {
     var testData = {bar: "baz"};
 
-    (new Port()).on("foo", function(data) {
+    (new AppPort()).on("foo", function(data) {
       expect(data).to.deep.equal(testData);
       done();
     }).trigger("foo", testData);
@@ -43,7 +42,7 @@ describe("app.port", function() {
 
   it("should trigger an event when a message is received by the port",
     function(done) {
-      var port = new Port();
+      var port = new AppPort();
 
       port.on("universe", function(data) {
         expect(data.answer).to.equal(42);
@@ -54,7 +53,7 @@ describe("app.port", function() {
     });
 
   it("should be able to post an event", function() {
-    var port = new Port();
+    var port = new AppPort();
 
     port.postEvent("answer", 42);
 

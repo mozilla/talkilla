@@ -1,4 +1,4 @@
-/*global jQuery, Backbone, _, Port, WebRTC*/
+/*global jQuery, Backbone, _, AppPort, WebRTC*/
 /* jshint unused: false */
 /**
  * Talkilla application.
@@ -28,7 +28,7 @@ var ChatApp = (function($, Backbone, _) {
   };
 
   function ChatApp() {
-    this.port = new Port();
+    this.port = new AppPort();
     this.user = new app.models.User();
     this.peer = new app.models.User();
 

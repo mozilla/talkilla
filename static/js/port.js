@@ -5,18 +5,18 @@
 (function(exports, Backbone, _) {
   "use strict";
 
-  function Port() {
+  function AppPort() {
     this._port = navigator.mozSocial.getWorker().port;
 
     this._port.onmessage = function(event) {
       this.trigger(event.data.topic, event.data.data);
     }.bind(this);
   }
-  exports.Port = Port;
+  exports.AppPort = AppPort;
 
-  Port.prototype.postEvent = function(topic, data) {
+  AppPort.prototype.postEvent = function(topic, data) {
     this._port.postMessage({topic: topic, data: data});
   };
 
-  _.extend(Port.prototype, Backbone.Events);
+  _.extend(AppPort.prototype, Backbone.Events);
 })(this, Backbone, _);

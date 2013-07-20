@@ -1,4 +1,4 @@
-/*global jQuery, Backbone, _, Port*/
+/*global jQuery, Backbone, _, AppPort*/
 /* jshint unused: false */
 /**
  * Sidebar application.
@@ -33,7 +33,7 @@ var SidebarApp = (function($, Backbone, _) {
   function SidebarApp(options) {
     options = options || {};
 
-    this.port = new Port();
+    this.port = new AppPort();
 
     this.user = new app.models.User({
       nick: options && options.nick

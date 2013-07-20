@@ -1,5 +1,5 @@
 /* global app, chai, describe, it, sinon, beforeEach, afterEach,
-   ChatApp, $, Port, WebRTC */
+   ChatApp, $, AppPort, WebRTC */
 
 /* jshint expr:true */
 var expect = chai.expect;
@@ -27,7 +27,7 @@ describe("ChatApp", function() {
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
-    sandbox.stub(Port.prototype, "postEvent");
+    sandbox.stub(AppPort.prototype, "postEvent");
     sandbox.stub(window, "addEventListener");
     sandbox.stub(window, "Audio").returns({
       play: sandbox.stub(),
@@ -182,7 +182,6 @@ describe("ChatApp", function() {
 
     chatApp = new ChatApp();
 
-    // This currently gets called twice because of app.data.user
     sinon.assert.called(app.models.User);
   });
 

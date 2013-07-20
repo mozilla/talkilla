@@ -202,10 +202,6 @@ describe('Text chat models', function() {
       textChat = createTextChat();
     });
 
-    afterEach(function() {
-      delete app.data.user;
-    });
-
     it("should send data over data channel", function() {
       var entry = new app.models.TextChatEntry({nick: "foo", message: "bar"});
       var message = {type: "chat:message", message: entry.toJSON()};
