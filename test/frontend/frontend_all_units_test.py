@@ -41,7 +41,7 @@ class FrontEndSuite(unittest.TestCase):
             self.drvr.get(url)
             self.drvr.find_element_by_id('complete')
             failNode = self.drvr.find_element_by_css_selector('.failures > em')
-            assert failNode.text == "0"
+            assert failNode.text == "0", "Failed frontend tests in %s" % url
 
 
 if __name__ == "__main__":

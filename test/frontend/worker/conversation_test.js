@@ -218,27 +218,4 @@ describe("Conversation", function() {
         "talkilla.call-hangup", data);
     });
   });
-
-  describe("#callUpgrade" , function() {
-    beforeEach(function() {
-      _currentUserData = new UserData({_userName: "jb"});
-      currentConversation = new Conversation({});
-      currentConversation.port = {
-        postEvent: sandbox.spy()
-      };
-    });
-
-    it("should post a talkilla.talkilla.conversation-incoming to " +
-       "the conversation window", function() {
-      var data = {
-        peer: "nicolas",
-        upgrade: true
-      };
-      currentConversation.callUpgrade(data);
-
-      sinon.assert.calledOnce(currentConversation.port.postEvent);
-      sinon.assert.calledWith(currentConversation.port.postEvent,
-        "talkilla.conversation-incoming", data);
-    });
-  });
 });
