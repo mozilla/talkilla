@@ -13,12 +13,21 @@
 
     initialize: function(options) {
       options = options || {};
+      if (!options.user)
+        throw new Error("missing parameter: user");
       if (!options.users)
         throw new Error("missing parameter: users");
 
-      this.notifications = new app.views.NotificationsView();
-      this.login = new app.views.LoginView();
+      this.notifications = new app.views.NotificationsView({
+        user: options.user
+      });
+
+      this.login = new app.views.LoginView({
+        user: options.user
+      });
+
       this.users = new app.views.UsersView({
+        user: options.user,
         collection: options && options.users
       });
     },
@@ -60,17 +69,13 @@
 
     notifications: [],
 
-    initialize: function() {
-      // XXX: why the hell do we need to check for this here?!
-      if (!window.sidebarApp)
-        return;
+    initialize: function(options) {
+      options = options || {};
+      if (!options.user)
+        throw new Error("missing parameter: user");
+      this.user = options.user;
 
-      sidebarApp.user.on('signin signout', this.clear, this);
-
-      sidebarApp.port.on('talkilla.offer-timeout', function(callData) {
-        app.utils.notifyUI("The other party, " + callData.peer +
-                           ", did not respond", "error");
-      });
+      this.user.on('signin signout', this.clear, this);
     },
 
     /**
@@ -161,9 +166,9 @@
       this.views = [];
       this.collection.chain().reject(function(user) {
         // filter out current signed in user, if any
-        if (!app.data.user.isLoggedIn()) // XXX: get rid of app.data.user
+        if (!this.user.isLoggedIn())
           return false;
-        return user.get('nick') === app.data.user.get('nick');
+        return user.get('nick') === this.user.get('nick');
       }).each(function(user) {
         // create a dedicated list entry for each user
         this.views.push(new app.views.UserEntryView({
@@ -186,7 +191,7 @@
       }).pluck('el').value();
       this.$('ul').append(userList);
       // show/hide element regarding auth status
-      if (app.data.user.isLoggedIn()) // XXX: get rid of app.data.user
+      if (this.user.isLoggedIn())
         this.$el.show();
       else
         this.$el.hide();
@@ -218,19 +223,18 @@
     },
 
     initialize: function() {
-      // XXX: get rid of app.data.user
-      app.data.user.on('change', function() {
+      this.user.on('change', function() {
         this.render();
       }.bind(this));
     },
 
     render: function() {
-      if (!app.data.user.get("nick")) {
+      if (!this.user.get("nick")) {
         this.$('#signin').show();
         this.$('#signout').hide().find('.nick').text('');
       } else {
         this.$('#signin').hide();
-        this.$('#signout').show().find('.nick').text(app.data.user.get('nick'));
+        this.$('#signout').show().find('.nick').text(this.user.get('nick'));
       }
       return this;
     },

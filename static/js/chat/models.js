@@ -384,15 +384,20 @@
     model: app.models.TextChatEntry,
 
     media: undefined,
+    user: undefined,
     peer: undefined,
 
     initialize: function(attributes, options) {
       if (!options || !options.media)
         throw new Error('TextChat model needs a `media` option');
+      this.media = options && options.media;
+
+      if (!options || !options.user)
+        throw new Error('TextChat model needs a `user` option');
+      this.user = options && options.user;
+
       if (!options || !options.peer)
         throw new Error('TextChat model needs a `peer` option');
-
-      this.media = options && options.media;
       this.peer = options && options.peer;
 
       this.media.on('dc:message-in', this._onDcMessageIn.bind(this));
@@ -470,7 +475,7 @@
       // I we are not, the message comes from a contact and we do not
       // want to send it back.
       if (entry instanceof app.models.TextChatEntry &&
-          entry.get('nick') === app.data.user.get("nick"))
+          entry.get('nick') === this.user.get("nick"))
         this.send({type: "chat:message", message: entry.toJSON()});
     },
 

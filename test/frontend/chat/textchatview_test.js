@@ -64,7 +64,7 @@ describe("Text chat views", function() {
       }
     });
 
-    user = app.data.user = new app.models.User();
+    user = new app.models.User();
   });
 
   afterEach(function() {
@@ -126,8 +126,11 @@ describe("Text chat views", function() {
 
     it("should be empty by default", function() {
       var view = new app.views.TextChatView({
-        sender: user,
-        collection: new app.models.TextChat([], {media: media, peer: peer})
+        collection: new app.models.TextChat([], {
+          media: media,
+          user: user,
+          peer: peer
+        })
       });
 
       expect(view.collection).to.have.length.of(0);
@@ -144,7 +147,11 @@ describe("Text chat views", function() {
         collection: new app.models.TextChat([
           {nick: "niko", message: "plop"},
           {nick: "jb", message: "hello"}
-        ], {media: media, peer: peer})
+        ], {
+          media: media,
+          user: user,
+          peer: peer
+        })
       });
       expect(view.collection).to.have.length.of(2);
 
@@ -197,9 +204,12 @@ describe("Text chat views", function() {
       beforeEach(function() {
         sandbox.stub(call, "on");
 
-        textChat = new app.models.TextChat(null, {media: media, peer: peer});
+        textChat = new app.models.TextChat(null, {
+          media: media,
+          user: user,
+          peer: peer
+        });
         textChatView = new app.views.TextChatView({
-          sender: app.data.user,
           call: call,
           collection: textChat
         });

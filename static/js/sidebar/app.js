@@ -35,14 +35,14 @@ var SidebarApp = (function($, Backbone, _) {
 
     this.port = app.port = new Port();
 
-    // XXX app.data.user is kept here for BC
-    this.user = app.data.user = new app.models.User({
+    this.user = new app.models.User({
       nick: options && options.nick
     });
 
     this.users = new app.models.UserSet();
 
     this.view = new app.views.AppView({
+      user: this.user,
       users: this.users
     });
 
@@ -59,6 +59,7 @@ var SidebarApp = (function($, Backbone, _) {
                  this._onPresenceUnavailable.bind(this));
     this.port.on("talkilla.chat-window-ready",
                  this._onChatWindowReady.bind(this));
+    this.port.on('talkilla.offer-timeout', this._onOfferTimeout.bind(this));
 
     this.port.postEvent("talkilla.sidebar-ready", {nick: options.nick});
 
@@ -86,7 +87,7 @@ var SidebarApp = (function($, Backbone, _) {
 
   SidebarApp.prototype._onLoginSuccess = function(data) {
     $.cookie('nick', data.username, {expires: 10});
-    app.data.user.set({nick: data.username, presence: "connected"});
+    this.user.set({nick: data.username, presence: "connected"});
   };
 
   SidebarApp.prototype._onLoginFailure = function(error) {
@@ -97,7 +98,6 @@ var SidebarApp = (function($, Backbone, _) {
   SidebarApp.prototype._onLogoutSuccess = function() {
     $.removeCookie('nick');
     this.user.clear();
-    app.data.user.clear();
     this.users.reset();
   };
 
@@ -106,10 +106,15 @@ var SidebarApp = (function($, Backbone, _) {
       error, 'error');
   };
 
+  SidebarApp.prototype._onOfferTimeout = function(callData) {
+    app.utils.notifyUI("The other party, " + callData.peer +
+                       ", did not respond", "error");
+  };
+
   SidebarApp.prototype._onPresenceUnavailable = function(code) {
     // 1000 is CLOSE_NORMAL
     if (code !== 1000) {
-      app.data.user.clear();
+      this.user.clear();
       app.utils.notifyUI('Sorry, the browser lost communication with ' +
                          'the server. code: ' + code);
     }
@@ -119,8 +124,7 @@ var SidebarApp = (function($, Backbone, _) {
     // Reset all app data apart from the user model, as the views rely
     // on it for change notifications, and this saves re-initializing those
     // hooks.
-    var user = app.data.user;
-    app.data = { user: user };
+    this.user.clear();
     this.users.reset();
   };
 

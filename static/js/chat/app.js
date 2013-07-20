@@ -29,8 +29,7 @@ var ChatApp = (function($, Backbone, _) {
 
   function ChatApp() {
     this.port = app.port = new Port();
-    // app.data.user is kept for BC
-    this.user = app.data.user = new app.models.User();
+    this.user = new app.models.User();
     this.peer = new app.models.User();
 
     this.webrtc = new WebRTC({
@@ -81,12 +80,12 @@ var ChatApp = (function($, Backbone, _) {
 
     this.textChat = new app.models.TextChat(history, {
       media: this.webrtc,
+      user: this.user,
       peer: this.peer
     });
 
     this.textChatView = new app.views.TextChatView({
-      collection: this.textChat,
-      sender: this.user
+      collection: this.textChat
     });
 
     this.view = new app.views.ConversationView({

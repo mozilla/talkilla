@@ -17,26 +17,39 @@ describe("AppView", function() {
       sandbox.restore();
     });
 
-    it("should add initialize a notifications property", function() {
-      var appView = new app.views.AppView({users: []});
+    describe("required parameters", function() {
+      it("should require a user parameter", function() {
+        expect(function() {
+          new app.views.AppView({users: []});
+        }).to.Throw(Error);
+      });
 
-      expect(appView.notifications).to.be.an.instanceOf(
-        app.views.NotificationsView);
+      it("should require a users parameter", function() {
+        expect(function() {
+          new app.views.AppView({user: {}});
+        }).to.Throw(Error);
+      });
     });
 
-    it("should add initialize a login property", function() {
-      var appView = new app.views.AppView({users: []});
+    describe("constructed properties", function() {
+      var appView;
 
-      expect(appView.login).to.be.an.instanceOf(
-        app.views.LoginView);
+      beforeEach(function() {
+        appView = new app.views.AppView({user: {}, users: []});
+      });
+
+      it("should add initialize a notifications property", function() {
+        expect(appView.notifications).to.be.an.instanceOf(
+          app.views.NotificationsView);
+      });
+
+      it("should add initialize a login property", function() {
+        expect(appView.login).to.be.an.instanceOf(app.views.LoginView);
+      });
+
+      it("should add initialize a users property", function() {
+        expect(appView.users).to.be.an.instanceOf(app.views.UsersView);
+      });
     });
-
-    it("should add initialize a users property", function() {
-      var appView = new app.views.AppView({users: []});
-
-      expect(appView.users).to.be.an.instanceOf(app.views.UsersView);
-    });
-
   });
-
 });
