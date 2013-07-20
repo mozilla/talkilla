@@ -1,5 +1,5 @@
-/* global app, Backbone, _, chai, describe, it, sinon, beforeEach, afterEach,
-   ChatApp, $, WebRTC */
+/* global app, chai, describe, it, sinon, beforeEach, afterEach, ChatApp, $,
+          WebRTC */
 
 /* jshint expr:true */
 var expect = chai.expect;
@@ -24,11 +24,6 @@ describe("Text chat views", function() {
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
     sandbox.stub(window, "open");
-    app.port = {
-      on: sinon.spy(),
-      postEvent: sinon.spy()
-    };
-    _.extend(app.port, Backbone.Events);
 
     // mozSocial "mock"
     navigator.mozSocial = {
@@ -70,7 +65,6 @@ describe("Text chat views", function() {
   afterEach(function() {
     user.clear();
     sandbox.restore();
-    app.port.off();
   });
 
   describe('TextChatEntryView', function() {
@@ -105,11 +99,6 @@ describe("Text chat views", function() {
 
       // This stops us changing the document's title unnecessarily
       sandbox.stub(app.views.ConversationView.prototype, "initialize");
-
-      // port stubs
-      app.port.on = sandbox.stub();
-      app.port.postEvent = sandbox.stub();
-      app.port.trigger = sandbox.stub();
 
       sandbox.stub(WebRTC.prototype, "send");
       media = new WebRTC();

@@ -1,5 +1,4 @@
-/* global app, chai, describe, it, sinon, beforeEach, afterEach, _, Backbone,
-   WebRTC */
+/* global app, chai, describe, it, sinon, beforeEach, afterEach, WebRTC */
 
 /* jshint expr:true */
 var expect = chai.expect;
@@ -24,13 +23,6 @@ describe('Text chat models', function() {
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
-
-    // stubbing port
-    app.port = {
-      on: sinon.spy(),
-      postEvent: sinon.spy()
-    };
-    _.extend(app.port, Backbone.Events);
 
     // mozRTCPeerConnection stub
     sandbox.stub(window, "mozRTCPeerConnection").returns({
@@ -71,7 +63,6 @@ describe('Text chat models', function() {
 
   afterEach(function() {
     sandbox.restore();
-    app.port.off();
   });
 
   describe("app.models.TextChatEntry", function() {
