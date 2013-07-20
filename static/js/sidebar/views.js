@@ -131,6 +131,7 @@
 
     openConversation: function(event) {
       event.preventDefault();
+      // XXX: we shouldn't be calling the app directly here
       sidebarApp.openConversation(event.currentTarget.getAttribute('rel'));
     },
 
@@ -151,7 +152,12 @@
     views: [],
     activeNotification: null,
 
-    initialize: function() {
+    initialize: function(options) {
+      options = options || {};
+      if (!options.user)
+        throw new Error("missing parameter: user");
+      this.user = options.user;
+
       this.collection.on('reset change', this.render, this);
     },
 
@@ -163,12 +169,13 @@
       if (!this.collection)
         return;
       var callee = this.callee;
+      var session = this.user;
       this.views = [];
       this.collection.chain().reject(function(user) {
         // filter out current signed in user, if any
-        if (!this.user.isLoggedIn())
+        if (!session.isLoggedIn())
           return false;
-        return user.get('nick') === this.user.get('nick');
+        return user.get('nick') === session.get('nick');
       }).each(function(user) {
         // create a dedicated list entry for each user
         this.views.push(new app.views.UserEntryView({
@@ -222,10 +229,13 @@
       'submit form#signout': 'signout'
     },
 
-    initialize: function() {
-      this.user.on('change', function() {
-        this.render();
-      }.bind(this));
+    initialize: function(options) {
+      options = options || {};
+      if (!options.user)
+        throw new Error("missing parameter: user");
+      this.user = options.user;
+
+      this.user.on('change', this.render, this);
     },
 
     render: function() {
@@ -250,6 +260,7 @@
       var nick = $.trim(field.val());
       if (!nick)
         return app.utils.notifyUI('please enter a nickname');
+      // XXX: we shouldn't be calling the app directly here
       sidebarApp.login(nick);
       field.val('');
     },
@@ -261,6 +272,7 @@
      */
     signout: function(event) {
       event.preventDefault();
+      // XXX: we shouldn't be calling the app directly here
       sidebarApp.logout();
     }
   });

@@ -1,5 +1,5 @@
 /* global app, chai, describe, it, sinon, beforeEach, afterEach,
-   ChatApp, $, _, Backbone, Port, WebRTC */
+   ChatApp, $, Port, WebRTC */
 
 /* jshint expr:true */
 var expect = chai.expect;
@@ -409,7 +409,8 @@ describe("ChatApp", function() {
           chatApp._onSendOffer(offer);
 
           sinon.assert.called(chatApp.port.postEvent);
-          sinon.assert.calledWith(chatApp.port.postEvent, "talkilla.call-offer");
+          sinon.assert.calledWith(chatApp.port.postEvent,
+                                  "talkilla.call-offer");
         });
 
       it("should start the outgoing call sound", function() {
@@ -432,7 +433,8 @@ describe("ChatApp", function() {
           chatApp._onSendAnswer(answer);
 
           sinon.assert.called(chatApp.port.postEvent);
-          sinon.assert.calledWith(chatApp.port.postEvent, "talkilla.call-answer");
+          sinon.assert.calledWith(chatApp.port.postEvent,
+                                  "talkilla.call-answer");
         });
     });
 

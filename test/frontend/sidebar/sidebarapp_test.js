@@ -132,7 +132,7 @@ describe("SidebarApp", function() {
     it("should add a notification when the `talkilla.offer-timeout` port " +
        "event is received",
       function() {
-        var notify = sinon.stub(app.utils, "notifyUI");
+        var notify = sandbox.stub(app.utils, "notifyUI");
         var sidebarApp = new SidebarApp();
         new app.views.NotificationsView({user: sidebarApp.user});
 

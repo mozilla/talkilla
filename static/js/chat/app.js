@@ -154,7 +154,6 @@ var ChatApp = (function($, Backbone, _) {
 
   // Incoming calls
   ChatApp.prototype._onIncomingConversation = function(data) {
-    console.log("!!!!!!!! _onIncomingConversation", data.user);
     this.user.set({nick: data.user});
 
     if (!data.upgrade)
