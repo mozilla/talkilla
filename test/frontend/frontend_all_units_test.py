@@ -14,6 +14,8 @@ SERVER_PREFIX = 'http://localhost:3000/test/frontend/'
 TEST_URLS = [SERVER_PREFIX + p for p in [
     'index.html',
     'chat/index.html',
+    'port/index.html',
+    'sidebar/index.html',
     'webrtc/index.html',
     'worker/index.html'
 ]]
