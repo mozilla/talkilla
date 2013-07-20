@@ -33,7 +33,7 @@ var SidebarApp = (function($, Backbone, _) {
   function SidebarApp(options) {
     options = options || {};
 
-    this.port = app.port = new Port();
+    this.port = new Port();
 
     this.user = new app.models.User({
       nick: options && options.nick

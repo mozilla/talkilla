@@ -27,8 +27,7 @@ describe("ChatApp", function() {
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
-    app.port = {postEvent: sinon.spy()};
-    _.extend(app.port, Backbone.Events);
+    sandbox.stub(Port.prototype, "postEvent");
     sandbox.stub(window, "addEventListener");
     sandbox.stub(window, "Audio").returns({
       play: sandbox.stub(),
@@ -71,7 +70,6 @@ describe("ChatApp", function() {
   });
 
   afterEach(function() {
-    app.port.off();
     sandbox.restore();
     chatApp = null;
     app.options.DEBUG = false;
@@ -145,8 +143,6 @@ describe("ChatApp", function() {
   });
 
   it("should post talkilla.chat-window-ready to the worker", function() {
-      sandbox.stub(Port.prototype, "postEvent");
-
       chatApp = new ChatApp();
 
       sinon.assert.calledOnce(chatApp.port.postEvent);
@@ -315,17 +311,13 @@ describe("ChatApp", function() {
     });
 
     describe("#_onCallOfferTimout", function() {
-      beforeEach(function() {
-        sandbox.stub(Port.prototype, "postEvent");
-      });
-
       it("should post the `talkilla.offer-timeout` event to the worker",
         function() {
           var callData = {foo: "bar"};
 
           chatApp._onCallOfferTimout(callData);
 
-          sinon.assert.calledOnce(chatApp.port.postEvent);
+          sinon.assert.called(chatApp.port.postEvent);
           sinon.assert.calledWithExactly(chatApp.port.postEvent,
             "talkilla.offer-timeout", callData);
         });
@@ -364,7 +356,6 @@ describe("ChatApp", function() {
 
     describe("#_onCallHangup", function() {
       beforeEach(function() {
-        sandbox.stub(Port.prototype, "postEvent");
         sandbox.stub(chatApp.call, "hangup");
         chatApp.call.state.current = "ongoing";
       });
@@ -381,8 +372,8 @@ describe("ChatApp", function() {
 
         chatApp._onCallHangup();
 
-        sinon.assert.calledOnce(app.port.postEvent);
-        sinon.assert.calledWith(app.port.postEvent,
+        sinon.assert.called(chatApp.port.postEvent);
+        sinon.assert.calledWith(chatApp.port.postEvent,
                                 "talkilla.call-hangup", {peer: "florian"});
       });
 
@@ -392,7 +383,6 @@ describe("ChatApp", function() {
         chatApp._onCallHangup();
 
         sinon.assert.notCalled(chatApp.call.hangup);
-        sinon.assert.notCalled(app.port.postEvent);
       });
 
       it("should do nothing if the call was not started", function () {
@@ -401,7 +391,6 @@ describe("ChatApp", function() {
         chatApp._onCallHangup();
 
         sinon.assert.notCalled(chatApp.call.hangup);
-        sinon.assert.notCalled(app.port.postEvent);
       });
     });
 
@@ -409,7 +398,6 @@ describe("ChatApp", function() {
       var offer;
 
       beforeEach(function() {
-        sandbox.stub(Port.prototype, "postEvent");
         offer = {
           sdp: 'sdp',
           type: 'type'
@@ -420,14 +408,14 @@ describe("ChatApp", function() {
         function() {
           chatApp._onSendOffer(offer);
 
-          sinon.assert.calledOnce(app.port.postEvent);
-          sinon.assert.calledWith(app.port.postEvent, "talkilla.call-offer");
+          sinon.assert.called(chatApp.port.postEvent);
+          sinon.assert.calledWith(chatApp.port.postEvent, "talkilla.call-offer");
         });
 
       it("should start the outgoing call sound", function() {
         chatApp._onSendOffer(callData);
 
-        sinon.assert.calledOnce(chatApp.audioLibrary.play);
+        sinon.assert.called(chatApp.audioLibrary.play);
         sinon.assert.calledWithExactly(chatApp.audioLibrary.play, "outgoing");
       });
 
@@ -436,7 +424,6 @@ describe("ChatApp", function() {
     describe("#_onSendAnswer", function() {
       it("should post an event to the worker when onSendAnswer is triggered",
         function() {
-          sandbox.stub(Port.prototype, "postEvent");
           var answer = {
             sdp: 'sdp',
             type: 'type'
@@ -444,8 +431,8 @@ describe("ChatApp", function() {
 
           chatApp._onSendAnswer(answer);
 
-          sinon.assert.calledOnce(app.port.postEvent);
-          sinon.assert.calledWith(app.port.postEvent, "talkilla.call-answer");
+          sinon.assert.called(chatApp.port.postEvent);
+          sinon.assert.calledWith(chatApp.port.postEvent, "talkilla.call-answer");
         });
     });
 

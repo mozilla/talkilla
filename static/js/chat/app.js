@@ -28,7 +28,7 @@ var ChatApp = (function($, Backbone, _) {
   };
 
   function ChatApp() {
-    this.port = app.port = new Port();
+    this.port = new Port();
     this.user = new app.models.User();
     this.peer = new app.models.User();
 
