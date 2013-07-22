@@ -449,15 +449,15 @@
    */
   WebRTC.prototype._setupDataChannel = function(pc, id) {
     var dc = pc.createDataChannel('dc', {
-      // We set up a non-negotiated channel with a specific id, this
+      // We set up a pre-negotiated channel with a specific id, this
       // way we know exactly which channel we're expecting to communicate
       // with.
       id: id,
-      negotiated: false,
+      negotiated: true,
       // Stream and preset parameters enable backwards compatibility
       // from Firefox 24 until bug 892441 is fixed.
       stream: id,
-      preset: false
+      preset: true
     });
 
     dc.onopen  = this.trigger.bind(this, "dc:ready", dc);
