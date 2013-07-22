@@ -3,5 +3,6 @@
   "WSURL": "wss://talkilla.mozillalabs.com/",
   "ROOTURL": "https://talkilla.mozillalabs.com",
   "PENDING_CALL_TIMEOUT": 30000,
-  "FAKE_MEDIA_STREAMS": false
+  "FAKE_MEDIA_STREAMS": false,
+  "LOG_LEVEL": 30
 }
