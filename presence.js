@@ -18,11 +18,6 @@ app.use(express.bodyParser());
 app.use(express.static(__dirname + "/static"));
 app.use(app.router);
 var server;
-var logger = bunyan.createLogger({
-  name: 'talkilla',
-  src: true,
-  serializers: {err: bunyan.stdSerializers.err}
-});;
 
 /**
  * Merges two objects
@@ -79,6 +74,13 @@ app.configure('test', function() {
   app.use('/test', express.static(__dirname + '/test'));
 });
 
+// Logging
+var logger = bunyan.createLogger({
+  name: 'talkilla',
+  level: app.get("config").LOG_LEVEL || "error",
+  src: true,
+  serializers: {err: bunyan.stdSerializers.err}
+});
 function uncaughtError(err, req, res, next) {
   logger.error({err: err});
   res.send(500);
