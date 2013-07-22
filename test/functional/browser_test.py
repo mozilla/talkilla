@@ -5,8 +5,36 @@ import os
 import signal
 import subprocess
 import unittest
+import functools
+import pdb
+import sys
 
 from selenium.common.exceptions import TimeoutException
+
+
+# With debug_on, you can add a line prior to your test function
+# which will enable you to catch test exceptions, and automatically
+# switch to the debugger for a post mortem:
+#
+# from browser_test import debug_on
+# ...
+#     @debug_on()
+#     def test_my_test...
+#
+# This is also useful for examining the firefox state at failure points
+def debug_on(*exceptions):
+    if not exceptions:
+        exceptions = (AssertionError, TimeoutException, )
+
+    def decorator(f):
+        @functools.wraps(f)
+        def wrapper(*args, **kwargs):
+            try:
+                return f(*args, **kwargs)
+            except exceptions:
+                pdb.post_mortem(sys.exc_info()[2])
+        return wrapper
+    return decorator
 
 
 def kill_app(app):
