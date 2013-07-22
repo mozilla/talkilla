@@ -7,7 +7,7 @@
     "npm":"1.1.x"
   },
   "dependencies": {
-    "express": "3.0.x",
+    "express": "3.x",
     "ws": "0.4.x"
   },
   "devDependencies": {
