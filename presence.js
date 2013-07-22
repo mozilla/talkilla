@@ -1,6 +1,7 @@
 /* jshint unused:false */
 var fs = require('fs');
 var url = require('url');
+var bunyan = require('bunyan');
 var express = require('express');
 var http = require('http');
 var path = require('path');
@@ -15,7 +16,13 @@ var WebSocketServer = require('ws').Server;
 
 app.use(express.bodyParser());
 app.use(express.static(__dirname + "/static"));
+app.use(app.router);
 var server;
+var logger = bunyan.createLogger({
+  name: 'talkilla',
+  src: true,
+  serializers: {err: bunyan.stdSerializers.err}
+});;
 
 /**
  * Merges two objects
@@ -71,6 +78,12 @@ app.configure('test', function() {
   app.set('config', getConfigFromFile('test.json'));
   app.use('/test', express.static(__dirname + '/test'));
 });
+
+function uncaughtError(err, req, res, next) {
+  logger.error({err: err});
+  res.send(500);
+}
+app.use(uncaughtError);
 
 function findNewNick(aNick) {
   var nickParts = /^(.+?)(\d*)$/.exec(aNick);
@@ -130,6 +143,7 @@ app.post('/signin', function(req, res) {
   users[nick] = {};
   app.set('users', users);
 
+  logger.info({type: "signin"});
   res.send(200, JSON.stringify({nick: nick}));
 });
 
@@ -139,6 +153,7 @@ app.post('/signout', function(req, res) {
   delete users[req.body.nick];
   app.set('users', users);
 
+  logger.info({type: "signout"});
   res.send(200, JSON.stringify(true));
 });
 
@@ -189,6 +204,7 @@ function configureWs(ws, nick) {
       var peer = users[data.peer];
       data.peer = nick;
       peer.ws.send(JSON.stringify({'incoming_call': data}));
+      logger.info({type: "call:offer"});
     } catch (e) {console.error('call_offer', e);}
   });
 
@@ -208,6 +224,7 @@ function configureWs(ws, nick) {
       var peer = users[data.peer];
       data.peer = nick;
       peer.ws.send(JSON.stringify({'call_accepted': data}));
+      logger.info({type: "call:accept"});
     } catch (e) {console.error('call_accept', e);}
   });
 
@@ -217,6 +234,7 @@ function configureWs(ws, nick) {
       var users = app.get('users');
       var caller = users[data.caller];
       caller.ws.send(JSON.stringify({'call_denied': data}));
+      logger.info({type: "call:deny"});
     } catch (e) {console.error('call_deny', e);}
   });
 
@@ -233,6 +251,7 @@ function configureWs(ws, nick) {
       var users = app.get('users');
       var peer = users[data.peer];
       peer.ws.send(JSON.stringify({'call_hangup': {peer: nick}}));
+      logger.info({type: "call:hangup"});
     } catch (e) {console.error('call_hangup', e);}
   });
 
@@ -254,9 +273,11 @@ function configureWs(ws, nick) {
                      function(error) {});
     });
 
+    logger.info({type: "disconnection"});
     app.set('users', users);
   });
 
+  logger.info({type: "connection"});
   return ws;
 }
 
