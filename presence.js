@@ -78,7 +78,6 @@ app.configure('test', function() {
 var logger = bunyan.createLogger({
   name: 'talkilla',
   level: app.get("config").LOG_LEVEL || "error",
-  src: true,
   serializers: {err: bunyan.stdSerializers.err}
 });
 function uncaughtError(err, req, res, next) {
