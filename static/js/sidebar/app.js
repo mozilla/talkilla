@@ -15,12 +15,9 @@ var SidebarApp = (function($, Backbone, _) {
     options: {},
 
     // app modules
-    data: {},
-    media: {},
     models: {},
-    port: {},
-    utils: {},
     views: {},
+    utils: {},
 
     start: function(options) {
       _.extend(this.options, options || {});

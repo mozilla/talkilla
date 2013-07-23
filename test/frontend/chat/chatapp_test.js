@@ -1,11 +1,11 @@
 /* global app, chai, describe, it, sinon, beforeEach, afterEach,
-   ChatApp, $, AppPort, WebRTC */
+   ChatApp, $, _, Backbone, WebRTC */
 
 /* jshint expr:true */
 var expect = chai.expect;
 
 describe("ChatApp", function() {
-  var sandbox, chatApp;
+  var sandbox, chatApp, AppPortStub;
   var callData = {peer: "bob"};
   var incomingCallData = {
     peer: "alice",
@@ -26,22 +26,14 @@ describe("ChatApp", function() {
   var fakeDataChannel = {fakeDataChannel: true};
 
   beforeEach(function() {
+    AppPortStub = _.extend({postEvent: sinon.spy()}, Backbone.Events);
     sandbox = sinon.sandbox.create();
-    sandbox.stub(AppPort.prototype, "postEvent");
+    sandbox.stub(window, "AppPort").returns(AppPortStub);
     sandbox.stub(window, "addEventListener");
     sandbox.stub(window, "Audio").returns({
       play: sandbox.stub(),
       pause: sandbox.stub()
     });
-
-    // mozSocial "mock"
-    navigator.mozSocial = {
-      getWorker: function() {
-        return {
-          port: {postMessage: sinon.spy()}
-        };
-      }
-    };
 
     // mozRTCPeerConnection stub
     sandbox.stub(window, "mozRTCPeerConnection").returns({
@@ -70,6 +62,7 @@ describe("ChatApp", function() {
   });
 
   afterEach(function() {
+    AppPortStub.off();
     sandbox.restore();
     chatApp = null;
     app.options.DEBUG = false;

@@ -390,15 +390,15 @@
     initialize: function(attributes, options) {
       if (!options || !options.media)
         throw new Error('TextChat model needs a `media` option');
-      this.media = options && options.media;
+      this.media = options.media;
 
       if (!options || !options.user)
         throw new Error('TextChat model needs a `user` option');
-      this.user = options && options.user;
+      this.user = options.user;
 
       if (!options || !options.peer)
         throw new Error('TextChat model needs a `peer` option');
-      this.peer = options && options.peer;
+      this.peer = options.peer;
 
       this.media.on('dc:message-in', this._onDcMessageIn.bind(this));
       this.on('add', this._onTextChatEntryCreated.bind(this));
