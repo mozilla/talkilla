@@ -106,6 +106,7 @@ Conversation.prototype = {
       port.postEvent('talkilla.login-success', {
         username: _currentUserData.userName
       });
+      this.data.user = _currentUserData.userName;
     }
 
     this._sendCall();
@@ -119,8 +120,12 @@ Conversation.prototype = {
    */
   handleIncomingCall: function(data) {
     ports.broadcastDebug('handle incoming call', data);
+
     if (this.data.peer !== data.peer)
       return false;
+
+    if (_currentUserData)
+      data.user = _currentUserData.userName;
 
     this.data = data;
 

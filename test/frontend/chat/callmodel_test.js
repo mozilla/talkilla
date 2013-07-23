@@ -5,13 +5,11 @@ var expect = chai.expect;
 
 describe("Call", function() {
 
-  var sandbox, call, media, oldPort, peer;
+  var sandbox, call, media, peer;
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
     sandbox.useFakeTimers();
-    oldPort = app.port;
-    app.port = {postEvent: sinon.spy()};
     // XXX This should probably be a mock, but sinon mocks don't seem to want
     // to work with Backbone.
     media = {
@@ -32,7 +30,6 @@ describe("Call", function() {
 
   afterEach(function() {
     sandbox.restore();
-    app.port = oldPort;
   });
 
   describe("#initialize", function() {
@@ -321,22 +318,5 @@ describe("Call", function() {
                                        {peer: "bob"});
         done();
       });
-  });
-
-  describe("ready event handling", function() {
-    var userModel;
-
-    beforeEach(function() {
-      peer.set({nick: "larry"});
-      call.trigger = sandbox.stub();
-      app.data.user = userModel = new app.models.User();
-      app.data.user.set("nick", "bob");
-    });
-
-    afterEach(function() {
-      peer.set({nick: undefined});
-      delete app.data.user;
-      userModel = undefined;
-    });
   });
 });

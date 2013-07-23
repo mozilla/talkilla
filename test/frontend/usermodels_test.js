@@ -143,29 +143,4 @@ describe("app.models", function() {
     });
   });
 
-  describe("app.models.UserSet", function() {
-
-    it("should be empty upon creation", function() {
-      var userSet = new app.models.UserSet();
-      expect(userSet.length).to.equal(0);
-    });
-
-    it("should update the user collection on `talkilla.users` service events",
-      function() {
-        var userSet = new app.models.UserSet();
-
-        app.port.trigger("talkilla.users", [{nick: "bob"}]);
-        expect(userSet).have.length.of(1);
-        expect(userSet.at(0).get('nick')).to.equal("bob");
-
-        app.port.trigger("talkilla.users", [{nick: "bob"}, {nick: "bill"}]);
-        expect(userSet).have.length.of(2);
-        expect(userSet.at(0).get('nick')).to.equal("bob");
-        expect(userSet.at(1).get('nick')).to.equal("bill");
-
-        app.port.trigger("talkilla.users", []);
-        expect(userSet).have.length.of(0);
-      });
-  });
-
 });

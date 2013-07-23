@@ -46,6 +46,12 @@ class FrontEndSuite(unittest.TestCase):
     def test_chat_index_html(self):
         self.check_page_for_zero_failures(SERVER_PREFIX + "chat/index.html")
 
+    def test_port_html(self):
+        self.check_page_for_zero_failures(SERVER_PREFIX + "port/index.html")
+
+    def test_sidebar_html(self):
+        self.check_page_for_zero_failures(SERVER_PREFIX + "sidebar/index.html")
+
     def test_webrtc_index_html(self):
         self.check_page_for_zero_failures(SERVER_PREFIX + "webrtc/index.html")
 
