@@ -6,7 +6,7 @@ describe("ConversationView", function() {
   var sandbox;
 
   describe("#initialize", function() {
-    var call, textChat, oldtitle, peer;
+    var call, textChat, oldtitle, user, peer;
 
     beforeEach(function() {
       $('#fixtures').append([
@@ -30,9 +30,14 @@ describe("ConversationView", function() {
         on: sandbox.stub()
       };
       call = new app.models.Call({}, {media: media});
+      user = new app.models.User();
       peer = new app.models.User();
       sandbox.stub(peer, "on");
-      textChat = new app.models.TextChat(null, {media: media, peer: peer});
+      textChat = new app.models.TextChat(null, {
+        media: media,
+        user: user,
+        peer: peer
+      });
 
       sandbox.stub(call, "on");
     });

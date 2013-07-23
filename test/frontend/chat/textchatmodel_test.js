@@ -1,5 +1,4 @@
-/* global app, chai, describe, it, sinon, beforeEach, afterEach, _, Backbone,
-   WebRTC */
+/* global app, chai, describe, it, sinon, beforeEach, afterEach, WebRTC */
 
 /* jshint expr:true */
 var expect = chai.expect;
@@ -7,7 +6,7 @@ var expect = chai.expect;
 describe('Text chat models', function() {
   "use strict";
 
-  var sandbox, media, peer, createTextChat;
+  var sandbox, media, user, peer, createTextChat;
 
   function fakeSDP(str) {
     return {
@@ -24,13 +23,6 @@ describe('Text chat models', function() {
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
-
-    // stubbing port
-    app.port = {
-      on: sinon.spy(),
-      postEvent: sinon.spy()
-    };
-    _.extend(app.port, Backbone.Events);
 
     // mozRTCPeerConnection stub
     sandbox.stub(window, "mozRTCPeerConnection").returns({
@@ -56,17 +48,21 @@ describe('Text chat models', function() {
 
     // text chat model dependencies
     media = new WebRTC();
+    user = new app.models.User();
     peer = new app.models.User();
 
     // object creation helper
     createTextChat = function() {
-      return new app.models.TextChat([], {media: media, peer: peer});
+      return new app.models.TextChat([], {
+        media: media,
+        user: user,
+        peer: peer
+      });
     };
   });
 
   afterEach(function() {
     sandbox.restore();
-    app.port.off();
   });
 
   describe("app.models.TextChatEntry", function() {
@@ -192,14 +188,9 @@ describe('Text chat models', function() {
     var textChat, send;
 
     beforeEach(function() {
-      app.data.user = new app.models.User();
-      app.data.user.set("nick", "foo");
+      user.set("nick", "foo");
       send = sandbox.stub(app.models.TextChat.prototype, "send");
       textChat = createTextChat();
-    });
-
-    afterEach(function() {
-      delete app.data.user;
     });
 
     it("should send data over data channel", function() {

@@ -218,5 +218,4 @@ describe("Conversation", function() {
         "talkilla.call-hangup", data);
     });
   });
-
 });

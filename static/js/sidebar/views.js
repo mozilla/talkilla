@@ -1,4 +1,4 @@
-/* global app, Backbone, _, jQuery */
+/* global app, sidebarApp, Backbone, _, jQuery */
 /**
  * Talkilla Backbone views.
  */
@@ -11,10 +11,25 @@
   app.views.AppView = Backbone.View.extend({
     el: 'body',
 
-    initialize: function() {
-      this.notifications = new app.views.NotificationsView();
-      this.login = new app.views.LoginView();
-      this.users = new app.views.UsersView();
+    initialize: function(options) {
+      options = options || {};
+      if (!options.user)
+        throw new Error("missing parameter: user");
+      if (!options.users)
+        throw new Error("missing parameter: users");
+
+      this.notifications = new app.views.NotificationsView({
+        user: options.user
+      });
+
+      this.login = new app.views.LoginView({
+        user: options.user
+      });
+
+      this.users = new app.views.UsersView({
+        user: options.user,
+        collection: options && options.users
+      });
     },
 
     render: function() {
@@ -54,19 +69,13 @@
 
     notifications: [],
 
-    initialize: function() {
-      app.data.user.on('signin', function() {
-        this.clear();
-      }.bind(this));
+    initialize: function(options) {
+      options = options || {};
+      if (!options.user)
+        throw new Error("missing parameter: user");
+      this.user = options.user;
 
-      app.data.user.on('signout', function() {
-        this.clear();
-      }.bind(this));
-
-      app.port.on('talkilla.offer-timeout', function(callData) {
-        app.utils.notifyUI("The other party, " + callData.peer +
-                           ", did not respond", "error");
-      });
+      this.user.on('signin signout', this.clear, this);
     },
 
     /**
@@ -122,9 +131,8 @@
 
     openConversation: function(event) {
       event.preventDefault();
-      app.port.postEvent('talkilla.conversation-open', {
-        peer: event.currentTarget.getAttribute('rel')
-      });
+      // XXX: we shouldn't be calling the app directly here
+      sidebarApp.openConversation(event.currentTarget.getAttribute('rel'));
     },
 
     render: function() {
@@ -144,22 +152,13 @@
     views: [],
     activeNotification: null,
 
-    initialize: function() {
-      app.data.users = this.collection = new app.models.UserSet();
+    initialize: function(options) {
+      options = options || {};
+      if (!options.user)
+        throw new Error("missing parameter: user");
+      this.user = options.user;
 
-      this.collection.on('change', function() {
-        this.render();
-      }.bind(this));
-
-      this.collection.on('reset', function() {
-        this.render();
-      }.bind(this));
-
-      // purge the list on sign out
-      app.data.user.on('signout', function() {
-        this.collection.reset();
-        this.callee = undefined;
-      }.bind(this));
+      this.collection.on('reset change', this.render, this);
     },
 
     /**
@@ -170,12 +169,13 @@
       if (!this.collection)
         return;
       var callee = this.callee;
+      var session = this.user;
       this.views = [];
       this.collection.chain().reject(function(user) {
         // filter out current signed in user, if any
-        if (!app.data.user.isLoggedIn())
+        if (!session.isLoggedIn())
           return false;
-        return user.get('nick') === app.data.user.get('nick');
+        return user.get('nick') === session.get('nick');
       }).each(function(user) {
         // create a dedicated list entry for each user
         this.views.push(new app.views.UserEntryView({
@@ -198,7 +198,7 @@
       }).pluck('el').value();
       this.$('ul').append(userList);
       // show/hide element regarding auth status
-      if (app.data.user.isLoggedIn())
+      if (this.user.isLoggedIn())
         this.$el.show();
       else
         this.$el.hide();
@@ -229,19 +229,22 @@
       'submit form#signout': 'signout'
     },
 
-    initialize: function() {
-      app.data.user.on('change', function() {
-        this.render();
-      }.bind(this));
+    initialize: function(options) {
+      options = options || {};
+      if (!options.user)
+        throw new Error("missing parameter: user");
+      this.user = options.user;
+
+      this.user.on('change', this.render, this);
     },
 
     render: function() {
-      if (!app.data.user.get("nick")) {
+      if (!this.user.get("nick")) {
         this.$('#signin').show();
         this.$('#signout').hide().find('.nick').text('');
       } else {
         this.$('#signin').hide();
-        this.$('#signout').show().find('.nick').text(app.data.user.get('nick'));
+        this.$('#signout').show().find('.nick').text(this.user.get('nick'));
       }
       return this;
     },
@@ -257,7 +260,8 @@
       var nick = $.trim(field.val());
       if (!nick)
         return app.utils.notifyUI('please enter a nickname');
-      app.port.login(nick);
+      // XXX: we shouldn't be calling the app directly here
+      sidebarApp.login(nick);
       field.val('');
     },
 
@@ -268,7 +272,8 @@
      */
     signout: function(event) {
       event.preventDefault();
-      app.port.logout();
+      // XXX: we shouldn't be calling the app directly here
+      sidebarApp.logout();
     }
   });
 })(app, Backbone, _, jQuery);

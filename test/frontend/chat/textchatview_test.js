@@ -1,5 +1,5 @@
-/* global app, Backbone, _, chai, describe, it, sinon, beforeEach, afterEach,
-   ChatApp, $, WebRTC */
+/* global app, chai, describe, it, sinon, beforeEach, afterEach, ChatApp, $,
+          WebRTC */
 
 /* jshint expr:true */
 var expect = chai.expect;
@@ -16,7 +16,7 @@ describe("Text chat views", function() {
     };
   }
 
-  var sandbox;
+  var sandbox, user;
   var fakeOffer = {type: "offer", sdp: fakeSDP("\nm=video aaa\nm=audio bbb")};
   var fakeAnswer = {type: "answer", sdp: fakeSDP("\nm=video ccc\nm=audio ddd")};
   var fakeDataChannel = {fakeDataChannel: true};
@@ -24,11 +24,15 @@ describe("Text chat views", function() {
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
     sandbox.stub(window, "open");
-    app.port = {
-      on: sinon.spy(),
-      postEvent: sinon.spy()
+
+    // mozSocial "mock"
+    navigator.mozSocial = {
+      getWorker: function() {
+        return {
+          port: {postMessage: sinon.spy()}
+        };
+      }
     };
-    _.extend(app.port, Backbone.Events);
 
     // mozGetUserMedia stub
     sandbox.stub(navigator, "mozGetUserMedia");
@@ -55,12 +59,12 @@ describe("Text chat views", function() {
       }
     });
 
-    app.data.user = new app.models.User();
+    user = new app.models.User();
   });
 
   afterEach(function() {
+    user.clear();
     sandbox.restore();
-    app.port.off();
   });
 
   describe('TextChatEntryView', function() {
@@ -96,18 +100,13 @@ describe("Text chat views", function() {
       // This stops us changing the document's title unnecessarily
       sandbox.stub(app.views.ConversationView.prototype, "initialize");
 
-      // port stubs
-      app.port.on = sandbox.stub();
-      app.port.postEvent = sandbox.stub();
-      app.port.trigger = sandbox.stub();
-
       sandbox.stub(WebRTC.prototype, "send");
       media = new WebRTC();
       call = new app.models.Call({}, {media: media});
 
       peer = new app.models.User();
 
-      app.data.user.set({nick: "niko"});
+      user.set({nick: "niko"});
     });
 
     afterEach(function() {
@@ -116,8 +115,11 @@ describe("Text chat views", function() {
 
     it("should be empty by default", function() {
       var view = new app.views.TextChatView({
-        sender: app.data.user,
-        collection: new app.models.TextChat([], {media: media, peer: peer})
+        collection: new app.models.TextChat([], {
+          media: media,
+          user: user,
+          peer: peer
+        })
       });
 
       expect(view.collection).to.have.length.of(0);
@@ -128,12 +130,17 @@ describe("Text chat views", function() {
     });
 
     it("should update rendering when its collection is updated", function() {
+      user.set({nick: "niko"});
       var view = new app.views.TextChatView({
-        sender: app.data.user,
+        sender: user,
         collection: new app.models.TextChat([
           {nick: "niko", message: "plop"},
           {nick: "jb", message: "hello"}
-        ], {media: media, peer: peer})
+        ], {
+          media: media,
+          user: user,
+          peer: peer
+        })
       });
       expect(view.collection).to.have.length.of(2);
 
@@ -150,15 +157,16 @@ describe("Text chat views", function() {
 
     it("should allow the caller to send a first message", function(done) {
       var chatApp = new ChatApp();
-      app.data.user.set({nick: "niko"});
       var textChat = chatApp.textChatView.collection;
-      chatApp.textChatView.collection.media.connected = true;
-      app.port.trigger("talkilla.conversation-open", {peer: "niko"});
+      chatApp.port.trigger("talkilla.conversation-open", {
+        peer: "niko",
+        user: "jb"
+      });
       expect(textChat).to.have.length.of(0);
 
       textChat.once("add", function(entry) {
         expect(entry).to.be.an.instanceOf(app.models.TextChatEntry);
-        expect(entry.get("nick")).to.equal("niko");
+        expect(entry.get("nick")).to.equal("jb");
         expect(entry.get("message")).to.equal("plop");
         done();
       });
@@ -185,9 +193,12 @@ describe("Text chat views", function() {
       beforeEach(function() {
         sandbox.stub(call, "on");
 
-        textChat = new app.models.TextChat(null, {media: media, peer: peer});
+        textChat = new app.models.TextChat(null, {
+          media: media,
+          user: user,
+          peer: peer
+        });
         textChatView = new app.views.TextChatView({
-          sender: app.data.user,
           call: call,
           collection: textChat
         });

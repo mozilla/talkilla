@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Talkilla chat window unit tests</title>
+  <title>Talkilla port unit tests</title>
   <link rel="stylesheet" media="all" href="../vendor/mocha.css">
 </head>
 <body>
@@ -16,29 +16,20 @@
   <script src="../vendor/sinon-1.7.1.js"></script>
   <script>mocha.setup('bdd')</script>
   <script src="/vendor/jquery-1.9.1.js"></script>
+  <script src="/vendor/jquery.cookie-1.3.1.js"></script>
   <script src="/vendor/underscore-1.4.4.js"></script>
   <script src="/vendor/backbone-1.0.0.js"></script>
   <script src="/vendor/state-machine-2.2.0.js"></script>
-  <script src="/vendor/tnetbin.js"></script>
-  <script src="/js/webrtc.js"></script>
-  <script src="/js/chat/app.js"></script>
-  <script src="/js/chat/models.js"></script>
-  <script src="/js/models.js"></script>
+  <script src="/js/sidebar/app.js"></script>
   <script src="/js/port.js"></script>
+  <script src="/js/models.js"></script>
+  <script src="/js/sidebar/models.js"></script>
   <script src="/js/utils.js"></script>
-  <script src="/js/chat/views.js"></script>
-  <script src="callcontrolsview_test.js"></script>
-  <script src="callmodel_test.js"></script>
-  <script src="callofferview_test.js"></script>
-  <script src="callestablishview_test.js"></script>
-  <script src="callview_test.js"></script>
-  <script src="chatapp_test.js"></script>
-  <script src="conversationview_test.js"></script>
-  <script src="filetransfermodel_test.js"></script>
-  <script src="textchatmodel_test.js"></script>
-  <script src="textchatview_test.js"></script>
-<script>
+  <script src="/js/sidebar/views.js"></script>
+  <script src="/js/browserDetection.js"></script>
+  <script src="port_test.js"></script>
+  <script>
     mocha.run(function () { $('body').append("<p id='complete'>complete</p>"); });
-</script>
+ </script>
 </body>
 </html>

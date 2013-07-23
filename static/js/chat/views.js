@@ -384,12 +384,9 @@
     },
 
     initialize: function(options) {
-      if (!options.sender)
-        throw new Error("missing parameter: sender");
       if (!options.collection)
         throw new Error("missing parameter: collection");
 
-      this.sender = options.sender;
       this.collection = options.collection;
 
       this.collection.on('add', this.render, this);
@@ -406,7 +403,7 @@
       $input.val('');
 
       this.collection.add(new app.models.TextChatEntry({
-        nick: this.sender.get("nick"),
+        nick: this.collection.user.get("nick"),
         message: message
       }));
     },
