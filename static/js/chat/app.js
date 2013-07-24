@@ -32,6 +32,12 @@ var ChatApp = (function($, Backbone, _) {
     this.user = new app.models.User();
     this.peer = new app.models.User();
 
+    // Audio library
+    this.audioLibrary = new app.utils.AudioLibrary({
+      incoming: "/snd/incoming_call_ring.opus",
+      outgoing: "/snd/outgoing_call_ring.opus"
+    });
+
     this.webrtc = new WebRTC({
       forceFake: !!(app.options && app.options.FAKE_MEDIA_STREAMS)
     });
@@ -65,13 +71,8 @@ var ChatApp = (function($, Backbone, _) {
     this.callEstablishView = new app.views.CallEstablishView({
       call: this.call,
       peer: this.peer,
+      audioLibrary: this.audioLibrary,
       el: $("#establish")
-    });
-
-    // Audio library
-    this.audioLibrary = new app.utils.AudioLibrary({
-      incoming: "/snd/incoming_call_ring.opus",
-      outgoing: "/snd/outgoing_call_ring.opus"
     });
 
     // Text chat
@@ -143,13 +144,10 @@ var ChatApp = (function($, Backbone, _) {
 
     // video/audio call
     this.call.establish(data);
-
-    this.audioLibrary.stop('outgoing');
   };
 
   ChatApp.prototype._onCallOfferTimout = function(callData) {
     this.port.postEvent('talkilla.offer-timeout', callData);
-    this.audioLibrary.stop('outgoing');
   };
 
   // Incoming calls
@@ -176,8 +174,6 @@ var ChatApp = (function($, Backbone, _) {
 
   ChatApp.prototype._onSendOffer = function(data) {
     this.port.postEvent('talkilla.call-offer', data);
-    if (!data.textChat)
-      this.audioLibrary.play('outgoing');
   };
 
   ChatApp.prototype._onSendAnswer = function(data) {

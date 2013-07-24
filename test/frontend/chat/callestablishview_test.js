@@ -6,7 +6,7 @@ var expect = chai.expect;
 
 describe('Call Establish View', function() {
   "use strict";
-  var media, sandbox, call, peer;
+  var media, sandbox, call, peer, audioLibrary;
 
   beforeEach(function() {
     $('body').append([
@@ -18,11 +18,15 @@ describe('Call Establish View', function() {
       '</div>'
     ].join(''));
     sandbox = sinon.sandbox.create();
+    sandbox.useFakeTimers();
+
     var media = sandbox.stub(new WebRTC());
-    console.log(media);
+    call = new app.models.Call({}, {media: media});
+
     peer = new app.models.User();
     peer.set({nick: "Mark"});
-    call = new app.models.Call({}, {media: media});
+
+    audioLibrary = new app.utils.AudioLibrary();
   });
 
   afterEach(function() {
@@ -34,17 +38,33 @@ describe('Call Establish View', function() {
 
   describe("#initialize", function() {
     it("should attach a given call model", function() {
-      var establishView =
-        new app.views.CallEstablishView({call: call, peer: peer});
+      var establishView = new app.views.CallEstablishView({
+        call: call,
+        peer: peer,
+        audioLibrary: audioLibrary
+      });
 
       expect(establishView.call).to.equal(call);
     });
 
     it("should attach a given peer model", function() {
-      var establishView =
-        new app.views.CallEstablishView({call: call, peer: peer});
+      var establishView = new app.views.CallEstablishView({
+        call: call,
+        peer: peer,
+        audioLibrary: audioLibrary
+      });
 
       expect(establishView.peer).to.equal(peer);
+    });
+
+    it("should attach a given audio library", function() {
+      var establishView = new app.views.CallEstablishView({
+        call: call,
+        peer: peer,
+        audioLibrary: audioLibrary
+      });
+
+      expect(establishView.audioLibrary).to.equal(audioLibrary);
     });
 
     it("should throw an error when no peer is given", function() {
@@ -60,6 +80,68 @@ describe('Call Establish View', function() {
       }
       expect(shouldExplode).to.Throw(Error, /missing parameter: call/);
     });
+
+    it("should throw an error when no audioLibrary is given", function() {
+      function shouldExplode() {
+        new app.views.CallEstablishView({call: call, peer: peer});
+      }
+      expect(shouldExplode).to.Throw(Error, /missing parameter: audioLibrary/);
+    });
+  });
+
+  describe("#_startTimer", function() {
+    var establishView;
+    beforeEach(function() {
+      establishView = new app.views.CallEstablishView({
+        call: call,
+        peer: peer,
+        audioLibrary: audioLibrary
+      });
+
+      sandbox.stub(audioLibrary, "stop");
+      sandbox.stub(window, "close");
+    });
+
+    it("should setup a timer and stop the outgoing call sound on timeout",
+      function() {
+        expect(establishView.timer).to.be.a("undefined");
+
+        establishView._startTimer({timeout: 3000});
+
+        expect(establishView.timer).to.be.a("number");
+
+        sandbox.clock.tick(3000);
+
+        sinon.assert.calledOnce(audioLibrary.stop);
+        sinon.assert.calledWithExactly(audioLibrary.stop, "outgoing");
+      });
+  });
+
+  describe("#_onSendOffer", function() {
+    var establishView;
+    beforeEach(function() {
+      establishView = new app.views.CallEstablishView({
+        call: call,
+        peer: peer,
+        audioLibrary: audioLibrary
+      });
+
+      sandbox.stub(audioLibrary, "play");
+      sandbox.stub(establishView, "_startTimer");
+    });
+
+    it("should start the outgoing call sound", function() {
+      call.trigger("send-offer");
+
+      sinon.assert.calledOnce(audioLibrary.play);
+      sinon.assert.calledWithExactly(audioLibrary.play, "outgoing");
+    });
+
+    it("should start a timer for call timeout", function() {
+      call.trigger("send-offer");
+
+      sinon.assert.calledOnce(establishView._startTimer);
+    });
   });
 
   describe("#_handleStateChanges", function() {
@@ -67,7 +149,8 @@ describe('Call Establish View', function() {
     beforeEach(function() {
       establishView = new app.views.CallEstablishView({
         call: call,
-        peer: peer
+        peer: peer,
+        audioLibrary: audioLibrary
       });
     });
 
@@ -97,7 +180,8 @@ describe('Call Establish View', function() {
     beforeEach(function() {
       establishView = new app.views.CallEstablishView({
         call: call,
-        peer: peer
+        peer: peer,
+        audioLibrary: audioLibrary
       });
       event = { preventDefault: sinon.spy() };
       sandbox.stub(window, "close");
@@ -124,7 +208,8 @@ describe('Call Establish View', function() {
     beforeEach(function() {
       establishView = new app.views.CallEstablishView({
         call: call,
-        peer: peer
+        peer: peer,
+        audioLibrary: audioLibrary
       });
     });
 

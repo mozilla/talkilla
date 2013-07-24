@@ -9,7 +9,6 @@ describe("Call", function() {
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
-    sandbox.useFakeTimers();
     // XXX This should probably be a mock, but sinon mocks don't seem to want
     // to work with Backbone.
     media = {
@@ -90,7 +89,6 @@ describe("Call", function() {
       var fakeOffer = {peer: "larry", offer: {fake: true}};
 
       beforeEach(function() {
-        sandbox.stub(call, "_startTimer");
         call.media = _.extend(media, Backbone.Events);
         peer.set("nick", "larry");
 
@@ -106,12 +104,6 @@ describe("Call", function() {
 
           call.media.trigger("offer-ready", fakeOffer);
         });
-
-      it("should trigger a timer for timing out an offer", function() {
-        call.media.trigger("offer-ready", fakeOffer);
-
-        sinon.assert.calledOnce(call._startTimer);
-      });
     });
   });
 
@@ -267,7 +259,6 @@ describe("Call", function() {
       var fakeOffer = {peer: "larry", offer: {fake: true}};
 
       beforeEach(function() {
-        sandbox.stub(call, "_startTimer");
         call.state.current = 'ongoing';
         call.media = _.extend(media, Backbone.Events);
         peer.set("nick", "larry");
@@ -284,39 +275,6 @@ describe("Call", function() {
 
           call.media.trigger("offer-ready", fakeOffer);
         });
-
-      it("should trigger a timer for timing out an offer", function() {
-        call.media.trigger("offer-ready", fakeOffer);
-
-        sinon.assert.calledOnce(call._startTimer);
-      });
     });
-  });
-
-  describe("#_startTimer", function() {
-    beforeEach(function() {
-      peer.set({nick: "bob"});
-    });
-
-    afterEach(function() {
-      peer.set({nick: undefined});
-    });
-
-    it("should setup a timer and trigger the `offer-timeout` event on timeout",
-      function(done) {
-        sandbox.stub(call, "trigger");
-        expect(call.timer).to.be.a("undefined");
-
-        call._startTimer({timeout: 3000});
-
-        expect(call.timer).to.be.a("number");
-
-        sandbox.clock.tick(3000);
-
-        sinon.assert.calledOnce(call.trigger);
-        sinon.assert.calledWithExactly(call.trigger, "offer-timeout",
-                                       {peer: "bob"});
-        done();
-      });
   });
 });

@@ -84,7 +84,6 @@
           peer: this.peer.get("nick"),
           offer: offer
         });
-        this._startTimer({timeout: app.options.PENDING_CALL_TIMEOUT});
       }, this);
 
       this.media.initiate(constraints);
@@ -189,27 +188,9 @@
           textChat: false,
           upgrade: true
         });
-        this._startTimer({timeout: app.options.PENDING_CALL_TIMEOUT});
       }, this);
 
       this.media.upgrade(constraints);
-    },
-
-    /**
-     * Starts the outgoing pending call timer.
-     * @param {Object} options:
-     *      - {Number} timeout   Timeout in ms
-     *      - {Object} callData  Current outgoing pending call data
-     */
-    _startTimer: function(options) {
-      if (!options || !options.timeout)
-        return;
-
-      var onTimeout = function() {
-        this.trigger('offer-timeout', {peer: this.peer.get("nick")});
-      }.bind(this);
-
-      this.timer = setTimeout(onTimeout, options.timeout);
     }
   });
 
