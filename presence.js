@@ -18,6 +18,7 @@ app.use(express.bodyParser());
 app.use(express.static(__dirname + "/static"));
 app.use(app.router);
 var server;
+var logger;
 
 /**
  * Merges two objects
@@ -75,7 +76,7 @@ app.configure('test', function() {
 });
 
 // Logging
-var logger = bunyan.createLogger({
+logger = bunyan.createLogger({
   name: 'talkilla',
   level: app.get("config").LOG_LEVEL || "error",
   serializers: {err: bunyan.stdSerializers.err}
