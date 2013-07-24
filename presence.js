@@ -18,6 +18,7 @@ app.use(express.bodyParser());
 app.use(express.static(__dirname + "/static"));
 app.use(app.router);
 var server;
+var logger;
 
 /**
  * Merges two objects
@@ -49,7 +50,7 @@ function getConfigFromFile(file) {
   if (!process.env.NO_LOCAL_CONFIG) {
     var localConfigFile = path.join(configRoot, 'local.json');
     if (fs.existsSync(localConfigFile)) {
-      console.log("Warning: using local.json");
+      logger.warn("Using local.json");
       config = merge(config, JSON.parse(fs.readFileSync(localConfigFile)));
     }
   }
@@ -75,7 +76,7 @@ app.configure('test', function() {
 });
 
 // Logging
-var logger = bunyan.createLogger({
+logger = bunyan.createLogger({
   name: 'talkilla',
   level: app.get("config").LOG_LEVEL || "error",
   serializers: {err: bunyan.stdSerializers.err}
@@ -178,7 +179,7 @@ function configureWs(ws, nick) {
     try {
       events = JSON.parse(message);
     } catch (e) {
-      console.error('WebSocket message error: ' + e);
+      logger.error({type: "websocket", err: e});
     }
 
     if (!events || typeof events !== 'object')
@@ -206,7 +207,9 @@ function configureWs(ws, nick) {
       data.peer = nick;
       peer.ws.send(JSON.stringify({'incoming_call': data}));
       logger.info({type: "call:offer"});
-    } catch (e) {console.error('call_offer', e);}
+    } catch (e) {
+      logger.error({type: "call:offer", err: e});
+    }
   });
 
   /**
@@ -226,7 +229,9 @@ function configureWs(ws, nick) {
       data.peer = nick;
       peer.ws.send(JSON.stringify({'call_accepted': data}));
       logger.info({type: "call:accept"});
-    } catch (e) {console.error('call_accept', e);}
+    } catch (e) {
+      logger.error({type: "call:accept", err: e});
+    }
   });
 
   // when a call offer has been denied
@@ -236,7 +241,9 @@ function configureWs(ws, nick) {
       var caller = users[data.caller];
       caller.ws.send(JSON.stringify({'call_denied': data}));
       logger.info({type: "call:deny"});
-    } catch (e) {console.error('call_deny', e);}
+    } catch (e) {
+      logger.error({type: "call:deny", err: e});
+    }
   });
 
   /**
@@ -253,7 +260,9 @@ function configureWs(ws, nick) {
       var peer = users[data.peer];
       peer.ws.send(JSON.stringify({'call_hangup': {peer: nick}}));
       logger.info({type: "call:hangup"});
-    } catch (e) {console.error('call_hangup', e);}
+    } catch (e) {
+      logger.error({type: "call:hangup", err: e});
+    }
   });
 
   // when a connection is closed, remove it from the pool as well and update the
@@ -323,7 +332,7 @@ function _configureWebSocketServer(httpServer, httpUpgradeHandler, callback) {
   httpServer.on('upgrade', httpUpgradeHandler);
 
   module.exports._wss.on('error', function(err) {
-    console.log("WebSocketServer error: " + err);
+    logger.error({type: "websocket", err: err});
   });
 
   module.exports._wss.on('close', function(ws) {});
