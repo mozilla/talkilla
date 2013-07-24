@@ -1,4 +1,5 @@
-/* global app, chai, describe, it, sinon, beforeEach, afterEach, $ */
+/* global app, chai, describe, it, sinon, beforeEach, afterEach, $,
+          WebRTC */
 
 /* jshint expr:true */
 var expect = chai.expect;
@@ -17,15 +18,8 @@ describe('Call Establish View', function() {
       '</div>'
     ].join(''));
     sandbox = sinon.sandbox.create();
-    // XXX This should probably be a mock, but sinon mocks don't seem to want
-    // to work with Backbone.
-    media = {
-      answer: sandbox.spy(),
-      establish: sandbox.spy(),
-      initiate: sandbox.spy(),
-      terminate: sandbox.spy(),
-      on: sandbox.stub()
-    };
+    var media = sandbox.stub(new WebRTC());
+    console.log(media);
     peer = new app.models.User();
     peer.set({nick: "Mark"});
     call = new app.models.Call({}, {media: media});
@@ -41,45 +35,38 @@ describe('Call Establish View', function() {
   describe("#initialize", function() {
     it("should attach a given call model", function() {
       var establishView =
-        new app.views.CallEstablishView({model: call, peer: peer});
+        new app.views.CallEstablishView({call: call, peer: peer});
 
-      expect(establishView.model).to.equal(call);
+      expect(establishView.call).to.equal(call);
+    });
+
+    it("should attach a given peer model", function() {
+      var establishView =
+        new app.views.CallEstablishView({call: call, peer: peer});
+
+      expect(establishView.peer).to.equal(peer);
     });
 
     it("should throw an error when no peer is given", function() {
       function shouldExplode() {
-        new app.views.CallEstablishView({model: call});
+        new app.views.CallEstablishView({call: call});
       }
       expect(shouldExplode).to.Throw(Error, /missing parameter: peer/);
     });
 
-
-    it("should attach _handleStateChanges to the change:state event ",
-      function() {
-        sandbox.stub(call, "on");
-        sandbox.stub(app.views.CallEstablishView.prototype,
-          "_handleStateChanges");
-        var establishView = new app.views.CallEstablishView({
-          model: call,
-          peer: peer
-        });
-        var attachedHandler = call.on.args[0][1];
-        expect(establishView._handleStateChanges.callCount).to.equal(0);
-
-        attachedHandler("to", "from");
-
-        sinon.assert.calledOnce(establishView._handleStateChanges);
-        sinon.assert.calledWithExactly(establishView._handleStateChanges,
-          "to", "from");
-      });
-
+    it("should throw an error when no call is given", function() {
+      function shouldExplode() {
+        new app.views.CallEstablishView({peer: peer});
+      }
+      expect(shouldExplode).to.Throw(Error, /missing parameter: call/);
+    });
   });
 
   describe("#_handleStateChanges", function() {
     var establishView;
     beforeEach(function() {
       establishView = new app.views.CallEstablishView({
-        model: call,
+        call: call,
         peer: peer
       });
     });
@@ -88,7 +75,7 @@ describe('Call Establish View', function() {
       function() {
         establishView.$el.hide();
 
-        establishView._handleStateChanges("pending", "ready");
+        call.state.start();
 
         expect(establishView.$el.is(":visible")).to.be.equal(true);
       });
@@ -97,7 +84,8 @@ describe('Call Establish View', function() {
       function() {
         establishView.$el.show();
 
-        establishView._handleStateChanges("dummy", "pending");
+        call.state.start();
+        call.state.hangup();
 
         expect(establishView.$el.is(":visible")).to.be.equal(false);
       });
@@ -108,7 +96,7 @@ describe('Call Establish View', function() {
 
     beforeEach(function() {
       establishView = new app.views.CallEstablishView({
-        model: call,
+        call: call,
         peer: peer
       });
       event = { preventDefault: sinon.spy() };
@@ -135,7 +123,7 @@ describe('Call Establish View', function() {
     var establishView;
     beforeEach(function() {
       establishView = new app.views.CallEstablishView({
-        model: call,
+        call: call,
         peer: peer
       });
     });

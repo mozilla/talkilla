@@ -35,11 +35,6 @@
       this.call.media.on('local-stream:ready remote-stream:ready', function() {
         this.$el.addClass('has-video');
       }, this);
-
-      this.call.on('offer-timeout', function() {
-        // outgoing call didn't go through, close the window
-        window.close();
-      });
     },
 
     _checkDragTypes: function(types) {
@@ -239,10 +234,18 @@
       options = options || {};
       if (!options.peer)
         throw new Error("missing parameter: peer");
+      if (!options.call)
+        throw new Error("missing parameter: call");
 
       this.peer = options.peer;
+      this.call = options.call;
 
-      this.model.on("change:state", this._handleStateChanges.bind(this));
+      this.call.on('offer-timeout', function() {
+        // outgoing call didn't go through, close the window
+        window.close();
+      });
+
+      this.call.on("change:state", this._handleStateChanges.bind(this));
     },
 
     _handleStateChanges: function(to, from) {

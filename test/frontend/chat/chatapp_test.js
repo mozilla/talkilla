@@ -167,7 +167,7 @@ describe("ChatApp", function() {
 
     sinon.assert.calledOnce(app.views.CallEstablishView);
     sinon.assert.calledWithExactly(app.views.CallEstablishView,
-      { model: chatApp.call, peer: chatApp.peer, el: $("#establish") });
+      { call: chatApp.call, peer: chatApp.peer, el: $("#establish") });
   });
 
   it("should initialize a peer model", function() {
