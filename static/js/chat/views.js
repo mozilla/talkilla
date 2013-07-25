@@ -278,6 +278,7 @@
       } else if (to !== "pending" && from === "pending") {
         this.$el.hide();
         this.audioLibrary.stop('outgoing');
+        clearTimeout(this.timer);
       }
 
       this.render();

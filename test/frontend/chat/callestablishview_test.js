@@ -152,6 +152,9 @@ describe('Call Establish View', function() {
         peer: peer,
         audioLibrary: audioLibrary
       });
+
+      sandbox.stub(audioLibrary, "stop");
+      sandbox.stub(window, "clearTimeout");
     });
 
     it("should show the element when the state changes to pending from ready",
@@ -171,6 +174,28 @@ describe('Call Establish View', function() {
         call.state.hangup();
 
         expect(establishView.$el.is(":visible")).to.be.equal(false);
+      });
+
+    it("should stop the outgoing sound when the state leaves pending",
+      function() {
+        call.state.start();
+        call.state.hangup();
+
+        sinon.assert.calledOnce(audioLibrary.stop);
+        sinon.assert.calledWithExactly(audioLibrary.stop, "outgoing");
+      });
+
+    it("should clear the timeout when the state leaves pending",
+      function() {
+        // Set up the timer, so that we have something to test that we're
+        // clearing.
+        establishView._startTimer({timeout: 3000});
+
+        call.state.start();
+        call.state.hangup();
+
+        sinon.assert.calledOnce(clearTimeout);
+        sinon.assert.calledWithExactly(clearTimeout, establishView.timer);
       });
   });
 
