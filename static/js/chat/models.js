@@ -129,6 +129,7 @@
     timeout: function() {
       this.state.timeout();
       this.media.terminate();
+      this.media.reset();
       this.trigger("send-hangup", {
         peer: this.peer.get("nick")
       });

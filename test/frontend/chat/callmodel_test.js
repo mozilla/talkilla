@@ -18,6 +18,7 @@ describe("Call", function() {
       initiate: sandbox.spy(),
       upgrade: sandbox.spy(),
       terminate: sandbox.spy(),
+      reset: sandbox.spy(),
       on: sandbox.stub(),
       once: sandbox.stub()
     };

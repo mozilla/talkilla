@@ -225,7 +225,8 @@
     el: "#establish",
 
     events: {
-      'click .btn-abort': '_abort'
+      'click .btn-abort': '_abort',
+      'click .btn-call-again': '_callAgain'
     },
 
     outgoingTextTemplate: _.template('Calling <%= peer %>…'),
@@ -273,10 +274,12 @@
     _handleStateChanges: function(to, from) {
       if (to === "pending" && from === "ready") {
         this.$el.show();
-      } else if (to !== "pending" && from === "pending") {
-        this.$el.hide();
+      } else if (from === "pending") {
         this.audioLibrary.stop('outgoing');
         clearTimeout(this.timer);
+
+        if (to !== "timeout")
+          this.$el.hide();
       }
 
       this.render();
@@ -289,12 +292,28 @@
       window.close();
     },
 
+    _callAgain: function(event) {
+      if (event)
+        event.preventDefault();
+    },
+
     render: function() {
       // XXX: update caller's avatar, though we'd need to access peer
       //      as a User model instance
-      var peer = this.peer.get('nick');
-      var formattedText = this.outgoingTextTemplate({peer: peer});
-      this.$('.outgoing-text').text(formattedText);
+
+      if (this.call.state.current === "pending") {
+        var peer = this.peer.get('nick');
+        var formattedText = this.outgoingTextTemplate({peer: peer});
+        this.$('.text').text(formattedText);
+
+        this.$(".btn-abort").show();
+        this.$(".btn-call-again").hide();
+      } else {
+        this.$('.text').text("Call was not answered");
+
+        this.$(".btn-abort").hide();
+        this.$(".btn-call-again").show();
+      }
 
       return this;
     }

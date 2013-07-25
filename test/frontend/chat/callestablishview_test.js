@@ -13,8 +13,9 @@ describe('Call Establish View', function() {
       '<div id="establish">',
       '  <p class="avatar"><img src="" id="avatar"></p>',
       '  <p class="outgoing-info"><img src="/img/video-icon.png">',
-      '    <span class="outgoing-text"></span></p>',
+      '    <span class="text"></span></p>',
       '  <p class="actions"><a class="btn btn-abort">End Call</a></p>',
+      '  <p class="actions"><a class="btn btn-call-again">Call Again</a></p>',
       '</div>'
     ].join(''));
     sandbox = sinon.sandbox.create();
@@ -235,16 +236,63 @@ describe('Call Establish View', function() {
       });
     });
 
-    it("should show 'Calling Mark…' when rendering", function() {
-      establishView.render();
-
-      expect(establishView.$('.outgoing-text').text()).
-        to.equal("Calling Mark…");
-    });
-
-    it("should render with the callee's avatar");
     // XXX: needs to have the Call model having its peer set as a User
     // model instance so we can actually get the avatar
+    it("should render with the callee's avatar");
+
+    describe("on state set to pending", function() {
+      it("should show 'Calling Mark…'", function() {
+        call.state.start();
+
+        expect(establishView.$('.text').text()).
+          to.equal("Calling Mark…");
+      });
+
+      it("should show the end call button", function() {
+        $('.btn-abort').hide();
+
+        call.state.start();
+
+        expect($('.btn-abort').is(':visible')).to.be.equal(true);
+      });
+
+      it("should hide the call again button", function() {
+        $('.btn-call-again').show();
+
+        call.state.start();
+
+        expect($('.btn-call-again').is(':visible')).to.be.equal(false);
+      });
+    });
+
+    describe("on state set to timeout", function() {
+      it("should show 'Call was not answered'", function() {
+        call.state.start();
+        call.state.timeout();
+
+        expect(establishView.$('.text').text()).
+          to.equal("Call was not answered");
+      });
+
+      it("should hide the end call button", function() {
+        $('.btn-abort').show();
+
+        call.state.start();
+        call.state.timeout();
+
+        expect($('.btn-abort').is(':visible')).to.be.equal(false);
+      });
+
+      it("should show the call again button", function() {
+        $('.btn-call-again').hide();
+
+        call.state.start();
+        call.state.timeout();
+
+        expect($('.btn-call-again').is(':visible')).to.be.equal(true);
+      });
+    });
+
   });
 
 });
