@@ -35,11 +35,6 @@
       this.call.media.on('local-stream:ready remote-stream:ready', function() {
         this.$el.addClass('has-video');
       }, this);
-
-      this.call.on('offer-timeout', function() {
-        // outgoing call didn't go through, close the window
-        window.close();
-      });
     },
 
     _checkDragTypes: function(types) {
@@ -239,10 +234,42 @@
       options = options || {};
       if (!options.peer)
         throw new Error("missing parameter: peer");
+      if (!options.call)
+        throw new Error("missing parameter: call");
+      if (!options.audioLibrary)
+        throw new Error("missing parameter: audioLibrary");
 
       this.peer = options.peer;
+      this.call = options.call;
+      this.audioLibrary = options.audioLibrary;
 
-      this.model.on("change:state", this._handleStateChanges.bind(this));
+      this.call.on('send-offer', this._onSendOffer.bind(this));
+
+      this.call.on("change:state", this._handleStateChanges.bind(this));
+    },
+
+    /**
+     * Starts the outgoing pending call timer.
+     * @param {Object} options:
+     *      - {Number} timeout   Timeout in ms
+     *      - {Object} callData  Current outgoing pending call data
+     */
+    _startTimer: function(options) {
+      if (!options || !options.timeout)
+        return;
+
+      var onTimeout = function() {
+        // outgoing call didn't go through, tidy up
+        this.audioLibrary.stop('outgoing');
+        window.close();
+      }.bind(this);
+
+      this.timer = setTimeout(onTimeout, options.timeout);
+    },
+
+    _onSendOffer: function() {
+      this.audioLibrary.play('outgoing');
+      this._startTimer({timeout: app.options.PENDING_CALL_TIMEOUT});
     },
 
     _handleStateChanges: function(to, from) {
@@ -250,6 +277,8 @@
         this.$el.show();
       } else if (to !== "pending" && from === "pending") {
         this.$el.hide();
+        this.audioLibrary.stop('outgoing');
+        clearTimeout(this.timer);
       }
 
       this.render();

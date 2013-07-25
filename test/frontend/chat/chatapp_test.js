@@ -166,8 +166,12 @@ describe("ChatApp", function() {
       to.be.an.instanceOf(app.views.CallEstablishView);
 
     sinon.assert.calledOnce(app.views.CallEstablishView);
-    sinon.assert.calledWithExactly(app.views.CallEstablishView,
-      { model: chatApp.call, peer: chatApp.peer, el: $("#establish") });
+    sinon.assert.calledWithExactly(app.views.CallEstablishView, {
+      call: chatApp.call,
+      peer: chatApp.peer,
+      audioLibrary: chatApp.audioLibrary,
+      el: $("#establish")
+    });
   });
 
   it("should initialize a peer model", function() {
@@ -293,13 +297,6 @@ describe("ChatApp", function() {
         sinon.assert.calledOnce(chatApp.call.establish);
         sinon.assert.calledWithExactly(chatApp.call.establish, answer);
       });
-
-      it("should stop the outgoing call sound", function() {
-        chatApp._onCallEstablishment(answer);
-
-        sinon.assert.calledOnce(chatApp.audioLibrary.stop);
-        sinon.assert.calledWithExactly(chatApp.audioLibrary.stop, "outgoing");
-      });
     });
 
     describe("#_onCallOfferTimout", function() {
@@ -313,13 +310,6 @@ describe("ChatApp", function() {
           sinon.assert.calledWithExactly(chatApp.port.postEvent,
             "talkilla.offer-timeout", callData);
         });
-
-      it("should stop outgoing call sounds", function() {
-        chatApp._onCallOfferTimout({});
-
-        sinon.assert.calledOnce(chatApp.audioLibrary.stop);
-        sinon.assert.calledWithExactly(chatApp.audioLibrary.stop, "outgoing");
-      });
     });
 
     describe("#_onCallShutdown", function() {
@@ -404,14 +394,6 @@ describe("ChatApp", function() {
           sinon.assert.calledWith(chatApp.port.postEvent,
                                   "talkilla.call-offer");
         });
-
-      it("should start the outgoing call sound", function() {
-        chatApp._onSendOffer(callData);
-
-        sinon.assert.called(chatApp.audioLibrary.play);
-        sinon.assert.calledWithExactly(chatApp.audioLibrary.play, "outgoing");
-      });
-
     });
 
     describe("#_onSendAnswer", function() {

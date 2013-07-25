@@ -10,12 +10,6 @@
    *
    * Attributes:
    * - {Object} incomingData
-   *
-   * Fired when #start() is called and the pending call timeout is reached with
-   * no response from the other side.
-   * @event offer-timeout
-   * @param {Object} options An object containing one attribute, peer, with
-   *                         the value as the peer's nick.
    */
   app.models.Call = Backbone.Model.extend({
     timer: undefined,
@@ -84,7 +78,6 @@
           peer: this.peer.get("nick"),
           offer: offer
         });
-        this._startTimer({timeout: app.options.PENDING_CALL_TIMEOUT});
       }, this);
 
       this.media.initiate(constraints);
@@ -122,8 +115,6 @@
       var answer = options && options.answer;
       if (!answer)
         throw new Error("Invalid answer, can't establish connection.");
-
-      clearTimeout(this.timer);
 
       this.media.once('connection-established', this.state.establish,
                                                 this.state);
@@ -166,7 +157,6 @@
      * Hangs up a call
      */
     hangup: function() {
-      clearTimeout(this.timer);
       this.state.hangup();
       this.media.terminate();
     },
@@ -189,27 +179,9 @@
           textChat: false,
           upgrade: true
         });
-        this._startTimer({timeout: app.options.PENDING_CALL_TIMEOUT});
       }, this);
 
       this.media.upgrade(constraints);
-    },
-
-    /**
-     * Starts the outgoing pending call timer.
-     * @param {Object} options:
-     *      - {Number} timeout   Timeout in ms
-     *      - {Object} callData  Current outgoing pending call data
-     */
-    _startTimer: function(options) {
-      if (!options || !options.timeout)
-        return;
-
-      var onTimeout = function() {
-        this.trigger('offer-timeout', {peer: this.peer.get("nick")});
-      }.bind(this);
-
-      this.timer = setTimeout(onTimeout, options.timeout);
     }
   });
 
