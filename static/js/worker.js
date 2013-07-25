@@ -520,17 +520,6 @@ var handlers = {
   },
 
   /**
-   * The data for talkilla.offer-timeout is:
-   *
-   * - peer:  The id of the other user
-   * - video: set to true to enable video
-   * - audio: set to true to enable audio
-   */
-  'talkilla.offer-timeout': function(event) {
-    ports.broadcastEvent("talkilla.offer-timeout", event.data);
-  },
-
-  /**
    * Called when the sidebar is ready.
    * The data for talkilla.sidebar-ready is:
    *

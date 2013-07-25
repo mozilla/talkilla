@@ -299,19 +299,6 @@ describe("ChatApp", function() {
       });
     });
 
-    describe("#_onCallOfferTimout", function() {
-      it("should post the `talkilla.offer-timeout` event to the worker",
-        function() {
-          var callData = {foo: "bar"};
-
-          chatApp._onCallOfferTimout(callData);
-
-          sinon.assert.called(chatApp.port.postEvent);
-          sinon.assert.calledWithExactly(chatApp.port.postEvent,
-            "talkilla.offer-timeout", callData);
-        });
-    });
-
     describe("#_onCallShutdown", function() {
       beforeEach(function() {
         sandbox.stub(chatApp.call, "hangup");

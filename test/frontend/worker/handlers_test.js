@@ -358,23 +358,6 @@ describe('handlers', function() {
       });
   });
 
-  describe("talkilla.offer-timeout", function() {
-    it("should notify the caller that an outgoing call did not go through",
-      function() {
-        var fakeCallData = {foo: "bar"};
-        sandbox.stub(ports, "broadcastEvent");
-
-        handlers['talkilla.offer-timeout']({
-          topic: "talkilla.offer-timeout",
-          data: fakeCallData
-        });
-
-        sinon.assert.calledOnce(ports.broadcastEvent);
-        sinon.assert.calledWithExactly(ports.broadcastEvent,
-          "talkilla.offer-timeout", fakeCallData);
-      });
-  });
-
   describe("talkilla.sidebar-ready", function() {
 
     beforeEach(function() {

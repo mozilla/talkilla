@@ -115,8 +115,6 @@ var ChatApp = (function($, Backbone, _) {
     this.textChat.on('send-answer', this._onSendAnswer.bind(this));
     this.call.on('send-hangup', this._onSendHangup.bind(this));
 
-    this.call.on('offer-timeout', this._onCallOfferTimout.bind(this));
-
     // Internal events
     this.call.on('state:accept', this._onCallAccepted.bind(this));
 
@@ -145,10 +143,6 @@ var ChatApp = (function($, Backbone, _) {
 
     // video/audio call
     this.call.establish(data);
-  };
-
-  ChatApp.prototype._onCallOfferTimout = function(callData) {
-    this.port.postEvent('talkilla.offer-timeout', callData);
   };
 
   // Incoming calls
