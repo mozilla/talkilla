@@ -44,7 +44,7 @@ exports.merge = merge;
  * @return {Object}
  */
 function getConfigFromFile(file) {
-  var configRoot = path.join(__dirname, 'config'),
+  var configRoot = path.join(__dirname, '..', 'config'),
       config = JSON.parse(fs.readFileSync(path.join(configRoot, file)));
 
   if (!process.env.NO_LOCAL_CONFIG) {

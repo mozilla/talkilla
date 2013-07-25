@@ -11,7 +11,7 @@ var expect = chai.expect;
 var sinon = require("sinon");
 
 var request = require("request");
-var presence = require("../presence");
+var presence = require("../server/server");
 var app = presence.app;
 var findNewNick = presence.findNewNick;
 var _usersToArray = presence._usersToArray;

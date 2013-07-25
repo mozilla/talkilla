@@ -5,10 +5,10 @@ process.env.NO_LOCAL_CONFIG = true;
 
 var expect = require("chai").expect;
 var request = require("request");
-var app = require("../presence").app;
+var app = require("../server/server").app;
 var path = require("path");
-var merge = require("../presence").merge;
-var getConfigFromFile = require("../presence").getConfigFromFile;
+var merge = require("../server/server").merge;
+var getConfigFromFile = require("../server/server").getConfigFromFile;
 // This is the developer/production environment we are running in. For tests,
 // this is controlled via the main Makefile.
 var nodeEnv = process.env.NODE_ENV;
@@ -58,7 +58,7 @@ describe("Server", function() {
     });
 
     it("should render a configuration as JSON", function(done) {
-      app = require("../presence").app;
+      app = require("../server/server").app;
       expect(app.get('env')).to.equal(nodeEnv);
       request.get(serverHttpBase + '/config.json', function(err, res, body) {
         expect(err).to.be.a('null');
