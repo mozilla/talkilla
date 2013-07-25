@@ -108,6 +108,60 @@ describe("Call", function() {
     });
   });
 
+  describe("#restart", function() {
+    var callData = {video: true, audio: true};
+
+    beforeEach(function() {
+      call.start(callData);
+      call.timeout();
+      media.initiate.reset();
+    });
+
+    it("should change the state from timeout to pending", function() {
+      call.restart();
+      expect(call.state.current).to.equal('pending');
+    });
+
+    it("should listen to offer-ready from the media", function() {
+      call.restart();
+      sinon.assert.calledWith(media.once, "offer-ready");
+    });
+
+    it("should pass the previously saved call data to the media", function() {
+      expect(call.constraints).to.be.equal(callData);
+      call.restart();
+
+      sinon.assert.calledOnce(media.initiate);
+      sinon.assert.calledWithExactly(media.initiate, callData);
+    });
+
+    it("should raise an error if called twice", function() {
+      call.restart();
+      expect(call.restart).to.Throw();
+    });
+
+    describe("send-offer", function() {
+      var fakeOffer = {peer: "larry", offer: {fake: true}};
+
+      beforeEach(function() {
+        call.media = _.extend(media, Backbone.Events);
+        peer.set("nick", "larry");
+
+        call.start({});
+      });
+
+      it("should trigger send-offer with transport data on offer-ready",
+        function(done) {
+          call.once("send-offer", function(data) {
+            expect(data.offer).to.deep.equal(fakeOffer);
+            done();
+          });
+
+          call.media.trigger("offer-ready", fakeOffer);
+        });
+    });
+  });
+
   describe("#incoming", function() {
     var callData = {video: true, audio: true};
 

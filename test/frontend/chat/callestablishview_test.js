@@ -197,7 +197,7 @@ describe('Call Establish View', function() {
       });
   });
 
-  describe("#_abort", function() {
+  describe("#events", function() {
     var establishView, event;
 
     beforeEach(function() {
@@ -208,22 +208,23 @@ describe('Call Establish View', function() {
       });
       event = { preventDefault: sinon.spy() };
       sandbox.stub(window, "close");
+      sandbox.stub(call, "restart");
     });
 
-    it("should call preventDefault on any event passed", function() {
-      establishView._abort(event);
-
-      sinon.assert.calledOnce(event.preventDefault);
-      sinon.assert.calledWithExactly(event.preventDefault);
-    });
-
-    it("should call window.close", function() {
+    it("should call window.close when a click event is fired on the " +
+       "abort button", function() {
       establishView._abort(event);
 
       sinon.assert.calledOnce(window.close);
       sinon.assert.calledWithExactly(window.close);
     });
 
+    it("should call call.restart when a click event is fired on the " +
+       "call again button", function() {
+      establishView._callAgain(event);
+
+      sinon.assert.calledOnce(call.restart);
+    });
   });
 
   describe("#render", function() {

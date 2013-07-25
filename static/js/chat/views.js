@@ -295,6 +295,8 @@
     _callAgain: function(event) {
       if (event)
         event.preventDefault();
+
+      this.call.restart();
     },
 
     render: function() {

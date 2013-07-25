@@ -73,6 +73,21 @@
       if (this.media.state.current === 'ongoing')
         return this.upgrade(constraints);
 
+      // Store the constraints in case we need them later.
+      this.constraints = constraints;
+
+      this._startCall(this.constraints);
+    },
+
+    /**
+     * Restarts an outbound call, constraints are re-used from the
+     * previous call attempt.
+     */
+    restart: function() {
+      this._startCall(this.constraints);
+    },
+
+    _startCall: function(constraints) {
       this.state.start();
 
       this.media.once("offer-ready", function(offer) {

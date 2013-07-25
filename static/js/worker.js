@@ -320,10 +320,8 @@ var serverHandlers = {
 
   'call_hangup': function(data) {
     this.debug("call_hangup", data);
-    if (currentConversation) {
+    if (currentConversation)
       currentConversation.callHangup(data);
-      currentConversation = undefined;
-    }
   }
 };
 
@@ -581,7 +579,6 @@ var handlers = {
    */
   'talkilla.call-hangup': function (event) {
     _presenceSocketSendMessage(JSON.stringify({'call_hangup': event.data}));
-    currentConversation = undefined;
   }
 };
 
