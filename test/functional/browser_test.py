@@ -110,7 +110,10 @@ class BrowserTest(unittest.TestCase):
         self.assertElementVisible(driver, "#remote-video")
 
     def assertPendingOutgoingCall(self, driver):
-        self.assertElementVisible(driver, ".text")
+        self.assertElementVisible(driver, ".btn-abort")
+
+    def assertCallTimedOut(self, driver):
+        self.assertElementVisible(driver, ".btn-call-again")
 
     def assertSignedInAs(self, driver, nick):
         driver.switchToSidebar()
