@@ -124,22 +124,6 @@ describe("ConversationView", function() {
         expect(document.title).to.be.equal("nick");
       });
 
-    it("should close the window when the call `offer-timeout` event is " +
-       "triggered", function() {
-        new app.views.ConversationView({
-          call: call,
-          peer: peer,
-          textChat: textChat
-        });
-
-        call.trigger('offer-timeout');
-
-        // offer-timeout is the second event triggered
-        call.on.args[0][1]();
-
-        sinon.assert.calledOnce(window.close);
-      });
-
     describe("drag and drop events", function() {
       function fakeDropEvent(data) {
         return {
