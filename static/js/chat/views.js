@@ -336,6 +336,10 @@
       this.call = options.call;
       this.call.media.on('local-stream:ready', this._displayLocalVideo, this);
       this.call.media.on('remote-stream:ready', this._displayRemoteVideo, this);
+      this.call.media.on('local-stream:terminated',
+                         this._terminateLocalVideo, this);
+      this.call.media.on('remote-stream:terminated',
+                         this._terminateRemoteVideo, this);
       this.call.media.on('connection-upgraded', this.ongoing, this);
 
       this.call.on('state:to:ongoing', this.ongoing, this);
@@ -364,6 +368,22 @@
       remoteVideo.mozSrcObject = stream;
       remoteVideo.play();
       return this;
+    },
+
+    _terminateLocalVideo: function() {
+      var localVideo = this.$('#local-video')[0];
+      if (!localVideo || !localVideo.mozSrcObject)
+        return this;
+
+      localVideo.mozSrcObject = undefined;
+    },
+
+    _terminateRemoteVideo: function() {
+      var remoteVideo = this.$('#remote-video')[0];
+      if (!remoteVideo || !remoteVideo.mozSrcObject)
+        return this;
+
+      remoteVideo.mozSrcObject = undefined;
     }
   });
 
