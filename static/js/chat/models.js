@@ -35,8 +35,10 @@
         initial: 'ready',
         events: [
           // Call initiation scenario
-          {name: 'start',     from: 'ready',     to: 'pending'},
+          {name: 'start',     from: ['ready',
+                                     'timeout'], to: 'pending'},
           {name: 'establish', from: 'pending',   to: 'ongoing'},
+          {name: 'timeout',   from: 'pending',   to: 'timeout'},
           {name: 'upgrade',   from: ['ready',
                                      'ongoing'], to: 'pending'},
 
@@ -122,6 +124,17 @@
     },
 
     /**
+     * Indicate that a call connection has timed out
+     */
+    timeout: function() {
+      this.state.timeout();
+      this.media.terminate();
+      this.trigger("send-hangup", {
+        peer: this.peer.get("nick")
+      });
+    },
+
+    /**
      * Accepts a pending incoming call.
      */
     accept: function() {
@@ -154,11 +167,21 @@
     },
 
     /**
-     * Hangs up a call
+     * Hangs up a call.
+     *
+     * @param {Boolean} sendMsg Set to true if to trigger sending hangup
+     *                          to the peer. This should be false in the
+     *                          case of an incoming hangup message.
      */
-    hangup: function() {
+    hangup: function(sendMsg) {
       this.state.hangup();
       this.media.terminate();
+
+      if (sendMsg) {
+        this.trigger("send-hangup", {
+          peer: this.peer.get("nick")
+        });
+      }
     },
 
     /**

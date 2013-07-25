@@ -185,7 +185,6 @@ describe("Call", function() {
 
     it("should pass the data to the media", function() {
       _.extend(media, Backbone.Events);
-      media.establish = sandbox.stub();
       call.start({});
       call.establish(answerData);
 
@@ -193,6 +192,34 @@ describe("Call", function() {
       sinon.assert.calledWithExactly(media.establish, answerData.answer);
     });
 
+  });
+
+  describe("#timeout", function() {
+    beforeEach(function() {
+      call.start({});
+      call.peer.set("nick", "Mark");
+      sandbox.stub(call, "trigger");
+    });
+
+    it("should change the state from pending to terminated", function() {
+      call.timeout();
+
+      expect(call.state.current).to.equal('timeout');
+    });
+
+    it("should terminate the media", function() {
+      call.timeout();
+
+      sinon.assert.calledOnce(media.terminate);
+    });
+
+    it("should trigger send-hangup", function() {
+      call.timeout();
+
+      sinon.assert.called(call.trigger);
+      sinon.assert.calledWithExactly(call.trigger, "send-hangup",
+                                     {peer: "Mark"});
+    });
   });
 
   describe("#ignore", function() {
@@ -232,6 +259,18 @@ describe("Call", function() {
       sinon.assert.calledWithExactly(media.terminate);
     });
 
+    it("should trigger send-hangup", function() {
+      call.start({});
+      call.peer.set("nick", "Mark");
+
+      sandbox.stub(call, "trigger");
+
+      call.hangup(true);
+
+      sinon.assert.called(call.trigger);
+      sinon.assert.calledWithExactly(call.trigger, "send-hangup",
+                                     {peer: "Mark"});
+    });
   });
 
   describe("#upgrade", function() {

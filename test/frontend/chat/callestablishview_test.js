@@ -20,11 +20,11 @@ describe('Call Establish View', function() {
     sandbox = sinon.sandbox.create();
     sandbox.useFakeTimers();
 
-    var media = sandbox.stub(new WebRTC());
-    call = new app.models.Call({}, {media: media});
-
     peer = new app.models.User();
     peer.set({nick: "Mark"});
+
+    var media = sandbox.stub(new WebRTC());
+    call = new app.models.Call({}, {media: media, peer: peer});
 
     audioLibrary = new app.utils.AudioLibrary();
   });
@@ -97,23 +97,20 @@ describe('Call Establish View', function() {
         peer: peer,
         audioLibrary: audioLibrary
       });
-
-      sandbox.stub(audioLibrary, "stop");
-      sandbox.stub(window, "close");
     });
 
-    it("should setup a timer and stop the outgoing call sound on timeout",
+    it("should setup a timer and change the call state to timeout",
       function() {
         expect(establishView.timer).to.be.a("undefined");
 
+        call.state.start();
         establishView._startTimer({timeout: 3000});
 
         expect(establishView.timer).to.be.a("number");
 
         sandbox.clock.tick(3000);
 
-        sinon.assert.calledOnce(audioLibrary.stop);
-        sinon.assert.calledWithExactly(audioLibrary.stop, "outgoing");
+        expect(call.state.current).to.be.equal("timeout");
       });
   });
 

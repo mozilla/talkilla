@@ -259,9 +259,7 @@
         return;
 
       var onTimeout = function() {
-        // outgoing call didn't go through, tidy up
-        this.audioLibrary.stop('outgoing');
-        window.close();
+        this.call.timeout();
       }.bind(this);
 
       this.timer = setTimeout(onTimeout, options.timeout);
