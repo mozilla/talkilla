@@ -20,7 +20,7 @@ flake8: .venv
 
 .PHONY: jshint
 jshint:
-	@./node_modules/jshint/bin/jshint *.js static test
+	@./node_modules/jshint/bin/jshint *.js static server test
 
 .PHONY: mocha
 mocha:
