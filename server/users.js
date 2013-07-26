@@ -1,3 +1,31 @@
+function User(nick) {
+  this.nick = nick;
+  this.ws = undefined;
+}
+
+User.prototype.connect = function(ws) {
+  this.ws = ws;
+  return this;
+};
+
+User.prototype.disconnect = function() {
+  if (this.ws) {
+    this.ws.close();
+    this.ws = undefined;
+  }
+  return this;
+};
+
+User.prototype.send = function(data, errback) {
+  var message = JSON.stringify(data);
+  this.ws.send(message, errback);
+  return this;
+};
+
+User.prototype.toJSON = function() {
+  return {nick: this.nick};
+};
+
 function Users() {
   this.users = {};
 }
@@ -9,7 +37,7 @@ Users.prototype.hasNick = function(nick) {
 };
 
 Users.prototype.add = function(nick) {
-  this.users[nick] = {nick: nick};
+  this.users[nick] = new User(nick);
   return this;
 };
 
@@ -34,22 +62,6 @@ Users.prototype.forEach = function(callback) {
   }.bind(this));
 };
 
-Users.prototype.connect = function(nick, websocket) {
-  this.users[nick].ws = websocket;
-  return this;
-};
-
-Users.prototype.disconnect = function(nick) {
-  var user = this.users[nick];
-
-  if (user) {
-    user.ws.close();
-    delete user.ws;
-  }
-
-  return this;
-};
-
 Users.prototype.present = function() {
   var presentUsers = [];
   Object.keys(this.users).forEach(function(nick) {
@@ -71,4 +83,5 @@ Users.prototype.toJSON = function(users) {
   });
 };
 
-module.exports = Users;
+module.exports.Users = Users;
+module.exports.User = User;

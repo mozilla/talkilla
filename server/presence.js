@@ -4,7 +4,8 @@ var url = require('url');
 var app = require("./server").app;
 var httpServer = require("./server").server;
 var logger = require('./logger');
-var Users = require('./users');
+var Users = require('./users').Users;
+var User = require('./users').User;
 
 var WebSocketServer = require('ws').Server;
 var wss = new WebSocketServer({noServer: true});
@@ -40,7 +41,8 @@ app.post('/signin', function(req, res) {
 
 app.post('/signout', function(req, res) {
   var nick = req.body.nick;
-  users.disconnect(nick).remove(nick);
+  users.get(nick).disconnect();
+  users.remove(nick);
   logger.info({type: "signout"});
   res.send(200, JSON.stringify(true));
 });
@@ -90,7 +92,7 @@ function configureWs(ws, nick) {
     try {
       var peer = users.get(data.peer);
       data.peer = nick;
-      peer.ws.send(JSON.stringify({'incoming_call': data}));
+      peer.send({'incoming_call': data});
       logger.info({type: "call:offer"});
     } catch (e) {
       logger.error({type: "call:offer", err: e});
@@ -111,7 +113,7 @@ function configureWs(ws, nick) {
     try {
       var peer = users.get(data.peer);
       data.peer = nick;
-      peer.ws.send(JSON.stringify({'call_accepted': data}));
+      peer.send({'call_accepted': data});
       logger.info({type: "call:accept"});
     } catch (e) {
       logger.error({type: "call:accept", err: e});
@@ -122,7 +124,7 @@ function configureWs(ws, nick) {
   ws.on('call_deny', function(data) {
     try {
       var caller = users.get(data.caller);
-      caller.ws.send(JSON.stringify({'call_denied': data}));
+      caller.send({'call_denied': data});
       logger.info({type: "call:deny"});
     } catch (e) {
       logger.error({type: "call:deny", err: e});
@@ -140,7 +142,7 @@ function configureWs(ws, nick) {
   ws.on('call_hangup', function(data) {
     try {
       var peer = users.get(data.peer);
-      peer.ws.send(JSON.stringify({'call_hangup': {peer: nick}}));
+      peer.send({'call_hangup': {peer: nick}});
       logger.info({type: "call:hangup"});
     } catch (e) {
       logger.error({type: "call:hangup", err: e});
@@ -151,11 +153,14 @@ function configureWs(ws, nick) {
   // list of online users
   ws.on('close', function() {
     var presentUsers;
-    users.disconnect(nick);
+    var user = users.get(nick);
+
+    if (user)
+      user.disconnect();
 
     presentUsers = users.toJSON(users.present());
     users.present().forEach(function(user) {
-      user.ws.send(JSON.stringify({users: presentUsers}), function(error) {});
+      user.send({users: presentUsers}, function() {});
     });
 
     logger.info({type: "disconnection"});
@@ -182,11 +187,11 @@ httpServer.on('upgrade', function(req, socket, upgradeHead) {
 
     // attach the WebSocket to the user
     // XXX: The user could be signed out at this point
-    users.connect(nick, configureWs(ws, nick));
+    users.get(nick).connect(configureWs(ws, nick));
 
     presentUsers = users.toJSON(users.present());
     users.present().forEach(function(user) {
-      user.ws.send(JSON.stringify({users: presentUsers}));
+      user.send({users: presentUsers}, function(error) {});
     });
   });
 });
