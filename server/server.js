@@ -97,15 +97,8 @@ app.start = function(serverPort, callback) {
 };
 
 app.shutdown = function(callback) {
-  var users = app.get('users');
-
-  Object.keys(users).forEach(function(nick) {
-    var user = users[nick];
-    if (user.ws)
-      user.ws.close();
-  });
-
   server.close(callback);
+
 };
 
 module.exports.app = app;

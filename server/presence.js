@@ -4,9 +4,11 @@ var url = require('url');
 var app = require("./server").app;
 var httpServer = require("./server").server;
 var logger = require('./logger');
+var Users = require('./users');
 
 var WebSocketServer = require('ws').Server;
 var wss = new WebSocketServer({noServer: true});
+var users = new Users();
 
 function findNewNick(aNick) {
   var nickParts = /^(.+?)(\d*)$/.exec(aNick);
@@ -25,52 +27,20 @@ function findNewNick(aNick) {
   return nickParts[1] + newDigits;
 }
 
-// Utility function to help us respect the interface expected by the
-// frontend.
-// XXX: In the future, this function should either disappear or grow
-// to provide more information than the nickname.
-function _usersToArray(users) {
-  return Object.keys(users).map(function(nick) {
-    return {nick: nick};
-  });
-}
-
-function _presentUsers(users) {
-  return Object.keys(users)
-    .filter(function(nick) {
-      return !!users[nick].ws;
-    }).map(function(nick) {
-      return {nick: nick};
-    });
-}
-
 app.post('/signin', function(req, res) {
-  var users = app.get('users');
-  var usersList = _usersToArray(users);
   var nick = req.body.nick;
 
-  function exists(nick) {
-    return usersList.some(function(user) {
-      return user.nick === nick;
-    });
-  }
-
-  while (exists(nick))
+  while (users.hasNick(nick))
     nick = findNewNick(nick);
 
-  users[nick] = {};
-  app.set('users', users);
-
+  users.add(nick);
   logger.info({type: "signin"});
-  res.send(200, JSON.stringify({nick: nick}));
+  res.send(200, JSON.stringify(users.get(nick)));
 });
 
 app.post('/signout', function(req, res) {
-  var users = app.get('users');
-
-  delete users[req.body.nick];
-  app.set('users', users);
-
+  var nick = req.body.nick;
+  users.disconnect(nick).remove(nick);
   logger.info({type: "signout"});
   res.send(200, JSON.stringify(true));
 });
@@ -118,8 +88,7 @@ function configureWs(ws, nick) {
    */
   ws.on('call_offer', function(data) {
     try {
-      var users = app.get('users');
-      var peer = users[data.peer];
+      var peer = users.get(data.peer);
       data.peer = nick;
       peer.ws.send(JSON.stringify({'incoming_call': data}));
       logger.info({type: "call:offer"});
@@ -140,8 +109,7 @@ function configureWs(ws, nick) {
    */
   ws.on('call_accepted', function(data) {
     try {
-      var users = app.get('users');
-      var peer = users[data.peer];
+      var peer = users.get(data.peer);
       data.peer = nick;
       peer.ws.send(JSON.stringify({'call_accepted': data}));
       logger.info({type: "call:accept"});
@@ -153,8 +121,7 @@ function configureWs(ws, nick) {
   // when a call offer has been denied
   ws.on('call_deny', function(data) {
     try {
-      var users = app.get('users');
-      var caller = users[data.caller];
+      var caller = users.get(data.caller);
       caller.ws.send(JSON.stringify({'call_denied': data}));
       logger.info({type: "call:deny"});
     } catch (e) {
@@ -172,8 +139,7 @@ function configureWs(ws, nick) {
    */
   ws.on('call_hangup', function(data) {
     try {
-      var users = app.get('users');
-      var peer = users[data.peer];
+      var peer = users.get(data.peer);
       peer.ws.send(JSON.stringify({'call_hangup': {peer: nick}}));
       logger.info({type: "call:hangup"});
     } catch (e) {
@@ -184,23 +150,15 @@ function configureWs(ws, nick) {
   // when a connection is closed, remove it from the pool as well and update the
   // list of online users
   ws.on('close', function() {
-    var users = app.get('users');
+    var presentUsers;
+    users.disconnect(nick);
 
-    Object.keys(users).forEach(function(nick) {
-      var user = users[nick];
-      if (user.ws === ws)
-        delete user.ws;
-    });
-
-    Object.keys(users).forEach(function(nick) {
-      var user = users[nick];
-      if (user.ws)
-        user.ws.send(JSON.stringify({users: _presentUsers(users)}),
-                     function(error) {});
+    presentUsers = users.toJSON(users.present());
+    users.present().forEach(function(user) {
+      user.ws.send(JSON.stringify({users: presentUsers}), function(error) {});
     });
 
     logger.info({type: "disconnection"});
-    app.set('users', users);
   });
 
   logger.info({type: "connection"});
@@ -208,12 +166,11 @@ function configureWs(ws, nick) {
 }
 
 httpServer.on('upgrade', function(req, socket, upgradeHead) {
-  var users = app.get('users');
   var nick = url.parse(req.url, true).query.nick;
   var res = new http.ServerResponse(req);
 
   // XXX: need a test for that
-  if (!(nick in users)) {
+  if (!(users.hasNick(nick))) {
     res.assignSocket(socket);
     res.statusCode = 400;
     res.end();
@@ -221,16 +178,15 @@ httpServer.on('upgrade', function(req, socket, upgradeHead) {
   }
 
   wss.handleUpgrade(req, socket, upgradeHead, function(ws) {
+    var presentUsers;
+
     // attach the WebSocket to the user
     // XXX: The user could be signed out at this point
-    var users = app.get('users');
-    users[nick].ws = configureWs(ws, nick);
-    app.set('users', users);
+    users.connect(nick, configureWs(ws, nick));
 
-    Object.keys(users).forEach(function(nick) {
-      var user = users[nick];
-      if (user.ws)
-        user.ws.send(JSON.stringify({users: _presentUsers(users)}));
+    presentUsers = users.toJSON(users.present());
+    users.present().forEach(function(user) {
+      user.ws.send(JSON.stringify({users: presentUsers}));
     });
   });
 });
@@ -242,5 +198,3 @@ wss.on('close', function(ws) {});
 
 
 module.exports.findNewNick = findNewNick;
-module.exports._usersToArray = _usersToArray;
-module.exports._presentUsers = _presentUsers;

@@ -11,8 +11,8 @@ var expect = chai.expect;
 var sinon = require("sinon");
 
 var request = require("request");
-var server = require("../server/server");
-var presence = require("../server/presence");
+var server = require("../../server/server");
+var presence = require("../../server/presence");
 var app = server.app;
 var findNewNick = presence.findNewNick;
 var _usersToArray = presence._usersToArray;
@@ -177,6 +177,7 @@ describe("Server", function() {
             });
 
             webSocket.on('open', function() {
+              webSocket.close();
               app.shutdown(done);
             });
           });
@@ -188,7 +189,7 @@ describe("Server", function() {
     it("should refuse requests after shutdown() completes");
   });
 
-  describe("presence", function() {
+  describe.skip("presence", function() {
 
     beforeEach(function(done) {
       app.start(serverPort, done);
