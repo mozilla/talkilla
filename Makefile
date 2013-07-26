@@ -26,8 +26,8 @@ jshint:
 mocha:
   # Run tests in both production and development mode so that we can check
   # for any issues with the different configurations.
-	@env NODE_ENV=development ./node_modules/mocha/bin/mocha --reporter spec
-	@env NODE_ENV=production ./node_modules/mocha/bin/mocha --reporter spec
+	@env NODE_ENV=development ./node_modules/mocha/bin/mocha --reporter spec test/server
+	@env NODE_ENV=production ./node_modules/mocha/bin/mocha --reporter spec test/server
 
 .PHONY: runserver
 runserver:
