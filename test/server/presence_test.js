@@ -110,6 +110,17 @@ describe("presence", function() {
         fakeWS.on, "call_hangup", api.ws.onCallHangup);
     });
 
+    it("should bind #api.ws.onPresenceRequest to presence_request events",
+      function() {
+        var fakeWS = {on: sinon.spy()};
+
+        presence.configureWs(fakeWS);
+
+        sinon.assert.called(fakeWS.on);
+        sinon.assert.calledWithExactly(
+          fakeWS.on, "presence_request", api.ws.onPresenceRequest);
+      });
+
     it("should return the WebSocket", function() {
       var fakeWS = {on: sinon.spy()};
       var ws = presence.configureWs(fakeWS);
@@ -228,6 +239,25 @@ describe("presence", function() {
 
       });
 
+      describe("#onPresenceRequest", function() {
+
+        it("should send the list of present users",
+          function() {
+            var fakeWS = {send: sinon.spy()};
+            var foo = users.add("foo").get("foo").connect(fakeWS);
+            users.add("bar").get("bar").connect(fakeWS);
+            var presentUsers = users.toJSON(users.present());
+            var event = {presenceRequest: null};
+            sandbox.stub(foo, "send");
+
+            api.ws.onPresenceRequest(event, "foo");
+
+            sinon.assert.calledOnce(foo.send);
+            sinon.assert.calledWith(foo.send, {"users": presentUsers});
+          });
+
+      });
+
       describe("#onClose", function() {
 
         it("should disconnect the user", function() {
@@ -249,9 +279,8 @@ describe("presence", function() {
 
           api.ws.onClose("foo");
 
-          var presentUsers = users.toJSON(users.present());
           sinon.assert.calledOnce(bar.send);
-          sinon.assert.calledWith(bar.send, {users: presentUsers});
+          sinon.assert.calledWith(bar.send, {userLeft: "foo"});
           sinon.assert.notCalled(goo.send);
         });
       });
@@ -309,9 +338,8 @@ describe("presence", function() {
 
         api.onWebSocket("foo", fakeWS);
 
-        var presentUsers = users.toJSON(users.present());
         sinon.assert.calledOnce(bar.send);
-        sinon.assert.calledWith(bar.send, {users: presentUsers});
+        sinon.assert.calledWith(bar.send, {userJoined: "foo"});
       });
 
     });

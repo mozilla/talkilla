@@ -43,6 +43,8 @@ function configureWs(ws, nick) {
   ws.on("call_accepted", api.ws.onCallAccepted);
   ws.on("call_hangup", api.ws.onCallHangup);
 
+  ws.on("presence_request", api.ws.onPresenceRequest);
+
   logger.info({type: "connection"});
   return ws;
 }
@@ -145,18 +147,22 @@ api = {
       logger.info({type: "call:hangup"});
     },
 
+    onPresenceRequest: function(data, nick) {
+      var user = users.get(nick);
+      var presentUsers = users.toJSON(users.present());
+      user.send({users: presentUsers});
+    },
+
     // when a connection is closed, remove it from the pool as well
     // and update the list of online users
     onClose: function(nick) {
-      var presentUsers;
       var user = users.get(nick);
 
       if (user)
         user.disconnect();
 
-      presentUsers = users.toJSON(users.present());
       users.present().forEach(function(user) {
-        user.send({users: presentUsers}, function() {});
+        user.send({userLeft: nick}, function() {});
       });
 
       logger.info({type: "disconnection"});
@@ -179,15 +185,14 @@ api = {
   },
 
   onWebSocket: function(nick, ws) {
-    var presentUsers;
+    var presentUsers = users.present();
 
     // attach the WebSocket to the user
     // XXX: The user could be signed out at this point
     users.get(nick).connect(configureWs(ws, nick));
 
-    presentUsers = users.toJSON(users.present());
-    users.present().forEach(function(user) {
-      user.send({users: presentUsers}, function(error) {});
+    presentUsers.forEach(function(user) {
+      user.send({userJoined: nick}, function(error) {});
     });
   }
 };

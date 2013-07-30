@@ -68,6 +68,18 @@ describe("SidebarApp", function() {
       sinon.assert.calledWith(sidebarApp.user.on, "signout");
     });
 
+    it("should ask for the presence state on login success", function() {
+      var sidebarApp = new SidebarApp();
+      var data = {username: "foo"};
+      sidebarApp.port.postEvent.reset();
+
+      sidebarApp.port.trigger("talkilla.login-success", data);
+
+      sinon.assert.calledOnce(sidebarApp.port.postEvent);
+      sinon.assert.calledWithExactly(
+        sidebarApp.port.postEvent, "talkilla.presence-request");
+    });
+
     it("should reset user data on logout success", function() {
       var sidebarApp = new SidebarApp();
       sidebarApp.user.set({nick: "jb"});
