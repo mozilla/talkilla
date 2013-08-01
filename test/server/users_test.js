@@ -57,7 +57,7 @@ describe("User", function() {
 
       sinon.assert.calledOnce(fakeWS.send);
       sinon.assert.calledWithExactly(
-        fakeWS.send, JSON.stringify(data),errback);
+        fakeWS.send, JSON.stringify(data), errback);
     });
 
   });
@@ -74,7 +74,7 @@ describe("Users", function() {
 
   describe("#hasNick", function() {
 
-    it("should return false if the nick is available", function() {
+    it("should return false if the nick does not exist", function() {
       expect(users.hasNick("foo")).to.be.equal(false);
     });
 

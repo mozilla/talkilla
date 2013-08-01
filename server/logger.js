@@ -8,4 +8,3 @@ var logger = bunyan.createLogger({
 });
 
 module.exports = logger;
-

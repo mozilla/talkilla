@@ -98,7 +98,6 @@ app.start = function(serverPort, callback) {
 
 app.shutdown = function(callback) {
   server.close(callback);
-
 };
 
 module.exports.app = app;
