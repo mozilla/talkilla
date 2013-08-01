@@ -63,6 +63,10 @@ class Driver(WebDriver):
         """
         self.clickElement(".btn-video>a" if video else ".btn-audio>a")
 
+    def restartCall(self):
+        """ Restarts a call. For use when the call is timed out. """
+        self.clickElement(".btn-call-again")
+
     def acceptCall(self):
         """ Accepts an incoming call."""
         self.clickElement(".btn-accept")

@@ -113,8 +113,7 @@ var ChatApp = (function($, Backbone, _) {
     this.textChat.on('send-offer', this._onSendOffer.bind(this));
     this.call.on('send-answer', this._onSendAnswer.bind(this));
     this.textChat.on('send-answer', this._onSendAnswer.bind(this));
-
-    this.call.on('offer-timeout', this._onCallOfferTimout.bind(this));
+    this.call.on('send-timeout', this._onSendTimeout.bind(this));
 
     // Internal events
     this.call.on('state:accept', this._onCallAccepted.bind(this));
@@ -144,10 +143,6 @@ var ChatApp = (function($, Backbone, _) {
 
     // video/audio call
     this.call.establish(data);
-  };
-
-  ChatApp.prototype._onCallOfferTimout = function(callData) {
-    this.port.postEvent('talkilla.offer-timeout', callData);
   };
 
   // Incoming calls
@@ -180,23 +175,31 @@ var ChatApp = (function($, Backbone, _) {
     this.port.postEvent('talkilla.call-answer', data);
   };
 
+  ChatApp.prototype._onSendTimeout = function(data) {
+    // Let the peer know that the call offer is no longer valid.
+    // For this, we send call-hangup, the same as in the case where
+    // the user decides to abandon the call attempt.
+    this.port.postEvent('talkilla.call-hangup', data);
+  };
+
   // Call Hangup
   ChatApp.prototype._onCallShutdown = function() {
-    this.audioLibrary.stop('incoming', 'outgoing');
-    this.call.hangup();
+    this.audioLibrary.stop('incoming');
+    // Don't send a message, as this is a hangup reception from
+    // the other end.
+    this.call.hangup(false);
     window.close();
   };
 
   ChatApp.prototype._onCallHangup = function(data) {
     var callState = this.call.state.current;
-    if (callState === "ready" || callState === "terminated")
+    if (callState === "ready" ||
+        callState === "timeout" ||
+        callState === "terminated")
       return;
 
-    this.call.hangup();
-
-    this.port.postEvent('talkilla.call-hangup', {
-      peer: this.peer.get("nick")
-    });
+    // Send a message as this is this user's call hangup
+    this.call.hangup(true);
   };
 
   ChatApp.prototype._onUserSignout = function() {

@@ -299,19 +299,6 @@ describe("ChatApp", function() {
       });
     });
 
-    describe("#_onCallOfferTimout", function() {
-      it("should post the `talkilla.offer-timeout` event to the worker",
-        function() {
-          var callData = {foo: "bar"};
-
-          chatApp._onCallOfferTimout(callData);
-
-          sinon.assert.called(chatApp.port.postEvent);
-          sinon.assert.calledWithExactly(chatApp.port.postEvent,
-            "talkilla.offer-timeout", callData);
-        });
-    });
-
     describe("#_onCallShutdown", function() {
       beforeEach(function() {
         sandbox.stub(chatApp.call, "hangup");
@@ -321,7 +308,7 @@ describe("ChatApp", function() {
 
       it("should hangup the call", function() {
         sinon.assert.calledOnce(chatApp.call.hangup);
-        sinon.assert.calledWithExactly(chatApp.call.hangup);
+        sinon.assert.calledWithExactly(chatApp.call.hangup, false);
       });
 
       it("should close the window", function() {
@@ -329,10 +316,10 @@ describe("ChatApp", function() {
         sinon.assert.calledWithExactly(window.close);
       });
 
-      it("should stop incoming and outgoing call sounds", function() {
+      it("should stop incoming call sounds", function() {
         sinon.assert.calledOnce(chatApp.audioLibrary.stop);
         sinon.assert.calledWithExactly(chatApp.audioLibrary.stop,
-          "incoming", "outgoing");
+          "incoming");
       });
     });
 
@@ -346,17 +333,7 @@ describe("ChatApp", function() {
         chatApp._onCallHangup();
 
         sinon.assert.calledOnce(chatApp.call.hangup);
-        sinon.assert.calledWithExactly(chatApp.call.hangup);
-      });
-
-      it("should post a talkilla.call-hangup event to the worker", function() {
-        chatApp.peer.set({"nick": "florian"});
-
-        chatApp._onCallHangup();
-
-        sinon.assert.called(chatApp.port.postEvent);
-        sinon.assert.calledWith(chatApp.port.postEvent,
-                                "talkilla.call-hangup", {peer: "florian"});
+        sinon.assert.calledWithExactly(chatApp.call.hangup, true);
       });
 
       it("should do nothing if the call is already terminated", function () {
@@ -410,6 +387,16 @@ describe("ChatApp", function() {
           sinon.assert.calledWith(chatApp.port.postEvent,
                                   "talkilla.call-answer");
         });
+    });
+
+    describe("#_onSendTimeout", function() {
+      it("should post a talkilla.call-hangup event to the worker", function() {
+        chatApp.call.trigger("send-timeout", {peer: "florian"});
+
+        sinon.assert.called(chatApp.port.postEvent);
+        sinon.assert.calledWith(chatApp.port.postEvent,
+                                "talkilla.call-hangup", {peer: "florian"});
+      });
     });
 
     describe("Object events listeners", function() {

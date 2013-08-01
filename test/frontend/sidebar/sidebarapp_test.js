@@ -117,32 +117,6 @@ describe("SidebarApp", function() {
         expect(sidebarApp.users.at(0).get('nick')).to.equal("bob");
         expect(sidebarApp.users.at(1).get('nick')).to.equal("bill");
       });
-
-    it("should listen to the `talkilla.offer-timeout` port event",
-      function() {
-        sandbox.stub(AppPort.prototype, "on");
-        var sidebarApp = new SidebarApp();
-
-        new app.views.NotificationsView({user: sidebarApp.user});
-
-        sinon.assert.called(sidebarApp.port.on);
-        sinon.assert.calledWith(sidebarApp.port.on, "talkilla.offer-timeout");
-      });
-
-    it("should add a notification when the `talkilla.offer-timeout` port " +
-       "event is received",
-      function() {
-        var notify = sandbox.stub(app.utils, "notifyUI");
-        var sidebarApp = new SidebarApp();
-        new app.views.NotificationsView({user: sidebarApp.user});
-
-        sidebarApp.port.trigger("talkilla.offer-timeout", {peer: "jb"});
-
-        sinon.assert.calledOnce(notify);
-        sinon.assert.calledWithExactly(notify,
-          "The other party, jb, did not respond", "error");
-      });
-
   });
 
   describe("#login", function() {

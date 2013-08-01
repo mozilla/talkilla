@@ -22,17 +22,20 @@ describe("WebRTC", function() {
   var audioStreamTrack = {enabled:true};
   var videoStreamTrack = {enabled:true};
 
-  var mediaStream = {
-    getAudioTracks: function() {
-      return [audioStreamTrack];
-    },
-    getVideoTracks: function() {
-      return [videoStreamTrack];
-    }
-  };
+  var mediaStream;
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
+
+    mediaStream = {
+      stop: sandbox.spy(),
+      getAudioTracks: function() {
+        return [audioStreamTrack];
+      },
+      getVideoTracks: function() {
+        return [videoStreamTrack];
+      }
+    };
 
     // mozRTCPeerConnection stub
     sandbox.stub(window, "mozRTCPeerConnection").returns({
@@ -500,7 +503,25 @@ describe("WebRTC", function() {
         expect(webrtc.state.current).to.equal('terminated');
       });
 
+      it("should stop local media streams", function() {
+        webrtc.terminate();
+
+        sinon.assert.calledOnce(mediaStream.stop);
+      });
+
       describe("#terminate events", function() {
+        it("should emit the `local-stream:terminated` event", function(done) {
+          webrtc.once('local-stream:terminated', function() {
+            done();
+          }).terminate();
+        });
+
+        it("should emit the `remote-stream:terminated` event", function(done) {
+          webrtc.once('remote-stream:terminated', function() {
+            done();
+          }).terminate();
+        });
+
         it("should emit the `connection-terminated` event", function(done) {
           webrtc.once('connection-terminated', function() {
             done();
