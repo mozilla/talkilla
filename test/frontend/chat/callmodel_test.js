@@ -3,7 +3,7 @@
 /* jshint expr:true */
 var expect = chai.expect;
 
-describe("Call", function() {
+describe("Call Model", function() {
 
   var sandbox, call, media, peer;
 
@@ -268,11 +268,11 @@ describe("Call", function() {
       sinon.assert.calledOnce(media.terminate);
     });
 
-    it("should trigger send-hangup", function() {
+    it("should trigger send-timeout", function() {
       call.timeout();
 
       sinon.assert.called(call.trigger);
-      sinon.assert.calledWithExactly(call.trigger, "send-hangup",
+      sinon.assert.calledWithExactly(call.trigger, "send-timeout",
                                      {peer: "Mark"});
     });
   });

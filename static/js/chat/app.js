@@ -113,7 +113,7 @@ var ChatApp = (function($, Backbone, _) {
     this.textChat.on('send-offer', this._onSendOffer.bind(this));
     this.call.on('send-answer', this._onSendAnswer.bind(this));
     this.textChat.on('send-answer', this._onSendAnswer.bind(this));
-    this.call.on('send-hangup', this._onSendHangup.bind(this));
+    this.call.on('send-timeout', this._onSendTimeout.bind(this));
 
     // Internal events
     this.call.on('state:accept', this._onCallAccepted.bind(this));
@@ -175,7 +175,10 @@ var ChatApp = (function($, Backbone, _) {
     this.port.postEvent('talkilla.call-answer', data);
   };
 
-  ChatApp.prototype._onSendHangup = function(data) {
+  ChatApp.prototype._onSendTimeout = function(data) {
+    // Let the peer know that the call offer is no longer valid.
+    // For this, we send call-hangup, the same as in the case where
+    // the user decides to abandon the call attempt.
     this.port.postEvent('talkilla.call-hangup', data);
   };
 

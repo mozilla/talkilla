@@ -145,7 +145,7 @@
       this.state.timeout();
       this.media.terminate();
       this.media.reset();
-      this.trigger("send-hangup", {
+      this.trigger("send-timeout", {
         peer: this.peer.get("nick")
       });
     },

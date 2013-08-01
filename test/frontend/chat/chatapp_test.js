@@ -389,9 +389,9 @@ describe("ChatApp", function() {
         });
     });
 
-    describe("#_onSendHangup", function() {
+    describe("#_onSendTimeout", function() {
       it("should post a talkilla.call-hangup event to the worker", function() {
-        chatApp.call.trigger("send-hangup", {peer: "florian"});
+        chatApp.call.trigger("send-timeout", {peer: "florian"});
 
         sinon.assert.called(chatApp.port.postEvent);
         sinon.assert.calledWith(chatApp.port.postEvent,
