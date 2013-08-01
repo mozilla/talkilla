@@ -259,11 +259,8 @@
       if (!options || !options.timeout)
         return;
 
-      var onTimeout = function() {
-        this.call.timeout();
-      }.bind(this);
-
-      this.timer = setTimeout(onTimeout, options.timeout);
+      this.timer = setTimeout(this.call.timeout.bind(this.call),
+                              options.timeout);
     },
 
     _onSendOffer: function() {

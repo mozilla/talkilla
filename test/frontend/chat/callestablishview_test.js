@@ -197,7 +197,7 @@ describe('Call Establish View', function() {
       });
   });
 
-  describe("#events", function() {
+  describe("events", function() {
     var establishView, event;
 
     beforeEach(function() {
