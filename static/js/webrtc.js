@@ -220,6 +220,17 @@
     if (!this.pc || this.pc.signalingState === 'closed')
       return this;
 
+    // Tell everyone that we're terminating the streams
+    this.trigger('local-stream:terminated');
+    this.trigger('remote-stream:terminated');
+
+    // Actually stop the local stream, so that we don't keep hold of the media
+    // elements.
+    var streams = this.pc.getLocalStreams();
+    streams.forEach(function(stream) {
+      stream.stop();
+    });
+
     this.once('ice:closed', this.trigger.bind(this, 'connection-terminated'));
     this.pc.close();
 

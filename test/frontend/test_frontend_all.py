@@ -18,21 +18,22 @@ def kill_app(app):
 
 
 class FrontEndSuite(unittest.TestCase):
-    def setUp(self):
-        super(FrontEndSuite, self).setUp()
+
+    @classmethod
+    def setUpClass(cls):
         cmd = ("node", "app.js")
         env = os.environ.copy()
         env.update({"PORT": "3000",
                     "NO_LOCAL_CONFIG": "true",
                     "NODE_ENV": "test"})
-        self.node_app = subprocess.Popen(cmd, env=env)
-        self.addCleanup(kill_app, self.node_app)
-        self.drvr = driver.create()
-        self.drvr.implicitly_wait(20)
+        cls.node_app = subprocess.Popen(cmd, env=env)
+        cls.drvr = driver.create()
+        cls.drvr.implicitly_wait(20)
 
-    def tearDown(self):
-        self.drvr.quit()
-        kill_app(self.node_app)
+    @classmethod
+    def tearDownClass(cls):
+        cls.drvr.quit()
+        kill_app(cls.node_app)
 
     def check_page_for_zero_failures(self, url):
         self.drvr.get(url)

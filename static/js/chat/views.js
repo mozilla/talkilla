@@ -35,11 +35,6 @@
       this.call.media.on('local-stream:ready remote-stream:ready', function() {
         this.$el.addClass('has-video');
       }, this);
-
-      this.call.on('offer-timeout', function() {
-        // outgoing call didn't go through, close the window
-        window.close();
-      });
     },
 
     _checkDragTypes: function(types) {
@@ -230,7 +225,8 @@
     el: "#establish",
 
     events: {
-      'click .btn-abort': '_abort'
+      'click .btn-abort': '_abort',
+      'click .btn-call-again': '_callAgain'
     },
 
     outgoingTextTemplate: _.template('Calling <%= peer %>…'),
@@ -239,17 +235,48 @@
       options = options || {};
       if (!options.peer)
         throw new Error("missing parameter: peer");
+      if (!options.call)
+        throw new Error("missing parameter: call");
+      if (!options.audioLibrary)
+        throw new Error("missing parameter: audioLibrary");
 
       this.peer = options.peer;
+      this.call = options.call;
+      this.audioLibrary = options.audioLibrary;
 
-      this.model.on("change:state", this._handleStateChanges.bind(this));
+      this.call.on('send-offer', this._onSendOffer.bind(this));
+
+      this.call.on("change:state", this._handleStateChanges.bind(this));
+    },
+
+    /**
+     * Starts the outgoing pending call timer.
+     * @param {Object} options:
+     *      - {Number} timeout   Timeout in ms
+     *      - {Object} callData  Current outgoing pending call data
+     */
+    _startTimer: function(options) {
+      if (!options || !options.timeout)
+        return;
+
+      this.timer = setTimeout(this.call.timeout.bind(this.call),
+                              options.timeout);
+    },
+
+    _onSendOffer: function() {
+      this.audioLibrary.play('outgoing');
+      this._startTimer({timeout: app.options.PENDING_CALL_TIMEOUT});
     },
 
     _handleStateChanges: function(to, from) {
       if (to === "pending" && from === "ready") {
         this.$el.show();
-      } else if (to !== "pending" && from === "pending") {
-        this.$el.hide();
+      } else if (from === "pending") {
+        this.audioLibrary.stop('outgoing');
+        clearTimeout(this.timer);
+
+        if (to !== "timeout")
+          this.$el.hide();
       }
 
       this.render();
@@ -262,12 +289,30 @@
       window.close();
     },
 
+    _callAgain: function(event) {
+      if (event)
+        event.preventDefault();
+
+      this.call.restart();
+    },
+
     render: function() {
       // XXX: update caller's avatar, though we'd need to access peer
       //      as a User model instance
-      var peer = this.peer.get('nick');
-      var formattedText = this.outgoingTextTemplate({peer: peer});
-      this.$('.outgoing-text').text(formattedText);
+
+      if (this.call.state.current === "pending") {
+        var peer = this.peer.get('nick');
+        var formattedText = this.outgoingTextTemplate({peer: peer});
+        this.$('.text').text(formattedText);
+
+        this.$(".btn-abort").show();
+        this.$(".btn-call-again").hide();
+      } else {
+        this.$('.text').text("Call was not answered");
+
+        this.$(".btn-abort").hide();
+        this.$(".btn-call-again").show();
+      }
 
       return this;
     }
@@ -288,6 +333,10 @@
       this.call = options.call;
       this.call.media.on('local-stream:ready', this._displayLocalVideo, this);
       this.call.media.on('remote-stream:ready', this._displayRemoteVideo, this);
+      this.call.media.on('local-stream:terminated',
+                         this._terminateLocalVideo, this);
+      this.call.media.on('remote-stream:terminated',
+                         this._terminateRemoteVideo, this);
       this.call.media.on('connection-upgraded', this.ongoing, this);
 
       this.call.on('state:to:ongoing', this.ongoing, this);
@@ -316,6 +365,22 @@
       remoteVideo.mozSrcObject = stream;
       remoteVideo.play();
       return this;
+    },
+
+    _terminateLocalVideo: function() {
+      var localVideo = this.$('#local-video')[0];
+      if (!localVideo || !localVideo.mozSrcObject)
+        return this;
+
+      localVideo.mozSrcObject = undefined;
+    },
+
+    _terminateRemoteVideo: function() {
+      var remoteVideo = this.$('#remote-video')[0];
+      if (!remoteVideo || !remoteVideo.mozSrcObject)
+        return this;
+
+      remoteVideo.mozSrcObject = undefined;
     }
   });
 

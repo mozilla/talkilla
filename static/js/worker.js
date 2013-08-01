@@ -320,10 +320,8 @@ var serverHandlers = {
 
   'call_hangup': function(data) {
     this.debug("call_hangup", data);
-    if (currentConversation) {
+    if (currentConversation)
       currentConversation.callHangup(data);
-      currentConversation = undefined;
-    }
   }
 };
 
@@ -522,17 +520,6 @@ var handlers = {
   },
 
   /**
-   * The data for talkilla.offer-timeout is:
-   *
-   * - peer:  The id of the other user
-   * - video: set to true to enable video
-   * - audio: set to true to enable audio
-   */
-  'talkilla.offer-timeout': function(event) {
-    ports.broadcastEvent("talkilla.offer-timeout", event.data);
-  },
-
-  /**
    * Called when the sidebar is ready.
    * The data for talkilla.sidebar-ready is:
    *
@@ -581,7 +568,6 @@ var handlers = {
    */
   'talkilla.call-hangup': function (event) {
     _presenceSocketSendMessage(JSON.stringify({'call_hangup': event.data}));
-    currentConversation = undefined;
   }
 };
 

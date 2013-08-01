@@ -101,11 +101,5 @@ describe("serverHandlers", function() {
       sinon.assert.calledOnce(callHangupStub);
       sinon.assert.calledWithExactly(callHangupStub, callData);
     });
-
-    it("should clear the current call data", function() {
-      serverHandlers.call_hangup(callData);
-
-      expect(currentConversation).to.be.equal(undefined);
-    });
   });
 });

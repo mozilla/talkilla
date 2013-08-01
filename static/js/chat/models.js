@@ -10,12 +10,6 @@
    *
    * Attributes:
    * - {Object} incomingData
-   *
-   * Fired when #start() is called and the pending call timeout is reached with
-   * no response from the other side.
-   * @event offer-timeout
-   * @param {Object} options An object containing one attribute, peer, with
-   *                         the value as the peer's nick.
    */
   app.models.Call = Backbone.Model.extend({
     timer: undefined,
@@ -41,8 +35,10 @@
         initial: 'ready',
         events: [
           // Call initiation scenario
-          {name: 'start',     from: 'ready',     to: 'pending'},
+          {name: 'start',     from: ['ready',
+                                     'timeout'], to: 'pending'},
           {name: 'establish', from: 'pending',   to: 'ongoing'},
+          {name: 'timeout',   from: 'pending',   to: 'timeout'},
           {name: 'upgrade',   from: ['ready',
                                      'ongoing'], to: 'pending'},
 
@@ -77,6 +73,21 @@
       if (this.media.state.current === 'ongoing')
         return this.upgrade(constraints);
 
+      // Store the constraints in case we need them later.
+      this.constraints = constraints;
+
+      this._startCall(this.constraints);
+    },
+
+    /**
+     * Restarts an outbound call, constraints are re-used from the
+     * previous call attempt.
+     */
+    restart: function() {
+      this._startCall(this.constraints);
+    },
+
+    _startCall: function(constraints) {
       this.state.start();
 
       this.media.once("offer-ready", function(offer) {
@@ -84,7 +95,6 @@
           peer: this.peer.get("nick"),
           offer: offer
         });
-        this._startTimer({timeout: app.options.PENDING_CALL_TIMEOUT});
       }, this);
 
       this.media.initiate(constraints);
@@ -123,11 +133,21 @@
       if (!answer)
         throw new Error("Invalid answer, can't establish connection.");
 
-      clearTimeout(this.timer);
-
       this.media.once('connection-established', this.state.establish,
                                                 this.state);
       this.media.establish(answer);
+    },
+
+    /**
+     * Indicate that a call connection has timed out
+     */
+    timeout: function() {
+      this.state.timeout();
+      this.media.terminate();
+      this.media.reset();
+      this.trigger("send-timeout", {
+        peer: this.peer.get("nick")
+      });
     },
 
     /**
@@ -163,12 +183,21 @@
     },
 
     /**
-     * Hangs up a call
+     * Hangs up a call.
+     *
+     * @param {Boolean} sendMsg Set to true if to trigger sending hangup
+     *                          to the peer. This should be false in the
+     *                          case of an incoming hangup message.
      */
-    hangup: function() {
-      clearTimeout(this.timer);
+    hangup: function(sendMsg) {
       this.state.hangup();
       this.media.terminate();
+
+      if (sendMsg) {
+        this.trigger("send-hangup", {
+          peer: this.peer.get("nick")
+        });
+      }
     },
 
     /**
@@ -189,27 +218,9 @@
           textChat: false,
           upgrade: true
         });
-        this._startTimer({timeout: app.options.PENDING_CALL_TIMEOUT});
       }, this);
 
       this.media.upgrade(constraints);
-    },
-
-    /**
-     * Starts the outgoing pending call timer.
-     * @param {Object} options:
-     *      - {Number} timeout   Timeout in ms
-     *      - {Object} callData  Current outgoing pending call data
-     */
-    _startTimer: function(options) {
-      if (!options || !options.timeout)
-        return;
-
-      var onTimeout = function() {
-        this.trigger('offer-timeout', {peer: this.peer.get("nick")});
-      }.bind(this);
-
-      this.timer = setTimeout(onTimeout, options.timeout);
     }
   });
 

@@ -18,14 +18,36 @@ describe('handlers', function() {
     sandbox.restore();
   });
 
-  it("should remove a closed port on receiving social.port-closing",
-    function() {
+  describe("social.port-closing", function() {
+    var port;
+
+    beforeEach(function() {
       ports = new PortCollection();
-      var port = new Port({_portid: 42});
+      port = new Port({_portid: 42});
       ports.add(port);
-      handlers['social.port-closing'].bind(port)();
-      expect(Object.keys(ports.ports)).to.have.length.of(0);
+
+      browserPort = {postEvent: sandbox.spy()};
     });
+
+    afterEach(function() {
+      currentConversation = undefined;
+    });
+
+    it("should remove a closed port on receiving social.port-closing",
+      function() {
+        handlers['social.port-closing'].bind(port)();
+        expect(Object.keys(ports.ports)).to.have.length.of(0);
+      });
+
+    it("should clear the current conversation on receiving " +
+       "social.port-closing for the conversation port", function() {
+        currentConversation = new Conversation();
+        currentConversation.port = port;
+
+        handlers['social.port-closing'].bind(port)();
+        expect(currentConversation).to.be.equal(undefined);
+      });
+  });
 
   describe("talkilla.login", function() {
     var xhr, rootURL, socketStub, requests;
@@ -336,23 +358,6 @@ describe('handlers', function() {
       });
   });
 
-  describe("talkilla.offer-timeout", function() {
-    it("should notify the caller that an outgoing call did not go through",
-      function() {
-        var fakeCallData = {foo: "bar"};
-        sandbox.stub(ports, "broadcastEvent");
-
-        handlers['talkilla.offer-timeout']({
-          topic: "talkilla.offer-timeout",
-          data: fakeCallData
-        });
-
-        sinon.assert.calledOnce(ports.broadcastEvent);
-        sinon.assert.calledWithExactly(ports.broadcastEvent,
-          "talkilla.offer-timeout", fakeCallData);
-      });
-  });
-
   describe("talkilla.sidebar-ready", function() {
 
     beforeEach(function() {
@@ -449,22 +454,6 @@ describe('handlers', function() {
         sinon.assert.calledOnce(_presenceSocketSendMessage);
         sinon.assert.calledWithExactly(_presenceSocketSendMessage,
          JSON.stringify({ 'call_hangup': data }));
-      });
-
-    it("should reset the call data when receiving talkilla.call-hangup",
-      function() {
-        currentConversation = {data: "fake"};
-        sandbox.stub(window, "_presenceSocketSendMessage");
-        var data = {
-          peer: "florian"
-        };
-
-        handlers['talkilla.call-hangup']({
-          topic: "talkilla.call-hangup",
-          data: data
-        });
-
-        expect(currentConversation).to.be.equal(undefined);
       });
   });
 
