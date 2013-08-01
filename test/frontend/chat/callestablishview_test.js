@@ -13,18 +13,19 @@ describe('Call Establish View', function() {
       '<div id="establish">',
       '  <p class="avatar"><img src="" id="avatar"></p>',
       '  <p class="outgoing-info"><img src="/img/video-icon.png">',
-      '    <span class="outgoing-text"></span></p>',
+      '    <span class="text"></span></p>',
       '  <p class="actions"><a class="btn btn-abort">End Call</a></p>',
+      '  <p class="actions"><a class="btn btn-call-again">Call Again</a></p>',
       '</div>'
     ].join(''));
     sandbox = sinon.sandbox.create();
     sandbox.useFakeTimers();
 
-    var media = sandbox.stub(new WebRTC());
-    call = new app.models.Call({}, {media: media});
-
     peer = new app.models.User();
     peer.set({nick: "Mark"});
+
+    var media = sandbox.stub(new WebRTC());
+    call = new app.models.Call({}, {media: media, peer: peer});
 
     audioLibrary = new app.utils.AudioLibrary();
   });
@@ -97,23 +98,20 @@ describe('Call Establish View', function() {
         peer: peer,
         audioLibrary: audioLibrary
       });
-
-      sandbox.stub(audioLibrary, "stop");
-      sandbox.stub(window, "close");
     });
 
-    it("should setup a timer and stop the outgoing call sound on timeout",
+    it("should setup a timer and change the call state to timeout",
       function() {
         expect(establishView.timer).to.be.a("undefined");
 
+        call.state.start();
         establishView._startTimer({timeout: 3000});
 
         expect(establishView.timer).to.be.a("number");
 
         sandbox.clock.tick(3000);
 
-        sinon.assert.calledOnce(audioLibrary.stop);
-        sinon.assert.calledWithExactly(audioLibrary.stop, "outgoing");
+        expect(call.state.current).to.be.equal("timeout");
       });
   });
 
@@ -199,7 +197,7 @@ describe('Call Establish View', function() {
       });
   });
 
-  describe("#_abort", function() {
+  describe("events", function() {
     var establishView, event;
 
     beforeEach(function() {
@@ -210,22 +208,23 @@ describe('Call Establish View', function() {
       });
       event = { preventDefault: sinon.spy() };
       sandbox.stub(window, "close");
+      sandbox.stub(call, "restart");
     });
 
-    it("should call preventDefault on any event passed", function() {
-      establishView._abort(event);
-
-      sinon.assert.calledOnce(event.preventDefault);
-      sinon.assert.calledWithExactly(event.preventDefault);
-    });
-
-    it("should call window.close", function() {
+    it("should call window.close when a click event is fired on the " +
+       "abort button", function() {
       establishView._abort(event);
 
       sinon.assert.calledOnce(window.close);
       sinon.assert.calledWithExactly(window.close);
     });
 
+    it("should call call.restart when a click event is fired on the " +
+       "call again button", function() {
+      establishView._callAgain(event);
+
+      sinon.assert.calledOnce(call.restart);
+    });
   });
 
   describe("#render", function() {
@@ -238,16 +237,63 @@ describe('Call Establish View', function() {
       });
     });
 
-    it("should show 'Calling Mark…' when rendering", function() {
-      establishView.render();
-
-      expect(establishView.$('.outgoing-text').text()).
-        to.equal("Calling Mark…");
-    });
-
-    it("should render with the callee's avatar");
     // XXX: needs to have the Call model having its peer set as a User
     // model instance so we can actually get the avatar
+    it("should render with the callee's avatar");
+
+    describe("on state set to pending", function() {
+      it("should show 'Calling Mark…'", function() {
+        call.state.start();
+
+        expect(establishView.$('.text').text()).
+          to.equal("Calling Mark…");
+      });
+
+      it("should show the end call button", function() {
+        $('.btn-abort').hide();
+
+        call.state.start();
+
+        expect($('.btn-abort').is(':visible')).to.be.equal(true);
+      });
+
+      it("should hide the call again button", function() {
+        $('.btn-call-again').show();
+
+        call.state.start();
+
+        expect($('.btn-call-again').is(':visible')).to.be.equal(false);
+      });
+    });
+
+    describe("on state set to timeout", function() {
+      it("should show 'Call was not answered'", function() {
+        call.state.start();
+        call.state.timeout();
+
+        expect(establishView.$('.text').text()).
+          to.equal("Call was not answered");
+      });
+
+      it("should hide the end call button", function() {
+        $('.btn-abort').show();
+
+        call.state.start();
+        call.state.timeout();
+
+        expect($('.btn-abort').is(':visible')).to.be.equal(false);
+      });
+
+      it("should show the call again button", function() {
+        $('.btn-call-again').hide();
+
+        call.state.start();
+        call.state.timeout();
+
+        expect($('.btn-call-again').is(':visible')).to.be.equal(true);
+      });
+    });
+
   });
 
 });

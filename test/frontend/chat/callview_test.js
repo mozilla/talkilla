@@ -75,33 +75,78 @@ describe("CallView", function() {
     });
 
     describe("media streams", function() {
+      var el, callView, localElement, remoteElement;
+
       beforeEach(function() {
         call.media = _.extend({}, Backbone.Events);
+
+        el = $('<div><div id="local-video"></div><div id="remote-video">' +
+               '</div></div>');
+        $("#fixtures").append(el);
+        callView = new app.views.CallView({el: el, call: call});
+
+        localElement = el.find('#local-video')[0];
+        localElement.play = sandbox.spy();
+
+        remoteElement = el.find('#remote-video')[0];
+        remoteElement.play = sandbox.spy();
       });
 
-      it("should call #_displayLocalVideo when local media stream is ready",
-        function() {
-          sandbox.stub(app.views.CallView.prototype, "_displayLocalVideo");
-          var callView = new app.views.CallView({el: el, call: call});
-          call.media.trigger("local-stream:ready", {local: true});
+      describe("local-stream:ready", function() {
+        it("should attach the local stream to the local-video element",
+          function() {
+            call.media.trigger("local-stream:ready", fakeLocalStream);
 
-          sinon.assert.calledOnce(callView._displayLocalVideo);
-          sinon.assert.calledWithExactly(callView._displayLocalVideo,
-                                         {local: true});
-        });
+            expect(localElement.mozSrcObject).to.equal(fakeLocalStream);
+          });
 
-      it("should call #_displayRemoteVideo when remote media stream is ready",
-        function() {
-          sandbox.stub(app.views.CallView.prototype, "_displayRemoteVideo");
-          var callView = new app.views.CallView({el: el, call: call});
-          call.media.trigger("remote-stream:ready", {remote: true});
+        it("should call play on the local-video element",
+          function() {
+            call.media.trigger("local-stream:ready", fakeLocalStream);
 
-          sinon.assert.calledOnce(callView._displayRemoteVideo);
-          sinon.assert.calledWithExactly(callView._displayRemoteVideo,
-                                         {remote: true});
-        });
+            sinon.assert.calledOnce(localElement.play);
+          });
+      });
+
+      describe("local-stream:terminated", function() {
+        it("should detach the local stream from the local-video element",
+          function() {
+            localElement.mozSrcObject = fakeLocalStream;
+
+            call.media.trigger("local-stream:terminated");
+
+            expect(localElement.mozSrcObject).to.equal(undefined);
+          });
+      });
+
+      describe("remote-stream:ready", function() {
+        it("should attach the remote stream to the 'remote-video' element",
+          function() {
+            call.media.trigger("remote-stream:ready", fakeRemoteStream);
+
+            expect(remoteElement.mozSrcObject).
+              to.equal(fakeRemoteStream);
+          });
+
+        it("should play the remote videoStream",
+          function() {
+            call.media.trigger("remote-stream:ready", fakeRemoteStream);
+
+            sinon.assert.calledOnce(remoteElement.play);
+          });
+      });
+
+      describe("remote-stream:terminated", function() {
+        it("should detach the remote stream from the remote-video element",
+          function() {
+            remoteElement.mozSrcObject = fakeRemoteStream;
+
+            call.media.trigger("remote-stream:terminated");
+
+            expect(remoteElement.mozSrcObject).to.equal(undefined);
+          });
+      });
     });
-
   });
 
   describe("#ongoing", function() {
@@ -126,61 +171,5 @@ describe("CallView", function() {
 
       expect(callView.$el.is(':visible')).to.equal(false);
     });
-  });
-
-  describe("#_displayLocalVideo", function() {
-    var el, callView, videoElement;
-
-    beforeEach(function() {
-      el = $('<div><div id="local-video"></div></div>');
-      $("#fixtures").append(el);
-      callView = new app.views.CallView({el: el, call: call});
-
-      videoElement = el.find('#local-video')[0];
-      videoElement.play = sandbox.spy();
-    });
-
-    it("should attach the local stream to the local-video element",
-      function() {
-        callView._displayLocalVideo(fakeLocalStream);
-
-        expect(videoElement.mozSrcObject).to.equal(fakeLocalStream);
-      });
-
-    it("should call play on the local-video element",
-      function() {
-        callView._displayLocalVideo(fakeLocalStream);
-
-        sinon.assert.calledOnce(videoElement.play);
-      });
-  });
-
-  describe("#_displayRemoteVideo", function() {
-    var el, callView, videoElement;
-
-    beforeEach(function() {
-      el = $('<div><div id="remote-video"></div></div>');
-      $("#fixtures").append(el);
-      callView = new app.views.CallView({el: el, call: call});
-
-      videoElement = el.find('#remote-video')[0];
-      videoElement.play = sandbox.spy();
-    });
-
-    it("should attach the remote stream to the 'remove-video' element",
-      function() {
-        callView._displayRemoteVideo(fakeRemoteStream);
-
-        expect(el.find('#remote-video')[0].mozSrcObject).
-          to.equal(fakeRemoteStream);
-      });
-
-    it("should play the remote videoStream",
-      function() {
-        callView._displayRemoteVideo(fakeRemoteStream);
-
-        sinon.assert.calledOnce(videoElement.play);
-      });
-
   });
 });

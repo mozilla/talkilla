@@ -3,7 +3,7 @@
 /* jshint expr:true */
 var expect = chai.expect;
 
-describe("Call", function() {
+describe("Call Model", function() {
 
   var sandbox, call, media, peer;
 
@@ -18,6 +18,7 @@ describe("Call", function() {
       initiate: sandbox.spy(),
       upgrade: sandbox.spy(),
       terminate: sandbox.spy(),
+      reset: sandbox.spy(),
       on: sandbox.stub(),
       once: sandbox.stub()
     };
@@ -83,6 +84,60 @@ describe("Call", function() {
 
       sinon.assert.calledOnce(call.upgrade);
       sinon.assert.calledWithExactly(call.upgrade, {video: true});
+    });
+
+    describe("send-offer", function() {
+      var fakeOffer = {peer: "larry", offer: {fake: true}};
+
+      beforeEach(function() {
+        call.media = _.extend(media, Backbone.Events);
+        peer.set("nick", "larry");
+
+        call.start({});
+      });
+
+      it("should trigger send-offer with transport data on offer-ready",
+        function(done) {
+          call.once("send-offer", function(data) {
+            expect(data.offer).to.deep.equal(fakeOffer);
+            done();
+          });
+
+          call.media.trigger("offer-ready", fakeOffer);
+        });
+    });
+  });
+
+  describe("#restart", function() {
+    var callData = {video: true, audio: true};
+
+    beforeEach(function() {
+      call.start(callData);
+      call.timeout();
+      media.initiate.reset();
+    });
+
+    it("should change the state from timeout to pending", function() {
+      call.restart();
+      expect(call.state.current).to.equal('pending');
+    });
+
+    it("should listen to offer-ready from the media", function() {
+      call.restart();
+      sinon.assert.calledWith(media.once, "offer-ready");
+    });
+
+    it("should pass the previously saved call data to the media", function() {
+      expect(call.constraints).to.be.equal(callData);
+      call.restart();
+
+      sinon.assert.calledOnce(media.initiate);
+      sinon.assert.calledWithExactly(media.initiate, callData);
+    });
+
+    it("should raise an error if called twice", function() {
+      call.restart();
+      expect(call.restart).to.Throw();
     });
 
     describe("send-offer", function() {
@@ -185,7 +240,6 @@ describe("Call", function() {
 
     it("should pass the data to the media", function() {
       _.extend(media, Backbone.Events);
-      media.establish = sandbox.stub();
       call.start({});
       call.establish(answerData);
 
@@ -193,6 +247,34 @@ describe("Call", function() {
       sinon.assert.calledWithExactly(media.establish, answerData.answer);
     });
 
+  });
+
+  describe("#timeout", function() {
+    beforeEach(function() {
+      call.start({});
+      call.peer.set("nick", "Mark");
+      sandbox.stub(call, "trigger");
+    });
+
+    it("should change the state from pending to terminated", function() {
+      call.timeout();
+
+      expect(call.state.current).to.equal('timeout');
+    });
+
+    it("should terminate the media", function() {
+      call.timeout();
+
+      sinon.assert.calledOnce(media.terminate);
+    });
+
+    it("should trigger send-timeout", function() {
+      call.timeout();
+
+      sinon.assert.called(call.trigger);
+      sinon.assert.calledWithExactly(call.trigger, "send-timeout",
+                                     {peer: "Mark"});
+    });
   });
 
   describe("#ignore", function() {
@@ -232,6 +314,18 @@ describe("Call", function() {
       sinon.assert.calledWithExactly(media.terminate);
     });
 
+    it("should trigger send-hangup", function() {
+      call.start({});
+      call.peer.set("nick", "Mark");
+
+      sandbox.stub(call, "trigger");
+
+      call.hangup(true);
+
+      sinon.assert.called(call.trigger);
+      sinon.assert.calledWithExactly(call.trigger, "send-hangup",
+                                     {peer: "Mark"});
+    });
   });
 
   describe("#upgrade", function() {

@@ -56,7 +56,6 @@ var SidebarApp = (function($, Backbone, _) {
                  this._onPresenceUnavailable.bind(this));
     this.port.on("talkilla.chat-window-ready",
                  this._onChatWindowReady.bind(this));
-    this.port.on('talkilla.offer-timeout', this._onOfferTimeout.bind(this));
 
     this.port.postEvent("talkilla.sidebar-ready", {nick: options.nick});
 
@@ -101,11 +100,6 @@ var SidebarApp = (function($, Backbone, _) {
   SidebarApp.prototype._onError = function(error) {
     app.utils.notifyUI('Error while communicating with the server: ' +
       error, 'error');
-  };
-
-  SidebarApp.prototype._onOfferTimeout = function(callData) {
-    app.utils.notifyUI("The other party, " + callData.peer +
-                       ", did not respond", "error");
   };
 
   SidebarApp.prototype._onPresenceUnavailable = function(code) {
