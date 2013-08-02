@@ -147,6 +147,13 @@ api = {
       logger.info({type: "call:hangup"});
     },
 
+    /**
+     * Called when the client requests for the current presence state.
+     * It returns a list of current users connected to the server
+     * (aka. present).
+     *
+     * data is empty
+     */
     onPresenceRequest: function(data, nick) {
       var user = users.get(nick);
       var presentUsers = users.toJSON(users.present());

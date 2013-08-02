@@ -298,8 +298,10 @@ var serverHandlers = {
     this.debug("userJoined", data);
 
     currentUsers = currentUsers || [];
-    // Remove the user from the list if it already exists (he could
-    // have an offline presence for instance)
+    // XXX Remove the user if they exist, and then re-add to handle
+    // the case if the user doesn't exist.
+    // This needs refactoring/handling better with a change for better
+    // storage of users
     currentUsers = currentUsers.filter(function(user) {
       return user.nick !== data;
     });
