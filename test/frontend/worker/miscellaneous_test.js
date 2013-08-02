@@ -73,7 +73,7 @@ describe('Miscellaneous', function() {
         var nickname = "bill";
         testableCallback(null, JSON.stringify({nick: nickname}));
         sinon.assert.calledOnce(socketStub);
-        sinon.assert.calledWithExactly(socketStub, nickname);
+        sinon.assert.calledWith(socketStub, nickname);
       });
 
     it("should not initiate the presence connection if signin failed",

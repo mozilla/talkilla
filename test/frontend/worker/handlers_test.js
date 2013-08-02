@@ -134,13 +134,6 @@ describe('handlers', function() {
           sinon.assert.calledOnce(_currentUserData.send);
         });
 
-      it("should post a success message if the server accepted login",
-        function() {
-          sinon.assert.calledOnce(port.postEvent);
-          sinon.assert.calledWith(port.postEvent, "talkilla.login-success");
-          ports.remove(port);
-        });
-
       it("should store the username if the server accepted login",
         function() {
           expect(_currentUserData.userName).to.equal('jb');
@@ -163,14 +156,28 @@ describe('handlers', function() {
     it("should notify new sidebars of current users",
       function() {
         _currentUserData.userName = "jb";
+        _presenceSocket = {send: sinon.spy()};
         currentUsers = {};
         handlers.postEvent = sinon.spy();
-        handlers['talkilla.sidebar-ready']({
-          topic: "talkilla.sidebar-ready",
+        handlers['talkilla.presence-request']({
+          topic: "talkilla.presence-request",
           data: {}
         });
 
         sinon.assert.calledWith(handlers.postEvent, "talkilla.users");
+      });
+
+    it("should request for the initial presence state" +
+       "if there is no current users", function() {
+        currentUsers = undefined;
+        _presenceSocket = {send: sinon.spy()};
+        handlers['talkilla.presence-request']({
+          topic: "talkilla.presence-request",
+          data: {}
+        });
+
+        var message = JSON.stringify({"presence_request": null});
+        sinon.assert.calledWith(_presenceSocket.send, message);
       });
 
     it("should notify new sidebars only if there's a logged in user",
