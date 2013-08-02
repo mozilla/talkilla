@@ -512,7 +512,17 @@ var handlers = {
     // to broadcast all our talkilla.* messages to the social api.
     ports.remove(this);
 
+    browserPort.postEvent('social.cookies-get');
+
     getContactsDatabase();
+  },
+
+  'social.cookies-get-response': function(event) {
+    var cookies = event.data;
+    cookies.forEach(function(cookie) {
+      if (cookie.name === "nick")
+        tryPresenceSocket(cookie.value);
+    });
   },
 
   // Talkilla events
@@ -561,9 +571,6 @@ var handlers = {
       this.postEvent('talkilla.login-success', {
         username: _currentUserData.userName
       });
-    } else if (event.data.nick) {
-      // No user data available, may still be logged in
-      tryPresenceSocket(event.data.nick);
     }
   },
 
