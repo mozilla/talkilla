@@ -70,7 +70,8 @@ describe('presence socket', function () {
 
     beforeEach(function() {
       _config.WSURL = wsurl;
-      sandbox.stub(window, "WebSocket");
+      sandbox.stub(window, "WebSocket")
+        .returns({addEventListener: function() {}});
     });
 
     it("should configure a socket with a URL from the nick and _config.WSURL",
@@ -79,8 +80,6 @@ describe('presence socket', function () {
 
         var nickname = "bill";
         createPresenceSocket(nickname);
-
-        expect(_presenceSocket).to.be.an.instanceOf(WebSocket);
 
         sinon.assert.calledOnce(WebSocket);
         sinon.assert.calledWithExactly(WebSocket,
@@ -162,7 +161,7 @@ describe('presence socket', function () {
 
     beforeEach(function() {
       _config.WSURL = wsurl;
-      dummySocket = { send: sandbox.spy() };
+      dummySocket = {send: sandbox.spy(), addEventListener: function() {}};
       sandbox.stub(window, "WebSocket").returns(dummySocket);
     });
 
