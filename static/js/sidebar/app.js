@@ -32,9 +32,7 @@ var SidebarApp = (function($, Backbone, _) {
 
     this.port = new AppPort();
 
-    this.user = new app.models.User({
-      nick: options && options.nick
-    });
+    this.user = new app.models.User();
 
     this.users = new app.models.UserSet();
 
@@ -57,7 +55,7 @@ var SidebarApp = (function($, Backbone, _) {
     this.port.on("talkilla.chat-window-ready",
                  this._onChatWindowReady.bind(this));
 
-    this.port.postEvent("talkilla.sidebar-ready", {nick: options.nick});
+    this.port.postEvent("talkilla.sidebar-ready");
 
     this._setupDebugLogging();
   }

@@ -26,6 +26,7 @@ class SingleBrowserTest(mixins.WithBob, BrowserTest):
 
         self.assertSignedInAs(self.bob, "bob")
 
+    @unittest.skip("Selenium lacks of a proper cookie API for our use cases")
     def test_login_persistence_over_restart(self):
         """ Test that the user remains logged in across browser restarts.
         """

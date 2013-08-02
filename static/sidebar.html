@@ -55,10 +55,9 @@
   <script src="js/sidebar/views.js"></script>
   <script>
     $(function() {
-      var nick = $.cookie("nick");
       $.getJSON('/config.json', function(config) {
         app.start(config);
-        window.sidebarApp = new SidebarApp({nick: nick});
+        window.sidebarApp = new SidebarApp();
       });
     });
   </script>

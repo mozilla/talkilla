@@ -375,19 +375,6 @@ describe('handlers', function() {
       _currentUserData = undefined;
     });
 
-    it("should call tryPresenceSocket when receiving" +
-       "a talkilla.sidebar-ready event", function () {
-      sandbox.stub(window, "tryPresenceSocket");
-
-      handlers['talkilla.sidebar-ready']({
-        topic: "talkilla.sidebar-ready",
-        data: {nick: "toto"}
-      });
-
-      sinon.assert.calledOnce(tryPresenceSocket);
-      sinon.assert.calledWithExactly(tryPresenceSocket, "toto");
-    });
-
     it("should NOT call tryPresenceSocket if there is no nick provided",
       function () {
         sandbox.stub(window, "tryPresenceSocket");

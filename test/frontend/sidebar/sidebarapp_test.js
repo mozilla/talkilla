@@ -99,11 +99,11 @@ describe("SidebarApp", function() {
     });
 
     it("should post talkilla.sidebar-ready to the worker", function() {
-      var sidebarApp = new SidebarApp({nick: "toto"});
+      var sidebarApp = new SidebarApp();
 
       sinon.assert.calledOnce(sidebarApp.port.postEvent);
       sinon.assert.calledWithExactly(sidebarApp.port.postEvent,
-                                     "talkilla.sidebar-ready", {nick: "toto"});
+                                     "talkilla.sidebar-ready");
     });
 
     it("should listen to the `talkilla.debug` event when debug is enabled",
@@ -155,7 +155,8 @@ describe("SidebarApp", function() {
 
   describe("#openConversation", function() {
     it("should post the talkilla.conversation-open event", function() {
-      var sidebarApp = new SidebarApp({nick: "toto"});
+      var sidebarApp = new SidebarApp();
+      sidebarApp.user.set("nick", "toto");
 
       sidebarApp.openConversation("jb");
 
