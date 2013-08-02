@@ -19,6 +19,8 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry, BrowserTest):
 
         self.assertElementsCount(self.bob, ".alert-info", 0)
         self.assertElementsCount(self.larry, ".alert-info", 0)
+        self.assertElementsCount(self.bob, ".username", 1)
+        self.assertElementsCount(self.larry, ".username", 1)
 
         self.bob.signout()
         self.assertElementsCount(self.bob, ".alert-info", 0)
