@@ -1,4 +1,4 @@
-/*global jQuery, Backbone, _, WebRTC*/
+/*global jQuery, Backbone, _, AppPort, WebRTC*/
 /* jshint unused: false */
 /**
  * Talkilla application.
@@ -28,11 +28,15 @@ var ChatApp = (function($, Backbone, _) {
   };
 
   function ChatApp() {
-    this.port = app.port;
-    // XXX app.data.user probably shouldn't be global, but this is synced
-    // with the sidebar so needs to be reworked at the same time.
-    app.data.user = new app.models.User();
+    this.port = new AppPort();
+    this.user = new app.models.User();
     this.peer = new app.models.User();
+
+    // Audio library
+    this.audioLibrary = new app.utils.AudioLibrary({
+      incoming: "/snd/incoming_call_ring.opus",
+      outgoing: "/snd/outgoing_call_ring.opus"
+    });
 
     this.webrtc = new WebRTC({
       forceFake: !!(app.options && app.options.FAKE_MEDIA_STREAMS)
@@ -65,15 +69,10 @@ var ChatApp = (function($, Backbone, _) {
     });
 
     this.callEstablishView = new app.views.CallEstablishView({
-      model: this.call,
+      call: this.call,
       peer: this.peer,
+      audioLibrary: this.audioLibrary,
       el: $("#establish")
-    });
-
-    // Audio library
-    this.audioLibrary = new app.utils.AudioLibrary({
-      incoming: "/snd/incoming_call_ring.opus",
-      outgoing: "/snd/outgoing_call_ring.opus"
     });
 
     // Text chat
@@ -82,12 +81,12 @@ var ChatApp = (function($, Backbone, _) {
 
     this.textChat = new app.models.TextChat(history, {
       media: this.webrtc,
+      user: this.user,
       peer: this.peer
     });
 
     this.textChatView = new app.views.TextChatView({
-      collection: this.textChat,
-      sender: app.data.user
+      collection: this.textChat
     });
 
     this.view = new app.views.ConversationView({
@@ -96,6 +95,9 @@ var ChatApp = (function($, Backbone, _) {
       peer: this.peer,
       el: 'body'
     });
+
+    // User events
+    this.user.on('signout', this._onUserSignout.bind(this));
 
     // Incoming events
     this.port.on('talkilla.conversation-open',
@@ -111,8 +113,7 @@ var ChatApp = (function($, Backbone, _) {
     this.textChat.on('send-offer', this._onSendOffer.bind(this));
     this.call.on('send-answer', this._onSendAnswer.bind(this));
     this.textChat.on('send-answer', this._onSendAnswer.bind(this));
-
-    this.call.on('offer-timeout', this._onCallOfferTimout.bind(this));
+    this.call.on('send-timeout', this._onSendTimeout.bind(this));
 
     // Internal events
     this.call.on('state:accept', this._onCallAccepted.bind(this));
@@ -127,6 +128,7 @@ var ChatApp = (function($, Backbone, _) {
 
   // Outgoing calls
   ChatApp.prototype._onConversationOpen = function(data) {
+    this.user.set({nick: data.user});
     this.peer.set({nick: data.peer});
   };
 
@@ -141,17 +143,12 @@ var ChatApp = (function($, Backbone, _) {
 
     // video/audio call
     this.call.establish(data);
-
-    this.audioLibrary.stop('outgoing');
-  };
-
-  ChatApp.prototype._onCallOfferTimout = function(callData) {
-    this.port.postEvent('talkilla.offer-timeout', callData);
-    this.audioLibrary.stop('outgoing');
   };
 
   // Incoming calls
   ChatApp.prototype._onIncomingConversation = function(data) {
+    this.user.set({nick: data.user});
+
     if (!data.upgrade)
       this.peer.set({nick: data.peer});
 
@@ -172,31 +169,42 @@ var ChatApp = (function($, Backbone, _) {
 
   ChatApp.prototype._onSendOffer = function(data) {
     this.port.postEvent('talkilla.call-offer', data);
-    if (!data.textChat)
-      this.audioLibrary.play('outgoing');
   };
 
   ChatApp.prototype._onSendAnswer = function(data) {
     this.port.postEvent('talkilla.call-answer', data);
   };
 
+  ChatApp.prototype._onSendTimeout = function(data) {
+    // Let the peer know that the call offer is no longer valid.
+    // For this, we send call-hangup, the same as in the case where
+    // the user decides to abandon the call attempt.
+    this.port.postEvent('talkilla.call-hangup', data);
+  };
+
   // Call Hangup
   ChatApp.prototype._onCallShutdown = function() {
-    this.audioLibrary.stop('incoming', 'outgoing');
-    this.call.hangup();
+    this.audioLibrary.stop('incoming');
+    // Don't send a message, as this is a hangup reception from
+    // the other end.
+    this.call.hangup(false);
     window.close();
   };
 
   ChatApp.prototype._onCallHangup = function(data) {
     var callState = this.call.state.current;
-    if (callState === "ready" || callState === "terminated")
+    if (callState === "ready" ||
+        callState === "timeout" ||
+        callState === "terminated")
       return;
 
-    this.call.hangup();
+    // Send a message as this is this user's call hangup
+    this.call.hangup(true);
+  };
 
-    this.port.postEvent('talkilla.call-hangup', {
-      peer: this.peer.get("nick")
-    });
+  ChatApp.prototype._onUserSignout = function() {
+    // ensure this chat window is closed when the user signs out
+    window.close();
   };
 
   // if debug is enabled, verbosely log object events to the console

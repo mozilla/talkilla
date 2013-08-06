@@ -5,7 +5,7 @@
 var expect = chai.expect;
 
 describe("ChatApp", function() {
-  var sandbox, chatApp;
+  var sandbox, chatApp, AppPortStub;
   var callData = {peer: "bob"};
   var incomingCallData = {
     peer: "alice",
@@ -26,9 +26,9 @@ describe("ChatApp", function() {
   var fakeDataChannel = {fakeDataChannel: true};
 
   beforeEach(function() {
+    AppPortStub = _.extend({postEvent: sinon.spy()}, Backbone.Events);
     sandbox = sinon.sandbox.create();
-    app.port = {postEvent: sinon.spy()};
-    _.extend(app.port, Backbone.Events);
+    sandbox.stub(window, "AppPort").returns(AppPortStub);
     sandbox.stub(window, "addEventListener");
     sandbox.stub(window, "Audio").returns({
       play: sandbox.stub(),
@@ -62,7 +62,7 @@ describe("ChatApp", function() {
   });
 
   afterEach(function() {
-    app.port.off();
+    AppPortStub.off();
     sandbox.restore();
     chatApp = null;
     app.options.DEBUG = false;
@@ -138,8 +138,8 @@ describe("ChatApp", function() {
   it("should post talkilla.chat-window-ready to the worker", function() {
       chatApp = new ChatApp();
 
-      sinon.assert.calledOnce(app.port.postEvent);
-      sinon.assert.calledWithExactly(app.port.postEvent,
+      sinon.assert.calledOnce(chatApp.port.postEvent);
+      sinon.assert.calledWithExactly(chatApp.port.postEvent,
         "talkilla.chat-window-ready", {});
     });
 
@@ -166,15 +166,19 @@ describe("ChatApp", function() {
       to.be.an.instanceOf(app.views.CallEstablishView);
 
     sinon.assert.calledOnce(app.views.CallEstablishView);
-    sinon.assert.calledWithExactly(app.views.CallEstablishView,
-      { model: chatApp.call, peer: chatApp.peer, el: $("#establish") });
+    sinon.assert.calledWithExactly(app.views.CallEstablishView, {
+      call: chatApp.call,
+      peer: chatApp.peer,
+      audioLibrary: chatApp.audioLibrary,
+      el: $("#establish")
+    });
   });
 
   it("should initialize a peer model", function() {
-    sandbox.stub(app.models, "User");
+    sandbox.stub(app.models, "User").returns({on: sandbox.spy()});
+
     chatApp = new ChatApp();
 
-    // This currently gets called twice because of app.data.user
     sinon.assert.called(app.models.User);
   });
 
@@ -194,10 +198,6 @@ describe("ChatApp", function() {
 
       chatApp = new ChatApp();
 
-      // Reset the postEvent spy as the ChatApp constructor already
-      // triggered a talkilla.chat-window-ready event. We do not want
-      // this trigger to mess with our following tests.
-      app.port.postEvent.reset();
       // Some functions only test a little bit, and don't stub everything, so
       // stub mozGetUserMedia as that tends to let callbacks happen which
       // can cause unexpected sending of data to worker ports.
@@ -297,34 +297,6 @@ describe("ChatApp", function() {
         sinon.assert.calledOnce(chatApp.call.establish);
         sinon.assert.calledWithExactly(chatApp.call.establish, answer);
       });
-
-      it("should stop the outgoing call sound", function() {
-        chatApp._onCallEstablishment(answer);
-
-        sinon.assert.calledOnce(chatApp.audioLibrary.stop);
-        sinon.assert.calledWithExactly(chatApp.audioLibrary.stop, "outgoing");
-      });
-    });
-
-    describe("#_onCallOfferTimout", function() {
-
-      it("should post the `talkilla.offer-timeout` event to the worker",
-        function() {
-          var callData = {foo: "bar"};
-
-          chatApp._onCallOfferTimout(callData);
-
-          sinon.assert.calledOnce(chatApp.port.postEvent);
-          sinon.assert.calledWithExactly(chatApp.port.postEvent,
-            "talkilla.offer-timeout", callData);
-        });
-
-      it("should stop outgoing call sounds", function() {
-        chatApp._onCallOfferTimout({});
-
-        sinon.assert.calledOnce(chatApp.audioLibrary.stop);
-        sinon.assert.calledWithExactly(chatApp.audioLibrary.stop, "outgoing");
-      });
     });
 
     describe("#_onCallShutdown", function() {
@@ -336,7 +308,7 @@ describe("ChatApp", function() {
 
       it("should hangup the call", function() {
         sinon.assert.calledOnce(chatApp.call.hangup);
-        sinon.assert.calledWithExactly(chatApp.call.hangup);
+        sinon.assert.calledWithExactly(chatApp.call.hangup, false);
       });
 
       it("should close the window", function() {
@@ -344,10 +316,10 @@ describe("ChatApp", function() {
         sinon.assert.calledWithExactly(window.close);
       });
 
-      it("should stop incoming and outgoing call sounds", function() {
+      it("should stop incoming call sounds", function() {
         sinon.assert.calledOnce(chatApp.audioLibrary.stop);
         sinon.assert.calledWithExactly(chatApp.audioLibrary.stop,
-          "incoming", "outgoing");
+          "incoming");
       });
     });
 
@@ -359,16 +331,9 @@ describe("ChatApp", function() {
 
       it("should hangup the call", function() {
         chatApp._onCallHangup();
-        sinon.assert.calledOnce(chatApp.call.hangup);
-        sinon.assert.calledWithExactly(chatApp.call.hangup);
-      });
 
-      it("should post a talkilla.call-hangup event to the worker", function() {
-        chatApp.peer.set({"nick": "florian"});
-        chatApp._onCallHangup();
-        sinon.assert.calledOnce(app.port.postEvent);
-        sinon.assert.calledWith(app.port.postEvent,
-                                "talkilla.call-hangup", {peer: "florian"});
+        sinon.assert.calledOnce(chatApp.call.hangup);
+        sinon.assert.calledWithExactly(chatApp.call.hangup, true);
       });
 
       it("should do nothing if the call is already terminated", function () {
@@ -377,7 +342,6 @@ describe("ChatApp", function() {
         chatApp._onCallHangup();
 
         sinon.assert.notCalled(chatApp.call.hangup);
-        sinon.assert.notCalled(app.port.postEvent);
       });
 
       it("should do nothing if the call was not started", function () {
@@ -386,7 +350,6 @@ describe("ChatApp", function() {
         chatApp._onCallHangup();
 
         sinon.assert.notCalled(chatApp.call.hangup);
-        sinon.assert.notCalled(app.port.postEvent);
       });
     });
 
@@ -404,17 +367,10 @@ describe("ChatApp", function() {
         function() {
           chatApp._onSendOffer(offer);
 
-          sinon.assert.calledOnce(app.port.postEvent);
-          sinon.assert.calledWith(app.port.postEvent, "talkilla.call-offer");
+          sinon.assert.called(chatApp.port.postEvent);
+          sinon.assert.calledWith(chatApp.port.postEvent,
+                                  "talkilla.call-offer");
         });
-
-      it("should start the outgoing call sound", function() {
-        chatApp._onSendOffer(callData);
-
-        sinon.assert.calledOnce(chatApp.audioLibrary.play);
-        sinon.assert.calledWithExactly(chatApp.audioLibrary.play, "outgoing");
-      });
-
     });
 
     describe("#_onSendAnswer", function() {
@@ -427,9 +383,20 @@ describe("ChatApp", function() {
 
           chatApp._onSendAnswer(answer);
 
-          sinon.assert.calledOnce(app.port.postEvent);
-          sinon.assert.calledWith(app.port.postEvent, "talkilla.call-answer");
+          sinon.assert.called(chatApp.port.postEvent);
+          sinon.assert.calledWith(chatApp.port.postEvent,
+                                  "talkilla.call-answer");
         });
+    });
+
+    describe("#_onSendTimeout", function() {
+      it("should post a talkilla.call-hangup event to the worker", function() {
+        chatApp.call.trigger("send-timeout", {peer: "florian"});
+
+        sinon.assert.called(chatApp.port.postEvent);
+        sinon.assert.calledWith(chatApp.port.postEvent,
+                                "talkilla.call-hangup", {peer: "florian"});
+      });
     });
 
     describe("Object events listeners", function() {

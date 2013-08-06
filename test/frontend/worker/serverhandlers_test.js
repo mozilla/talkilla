@@ -1,6 +1,6 @@
 /* global afterEach, beforeEach, chai, describe, sinon, it,
    browserPort:true, currentConversation:true, serverHandlers,
-   Conversation */
+   Conversation, currentUsers:true, ports */
 /* Needed due to the use of non-camelcase in the websocket topics */
 /* jshint camelcase:false */
 var expect = chai.expect;
@@ -15,6 +15,55 @@ describe("serverHandlers", function() {
   afterEach(function() {
     currentConversation = undefined;
     sandbox.restore();
+  });
+
+  describe("`users` event", function() {
+
+    it("should broadcast a `talkilla.users` event with the list of users",
+      function() {
+        var data = "fake users list";
+        sandbox.stub(window, "updateCurrentUsers", function(data) {
+          currentUsers = data;
+        });
+        sandbox.stub(ports, "broadcastEvent");
+        serverHandlers.users(data);
+
+        sinon.assert.calledOnce(ports.broadcastEvent);
+        sinon.assert.calledWith(
+          ports.broadcastEvent, "talkilla.users", "fake users list");
+      });
+  });
+
+  describe("`userJoined` event", function() {
+
+    it("should broadcast a `talkilla.users` event", function() {
+      currentUsers = [];
+      sandbox.stub(ports, "broadcastEvent");
+
+      serverHandlers.userJoined("foo");
+
+      sinon.assert.calledOnce(ports.broadcastEvent);
+      sinon.assert.calledWith(ports.broadcastEvent, "talkilla.users", [
+        {nick: "foo", presence: "connected"}
+      ]);
+    });
+
+  });
+
+  describe("`userLeft` event", function() {
+
+    it("should broadcast a `talkilla.users` event", function() {
+      currentUsers = [{nick: "foo", presence: "connected"}];
+      sandbox.stub(ports, "broadcastEvent");
+
+      serverHandlers.userLeft("foo");
+
+      sinon.assert.calledOnce(ports.broadcastEvent);
+      sinon.assert.calledWith(ports.broadcastEvent, "talkilla.users", [
+        {nick: "foo", presence: "disconnected"}
+      ]);
+    });
+
   });
 
   describe("#incoming_call", function() {
@@ -100,12 +149,6 @@ describe("serverHandlers", function() {
 
       sinon.assert.calledOnce(callHangupStub);
       sinon.assert.calledWithExactly(callHangupStub, callData);
-    });
-
-    it("should clear the current call data", function() {
-      serverHandlers.call_hangup(callData);
-
-      expect(currentConversation).to.be.equal(undefined);
     });
   });
 });

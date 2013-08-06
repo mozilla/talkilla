@@ -3,15 +3,12 @@
 /* jshint expr:true */
 var expect = chai.expect;
 
-describe("Call", function() {
+describe("Call Model", function() {
 
-  var sandbox, call, media, oldPort, peer;
+  var sandbox, call, media, peer;
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
-    sandbox.useFakeTimers();
-    oldPort = app.port;
-    app.port = {postEvent: sinon.spy()};
     // XXX This should probably be a mock, but sinon mocks don't seem to want
     // to work with Backbone.
     media = {
@@ -21,6 +18,7 @@ describe("Call", function() {
       initiate: sandbox.spy(),
       upgrade: sandbox.spy(),
       terminate: sandbox.spy(),
+      reset: sandbox.spy(),
       on: sandbox.stub(),
       once: sandbox.stub()
     };
@@ -32,7 +30,6 @@ describe("Call", function() {
 
   afterEach(function() {
     sandbox.restore();
-    app.port = oldPort;
   });
 
   describe("#initialize", function() {
@@ -93,7 +90,6 @@ describe("Call", function() {
       var fakeOffer = {peer: "larry", offer: {fake: true}};
 
       beforeEach(function() {
-        sandbox.stub(call, "_startTimer");
         call.media = _.extend(media, Backbone.Events);
         peer.set("nick", "larry");
 
@@ -109,12 +105,60 @@ describe("Call", function() {
 
           call.media.trigger("offer-ready", fakeOffer);
         });
+    });
+  });
 
-      it("should trigger a timer for timing out an offer", function() {
-        call.media.trigger("offer-ready", fakeOffer);
+  describe("#restart", function() {
+    var callData = {video: true, audio: true};
 
-        sinon.assert.calledOnce(call._startTimer);
+    beforeEach(function() {
+      call.start(callData);
+      call.timeout();
+      media.initiate.reset();
+    });
+
+    it("should change the state from timeout to pending", function() {
+      call.restart();
+      expect(call.state.current).to.equal('pending');
+    });
+
+    it("should listen to offer-ready from the media", function() {
+      call.restart();
+      sinon.assert.calledWith(media.once, "offer-ready");
+    });
+
+    it("should pass the previously saved call data to the media", function() {
+      expect(call.constraints).to.be.equal(callData);
+      call.restart();
+
+      sinon.assert.calledOnce(media.initiate);
+      sinon.assert.calledWithExactly(media.initiate, callData);
+    });
+
+    it("should raise an error if called twice", function() {
+      call.restart();
+      expect(call.restart).to.Throw();
+    });
+
+    describe("send-offer", function() {
+      var fakeOffer = {peer: "larry", offer: {fake: true}};
+
+      beforeEach(function() {
+        call.media = _.extend(media, Backbone.Events);
+        peer.set("nick", "larry");
+
+        call.start({});
       });
+
+      it("should trigger send-offer with transport data on offer-ready",
+        function(done) {
+          call.once("send-offer", function(data) {
+            expect(data.offer).to.deep.equal(fakeOffer);
+            done();
+          });
+
+          call.media.trigger("offer-ready", fakeOffer);
+        });
     });
   });
 
@@ -196,7 +240,6 @@ describe("Call", function() {
 
     it("should pass the data to the media", function() {
       _.extend(media, Backbone.Events);
-      media.establish = sandbox.stub();
       call.start({});
       call.establish(answerData);
 
@@ -204,6 +247,34 @@ describe("Call", function() {
       sinon.assert.calledWithExactly(media.establish, answerData.answer);
     });
 
+  });
+
+  describe("#timeout", function() {
+    beforeEach(function() {
+      call.start({});
+      call.peer.set("nick", "Mark");
+      sandbox.stub(call, "trigger");
+    });
+
+    it("should change the state from pending to terminated", function() {
+      call.timeout();
+
+      expect(call.state.current).to.equal('timeout');
+    });
+
+    it("should terminate the media", function() {
+      call.timeout();
+
+      sinon.assert.calledOnce(media.terminate);
+    });
+
+    it("should trigger send-timeout", function() {
+      call.timeout();
+
+      sinon.assert.called(call.trigger);
+      sinon.assert.calledWithExactly(call.trigger, "send-timeout",
+                                     {peer: "Mark"});
+    });
   });
 
   describe("#ignore", function() {
@@ -243,6 +314,18 @@ describe("Call", function() {
       sinon.assert.calledWithExactly(media.terminate);
     });
 
+    it("should trigger send-hangup", function() {
+      call.start({});
+      call.peer.set("nick", "Mark");
+
+      sandbox.stub(call, "trigger");
+
+      call.hangup(true);
+
+      sinon.assert.called(call.trigger);
+      sinon.assert.calledWithExactly(call.trigger, "send-hangup",
+                                     {peer: "Mark"});
+    });
   });
 
   describe("#upgrade", function() {
@@ -270,7 +353,6 @@ describe("Call", function() {
       var fakeOffer = {peer: "larry", offer: {fake: true}};
 
       beforeEach(function() {
-        sandbox.stub(call, "_startTimer");
         call.state.current = 'ongoing';
         call.media = _.extend(media, Backbone.Events);
         peer.set("nick", "larry");
@@ -287,56 +369,6 @@ describe("Call", function() {
 
           call.media.trigger("offer-ready", fakeOffer);
         });
-
-      it("should trigger a timer for timing out an offer", function() {
-        call.media.trigger("offer-ready", fakeOffer);
-
-        sinon.assert.calledOnce(call._startTimer);
-      });
-    });
-  });
-
-  describe("#_startTimer", function() {
-    beforeEach(function() {
-      peer.set({nick: "bob"});
-    });
-
-    afterEach(function() {
-      peer.set({nick: undefined});
-    });
-
-    it("should setup a timer and trigger the `offer-timeout` event on timeout",
-      function(done) {
-        sandbox.stub(call, "trigger");
-        expect(call.timer).to.be.a("undefined");
-
-        call._startTimer({timeout: 3000});
-
-        expect(call.timer).to.be.a("number");
-
-        sandbox.clock.tick(3000);
-
-        sinon.assert.calledOnce(call.trigger);
-        sinon.assert.calledWithExactly(call.trigger, "offer-timeout",
-                                       {peer: "bob"});
-        done();
-      });
-  });
-
-  describe("ready event handling", function() {
-    var userModel;
-
-    beforeEach(function() {
-      peer.set({nick: "larry"});
-      call.trigger = sandbox.stub();
-      app.data.user = userModel = new app.models.User();
-      app.data.user.set("nick", "bob");
-    });
-
-    afterEach(function() {
-      peer.set({nick: undefined});
-      delete app.data.user;
-      userModel = undefined;
     });
   });
 });

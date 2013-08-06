@@ -106,6 +106,7 @@ Conversation.prototype = {
       port.postEvent('talkilla.login-success', {
         username: _currentUserData.userName
       });
+      this.data.user = _currentUserData.userName;
     }
 
     this._sendCall();
@@ -119,8 +120,12 @@ Conversation.prototype = {
    */
   handleIncomingCall: function(data) {
     ports.broadcastDebug('handle incoming call', data);
+
     if (this.data.peer !== data.peer)
       return false;
+
+    if (_currentUserData)
+      data.user = _currentUserData.userName;
 
     this.data = data;
 
@@ -289,6 +294,35 @@ var serverHandlers = {
     ports.broadcastEvent("talkilla.users", currentUsers);
   },
 
+  'userJoined': function(data) {
+    this.debug("userJoined", data);
+
+    currentUsers = currentUsers || [];
+    // XXX Remove the user if they exist, and then re-add to handle
+    // the case if the user doesn't exist.
+    // This needs refactoring/handling better with a change for better
+    // storage of users
+    currentUsers = currentUsers.filter(function(user) {
+      return user.nick !== data;
+    });
+    // We then add the user with an online presence
+    currentUsers.push({nick: data, presence: "connected"});
+    ports.broadcastEvent("talkilla.users", currentUsers);
+  },
+
+  'userLeft': function(data) {
+    this.debug("userLeft", data);
+
+    currentUsers = currentUsers || [];
+    // Show the user as disconnected
+    currentUsers = currentUsers.map(function(user) {
+      if (user.nick === data)
+        user.presence = "disconnected";
+      return user;
+    });
+    ports.broadcastEvent("talkilla.users", currentUsers);
+  },
+
   'incoming_call': function(data) {
     this.debug("incoming_call", data);
 
@@ -315,10 +349,8 @@ var serverHandlers = {
 
   'call_hangup': function(data) {
     this.debug("call_hangup", data);
-    if (currentConversation) {
+    if (currentConversation)
       currentConversation.callHangup(data);
-      currentConversation = undefined;
-    }
   }
 };
 
@@ -367,10 +399,11 @@ function _setupWebSocket(ws) {
   ws.onclose = _presenceSocketOnClose;
 }
 
-function createPresenceSocket(nickname) {
+function createPresenceSocket(nickname, callback) {
   "use strict";
 
   _presenceSocket = new WebSocket(_config.WSURL + "?nick=" + nickname);
+  _presenceSocket.addEventListener("open", callback);
   _setupWebSocket(_presenceSocket);
 
   ports.broadcastEvent("talkilla.presence-pending", {});
@@ -445,11 +478,11 @@ function _signinCallback(err, responseText) {
   if (username) {
     _currentUserData.userName = username;
 
-    ports.broadcastEvent('talkilla.login-success', {
-      username: username
+    createPresenceSocket(username, function() {
+      ports.broadcastEvent('talkilla.login-success', {
+        username: username
+      });
     });
-
-    createPresenceSocket(username);
   }
 }
 
@@ -479,7 +512,17 @@ var handlers = {
     // to broadcast all our talkilla.* messages to the social api.
     ports.remove(this);
 
+    browserPort.postEvent('social.cookies-get');
+
     getContactsDatabase();
+  },
+
+  'social.cookies-get-response': function(event) {
+    var cookies = event.data;
+    cookies.forEach(function(cookie) {
+      if (cookie.name === "nick")
+        tryPresenceSocket(cookie.value);
+    });
   },
 
   // Talkilla events
@@ -517,17 +560,6 @@ var handlers = {
   },
 
   /**
-   * The data for talkilla.offer-timeout is:
-   *
-   * - peer:  The id of the other user
-   * - video: set to true to enable video
-   * - audio: set to true to enable audio
-   */
-  'talkilla.offer-timeout': function(event) {
-    ports.broadcastEvent("talkilla.offer-timeout", event.data);
-  },
-
-  /**
    * Called when the sidebar is ready.
    * The data for talkilla.sidebar-ready is:
    *
@@ -539,12 +571,17 @@ var handlers = {
       this.postEvent('talkilla.login-success', {
         username: _currentUserData.userName
       });
-      if (currentUsers)
-        this.postEvent('talkilla.users', currentUsers);
-    } else if (event.data.nick) {
-      // No user data available, may still be logged in
-      tryPresenceSocket(event.data.nick);
     }
+  },
+
+  /**
+   * Called when the sidebar request the initial presence state.
+   */
+  'talkilla.presence-request': function(event) {
+    if (currentUsers)
+      this.postEvent('talkilla.users', currentUsers);
+    else
+      _presenceSocketSendMessage(JSON.stringify({'presence_request': null}));
   },
 
   /**
@@ -576,7 +613,6 @@ var handlers = {
    */
   'talkilla.call-hangup': function (event) {
     _presenceSocketSendMessage(JSON.stringify({'call_hangup': event.data}));
-    currentConversation = undefined;
   }
 };
 

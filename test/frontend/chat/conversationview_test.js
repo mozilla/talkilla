@@ -6,7 +6,7 @@ describe("ConversationView", function() {
   var sandbox;
 
   describe("#initialize", function() {
-    var call, textChat, oldtitle, peer;
+    var call, textChat, oldtitle, user, peer;
 
     beforeEach(function() {
       $('#fixtures').append([
@@ -30,9 +30,14 @@ describe("ConversationView", function() {
         on: sandbox.stub()
       };
       call = new app.models.Call({}, {media: media});
+      user = new app.models.User();
       peer = new app.models.User();
       sandbox.stub(peer, "on");
-      textChat = new app.models.TextChat(null, {media: media, peer: peer});
+      textChat = new app.models.TextChat(null, {
+        media: media,
+        user: user,
+        peer: peer
+      });
 
       sandbox.stub(call, "on");
     });
@@ -117,22 +122,6 @@ describe("ConversationView", function() {
         peer.on.args[0][1](peer);
 
         expect(document.title).to.be.equal("nick");
-      });
-
-    it("should close the window when the call `offer-timeout` event is " +
-       "triggered", function() {
-        new app.views.ConversationView({
-          call: call,
-          peer: peer,
-          textChat: textChat
-        });
-
-        call.trigger('offer-timeout');
-
-        // offer-timeout is the second event triggered
-        call.on.args[0][1]();
-
-        sinon.assert.calledOnce(window.close);
       });
 
     describe("drag and drop events", function() {

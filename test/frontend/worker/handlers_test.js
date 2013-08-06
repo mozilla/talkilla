@@ -18,14 +18,36 @@ describe('handlers', function() {
     sandbox.restore();
   });
 
-  it("should remove a closed port on receiving social.port-closing",
-    function() {
+  describe("social.port-closing", function() {
+    var port;
+
+    beforeEach(function() {
       ports = new PortCollection();
-      var port = new Port({_portid: 42});
+      port = new Port({_portid: 42});
       ports.add(port);
-      handlers['social.port-closing'].bind(port)();
-      expect(Object.keys(ports.ports)).to.have.length.of(0);
+
+      browserPort = {postEvent: sandbox.spy()};
     });
+
+    afterEach(function() {
+      currentConversation = undefined;
+    });
+
+    it("should remove a closed port on receiving social.port-closing",
+      function() {
+        handlers['social.port-closing'].bind(port)();
+        expect(Object.keys(ports.ports)).to.have.length.of(0);
+      });
+
+    it("should clear the current conversation on receiving " +
+       "social.port-closing for the conversation port", function() {
+        currentConversation = new Conversation();
+        currentConversation.port = port;
+
+        handlers['social.port-closing'].bind(port)();
+        expect(currentConversation).to.be.equal(undefined);
+      });
+  });
 
   describe("talkilla.login", function() {
     var xhr, rootURL, socketStub, requests;
@@ -112,13 +134,6 @@ describe('handlers', function() {
           sinon.assert.calledOnce(_currentUserData.send);
         });
 
-      it("should post a success message if the server accepted login",
-        function() {
-          sinon.assert.calledOnce(port.postEvent);
-          sinon.assert.calledWith(port.postEvent, "talkilla.login-success");
-          ports.remove(port);
-        });
-
       it("should store the username if the server accepted login",
         function() {
           expect(_currentUserData.userName).to.equal('jb');
@@ -141,14 +156,28 @@ describe('handlers', function() {
     it("should notify new sidebars of current users",
       function() {
         _currentUserData.userName = "jb";
+        _presenceSocket = {send: sinon.spy()};
         currentUsers = {};
         handlers.postEvent = sinon.spy();
-        handlers['talkilla.sidebar-ready']({
-          topic: "talkilla.sidebar-ready",
+        handlers['talkilla.presence-request']({
+          topic: "talkilla.presence-request",
           data: {}
         });
 
         sinon.assert.calledWith(handlers.postEvent, "talkilla.users");
+      });
+
+    it("should request for the initial presence state" +
+       "if there is no current users", function() {
+        currentUsers = undefined;
+        _presenceSocket = {send: sinon.spy()};
+        handlers['talkilla.presence-request']({
+          topic: "talkilla.presence-request",
+          data: {}
+        });
+
+        var message = JSON.stringify({"presence_request": null});
+        sinon.assert.calledWith(_presenceSocket.send, message);
       });
 
     it("should notify new sidebars only if there's a logged in user",
@@ -336,23 +365,6 @@ describe('handlers', function() {
       });
   });
 
-  describe("talkilla.offer-timeout", function() {
-    it("should notify the caller that an outgoing call did not go through",
-      function() {
-        var fakeCallData = {foo: "bar"};
-        sandbox.stub(ports, "broadcastEvent");
-
-        handlers['talkilla.offer-timeout']({
-          topic: "talkilla.offer-timeout",
-          data: fakeCallData
-        });
-
-        sinon.assert.calledOnce(ports.broadcastEvent);
-        sinon.assert.calledWithExactly(ports.broadcastEvent,
-          "talkilla.offer-timeout", fakeCallData);
-      });
-  });
-
   describe("talkilla.sidebar-ready", function() {
 
     beforeEach(function() {
@@ -361,19 +373,6 @@ describe('handlers', function() {
 
     afterEach(function() {
       _currentUserData = undefined;
-    });
-
-    it("should call tryPresenceSocket when receiving" +
-       "a talkilla.sidebar-ready event", function () {
-      sandbox.stub(window, "tryPresenceSocket");
-
-      handlers['talkilla.sidebar-ready']({
-        topic: "talkilla.sidebar-ready",
-        data: {nick: "toto"}
-      });
-
-      sinon.assert.calledOnce(tryPresenceSocket);
-      sinon.assert.calledWithExactly(tryPresenceSocket, "toto");
     });
 
     it("should NOT call tryPresenceSocket if there is no nick provided",
@@ -449,22 +448,6 @@ describe('handlers', function() {
         sinon.assert.calledOnce(_presenceSocketSendMessage);
         sinon.assert.calledWithExactly(_presenceSocketSendMessage,
          JSON.stringify({ 'call_hangup': data }));
-      });
-
-    it("should reset the call data when receiving talkilla.call-hangup",
-      function() {
-        currentConversation = {data: "fake"};
-        sandbox.stub(window, "_presenceSocketSendMessage");
-        var data = {
-          peer: "florian"
-        };
-
-        handlers['talkilla.call-hangup']({
-          topic: "talkilla.call-hangup",
-          data: data
-        });
-
-        expect(currentConversation).to.be.equal(undefined);
       });
   });
 

@@ -19,12 +19,11 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry, BrowserTest):
 
         self.assertElementsCount(self.bob, ".alert-info", 0)
         self.assertElementsCount(self.larry, ".alert-info", 0)
+        self.assertElementsCount(self.bob, ".username", 1)
+        self.assertElementsCount(self.larry, ".username", 1)
 
         self.bob.signout()
         self.assertElementsCount(self.bob, ".alert-info", 0)
-
-        self.assertElementTextContains(self.larry, ".alert-info",
-                                       "only person")
 
         self.larry.signout()
         self.assertElementsCount(self.bob, ".alert-info", 0)
@@ -50,8 +49,41 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry, BrowserTest):
         self.assertOngoingCall(self.bob)
         self.assertOngoingCall(self.larry)
 
-    @unittest.skip(
-        "Intermittent errors in pc.createOffer that Talkilla doesn't handle")
+    def test_video_call_timeout(self):
+        self.bob.signin()
+        self.larry.signin()
+
+        self.bob.openConversationWith("larry").startCall(True)
+        self.assertPendingOutgoingCall(self.bob)
+
+        self.larry.switchToChatWindow()
+        self.assertIncomingCall(self.larry)
+
+        self.assertCallTimedOut(self.bob)
+
+    def test_video_call_timeout_and_retry(self):
+        self.bob.signin()
+        self.larry.signin()
+
+        self.bob.openConversationWith("larry").startCall(True)
+        self.assertPendingOutgoingCall(self.bob)
+
+        self.larry.switchToChatWindow()
+        self.assertIncomingCall(self.larry)
+
+        self.assertCallTimedOut(self.bob)
+
+        # Now try calling a second time
+        self.bob.restartCall()
+        self.assertPendingOutgoingCall(self.bob)
+
+        self.larry.switchToChatWindow()
+        self.assertIncomingCall(self.larry)
+        self.larry.acceptCall()
+
+        self.assertOngoingCall(self.bob)
+        self.assertOngoingCall(self.larry)
+
     def test_text_chat(self):
         self.larry.signin()
         self.bob.signin()
