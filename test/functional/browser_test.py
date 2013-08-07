@@ -42,20 +42,6 @@ def kill_app(app):
 
 
 class BrowserTest(unittest.TestCase):
-    node_app = None
-
-    def setUp(self):
-        cmd = ("node", "app.js")
-        env = os.environ.copy()
-        env.update({"PORT": "3000",
-                    "NO_LOCAL_CONFIG": "true",
-                    "NODE_ENV": "test"})
-        self.node_app = subprocess.Popen(cmd, env=env)
-        self.addCleanup(kill_app, self.node_app)
-
-    def tearDown(self):
-        kill_app(self.node_app)
-
     def assertChatMessageContains(self, driver, message, line=1):
         driver.switchToChatWindow()
         css_selector = "#textchat li"
@@ -127,3 +113,38 @@ class BrowserTest(unittest.TestCase):
         if driver.title != title:
             raise AssertionError(u'Title does not equal "%s"; got "%s"' % (
                 title, driver.title))
+
+
+# SingleNodeBrowserTest is used for starting up a single
+# node instance that is used for all tests in a test class.
+class SingleNodeBrowserTest(BrowserTest):
+    @classmethod
+    def setUpClass(cls):
+        cmd = ("node", "app.js")
+        env = os.environ.copy()
+        env.update({"PORT": "3000",
+                    "NO_LOCAL_CONFIG": "true",
+                    "NODE_ENV": "test"})
+        cls.node_app = subprocess.Popen(cmd, env=env)
+
+    @classmethod
+    def tearDownClass(cls):
+        os.kill(cls.node_app.pid, signal.SIGTERM)
+
+
+# MultipleNodeBrowserTest is used for starting up a
+# node instance for each test in a test class.
+class MultipleNodeBrowserTest(BrowserTest):
+    node_app = None
+
+    def setUp(self):
+        cmd = ("node", "app.js")
+        env = os.environ.copy()
+        env.update({"PORT": "3000",
+                    "NO_LOCAL_CONFIG": "true",
+                    "NODE_ENV": "test"})
+        self.node_app = subprocess.Popen(cmd, env=env)
+        self.addCleanup(kill_app, self.node_app)
+
+    def tearDown(self):
+        kill_app(self.node_app)

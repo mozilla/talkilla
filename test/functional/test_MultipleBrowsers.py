@@ -4,10 +4,11 @@
 import mixins
 import unittest
 
-from browser_test import BrowserTest
+from browser_test import MultipleNodeBrowserTest
 
 
-class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry, BrowserTest):
+class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
+                           MultipleNodeBrowserTest):
     def test_signin_users(self):
         self.bob.signin()
         self.assertSignedInAs(self.bob, "bob")
