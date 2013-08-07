@@ -2,7 +2,7 @@
    ports:true, Port, PortCollection, handlers, _currentUserData:true,
    currentConversation:true, UserData, _presenceSocket:true, tryPresenceSocket,
    browserPort:true, currentUsers:true, _presenceSocketSendMessage,
-   Conversation */
+   Conversation, _config:true, _cookieNickname:true */
 /* jshint expr:true */
 
 var expect = chai.expect;
@@ -46,6 +46,47 @@ describe('handlers', function() {
 
         handlers['social.port-closing'].bind(port)();
         expect(currentConversation).to.be.equal(undefined);
+      });
+  });
+
+  describe("social.cookies-get-response", function() {
+    var oldConfig;
+
+    beforeEach(function() {
+      oldConfig = _config;
+      _cookieNickname = undefined;
+    });
+
+    afterEach(function() {
+      _config = oldConfig;
+      _cookieNickname = undefined;
+    });
+
+    it("should try to connect the presence socket if config.WSURL is defined",
+      function() {
+        sandbox.stub(window, "tryPresenceSocket");
+        _config.WSURL = "Test";
+        var event = {
+          data: [ {name: "nick", value: "Boriss"} ]
+        };
+
+        handlers['social.cookies-get-response'](event);
+
+        sinon.assert.calledOnce(tryPresenceSocket);
+        sinon.assert.calledWithExactly(tryPresenceSocket, "Boriss");
+      });
+
+    it("should store the nickname if config.WSURL is not defined",
+      function() {
+        _config = {};
+
+        var event = {
+          data: [ {name: "nick", value: "Boriss"} ]
+        };
+
+        handlers['social.cookies-get-response'](event);
+
+        expect(_cookieNickname).to.be.equal("Boriss");
       });
   });
 

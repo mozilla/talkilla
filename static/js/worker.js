@@ -2,6 +2,7 @@
 /* global indexedDB */
 
 var _config = {DEBUG: false};
+var _cookieNickname;
 var _currentUserData;
 var _presenceSocket;
 var ports;
@@ -520,8 +521,15 @@ var handlers = {
   'social.cookies-get-response': function(event) {
     var cookies = event.data;
     cookies.forEach(function(cookie) {
-      if (cookie.name === "nick")
-        tryPresenceSocket(cookie.value);
+      if (cookie.name === "nick") {
+        // If we've received the configuration info, then go
+        // ahead and log in.
+        if (_config.WSURL)
+          tryPresenceSocket(cookie.value);
+        else
+          // Otherwise save it for once we've got the config information.
+          _cookieNickname = cookie.value;
+      }
     });
   },
 
@@ -730,4 +738,12 @@ loadconfig(function(err, config) {
     return ports.broadcastError(err);
   _config = config;
   _currentUserData = new UserData({}, config);
+
+  // If we've already got the cookie data, try to log in
+  if (_cookieNickname) {
+    tryPresenceSocket(_cookieNickname);
+    // Now clear the cookieNickname, so that we don't try it again unless we
+    // re-obtain it.
+    _cookieNickname = undefined;
+  }
 });
