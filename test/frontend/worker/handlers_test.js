@@ -2,7 +2,7 @@
    ports:true, Port, PortCollection, handlers, _currentUserData:true,
    currentConversation:true, UserData, _presenceSocket:true, tryPresenceSocket,
    browserPort:true, currentUsers:true, _presenceSocketSendMessage,
-   Conversation */
+   Conversation, _config:true, _cookieNickname:true */
 /* jshint expr:true */
 
 var expect = chai.expect;
