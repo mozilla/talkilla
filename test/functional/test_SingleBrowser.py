@@ -4,19 +4,19 @@
 import mixins
 import unittest
 
-from browser_test import BrowserTest
+from browser_test import SingleNodeBrowserTest
 
 
-class SingleBrowserTest(mixins.WithBob, BrowserTest):
-    def test_public_homepage(self):
+class SingleBrowserTest(mixins.WithSingleBob, SingleNodeBrowserTest):
+    def test_1_public_homepage(self):
         self.bob.get("http://127.0.0.1:3000/")
         self.bob.find_element_by_css_selector("button")
 
-    def test_sidebar(self):
+    def test_2_sidebar(self):
         self.bob.switchToSidebar()
         self.assertTitleEquals(self.bob, "Talkilla Sidebar")
 
-    def test_login_persistence_over_reload(self):
+    def test_3_login_persistence_over_reload(self):
         """ Checks that even if the user reloads the sidebar from the context
             menu, she'll remain logged in.
         """
@@ -27,11 +27,9 @@ class SingleBrowserTest(mixins.WithBob, BrowserTest):
         self.assertSignedInAs(self.bob, "bob")
 
     @unittest.skip("Selenium lacks of a proper cookie API for our use cases")
-    def test_login_persistence_over_restart(self):
+    def test_4_login_persistence_over_restart(self):
         """ Test that the user remains logged in across browser restarts.
         """
-        self.bob.signin()
-
         # save off session & profile state for creation of new browser env
         cookies = self.bob.get_cookies()
         capabilities = self.bob.desired_capabilities
