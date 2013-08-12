@@ -221,7 +221,6 @@
 
     /**
      * Utility function to know if the call has been ignored.
-     * XXX: this.call.state.current should be used instead.
      */
     ignored: function() {
       return this.$el.hasClass("ignored");
