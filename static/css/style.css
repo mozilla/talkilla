@@ -162,6 +162,11 @@
   margin: 4px;
 }
 
+.ignored {
+  opacity:0.5;
+  transition: opacity 1s;
+}
+
 .btn-video a {
   background: url(../img/btn-video.png);
 }

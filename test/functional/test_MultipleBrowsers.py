@@ -85,6 +85,18 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
         self.assertOngoingCall(self.bob)
         self.assertOngoingCall(self.larry)
 
+    def test_video_call_ignored(self):
+        self.bob.signin()
+        self.larry.signin()
+
+        self.bob.openConversationWith("larry").startCall(True)
+        self.assertPendingOutgoingCall(self.bob)
+
+        self.larry.switchToChatWindow()
+        self.larry.ignoreCall()
+
+        self.assertCallTimedOut(self.bob)
+
     def test_text_chat(self):
         self.larry.signin()
         self.bob.signin()

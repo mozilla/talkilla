@@ -198,6 +198,8 @@
     accept: function(event) {
       if (event)
         event.preventDefault();
+      if (this.ignored())
+        return;
 
       this.call.accept();
     },
@@ -205,10 +207,23 @@
     ignore: function(event) {
       if (event)
         event.preventDefault();
+      if (this.ignored())
+        return;
 
-      this.call.ignore();
+      this.$el.addClass("ignored");
+      this.$el.find(".actions .btn").addClass("disabled");
 
-      window.close();
+      setTimeout(function() {
+        this.call.ignore();
+        window.close();
+      }.bind(this), 3000);
+    },
+
+    /**
+     * Utility function to know if the call has been ignored.
+     */
+    ignored: function() {
+      return this.$el.hasClass("ignored");
     },
 
     render: function() {
