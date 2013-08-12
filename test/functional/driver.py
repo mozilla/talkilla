@@ -71,6 +71,10 @@ class Driver(WebDriver):
         """ Accepts an incoming call."""
         self.clickElement(".btn-accept")
 
+    def ignoreCall(self):
+        """ Ignore an incoming call."""
+        self.clickElement(".btn-ignore")
+
     def sendChatMessage(self, message):
         """ Sends a text chat message.
 
