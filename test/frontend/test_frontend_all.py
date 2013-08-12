@@ -13,10 +13,6 @@ import driver
 SERVER_PREFIX = 'http://localhost:3000/test/frontend/'
 
 
-def kill_app(app):
-    os.kill(app.pid, signal.SIGTERM)
-
-
 class FrontEndSuite(unittest.TestCase):
 
     @classmethod
@@ -33,7 +29,7 @@ class FrontEndSuite(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.drvr.quit()
-        kill_app(cls.node_app)
+        os.kill(cls.node_app.pid, signal.SIGTERM)
 
     def check_page_for_zero_failures(self, url):
         self.drvr.get(url)
