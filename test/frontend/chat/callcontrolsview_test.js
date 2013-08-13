@@ -32,7 +32,8 @@ describe("Call Controls View", function() {
       on: sandbox.stub(),
       state: {current: "ready"}
     };
-    call = new app.models.Call({}, {media: media});
+    var user = new app.models.User({nick: "foo"});
+    call = new app.models.Call({}, {peer: user, media: media});
   });
 
   afterEach(function() {
@@ -231,12 +232,12 @@ describe("Call Controls View", function() {
     });
 
     describe("#hangup", function() {
-      it('should close the window', function() {
-        sandbox.stub(window, "close");
+      it('should hangup the call', function() {
+        sandbox.stub(callControlsView.call, "hangup");
 
         callControlsView.hangup();
 
-        sinon.assert.calledOnce(window.close);
+        sinon.assert.calledOnce(callControlsView.call.hangup);
       });
     });
 

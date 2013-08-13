@@ -4,10 +4,11 @@
 import mixins
 import unittest
 
-from browser_test import BrowserTest
+from browser_test import MultipleNodeBrowserTest
 
 
-class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry, BrowserTest):
+class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
+                           MultipleNodeBrowserTest):
     def test_signin_users(self):
         self.bob.signin()
         self.assertSignedInAs(self.bob, "bob")
@@ -83,6 +84,18 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry, BrowserTest):
 
         self.assertOngoingCall(self.bob)
         self.assertOngoingCall(self.larry)
+
+    def test_video_call_ignored(self):
+        self.bob.signin()
+        self.larry.signin()
+
+        self.bob.openConversationWith("larry").startCall(True)
+        self.assertPendingOutgoingCall(self.bob)
+
+        self.larry.switchToChatWindow()
+        self.larry.ignoreCall()
+
+        self.assertCallTimedOut(self.bob)
 
     def test_text_chat(self):
         self.larry.signin()
