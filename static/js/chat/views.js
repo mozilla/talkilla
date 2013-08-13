@@ -130,8 +130,7 @@
       if (event)
         event.preventDefault();
 
-      window.close(); // XXX: actually terminate the call and leave the
-                      // conversation window open (eg. for text chat)
+      this.call.hangup(true);
     },
 
     audioMuteToggle: function(event) {
