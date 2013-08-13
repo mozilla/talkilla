@@ -143,19 +143,15 @@ describe("ChatApp", function() {
         "talkilla.chat-window-ready", {});
     });
 
-  it("should attach _onCallHangup to unload on window", function() {
-    var onCallHangup;
+  it("should attach _onWindowClose to unload on window", function(done) {
     window.addEventListener.restore();
+    sandbox.stub(ChatApp.prototype._onWindowClose, "bind")
+      .returns(ChatApp.prototype._onWindowClose);
     sandbox.stub(window, "addEventListener", function(event, handler) {
-      onCallHangup = handler;
+      expect(handler).to.equal(ChatApp.prototype._onWindowClose);
+      done();
     });
-    sandbox.stub(ChatApp.prototype, "_onCallHangup");
     chatApp = new ChatApp();
-
-    onCallHangup();
-
-    sinon.assert.calledOnce(chatApp._onCallHangup);
-    sinon.assert.calledWithExactly(chatApp._onCallHangup);
   });
 
   it("should initialize the callEstablishView property", function() {
@@ -324,32 +320,16 @@ describe("ChatApp", function() {
     });
 
     describe("#_onCallHangup", function() {
-      beforeEach(function() {
-        sandbox.stub(chatApp.call, "hangup");
-        chatApp.call.state.current = "ongoing";
-      });
 
-      it("should hangup the call", function() {
-        chatApp._onCallHangup();
-
-        sinon.assert.calledOnce(chatApp.call.hangup);
-        sinon.assert.calledWithExactly(chatApp.call.hangup, true);
-      });
-
-      it("should do nothing if the call is already terminated", function () {
-        chatApp.call.state.current = "terminated";
+      it("should send a talkilla.call-hangup event", function() {
+        sandbox.stub(window, "close");
 
         chatApp._onCallHangup();
 
-        sinon.assert.notCalled(chatApp.call.hangup);
-      });
-
-      it("should do nothing if the call was not started", function () {
-        chatApp.call.state.current = "ready";
-
-        chatApp._onCallHangup();
-
-        sinon.assert.notCalled(chatApp.call.hangup);
+        sinon.assert.called(chatApp.port.postEvent);
+        sinon.assert.calledWith(chatApp.port.postEvent,
+                                "talkilla.call-hangup");
+        sinon.assert.called(window.close);
       });
     });
 
