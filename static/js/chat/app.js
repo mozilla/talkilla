@@ -114,12 +114,11 @@ var ChatApp = (function($, Backbone, _) {
     this.call.on('send-answer', this._onSendAnswer.bind(this));
     this.textChat.on('send-answer', this._onSendAnswer.bind(this));
     this.call.on('send-timeout', this._onSendTimeout.bind(this));
-
-    // Internal events
+    this.call.on('send-hangup', this._onCallHangup.bind(this));
     this.call.on('state:accept', this._onCallAccepted.bind(this));
 
     // Internal events
-    window.addEventListener("unload", this._onCallHangup.bind(this));
+    window.addEventListener("unload", this._onWindowClose.bind(this));
 
     this.port.postEvent('talkilla.chat-window-ready', {});
 
@@ -185,21 +184,20 @@ var ChatApp = (function($, Backbone, _) {
   // Call Hangup
   ChatApp.prototype._onCallShutdown = function() {
     this.audioLibrary.stop('incoming');
-    // Don't send a message, as this is a hangup reception from
-    // the other end.
     this.call.hangup(false);
     window.close();
   };
 
   ChatApp.prototype._onCallHangup = function(data) {
-    var callState = this.call.state.current;
-    if (callState === "ready" ||
-        callState === "timeout" ||
-        callState === "terminated")
-      return;
-
     // Send a message as this is this user's call hangup
-    this.call.hangup(true);
+    this.port.postEvent('talkilla.call-hangup', data);
+    window.close();
+  };
+
+  ChatApp.prototype._onWindowClose = function(data) {
+    var callState = this.call.state.current;
+    if (callState !== "terminated")
+      this.call.hangup(true);
   };
 
   ChatApp.prototype._onUserSignout = function() {
