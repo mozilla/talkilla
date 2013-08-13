@@ -50,7 +50,7 @@
   WebRTC.prototype.__defineGetter__('constraints', function() {
     var _constraints = this._constraints || defaultConstraints;
 
-    // if (!!this.options.forceFake)
+    if (!!this.options.forceFake)
       _constraints.fake = true;
 
     return _constraints;
