@@ -235,12 +235,12 @@ describe('Text chat models', function() {
         entry.trigger("chunk", "chunk");
 
         sinon.assert.calledOnce(textChat._onFileChunk);
-        sinon.assert.calledWithExactly(textChat._onFileChunk, "chunk");
+        sinon.assert.calledWithExactly(textChat._onFileChunk, entry, "chunk");
 
         entry.trigger("complete");
 
         sinon.assert.calledOnce(entry.off);
-        sinon.assert.calledWith(textChat._onFileChunk, "chunk");
+        sinon.assert.calledWith(entry.off, "chunk");
       });
 
     it("should not send anything if the entry is not a FileTransfer",
@@ -262,13 +262,16 @@ describe('Text chat models', function() {
     });
 
     it("should send chunks over data channel", function() {
-      var entry = new app.models.FileTransfer({size: 10, filename: "bar"});
+      var file = {size: 10};
+      var entry = new app.models.FileTransfer({file: file}, {chunkSize: 1});
       var message = {
         type: "file:chunk",
         message: {id: entry.id, chunk: "chunk"}
       };
+      sandbox.stub(entry, "done").returns(true);
 
-      textChat._onFileChunk(entry.id, "chunk");
+      textChat.add(entry, {silent: true});
+      textChat._onFileChunk(entry, entry.id, "chunk");
 
       sinon.assert.calledOnce(send);
       sinon.assert.calledWithExactly(send, message);

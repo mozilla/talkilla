@@ -246,8 +246,10 @@
    *   new app.models.FileTransfer({file: file}, {chunkSize: 512 * 1024});
    * transfer.on("chunk", function(id, chunk) {
    *   sendChunk(id, chunk);
+   *   if (!transfer.done())
+   *     transfer.chunk();
    * });
-   * transfer.start();
+   * transfer.chunk();
    *
    * // Receiver side
    * var transfer =
@@ -334,8 +336,9 @@
      * It actually trigger the file transfer to emit chunks one after
      * the other until the end of the file is reached.
      */
-    start: function() {
-      this._readChunk();
+    chunk: function() {
+      var blob = this.file.slice(this.seek, this.seek + this.options.chunkSize);
+      this.reader.readAsArrayBuffer(blob);
     },
 
     /**
@@ -362,26 +365,23 @@
                         this.seek + " instead of " + this.size);
     },
 
+    done: function() {
+      return this.seek === this.size;
+    },
+
     _onChunk: function(event) {
       var data = event.target.result;
 
       this.seek += data.byteLength;
       this.trigger("chunk", this.id, data);
 
-      if (this.seek < this.file.size)
-        this._readChunk();
-      else
+      if (this.seek === this.size)
         this.trigger("complete", this.file);
     },
 
     _onProgress: function() {
       var progress = Math.floor(this.seek * 100 / this.size);
       this.set("progress", progress);
-    },
-
-    _readChunk: function() {
-      var blob = this.file.slice(this.seek, this.seek + this.options.chunkSize);
-      this.reader.readAsArrayBuffer(blob);
     }
   });
 
@@ -496,7 +496,7 @@
       if (!(entry instanceof app.models.FileTransfer && entry.file))
         return;
 
-      var onFileChunk = this._onFileChunk.bind(this);
+      var onFileChunk = this._onFileChunk.bind(this, entry);
       this.send({type: "file:new", message: {
         id: entry.id,
         filename: entry.file.name,
@@ -505,12 +505,13 @@
 
       entry.on("chunk", onFileChunk);
       entry.on("complete", entry.off.bind(this, "chunk", onFileChunk));
-
-      entry.start();
+      entry.chunk();
     },
 
-    _onFileChunk: function(id, chunk) {
+    _onFileChunk: function(transfer, id, chunk) {
       this.send({type: "file:chunk", message: {id: id, chunk: chunk}});
+      if (!transfer.done())
+        transfer.chunk();
     }
   });
 })(app, Backbone, StateMachine, tnetbin);

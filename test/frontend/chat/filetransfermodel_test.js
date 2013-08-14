@@ -47,24 +47,39 @@ describe("FileTransfer Model", function() {
 
   });
 
-  describe("#start", function() {
+  describe("#toJSON", function() {
 
-    it("should trigger 1 byte chunks events until reaching the eof event",
+    it("should have a progress of 0 by default", function() {
+      expect(transfer.toJSON().progress).to.equal(0);
+    });
+
+  });
+
+  describe("#chunk", function() {
+
+    it("should trigger a 1 byte chunk event",
       function(done) {
-        var chunks = [];
+        var nbCalls = 1;
         transfer.on("chunk", function(id, chunk) {
           var view = new Uint8Array(chunk);
           var c = String.fromCharCode.apply(null, view);
 
           expect(id).to.not.be.Null;
-          chunks.push(c);
-        });
-        transfer.on("complete", function() {
-          expect(chunks).to.deep.equal(['c', 'o', 'n', 't', 'e', 'n', 't']);
-          done();
+
+          if (nbCalls === 1) {
+            expect(c).to.equal('c');
+            transfer.chunk();
+          }
+
+          if (nbCalls === 2) {
+            expect(c).to.equal('o');
+            done();
+          }
+
+          nbCalls += 1;
         });
 
-        transfer.start();
+        transfer.chunk();
       });
 
     it("should accepts a custom chunkSize", function(done) {
@@ -74,6 +89,8 @@ describe("FileTransfer Model", function() {
         var str = String.fromCharCode.apply(null, view);
 
         chunks.push(str);
+        if (!transfer.done())
+          transfer.chunk();
       });
       transfer.on("complete", function() {
         expect(chunks).to.deep.equal(['con', 'ten', 't']);
@@ -81,7 +98,7 @@ describe("FileTransfer Model", function() {
       });
 
       transfer.options.chunkSize = 3;
-      transfer.start();
+      transfer.chunk();
     });
 
     it("should call complete when there are no chunks left", function(done) {
@@ -91,23 +108,16 @@ describe("FileTransfer Model", function() {
         var str = String.fromCharCode.apply(null, view);
 
         chunks.push(str);
+        if (!transfer.done())
+          transfer.chunk();
       });
       transfer.on("complete", function() {
         expect(chunks).to.deep.equal(['c', 'o', 'n', 't', 'e', 'n', 't']);
         done();
       });
 
-      transfer.start();
+      transfer.chunk();
     });
-
-  });
-
-  describe("#toJSON", function() {
-
-    it("should have a progress of 0 by default", function() {
-      expect(transfer.toJSON().progress).to.equal(0);
-    });
-
   });
 
   describe("#_onProgress", function() {
@@ -152,6 +162,20 @@ describe("FileTransfer Model", function() {
         view[0] = c.charCodeAt(0);
         incomingTransfer.append(view);
       });
+    });
+
+  });
+
+  describe("#done", function() {
+
+    it("should return true if the transfer is done", function() {
+      transfer.seek = transfer.size;
+      expect(transfer.done()).to.equal(true);
+    });
+
+    it("should return false if the transfer is not done", function() {
+      transfer.seek = transfer.size - 1;
+      expect(transfer.done()).to.equal(false);
     });
 
   });
