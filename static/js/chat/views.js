@@ -435,7 +435,9 @@
 
     template: _.template('<strong><%= filename %>:' +
                          '<% if (progress < 100) { %>' +
-                           '</strong> <%= progress %>%' +
+                           '<div class="progress">' +
+                             '<div class="bar" style="width: <%= progress %>%;"></div>' +
+                           '</div>' +
                          '<% } else { %>' +
                            '<a href="<%= url %>" download="<%= filename %>">' +
                              'Save' +
