@@ -468,6 +468,8 @@
     },
 
     _onDcMessageIn: function(event) {
+      var transfer;
+
       if (event.type === "chat:message")
         this.add(new app.models.TextChatEntry(event.message));
       else if (event.type === "file:new") {
@@ -476,8 +478,13 @@
         this.add(new app.models.FileTransfer(message));
       } else if (event.type === "file:chunk") {
         var chunk = tnetbin.toArrayBuffer(event.message.chunk).buffer;
-        var transfer = this.findWhere({id: event.message.id});
+        transfer = this.findWhere({id: event.message.id});
         transfer.append(chunk);
+        this.send({type: "file:ack", message: {id: event.message.id}});
+      } else if (event.type === "file:ack") {
+        transfer = this.findWhere({id: event.message.id});
+        if (!transfer.done())
+          transfer.chunk();
       }
     },
 
@@ -510,9 +517,8 @@
 
     _onFileChunk: function(transfer, id, chunk) {
       this.send({type: "file:chunk", message: {id: id, chunk: chunk}});
-      if (!transfer.done())
-        transfer.chunk();
     }
+
   });
 })(app, Backbone, StateMachine, tnetbin);
 
