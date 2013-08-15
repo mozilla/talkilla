@@ -160,12 +160,11 @@ describe('Text chat models', function() {
       function() {
         sandbox.stub(app.models.TextChat.prototype, "add");
         var newFileTransfer = sandbox.stub(app.models, "FileTransfer");
-        var event = {type: "file:new", message: "data"};
+        var event = {type: "file:new", message: {id: "someid"}};
 
         textChat._onDcMessageIn(event);
 
         sinon.assert.calledOnce(newFileTransfer);
-        sinon.assert.calledWithExactly(newFileTransfer, "data");
       });
 
     it("should append data to a previous started file transfer", function() {

@@ -304,6 +304,7 @@
         this.chunks        = [];
       }
 
+      this.nick = attributes.nick;
       this.seek = 0;
       this.on("chunk", this._onProgress, this);
     },
@@ -320,6 +321,7 @@
     toJSON: function() {
       var progress = this.get("progress");
       var json = {
+        nick: this.nick,
         filename: _.escape(this.filename),
         progress: progress || 0
       };
@@ -466,19 +468,17 @@
     },
 
     _onDcMessageIn: function(event) {
-      var entry;
-
       if (event.type === "chat:message")
-        entry = new app.models.TextChatEntry(event.message);
-      else if (event.type === "file:new")
-        entry = new app.models.FileTransfer(event.message);
-      else if (event.type === "file:chunk") {
+        this.add(new app.models.TextChatEntry(event.message));
+      else if (event.type === "file:new") {
+        var nick = this.user.get("nick");
+        var message = _.extend({nick: nick}, event.message);
+        this.add(new app.models.FileTransfer(message));
+      } else if (event.type === "file:chunk") {
         var chunk = tnetbin.toArrayBuffer(event.message.chunk).buffer;
         var transfer = this.findWhere({id: event.message.id});
         transfer.append(chunk);
       }
-
-      this.add(entry);
     },
 
     _onTextChatEntryCreated: function(entry) {
