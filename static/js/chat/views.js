@@ -439,20 +439,27 @@
     tagName: 'li',
 
     template: _.template('<strong><%= nick %></strong>: ' +
-                         '<%= filename %> ' +
-                         '<% if (progress < 100) { %>' +
-                           '<div class="progress">' +
-                             '<div class="bar" ' +
-                                   'style="width: <%= progress %>%;">' +
-                             '</div>' +
+                         '<div class="media">' +
+                           '<img class="media-object pull-left"' +
+                                'src="/img/file-icon.png">' +
+                           '<div class="media-body">' +
+                             '<h4 class="media-heading"><%= filename %></h4>' +
+                             '<% if (progress < 100) { %>' +
+                               '<div class="progress">' +
+                                 '<div class="bar" ' +
+                                       'style="width: <%= progress %>%;">' +
+                                 '</div>' +
+                               '</div>' +
+                               '<%= app.utils.humanSize(sent) %> of ' +
+                               '<%= app.utils.humanSize(total) %>' +
+                             '<% } else { %>' +
+                               '<a href="<%= url %>"' +
+                                  'download="<%= filename %>">' +
+                                 'Save' +
+                               '</a>' +
+                             '<% } %>' +
                            '</div>' +
-                           '<%= app.utils.humanSize(sent) %> of ' +
-                           '<%= app.utils.humanSize(total) %>' +
-                         '<% } else { %>' +
-                           '<a href="<%= url %>" download="<%= filename %>">' +
-                             'Save' +
-                           '</a>' +
-                         '<% } %>'),
+                         '</div>'),
 
     initialize: function() {
       this.model.on("change", this.render, this);
