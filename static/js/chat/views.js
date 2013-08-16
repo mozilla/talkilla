@@ -446,6 +446,8 @@
                                    'style="width: <%= progress %>%;">' +
                              '</div>' +
                            '</div>' +
+                           '<%= app.utils.humanSize(sent) %> of ' +
+                           '<%= app.utils.humanSize(total) %>' +
                          '<% } else { %>' +
                            '<a href="<%= url %>" download="<%= filename %>">' +
                              'Save' +

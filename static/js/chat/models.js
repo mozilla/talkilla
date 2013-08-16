@@ -323,7 +323,9 @@
       var json = {
         nick: this.nick,
         filename: _.escape(this.filename),
-        progress: progress || 0
+        progress: progress,
+        sent: this.seek,
+        total: this.size
       };
 
       if (progress === 100)
