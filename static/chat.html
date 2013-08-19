@@ -70,6 +70,26 @@
   </div>
   <!-- /TextChat view -->
 
+  <!-- Templates -->
+  <script type="text/template" id="file-transfer-tpl">
+    <strong><%= nick %></strong>:
+    <div class="media">
+      <img class="media-object pull-left" src="/img/file-icon.png">
+      <div class="media-body">
+        <h4 class="media-heading"><%= filename %></h4>
+        <% if (progress < 100) { %>
+          <div class="progress">
+            <div class="bar" style="width: <%= progress %>%;"></div>
+          </div>
+          <%= app.utils.humanSize(sent) %> of <%= app.utils.humanSize(total) %>
+        <% } else { %>
+          <a href="<%= url %>" download="<%= filename %>">Save</a>
+        <% } %>
+      </div>
+    </div>
+  </script>
+  <!-- /Templates -->
+
   <script src="vendor/jquery-1.9.1.js"></script>
   <script src="vendor/jquery.cookie-1.3.1.js"></script>
   <script src="vendor/underscore-1.4.4.js"></script>

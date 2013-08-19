@@ -438,28 +438,7 @@
   app.views.FileTransferView = Backbone.View.extend({
     tagName: 'li',
 
-    template: _.template('<strong><%= nick %></strong>: ' +
-                         '<div class="media">' +
-                           '<img class="media-object pull-left"' +
-                                'src="/img/file-icon.png">' +
-                           '<div class="media-body">' +
-                             '<h4 class="media-heading"><%= filename %></h4>' +
-                             '<% if (progress < 100) { %>' +
-                               '<div class="progress">' +
-                                 '<div class="bar" ' +
-                                       'style="width: <%= progress %>%;">' +
-                                 '</div>' +
-                               '</div>' +
-                               '<%= app.utils.humanSize(sent) %> of ' +
-                               '<%= app.utils.humanSize(total) %>' +
-                             '<% } else { %>' +
-                               '<a href="<%= url %>"' +
-                                  'download="<%= filename %>">' +
-                                 'Save' +
-                               '</a>' +
-                             '<% } %>' +
-                           '</div>' +
-                         '</div>'),
+    template: _.template($('#file-transfer-tpl').text()),
 
     initialize: function() {
       this.model.on("change", this.render, this);
