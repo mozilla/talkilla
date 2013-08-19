@@ -265,6 +265,8 @@
    */
   app.models.FileTransfer = Backbone.Model.extend({
 
+    defaults: {progress: 0},
+
     /**
      * Filetransfer model constructor.
      * @param  {Object}  attributes  Model attributes
