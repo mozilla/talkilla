@@ -217,7 +217,7 @@ describe('Text chat models', function() {
       var event = {type: "file:ack", message: {id: transfer.id}};
       textChat.add(transfer);
       sandbox.stub(transfer, "nextChunk");
-      sandbox.stub(transfer, "done").returns(true);
+      sandbox.stub(transfer, "isDone").returns(true);
 
       textChat._onDcMessageIn(event);
 
@@ -309,7 +309,7 @@ describe('Text chat models', function() {
         type: "file:chunk",
         message: {id: entry.id, chunk: "chunk"}
       };
-      sandbox.stub(entry, "done").returns(true);
+      sandbox.stub(entry, "isDone").returns(true);
 
       textChat.add(entry, {silent: true});
       textChat._onFileChunk(entry, entry.id, "chunk");

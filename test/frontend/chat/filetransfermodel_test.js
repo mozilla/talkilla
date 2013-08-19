@@ -89,7 +89,7 @@ describe("FileTransfer Model", function() {
         var str = String.fromCharCode.apply(null, view);
 
         chunks.push(str);
-        if (!transfer.done())
+        if (!transfer.isDone())
           transfer.nextChunk();
       });
       transfer.on("complete", function() {
@@ -108,7 +108,7 @@ describe("FileTransfer Model", function() {
         var str = String.fromCharCode.apply(null, view);
 
         chunks.push(str);
-        if (!transfer.done())
+        if (!transfer.isDone())
           transfer.nextChunk();
       });
       transfer.on("complete", function() {
@@ -170,12 +170,12 @@ describe("FileTransfer Model", function() {
 
     it("should return true if the transfer is done", function() {
       transfer.seek = transfer.size;
-      expect(transfer.done()).to.equal(true);
+      expect(transfer.isDone()).to.equal(true);
     });
 
     it("should return false if the transfer is not done", function() {
       transfer.seek = transfer.size - 1;
-      expect(transfer.done()).to.equal(false);
+      expect(transfer.isDone()).to.equal(false);
     });
 
   });

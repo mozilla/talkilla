@@ -246,7 +246,7 @@
    *   new app.models.FileTransfer({file: file}, {chunkSize: 512 * 1024});
    * transfer.on("chunk", function(id, chunk) {
    *   sendChunk(id, chunk);
-   *   if (!transfer.done())
+   *   if (!transfer.isDone())
    *     transfer.nextChunk();
    * });
    * transfer.nextChunk();
@@ -371,7 +371,7 @@
                         this.seek + " instead of " + this.size);
     },
 
-    done: function() {
+    isDone: function() {
       return this.seek === this.size;
     },
 
@@ -487,7 +487,7 @@
         this.send({type: "file:ack", message: {id: event.message.id}});
       } else if (event.type === "file:ack") {
         transfer = this.findWhere({id: event.message.id});
-        if (!transfer.done())
+        if (!transfer.isDone())
           transfer.nextChunk();
       }
     },
