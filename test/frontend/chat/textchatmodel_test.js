@@ -160,12 +160,11 @@ describe('Text chat models', function() {
       function() {
         sandbox.stub(app.models.TextChat.prototype, "add");
         var newFileTransfer = sandbox.stub(app.models, "FileTransfer");
-        var event = {type: "file:new", message: "data"};
+        var event = {type: "file:new", message: {id: "someid"}};
 
         textChat._onDcMessageIn(event);
 
         sinon.assert.calledOnce(newFileTransfer);
-        sinon.assert.calledWithExactly(newFileTransfer, "data");
       });
 
     it("should append data to a previous started file transfer", function() {
@@ -181,6 +180,48 @@ describe('Text chat models', function() {
       textChat._onDcMessageIn(event);
       sinon.assert.calledOnce(transfer.append);
       sinon.assert.calledWithExactly(transfer.append, chunk);
+    });
+
+    it("should respond with an ack to a received chunk", function() {
+      var transfer = new app.models.FileTransfer({filename: "foo", size: 10});
+      var chunk = new ArrayBuffer(22*2);
+      var event = {
+        type: "file:chunk",
+        message: {id: transfer.id, chunk: chunk}
+      };
+      sandbox.stub(transfer, "append");
+      sandbox.stub(textChat, "send");
+      textChat.add(transfer);
+
+      textChat._onDcMessageIn(event);
+      sinon.assert.calledOnce(textChat.send);
+      sinon.assert.calledWithExactly(textChat.send, {
+        type: "file:ack",
+        message: {id: event.message.id}
+      });
+    });
+
+    it("should send a chunk when the last one was acknowledged", function() {
+      var transfer = new app.models.FileTransfer({filename: "foo", size: 10});
+      var event = {type: "file:ack", message: {id: transfer.id}};
+      textChat.add(transfer);
+      sandbox.stub(transfer, "nextChunk");
+
+      textChat._onDcMessageIn(event);
+
+      sinon.assert.calledOnce(transfer.nextChunk);
+    });
+
+    it("should NOT send a chunk if the transfer is done", function() {
+      var transfer = new app.models.FileTransfer({filename: "foo", size: 10});
+      var event = {type: "file:ack", message: {id: transfer.id}};
+      textChat.add(transfer);
+      sandbox.stub(transfer, "nextChunk");
+      sandbox.stub(transfer, "isDone").returns(true);
+
+      textChat._onDcMessageIn(event);
+
+      sinon.assert.notCalled(transfer.nextChunk);
     });
   });
 
@@ -235,12 +276,12 @@ describe('Text chat models', function() {
         entry.trigger("chunk", "chunk");
 
         sinon.assert.calledOnce(textChat._onFileChunk);
-        sinon.assert.calledWithExactly(textChat._onFileChunk, "chunk");
+        sinon.assert.calledWithExactly(textChat._onFileChunk, entry, "chunk");
 
         entry.trigger("complete");
 
         sinon.assert.calledOnce(entry.off);
-        sinon.assert.calledWith(textChat._onFileChunk, "chunk");
+        sinon.assert.calledWith(entry.off, "chunk");
       });
 
     it("should not send anything if the entry is not a FileTransfer",
@@ -262,13 +303,16 @@ describe('Text chat models', function() {
     });
 
     it("should send chunks over data channel", function() {
-      var entry = new app.models.FileTransfer({size: 10, filename: "bar"});
+      var file = {size: 10};
+      var entry = new app.models.FileTransfer({file: file}, {chunkSize: 1});
       var message = {
         type: "file:chunk",
         message: {id: entry.id, chunk: "chunk"}
       };
+      sandbox.stub(entry, "isDone").returns(true);
 
-      textChat._onFileChunk(entry.id, "chunk");
+      textChat.add(entry, {silent: true});
+      textChat._onFileChunk(entry, entry.id, "chunk");
 
       sinon.assert.calledOnce(send);
       sinon.assert.calledWithExactly(send, message);
