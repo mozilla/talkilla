@@ -359,7 +359,7 @@
       this.chunks.push(chunk);
       this.seek += chunk.byteLength;
 
-      if (this.seek === this.size) {
+      if (this.isDone()) {
         this.blob = new Blob(this.chunks);
         this.chunks = [];
         this.trigger("complete", this.blob);
@@ -381,7 +381,7 @@
       this.seek += data.byteLength;
       this.trigger("chunk", this.id, data);
 
-      if (this.seek === this.size)
+      if (this.isDone())
         this.trigger("complete", this.file);
     },
 
