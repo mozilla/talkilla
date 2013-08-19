@@ -93,6 +93,7 @@ var ChatApp = (function($, Backbone, _) {
       call: this.call,
       textChat: this.textChat,
       peer: this.peer,
+      user: this.user,
       el: 'body'
     });
 

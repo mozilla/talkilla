@@ -52,6 +52,7 @@ describe("ConversationView", function() {
       var view = new app.views.ConversationView({
         call: call,
         peer: peer,
+        user: user,
         textChat: textChat
       });
 
@@ -62,16 +63,29 @@ describe("ConversationView", function() {
       var view = new app.views.ConversationView({
         call: call,
         peer: peer,
+        user: user,
         textChat: textChat
       });
 
       expect(view.peer).to.equal(peer);
     });
 
+    it("should attach a given user model", function() {
+      var view = new app.views.ConversationView({
+        call: call,
+        peer: peer,
+        user: user,
+        textChat: textChat
+      });
+
+      expect(view.user).to.equal(user);
+    });
+
     it("should have a textChat model", function() {
       var view = new app.views.ConversationView({
         call: call,
         peer: peer,
+        user: user,
         textChat: textChat
       });
 
@@ -80,21 +94,44 @@ describe("ConversationView", function() {
 
     it("should throw an error when no call model is given", function() {
       function shouldExplode() {
-        new app.views.ConversationView({peer: peer, textChat: textChat});
+        new app.views.ConversationView({
+          peer: peer,
+          user: user,
+          textChat: textChat
+        });
       }
       expect(shouldExplode).to.Throw(Error, /missing parameter: call/);
     });
 
     it("should throw an error when no peer model is given", function() {
       function shouldExplode() {
-        new app.views.ConversationView({call: call, textChat: textChat});
+        new app.views.ConversationView({
+          user: user,
+          call: call,
+          textChat: textChat
+        });
       }
       expect(shouldExplode).to.Throw(Error, /missing parameter: peer/);
     });
 
+    it("should throw an error when no user model is given", function() {
+      function shouldExplode() {
+        new app.views.ConversationView({
+          call: call,
+          peer: peer,
+          textChat: textChat
+        });
+      }
+      expect(shouldExplode).to.Throw(Error, /missing parameter: user/);
+    });
+
     it("should throw an error when no textChat model is given", function() {
       function shouldExplode() {
-        new app.views.ConversationView({call: call, peer: peer});
+        new app.views.ConversationView({
+          user: user,
+          call: call,
+          peer: peer
+        });
       }
       expect(shouldExplode).to.Throw(Error, /missing parameter: textChat/);
     });
@@ -103,6 +140,7 @@ describe("ConversationView", function() {
       new app.views.ConversationView({
         call: call,
         peer: peer,
+        user: user,
         textChat: textChat
       });
 
@@ -116,6 +154,7 @@ describe("ConversationView", function() {
         new app.views.ConversationView({
           call: call,
           peer: peer,
+          user: user,
           textChat: textChat
         });
 
@@ -165,6 +204,7 @@ describe("ConversationView", function() {
           var view = new app.views.ConversationView({
             call: call,
             peer: peer,
+            user: user,
             textChat: textChat,
             el: '#fixtures'
           });
@@ -183,6 +223,7 @@ describe("ConversationView", function() {
           var view = new app.views.ConversationView({
             call: call,
             peer: peer,
+            user: user,
             textChat: textChat,
             el: '#fixtures'
           });
@@ -201,6 +242,7 @@ describe("ConversationView", function() {
           var view = new app.views.ConversationView({
             call: call,
             peer: peer,
+            user: user,
             textChat: textChat,
             el: '#fixtures'
           });
@@ -219,6 +261,7 @@ describe("ConversationView", function() {
         });
         var view = new app.views.ConversationView({call: call,
                                                    peer: peer,
+                                                   user: user,
                                                    textChat: textChat,
                                                    el: '#fixtures'});
         var dropEvent = fakeDropFileEvent({
