@@ -474,21 +474,26 @@
     _onDcMessageIn: function(event) {
       var transfer;
 
-      if (event.type === "chat:message")
+      switch (event.type) {
+      case "chat:message":
         this.add(new app.models.TextChatEntry(event.message));
-      else if (event.type === "file:new") {
+        break;
+      case "file:new":
         var nick = this.user.get("nick");
         var message = _.extend({nick: nick}, event.message);
         this.add(new app.models.FileTransfer(message));
-      } else if (event.type === "file:chunk") {
+        break;
+      case "file:chunk":
         var chunk = tnetbin.toArrayBuffer(event.message.chunk).buffer;
         transfer = this.findWhere({id: event.message.id});
         transfer.append(chunk);
         this.send({type: "file:ack", message: {id: event.message.id}});
-      } else if (event.type === "file:ack") {
+        break;
+      case "file:ack":
         transfer = this.findWhere({id: event.message.id});
         if (!transfer.isDone())
           transfer.nextChunk();
+        break;
       }
     },
 
