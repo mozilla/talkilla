@@ -247,9 +247,9 @@
    * transfer.on("chunk", function(id, chunk) {
    *   sendChunk(id, chunk);
    *   if (!transfer.done())
-   *     transfer.chunk();
+   *     transfer.nextChunk();
    * });
-   * transfer.chunk();
+   * transfer.nextChunk();
    *
    * // Receiver side
    * var transfer =
@@ -342,7 +342,7 @@
      * It actually trigger the file transfer to emit chunks one after
      * the other until the end of the file is reached.
      */
-    chunk: function() {
+    nextChunk: function() {
       var blob = this.file.slice(this.seek, this.seek + this.options.chunkSize);
       this.reader.readAsArrayBuffer(blob);
     },
@@ -488,7 +488,7 @@
       } else if (event.type === "file:ack") {
         transfer = this.findWhere({id: event.message.id});
         if (!transfer.done())
-          transfer.chunk();
+          transfer.nextChunk();
       }
     },
 
@@ -516,7 +516,7 @@
 
       entry.on("chunk", onFileChunk);
       entry.on("complete", entry.off.bind(this, "chunk", onFileChunk));
-      entry.chunk();
+      entry.nextChunk();
     },
 
     _onFileChunk: function(transfer, id, chunk) {

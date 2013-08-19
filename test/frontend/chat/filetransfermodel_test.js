@@ -68,7 +68,7 @@ describe("FileTransfer Model", function() {
 
           if (nbCalls === 1) {
             expect(c).to.equal('c');
-            transfer.chunk();
+            transfer.nextChunk();
           }
 
           if (nbCalls === 2) {
@@ -79,7 +79,7 @@ describe("FileTransfer Model", function() {
           nbCalls += 1;
         });
 
-        transfer.chunk();
+        transfer.nextChunk();
       });
 
     it("should accepts a custom chunkSize", function(done) {
@@ -90,7 +90,7 @@ describe("FileTransfer Model", function() {
 
         chunks.push(str);
         if (!transfer.done())
-          transfer.chunk();
+          transfer.nextChunk();
       });
       transfer.on("complete", function() {
         expect(chunks).to.deep.equal(['con', 'ten', 't']);
@@ -98,7 +98,7 @@ describe("FileTransfer Model", function() {
       });
 
       transfer.options.chunkSize = 3;
-      transfer.chunk();
+      transfer.nextChunk();
     });
 
     it("should call complete when there are no chunks left", function(done) {
@@ -109,14 +109,14 @@ describe("FileTransfer Model", function() {
 
         chunks.push(str);
         if (!transfer.done())
-          transfer.chunk();
+          transfer.nextChunk();
       });
       transfer.on("complete", function() {
-        expect(chunks).to.deep.equal(['c', 'o', 'n', 't', 'e', 'n', 't']);
+        expect(chunks).to.deep.equal("content".split(""));
         done();
       });
 
-      transfer.chunk();
+      transfer.nextChunk();
     });
   });
 

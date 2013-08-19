@@ -205,23 +205,23 @@ describe('Text chat models', function() {
       var transfer = new app.models.FileTransfer({filename: "foo", size: 10});
       var event = {type: "file:ack", message: {id: transfer.id}};
       textChat.add(transfer);
-      sandbox.stub(transfer, "chunk");
+      sandbox.stub(transfer, "nextChunk");
 
       textChat._onDcMessageIn(event);
 
-      sinon.assert.calledOnce(transfer.chunk);
+      sinon.assert.calledOnce(transfer.nextChunk);
     });
 
     it("should NOT send a chunk if the transfer is done", function() {
       var transfer = new app.models.FileTransfer({filename: "foo", size: 10});
       var event = {type: "file:ack", message: {id: transfer.id}};
       textChat.add(transfer);
-      sandbox.stub(transfer, "chunk");
+      sandbox.stub(transfer, "nextChunk");
       sandbox.stub(transfer, "done").returns(true);
 
       textChat._onDcMessageIn(event);
 
-      sinon.assert.notCalled(transfer.chunk);
+      sinon.assert.notCalled(transfer.nextChunk);
     });
   });
 
