@@ -13,7 +13,7 @@
   app.utils.humanSize = function(size) {
     var units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
     var i = 0;
-    while(size >= 1024) {
+    while (size >= 1024) {
       size /= 1024;
       ++i;
     }
