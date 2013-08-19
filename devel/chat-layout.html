@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title></title>
+  <link href="../static/vendor/bootstrap-2.1.1/css/bootstrap.css" rel="stylesheet">
+  <link href="../static/vendor/bootstrap-2.1.1/css/bootstrap-responsive.css" rel="stylesheet">
+  <link rel="stylesheet" media="all" href="../static/css/style.css">
+</head>
+<body class="has-video">
+  <!-- Call Controls -->
+  <div id="call-controls">
+    <ul class="controls">
+      <li class="btn-video"><a href="#" title="Start a video call">
+        <img src="../static/img/btn-video.png"></a></li>
+      <li class="btn-audio"><a href="#" title="Start an audio call">
+        <img src="../static/img/btn-audio.png"></a></li>
+      <li class="btn-hangup hide"><a href="#" title="Hang up">
+        <img src="../static/img/btn-hangup.png"></a></li>
+    </ul>
+  </div>
+
+  <!-- Call Offer -->
+  <div id="offer" class="pending hide">
+    <p class="avatar">
+      <img src="../static/img/default-avatar.png" id="offerAvatar">
+    </p>
+    <p class="incoming-info">
+      <img src="../static/img/video-icon.png">
+      <span class="incoming-text">Incoming video call…</span>
+    </p>
+    <p class="actions">
+      <a class="btn btn-success btn-accept">Accept</a>
+      <a class="btn btn-danger btn-ignore">Ignore</a>
+    </p>
+  </div>
+  <!-- /Call Offer -->
+
+  <!-- Call Establish -->
+  <div id="establish" class="pending hide">
+    <p class="avatar">
+      <img src="../static/img/default-avatar.png" id="establishAvatar">
+    </p>
+    <p class="outgoing-info">
+      <img src="../static/img/video-icon.png">
+      <span class="outgoing-text">Calling…</span>
+    </p>
+    <p class="actions">
+      <a class="btn btn-danger btn-abort">End Call</a>
+    </p>
+  </div>
+  <!-- /Call Establish -->
+
+  <!-- Call view -->
+  <div id="call">
+    <div class="video-area">
+      <strong class="callee"></strong>
+      <video id="remote-video" class="remote-video"></video>
+      <video id="local-video" class="local-video" muted></video>
+   </div>
+  </div>
+  <!-- /Call view -->
+
+  <!-- TextChat view -->
+  <div id="textchat">
+    <ul>
+      <li><strong>bob:</strong> Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+      tempor incididunt ut labore et dolore magna aliqua.</li>
+      <li><strong>bob:</strong> Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+      tempor incididunt ut labore et dolore magna aliqua.</li>
+      <li><strong>bob:</strong> Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+      tempor incididunt ut labore et dolore magna aliqua.</li>
+      <li><strong>bob:</strong> Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+      tempor incididunt ut labore et dolore magna aliqua.</li>
+      <li><strong>bob:</strong> Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+      tempor incididunt ut labore et dolore magna aliqua.</li>
+      <li><strong>bob:</strong> Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+      tempor incididunt ut labore et dolore magna aliqua.</li>
+      <li><strong>bob:</strong> Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+      tempor incididunt ut labore et dolore magna aliqua.</li>
+      <li><strong>bob:</strong> Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+      tempor incididunt ut labore et dolore magna aliqua.</li>
+      <li><strong>bob:</strong> Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+      tempor incididunt ut labore et dolore magna aliqua.</li>
+      <li><strong>bob:</strong> Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+      tempor incididunt ut labore et dolore magna aliqua.</li>
+      <li><strong>bob:</strong> Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+      tempor incididunt ut labore et dolore magna aliqua.</li>
+      <li><strong>bob:</strong> Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+      tempor incididunt ut labore et dolore magna aliqua.</li>
+      <li><strong>bob:</strong> Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+      tempor incididunt ut labore et dolore magna aliqua.</li>
+      <li><strong>bob:</strong> Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+      tempor incididunt ut labore et dolore magna aliqua.</li>
+      <li><strong>bob:</strong> Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+      tempor incididunt ut labore et dolore magna aliqua.</li>
+      <li><strong>bob:</strong> Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+      tempor incididunt ut labore et dolore magna aliqua.</li>
+      <li><strong>bob:</strong> Last</li>
+    </ul>
+    <form>
+      <input type="text" name="message" placeholder="Type something to start chatting">
+      <button type="submit" class="hide">Send</button>
+    </form>
+  </div>
+  <!-- /TextChat view -->
+
+  <script src="vendor/jquery-1.9.1.js"></script>
+  <script src="vendor/jquery.cookie-1.3.1.js"></script>
+  <script src="vendor/underscore-1.4.4.js"></script>
+  <script src="vendor/backbone-1.0.0.js"></script>
+  <script src="vendor/bootstrap-2.1.1/js/bootstrap.js"></script>
+  <script src="vendor/state-machine-2.2.0.js"></script>
+  <script src="vendor/tnetbin.js"></script>
+  <script src="js/webrtc.js"></script>
+  <script src="js/chat/app.js"></script>
+  <script src="js/chat/models.js"></script>
+  <script src="js/port.js"></script>
+  <script src="js/models.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/chat/views.js"></script>
+  <script>
+    window.onload = function() {
+      navigator.mozGetUserMedia({video: true, fake: false}, function(stream) {
+        var local = document.querySelector('#local-video');
+        local.mozSrcObject = stream;
+        local.play();
+        var remote = document.querySelector('#remote-video');
+        remote.mozSrcObject = stream;
+        remote.play();
+      }, function() {});
+
+      var chat = document.querySelector('#textchat ul');
+      chat.scrollTop = chat.scrollTopMax;
+    }
+  </script>
+</body>
+</html>
