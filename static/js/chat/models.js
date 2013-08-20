@@ -265,14 +265,14 @@
    */
   app.models.FileTransfer = Backbone.Model.extend({
 
-    defaults: {progress: 0, sending: false},
+    defaults: {progress: 0, incoming: false},
 
     /**
      * Filetransfer model constructor.
      * @param  {Object}  attributes  Model attributes
      * @param  {Object}  options     Model options
      *
-     * Attribues:
+     * Attributes:
      *
      * When initiating a file tranfer
      *
@@ -307,6 +307,7 @@
       }
 
       this.nick = attributes.nick;
+      this.set('incoming', !this.file);
       this.seek = 0;
       this.on("chunk", this._onProgress, this);
     },
@@ -324,7 +325,7 @@
       var progress = this.get("progress");
       var json = {
         nick: this.nick,
-        sending: this.get('sending'),
+        incoming: this.get('incoming'),
         filename: _.escape(this.filename),
         progress: progress,
         sent: this.seek,
