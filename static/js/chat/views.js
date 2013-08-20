@@ -73,10 +73,13 @@
       if (dataTransfer.types.contains("application/x-moz-file")) {
         // File Transfer
         _.each(dataTransfer.files, function(file) {
-          var transfer =
-            new app.models.FileTransfer({nick: nick, file: file},
-                                        {chunkSize: 512 * 1024});
-          this.textChat.add(transfer);
+          this.textChat.add(new app.models.FileTransfer({
+            nick: nick,
+            file: file,
+            sending: true
+          }, {
+            chunkSize: 512 * 1024
+          }));
         }.bind(this));
       } else if (dataTransfer.types.contains("text/x-moz-url")) {
         url = dataTransfer.getData("text/x-moz-url");
