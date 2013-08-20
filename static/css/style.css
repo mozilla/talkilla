@@ -232,3 +232,29 @@ body.has-video #textchat ul {
   border-right: none;
   border-bottom: none;
 }
+
+#textchat .media-body {
+  margin: 0;
+  padding: 0 5px 0 30px;
+}
+
+#textchat .media-body h4 {
+  margin: 0;
+  padding: 0;
+  font-size: 11px;
+  line-height: 13px;
+  font-weight: normal;
+}
+
+#textchat .media-body p {
+  margin: 0;
+  padding: 0;
+}
+
+#textchat .media-body .progress {
+  height: 16px;
+}
+
+#textchat .media-body .progress .bar {
+  line-height: 14px;
+}
