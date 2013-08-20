@@ -79,11 +79,12 @@
         <h4 class="media-heading"><%= filename %></h4>
         <% if (progress < 100) { %>
           <div class="progress">
-            <div class="bar" style="width: <%= progress %>%;"></div>
+            <div class="bar" style="width:<%= progress %>%">
+              <%= app.utils.humanSize(sent) %> of <%= app.utils.humanSize(total) %>
+            </div>
           </div>
-          <%= app.utils.humanSize(sent) %> of <%= app.utils.humanSize(total) %>
         <% } else { %>
-          <a href="<%= url %>" download="<%= filename %>">Save</a>
+          <p>Sent. <a href="<%= url %>" download="<%= filename %>">Save</a></p>
         <% } %>
       </div>
     </div>
