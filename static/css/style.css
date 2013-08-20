@@ -1,3 +1,5 @@
+/* current z-index usage policy for this file: 0 for back, 1 for front */
+
 .container-fluid {
   padding-left: 0;
   padding-right: 0;
@@ -107,10 +109,6 @@
 /**
  * Conversation window
  */
-#call {
-  clear: both;
-}
-
 #call video {
   width: 100%;
 }
@@ -119,8 +117,6 @@
   position: relative;
   background: #eee;
   overflow: hidden;
-  height: 65vh;
-  text-align: center;
 }
 
 #call .remote-video {
@@ -129,6 +125,8 @@
   vertical-align: bottom;
 }
 
+/* XXX review and remove as many rules as possible as part local/remote video
+ * stapling patch */
 #call .local-video {
   position: absolute;
   bottom: 5px;
@@ -154,7 +152,7 @@
   margin: 0;
   padding: 0;
   list-style-type: none;
-  z-index: 99;
+  z-index: 1;
 }
 
 #call-controls .controls {
