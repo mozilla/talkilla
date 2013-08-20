@@ -82,8 +82,10 @@
             <span><%= app.utils.humanSize(sent) %> of <%= app.utils.humanSize(total) %></span>
             <div class="bar" style="width:<%= progress %>%"></div>
           </div>
+        <% } else if (sending) { %>
+          <p>Sent.</p>
         <% } else { %>
-          <p>Sent. <a href="<%= url %>" download="<%= filename %>">Save</a></p>
+          <p>Done. <a href="<%= url %>" download="<%= filename %>">Save</a></p>
         <% } %>
       </div>
     </div>

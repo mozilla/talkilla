@@ -265,7 +265,7 @@
    */
   app.models.FileTransfer = Backbone.Model.extend({
 
-    defaults: {progress: 0},
+    defaults: {progress: 0, sending: false},
 
     /**
      * Filetransfer model constructor.
@@ -324,6 +324,7 @@
       var progress = this.get("progress");
       var json = {
         nick: this.nick,
+        sending: this.get('sending'),
         filename: _.escape(this.filename),
         progress: progress,
         sent: this.seek,
