@@ -535,13 +535,13 @@ var handlers = {
 
   // Talkilla events
   'talkilla.login': function(msg) {
-    if (!msg.data || !msg.data.username) {
-      return this.postEvent('talkilla.login-failure', 'no username specified');
+    if (!msg.data || !msg.data.assertion) {
+      return this.postEvent('talkilla.login-failure', 'no assertion given');
     }
 
     this.postEvent('talkilla.login-pending', null);
 
-    sendAjax('/signin', 'POST', {nick: msg.data.username},
+    sendAjax('/signin', 'POST', {assertion: msg.data.assertion},
       _signinCallback.bind(this));
   },
 

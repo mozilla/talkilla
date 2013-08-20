@@ -225,7 +225,7 @@
     el: '#login',
 
     events: {
-      'submit form#signin': 'signin',
+      'click #signin': 'signin',
       'submit form#signout': 'signout'
     },
 
@@ -256,13 +256,7 @@
      */
     signin: function(event) {
       event.preventDefault();
-      var field = $(event.currentTarget).find('[name="nick"]');
-      var nick = $.trim(field.val());
-      if (!nick)
-        return app.utils.notifyUI('please enter a nickname');
-      // XXX: we shouldn't be calling the app directly here
-      sidebarApp.login(nick);
-      field.val('');
+      navigator.id.request();
     },
 
     /**
@@ -272,8 +266,7 @@
      */
     signout: function(event) {
       event.preventDefault();
-      // XXX: we shouldn't be calling the app directly here
-      sidebarApp.logout();
+      navigator.id.logout();
     }
   });
 })(app, Backbone, _, jQuery);

@@ -41,6 +41,12 @@ var SidebarApp = (function($, Backbone, _) {
       users: this.users
     });
 
+    navigator.id.watch({
+      loggedInUser: null,
+      onlogin: this._login.bind(this),
+      onlogout: this._logout.bind(this)
+    });
+
     // user events
     this.user.on("signout", this._onUserSignout.bind(this));
 
@@ -60,11 +66,11 @@ var SidebarApp = (function($, Backbone, _) {
     this._setupDebugLogging();
   }
 
-  SidebarApp.prototype.login = function(nick) {
-    this.port.postEvent('talkilla.login', {username: nick});
+  SidebarApp.prototype._login = function(assertion) {
+    this.port.postEvent('talkilla.login', {assertion: assertion});
   };
 
-  SidebarApp.prototype.logout = function() {
+  SidebarApp.prototype._logout = function() {
     this.port.postEvent('talkilla.logout');
   };
 
