@@ -123,6 +123,9 @@
   vertical-align: bottom;
 }
 
+/* XXX once we get the local-video stapled to the remote-video,
+   much of this stuff may be irrelevant.  Audit this as part
+   of that landing. */
 #call .local-video {
   position: absolute;
   bottom: 5px;
