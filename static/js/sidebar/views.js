@@ -1,8 +1,8 @@
-/* global app, sidebarApp, Backbone, _, jQuery */
+/* global app, sidebarApp, Backbone, _ */
 /**
  * Talkilla Backbone views.
  */
-(function(app, Backbone, _, $) {
+(function(app, Backbone, _) {
   "use strict";
 
   /**
@@ -269,4 +269,4 @@
       navigator.id.logout();
     }
   });
-})(app, Backbone, _, jQuery);
+})(app, Backbone, _);

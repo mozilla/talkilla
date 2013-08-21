@@ -15,9 +15,10 @@ describe("SidebarApp", function() {
         return {port: {}};
       }
     };
+    // BrowserId "mock"
+    window.navigator.id = {watch: sinon.spy()};
 
     sandbox.stub(app.views, "AppView");
-
     sandbox.stub(AppPort.prototype, "postEvent");
   });
 
@@ -131,26 +132,38 @@ describe("SidebarApp", function() {
       });
   });
 
-  describe("#login", function() {
-    it("should post the talkilla.login event with user's nick", function() {
-      var sidebarApp = new SidebarApp();
+  describe("Browser Id", function() {
 
-      sidebarApp.login("toto");
+    var browserIdHandlers;
 
-      sinon.assert.called(sidebarApp.port.postEvent, "talkilla.login");
-      sinon.assert.calledWithExactly(sidebarApp.port.postEvent,
-                                     "talkilla.login", {username: "toto"});
+    beforeEach(function() {
+      window.navigator.id = {
+        watch: function(callbacks) {
+          browserIdHandlers = callbacks;
+        }
+      };
     });
-  });
 
-  describe("#logout", function() {
-    it("should post the talkilla.logout event", function() {
-      var sidebarApp = new SidebarApp();
+    it("should post a talkilla.login event when the user logs in",
+      function() {
+        var sidebarApp = new SidebarApp();
 
-      sidebarApp.logout();
+        browserIdHandlers.onlogin("fake assertion");
 
-      sinon.assert.called(sidebarApp.port.postEvent, "talkilla.logout");
-    });
+        sinon.assert.called(sidebarApp.port.postEvent, "talkilla.login");
+        sinon.assert.calledWithExactly(sidebarApp.port.postEvent,
+                                       "talkilla.login",
+                                       {assertion: "fake assertion"});
+      });
+
+    it("should post a talkilla.logout event when the user logs out",
+      function() {
+        var sidebarApp = new SidebarApp();
+
+        browserIdHandlers.onlogout();
+
+        sinon.assert.called(sidebarApp.port.postEvent, "talkilla.logout");
+      });
   });
 
   describe("#openConversation", function() {

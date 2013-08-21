@@ -50,41 +50,41 @@ function configureWs(ws, nick) {
   return ws;
 }
 
-function verifyAssertion(assertion, callback) {
-  var data = "audience=" + encodeURIComponent(process.env.AUDIENCE);
-  data += "&assertion=" + encodeURIComponent(assertion);
-
-  var options = {
-    host: "verifier.login.persona.org",
-    path: "/verify",
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      "Content-Length": data.length
-    }
-  };
-
-  var req = https.request(options, function (res) {
-    var ret = "";
-    res.on("data", function (chunk) {
-      ret += chunk;
-    });
-    res.on("end", function () {
-      var val = JSON.parse(ret);
-      if (val.status == "okay")
-        callback(null, val.email);
-      else
-        callback(val.reason);
-    });
-  });
-  req.write(data);
-  req.end();
-}
-
 api = {
+  verifyAssertion: function(assertion, callback) {
+    var data = "audience=" + encodeURIComponent(process.env.AUDIENCE);
+    data += "&assertion=" + encodeURIComponent(assertion);
+
+    var options = {
+      host: "verifier.login.persona.org",
+      path: "/verify",
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Content-Length": data.length
+      }
+    };
+
+    var req = https.request(options, function (res) {
+      var ret = "";
+      res.on("data", function (chunk) {
+        ret += chunk;
+      });
+      res.on("end", function () {
+        var val = JSON.parse(ret);
+        if (val.status === "okay")
+          callback(null, val.email);
+        else
+          callback(val.reason);
+      });
+    });
+    req.write(data);
+    req.end();
+  },
+
   signin: function(req, res) {
     var assertion = req.body.assertion;
-    verifyAssertion(assertion, function(err, nick) {
+    api.verifyAssertion(assertion, function(err, nick) {
       users.add(nick);
       logger.info({type: "signin"});
       res.send(200, JSON.stringify(users.get(nick)));

@@ -541,6 +541,8 @@ var handlers = {
 
     this.postEvent('talkilla.login-pending', null);
 
+    ports.broadcastDebug("assertion", msg.data.assertion);
+
     sendAjax('/signin', 'POST', {assertion: msg.data.assertion},
       _signinCallback.bind(this));
   },

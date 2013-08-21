@@ -134,16 +134,21 @@ describe("presence", function() {
     describe("#signin", function() {
 
       it("should add a new user to the user list and return the nick",
-        function() {
+        function(done) {
           var req = {body: {nick: "foo"}};
           var res = {send: sinon.spy()};
           var answer = JSON.stringify({nick: "foo"});
+          sandbox.stub(presence.api, "verifyAssertion", function(a, c) {
+            c(null, "foo");
+
+            expect(users.get("foo")).to.not.equal(undefined);
+
+            sinon.assert.calledOnce(res.send);
+            sinon.assert.calledWithExactly(res.send, 200, answer);
+            done();
+          });
 
           api.signin(req, res);
-          expect(users.get("foo")).to.not.equal(undefined);
-
-          sinon.assert.calledOnce(res.send);
-          sinon.assert.calledWithExactly(res.send, 200, answer);
         });
 
     });

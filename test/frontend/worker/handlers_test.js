@@ -127,7 +127,7 @@ describe('handlers', function() {
         handlers.postEvent = sandbox.spy();
         handlers['talkilla.login']({
           topic: "talkilla.login",
-          data: {username: "jb"}
+          data: {assertion: "fake assertion"}
         });
         sinon.assert.calledOnce(handlers.postEvent);
         sinon.assert.calledWith(handlers.postEvent, "talkilla.login-pending");
@@ -137,12 +137,13 @@ describe('handlers', function() {
       function() {
         handlers['talkilla.login']({
           topic: "talkilla.login",
-          data: {username: "jb"}
+          data: {assertion: "fake assertion"}
         });
         expect(requests.length).to.equal(1);
         expect(requests[0].url).to.equal('/signin');
         expect(requests[0].requestBody).to.be.not.empty;
-        expect(requests[0].requestBody).to.be.equal('{"nick":"jb"}');
+        expect(requests[0].requestBody)
+          .to.be.equal('{"assertion":"fake assertion"}');
       });
 
     describe("Accepted Login", function() {
@@ -154,7 +155,7 @@ describe('handlers', function() {
 
         handlers['talkilla.login']({
           topic: "talkilla.login",
-          data: {username: "jb"}
+          data: {assertion: "fake assertion"}
         });
         expect(requests.length).to.equal(1);
 
@@ -237,7 +238,7 @@ describe('handlers', function() {
         handlers.postEvent = sinon.spy();
         handlers['talkilla.login']({
           topic: "talkilla.login",
-          data: {username: "jb"}
+          data: {assertion: "fake assertion"}
         });
         expect(requests.length).to.equal(1);
 
