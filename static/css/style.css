@@ -107,10 +107,6 @@
 /**
  * Conversation window
  */
-#call {
-  clear: both;
-}
-
 #call video {
   width: 100%;
 }
