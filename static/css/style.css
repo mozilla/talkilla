@@ -107,11 +107,13 @@
 /**
  * Conversation window
  */
-#call video {
-  width: 100%;
+#call {
+  text-align: center;
 }
 
 #call .video-area {
+  display: inline-block;
+  max-width: 100%;
   position: relative;
   background: #eee;
   overflow: hidden;
