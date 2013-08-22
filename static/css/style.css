@@ -108,6 +108,8 @@
  * Conversation window
  */
 #call {
+  /* as the .video-area element is displayed inline, treat it as text so we can
+     ensure it's actually centered without knowing its exact width */
   text-align: center;
 }
 
