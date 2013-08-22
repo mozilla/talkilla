@@ -228,7 +228,8 @@
    * FileTransfer model.
    *
    * Attributes:
-   * - {Integer} progress
+   * - {Integer} progress: percentage of ongoing file transfer progress
+   * - {Boolean} incoming: determines if the file transfer is an incoming one
    *
    * Fired when a new chunk is available.
    * @event chunk
@@ -246,8 +247,10 @@
    *   new app.models.FileTransfer({file: file}, {chunkSize: 512 * 1024});
    * transfer.on("chunk", function(id, chunk) {
    *   sendChunk(id, chunk);
+   *   if (!transfer.isDone())
+   *     transfer.nextChunk();
    * });
-   * transfer.start();
+   * transfer.nextChunk();
    *
    * // Receiver side
    * var transfer =
@@ -263,12 +266,14 @@
    */
   app.models.FileTransfer = Backbone.Model.extend({
 
+    defaults: {progress: 0, incoming: false},
+
     /**
      * Filetransfer model constructor.
      * @param  {Object}  attributes  Model attributes
      * @param  {Object}  options     Model options
      *
-     * Attribues:
+     * Attributes:
      *
      * When initiating a file tranfer
      *
@@ -302,6 +307,8 @@
         this.chunks        = [];
       }
 
+      this.nick = attributes.nick;
+      this.set('incoming', !this.file);
       this.seek = 0;
       this.on("chunk", this._onProgress, this);
     },
@@ -318,8 +325,12 @@
     toJSON: function() {
       var progress = this.get("progress");
       var json = {
+        nick: this.nick,
+        incoming: this.get('incoming'),
         filename: _.escape(this.filename),
-        progress: progress || 0
+        progress: progress,
+        sent: this.seek,
+        total: this.size
       };
 
       if (progress === 100)
@@ -334,8 +345,9 @@
      * It actually trigger the file transfer to emit chunks one after
      * the other until the end of the file is reached.
      */
-    start: function() {
-      this._readChunk();
+    nextChunk: function() {
+      var blob = this.file.slice(this.seek, this.seek + this.options.chunkSize);
+      this.reader.readAsArrayBuffer(blob);
     },
 
     /**
@@ -350,7 +362,7 @@
       this.chunks.push(chunk);
       this.seek += chunk.byteLength;
 
-      if (this.seek === this.size) {
+      if (this.isDone()) {
         this.blob = new Blob(this.chunks);
         this.chunks = [];
         this.trigger("complete", this.blob);
@@ -362,26 +374,23 @@
                         this.seek + " instead of " + this.size);
     },
 
+    isDone: function() {
+      return this.seek === this.size;
+    },
+
     _onChunk: function(event) {
       var data = event.target.result;
 
       this.seek += data.byteLength;
       this.trigger("chunk", this.id, data);
 
-      if (this.seek < this.file.size)
-        this._readChunk();
-      else
+      if (this.isDone())
         this.trigger("complete", this.file);
     },
 
     _onProgress: function() {
       var progress = Math.floor(this.seek * 100 / this.size);
       this.set("progress", progress);
-    },
-
-    _readChunk: function() {
-      var blob = this.file.slice(this.seek, this.seek + this.options.chunkSize);
-      this.reader.readAsArrayBuffer(blob);
     }
   });
 
@@ -466,19 +475,29 @@
     },
 
     _onDcMessageIn: function(event) {
-      var entry;
+      var transfer;
 
-      if (event.type === "chat:message")
-        entry = new app.models.TextChatEntry(event.message);
-      else if (event.type === "file:new")
-        entry = new app.models.FileTransfer(event.message);
-      else if (event.type === "file:chunk") {
+      switch (event.type) {
+      case "chat:message":
+        this.add(new app.models.TextChatEntry(event.message));
+        break;
+      case "file:new":
+        var nick = this.user.get("nick");
+        var message = _.extend({nick: nick}, event.message);
+        this.add(new app.models.FileTransfer(message));
+        break;
+      case "file:chunk":
         var chunk = tnetbin.toArrayBuffer(event.message.chunk).buffer;
-        var transfer = this.findWhere({id: event.message.id});
+        transfer = this.findWhere({id: event.message.id});
         transfer.append(chunk);
+        this.send({type: "file:ack", message: {id: event.message.id}});
+        break;
+      case "file:ack":
+        transfer = this.findWhere({id: event.message.id});
+        if (!transfer.isDone())
+          transfer.nextChunk();
+        break;
       }
-
-      this.add(entry);
     },
 
     _onTextChatEntryCreated: function(entry) {
@@ -491,12 +510,11 @@
     },
 
     _onFileTransferCreated: function(entry) {
-      // Check if we are the file sender. If we are not, the file
-      // transfer has been initiated by the other party.
-      if (!(entry instanceof app.models.FileTransfer && entry.file))
+      // Only process outgoing file transfers
+      if (!(entry instanceof app.models.FileTransfer && !entry.get('incoming')))
         return;
 
-      var onFileChunk = this._onFileChunk.bind(this);
+      var onFileChunk = this._onFileChunk.bind(this, entry);
       this.send({type: "file:new", message: {
         id: entry.id,
         filename: entry.file.name,
@@ -505,13 +523,13 @@
 
       entry.on("chunk", onFileChunk);
       entry.on("complete", entry.off.bind(this, "chunk", onFileChunk));
-
-      entry.start();
+      entry.nextChunk();
     },
 
-    _onFileChunk: function(id, chunk) {
+    _onFileChunk: function(transfer, id, chunk) {
       this.send({type: "file:chunk", message: {id: id, chunk: chunk}});
     }
+
   });
 })(app, Backbone, StateMachine, tnetbin);
 

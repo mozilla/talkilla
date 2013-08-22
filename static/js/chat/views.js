@@ -21,11 +21,14 @@
         throw new Error("missing parameter: call");
       if (!options.peer)
         throw new Error("missing parameter: peer");
+      if (!options.user)
+        throw new Error("missing parameter: user");
       if (!options.textChat)
         throw new Error("missing parameter: textChat");
 
       this.call = options.call;
       this.peer = options.peer;
+      this.user = options.user;
       this.textChat = options.textChat;
 
       this.peer.on('change:nick', function(to) {
@@ -60,6 +63,7 @@
     drop: function(event) {
       var url;
       var dataTransfer = event.originalEvent.dataTransfer;
+      var nick = this.user.get("nick");
 
       if (!this._checkDragTypes(dataTransfer.types))
         return;
@@ -70,7 +74,8 @@
         // File Transfer
         _.each(dataTransfer.files, function(file) {
           var transfer =
-            new app.models.FileTransfer({file: file}, {chunkSize: 512 * 1024});
+            new app.models.FileTransfer({nick: nick, file: file},
+                                        {chunkSize: 512 * 1024});
           this.textChat.add(transfer);
         }.bind(this));
       } else if (dataTransfer.types.contains("text/x-moz-url")) {
@@ -433,14 +438,7 @@
   app.views.FileTransferView = Backbone.View.extend({
     tagName: 'li',
 
-    template: _.template('<strong><%= filename %>:' +
-                         '<% if (progress < 100) { %>' +
-                           '</strong> <%= progress %>%' +
-                         '<% } else { %>' +
-                           '<a href="<%= url %>" download="<%= filename %>">' +
-                             'Save' +
-                           '</a>' +
-                         '<% } %>'),
+    template: _.template($('#file-transfer-tpl').text()),
 
     initialize: function() {
       this.model.on("change", this.render, this);
