@@ -1,0 +1,79 @@
+/**
+ * Sidebar
+ */
+.container-fluid {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.sidebar {
+  background: #fdfdfd;
+}
+
+.sidebar header {
+  padding: 0 10px;
+  background: #F5F1E8;
+  border-bottom: 1px solid #ccc;
+}
+
+.sidebar .title {
+  margin-top: 0;
+  font-size: 20px;
+  font-weight: normal;
+  color: #818A8F;
+}
+
+.sidebar .users {
+  overflow: auto;
+}
+
+.sidebar .users li .active,
+.sidebar .users li .active:hover {
+  background: #E5E5E5;
+}
+
+.sidebar .users li a {
+  clear: left;
+  color: #818A8F;
+  padding-left: 10px;
+  text-decoration: none;
+  line-height: 36px;
+  border-bottom: 1px solid #eee;
+}
+
+.sidebar .users li a:hover {
+  background: #FFFDE9;
+}
+
+.sidebar .users li a .avatar {
+  float: left;
+  position: relative;
+}
+
+.sidebar .users li a img {
+  width: 24px;
+  height: 24px;
+}
+
+.sidebar .users li a .username {
+  padding-left: 10px;
+}
+
+.sidebar .status {
+  display: block;
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  top: 4px;
+  right: -4px;
+  border-radius: 4px;
+  z-index: 1;
+}
+
+.sidebar .status-connected {
+  background: #25CA50;
+}
+
+.sidebar .status-disconnected {
+  display: none;
+}
