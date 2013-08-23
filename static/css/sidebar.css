@@ -1,11 +1,6 @@
 /**
  * Sidebar
  */
-.container-fluid {
-  padding-left: 0;
-  padding-right: 0;
-}
-
 .sidebar {
   background: #fdfdfd;
 }
