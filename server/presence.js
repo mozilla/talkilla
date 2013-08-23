@@ -52,6 +52,11 @@ function configureWs(ws, nick) {
 
 api = {
   verifyAssertion: function(assertion, callback) {
+    // When we're in the test environment, we bypass the assertion verifiction.
+    // In this case, the email of the user IS the assertion.
+    if (process.env.NODE_ENV === "test")
+      return callback(null, assertion);
+
     var data = "audience=" + encodeURIComponent(process.env.AUDIENCE);
     data += "&assertion=" + encodeURIComponent(assertion);
 
@@ -85,6 +90,7 @@ api = {
   signin: function(req, res) {
     var assertion = req.body.assertion;
     api.verifyAssertion(assertion, function(err, nick) {
+      // TODO: handle errors
       users.add(nick);
       logger.info({type: "signin"});
       res.send(200, JSON.stringify(users.get(nick)));

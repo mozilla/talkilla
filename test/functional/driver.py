@@ -43,8 +43,8 @@ class Driver(WebDriver):
     def signin(self):
         """ Signs the user in."""
         self.switchToSidebar()
-        self.waitForElement("#nick").send_keys(self.nick)
-        self.clickElement("#submit")
+        self.add_cookie({"name": "test email", "value": self.nick})
+        self.clickElement("#signin")
         return self
 
     def signout(self):

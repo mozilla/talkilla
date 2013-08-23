@@ -271,7 +271,7 @@ describe('handlers', function() {
       xhr.restore();
     });
 
-    it('should post an error message if not logged in', function() {
+    it.skip('should post an error message if not logged in', function() {
       _currentUserData.userName = undefined;
       handlers.postEvent = sandbox.spy();
       handlers['talkilla.logout']({
