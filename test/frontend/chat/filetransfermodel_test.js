@@ -20,20 +20,30 @@ describe("FileTransfer Model", function() {
 
   describe("#initialize", function() {
 
-    it("should have an id", function() {
+    it("should have a 'id' property", function() {
       expect(transfer.id).to.not.be.Null;
     });
 
-    it("should have a File object", function() {
+    it("should have a 'file' property", function() {
       expect(transfer.file).to.equal(blob);
     });
 
-    it("shoud have a filename attribute", function() {
+    it("shoud have a 'filename' property", function() {
       expect(incomingTransfer.filename).to.equal("foo");
     });
 
-    it("shoud have a size attribute", function() {
+    it("shoud have a 'size' property", function() {
       expect(incomingTransfer.size).to.equal(10);
+    });
+
+    it("shoud have a 'progress' attribute", function() {
+      expect(incomingTransfer.get('progress')).to.equal(0);
+      expect(transfer.get('progress')).to.equal(0);
+    });
+
+    it("shoud have a 'incoming' attribute", function() {
+      expect(incomingTransfer.get('incoming')).to.equal(true);
+      expect(transfer.get('incoming')).to.equal(false);
     });
 
     it("should bind _onProgress to the chunk event", function() {
@@ -51,6 +61,11 @@ describe("FileTransfer Model", function() {
 
     it("should have a progress of 0 by default", function() {
       expect(transfer.toJSON().progress).to.equal(0);
+    });
+
+    it("should compute the value for incoming", function() {
+      expect(transfer.toJSON().incoming).to.equal(false);
+      expect(incomingTransfer.toJSON().incoming).to.equal(true);
     });
 
   });

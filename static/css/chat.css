@@ -1,0 +1,221 @@
+/**
+ * Conversation window
+ */
+
+/**
+ * Pending (i.e. offer & establish) views in the chat window
+ */
+.pending {
+  padding: 40px 10px 0 10px;
+  text-align: center;
+}
+
+.pending .avatar {
+  text-align: center;
+}
+
+.pending .avatar img {
+  width: 64px;
+  height: 64px;
+}
+
+.pending .incoming-info {
+  color: #555;
+  font-size: 90%;
+}
+
+/**
+ * Video call
+ */
+
+#call {
+  /* as the .video-area element is displayed inline, treat it as text so we can
+     ensure it's actually centered without knowing its exact width */
+  text-align: center;
+}
+
+#call .video-area {
+  display: inline-block;
+  max-width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+#call .remote-video {
+  height: 65vh;
+  z-index: 0;
+  vertical-align: bottom;
+}
+
+/* XXX once we get the local-video stapled to the remote-video,
+   much of this stuff may be irrelevant.  Audit this as part
+   of that landing. */
+#call .local-video {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  width: 20vw;
+  min-width: 80px;
+  max-width: 200px;
+  height: 15vw;
+  min-height: 60px;
+  max-height: 150px;
+  z-index: 1;
+  border: 1px solid #333;
+  background: #ccc;
+}
+
+#call-controls {
+  position: fixed;
+  background-color: #FAFAFA;
+  border-bottom: 1px solid #d6d6d6;
+  top: 0;
+  width: 100%;
+  height: 24px;
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+  z-index: 99;
+}
+
+#call-controls .controls {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+#call-controls .controls li {
+  border-right: 1px solid #d6d6d6;
+  float: left;
+}
+
+#call-controls .controls li a {
+  display: block;
+  height: 16px;
+  width: 16px;
+  margin: 4px;
+}
+
+.ignored {
+  opacity:0.5;
+  transition: opacity 1s;
+}
+
+.btn-video a {
+  background: url(../img/btn-video.png);
+}
+
+.btn-audio a {
+  background: url(../img/btn-audio.png);
+}
+
+.btn-hangup a {
+  background: url(../img/btn-hangup.png);
+}
+
+.btn-audio-mute a {
+  background: url(../img/btn-audio-mute.png);
+}
+
+.btn-audio-mute.active a {
+  background: url(../img/btn-audio-unmute.png);
+}
+
+/**
+ * Text chat
+ */
+
+#textchat {
+  clear: both;
+  font-size: 80%;
+}
+
+#textchat ul {
+  width: 100%;
+  height: 100vh;
+  position: absolute;
+  overflow: scroll;
+  margin: 0;
+  padding: 0;
+}
+
+#textchat ul li {
+  padding: 0 5px;
+}
+
+#textchat ul li:first-child {
+  margin-top: 30px;
+}
+
+#textchat ul li:last-child {
+  margin-bottom: 30px;
+}
+
+body.has-video #textchat ul {
+  height: 35vh;
+}
+
+body.has-video #textchat ul li:first-child {
+  margin-top: 0;
+}
+
+#textchat form {
+  position: fixed;
+  width: 100%;
+  margin: 0;
+  bottom: 0;
+}
+
+#textchat form input[type="text"] {
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  width: 100%;
+  height: 26px;
+  font-size: 12px;
+  border-radius: 0;
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+#textchat .media-body {
+  margin: 0;
+  padding: 0 5px 0 30px;
+}
+
+#textchat .media-body h4 {
+  margin: 0;
+  padding: 0;
+  font-size: 11px;
+  line-height: 13px;
+  font-weight: normal;
+}
+
+#textchat .media-body p {
+  margin: 0;
+  padding: 0;
+}
+
+#textchat .media-body .progress {
+  position: relative;
+  width: 100%;
+  height: 16px;
+}
+
+#textchat .media-body .progress .bar {
+  line-height: 14px;
+}
+
+#textchat .media-body .progress span {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 99;
+  color: #fff;
+  text-shadow: 0 0 2px #000000;
+  font-size: 11px;
+  line-height: 15px;
+  text-align: center;
+  width: 100%;
+}
