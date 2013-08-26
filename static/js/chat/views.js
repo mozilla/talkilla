@@ -93,6 +93,8 @@
    * Call controls view
    */
   app.views.CallControlsView = Backbone.View.extend({
+    localStream: undefined,
+    remoteStream: undefined,
 
     events: {
       'click .btn-video a': 'videoCall',
@@ -119,6 +121,19 @@
                    this._callOngoing, this);
       this.call.on('state:to:terminated',
                    this._callInactive, this);
+
+      this.media.on('local-stream:ready', function(stream) {
+        this.localStream = stream;
+      }, this);
+      this.media.on('remote-stream:ready', function(stream) {
+        this.remoteStream = stream;
+      }, this);
+      this.media.on('local-stream:terminated', function() {
+        this.localStream = undefined;
+      }, this);
+      this.media.on('remote-stream:terminated', function() {
+        this.remoteStream = undefined;
+      }, this);
     },
 
     videoCall: function(event) {
@@ -146,8 +161,10 @@
 
       button.toggleClass('active');
 
-      this.media.setMuteState('audio',
-                              button.hasClass('active'));
+      // mute local audio stream tracks only
+      this.localStream.getAudioTracks().forEach(function(track) {
+        track.enabled = !button.hasClass('active');
+      }, this);
     },
 
     _callPending: function() {
