@@ -5,3 +5,4 @@ node_modules
 /config/local.json
 /selenium-server-standalone-*.jar
 firefox.log
+coverage
