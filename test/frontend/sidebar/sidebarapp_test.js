@@ -81,6 +81,18 @@ describe("SidebarApp", function() {
         sidebarApp.port.postEvent, "talkilla.presence-request");
     });
 
+    it("should notify an error on login failures", function() {
+      var sidebarApp = new SidebarApp();
+      var error = "fake login failure";
+      sidebarApp.port.postEvent.reset();
+      sandbox.stub(app.utils, "notifyUI");
+
+      sidebarApp.port.trigger("talkilla.login-failure", error);
+
+      sinon.assert.calledOnce(app.utils.notifyUI);
+      sinon.assert.calledWith(app.utils.notifyUI, sinon.match(error));
+    });
+
     it("should reset user data on logout success", function() {
       var sidebarApp = new SidebarApp();
       sidebarApp.user.set({nick: "jb"});
