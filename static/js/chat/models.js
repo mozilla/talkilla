@@ -221,6 +221,14 @@
       }, this);
 
       this.media.upgrade(constraints);
+    },
+
+    /**
+     * Checks if current call has video constraints.
+     * @return {Boolean}
+     */
+    requiresVideo: function() {
+      return this.media.constraints.video;
     }
   });
 

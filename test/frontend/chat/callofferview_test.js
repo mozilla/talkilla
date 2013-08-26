@@ -18,6 +18,7 @@ describe('Call Offer View', function() {
     // XXX This should probably be a mock, but sinon mocks don't seem to want
     // to work with Backbone.
     media = {
+      constraints: {},
       answer: sandbox.spy(),
       establish: sandbox.spy(),
       initiate: sandbox.spy(),

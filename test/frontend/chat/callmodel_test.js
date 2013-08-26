@@ -12,6 +12,7 @@ describe("Call Model", function() {
     // XXX This should probably be a mock, but sinon mocks don't seem to want
     // to work with Backbone.
     media = {
+      constraints: {},
       state: {current: 'ready'},
       answer: sandbox.spy(),
       establish: sandbox.spy(),
@@ -369,6 +370,20 @@ describe("Call Model", function() {
 
           call.media.trigger("offer-ready", fakeOffer);
         });
+    });
+  });
+
+  describe("#requiresVideo", function() {
+    it("should check if current call has video constraints", function() {
+      media.constraints.video = true;
+
+      expect(call.requiresVideo()).to.equal(true);
+    });
+
+    it("should check if current call has no video constraint", function() {
+      media.constraints.video = false;
+
+      expect(call.requiresVideo()).to.equal(false);
     });
   });
 });
