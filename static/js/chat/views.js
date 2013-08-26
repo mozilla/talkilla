@@ -94,7 +94,6 @@
    */
   app.views.CallControlsView = Backbone.View.extend({
     localStream: undefined,
-    remoteStream: undefined,
 
     events: {
       'click .btn-video a': 'videoCall',
@@ -122,17 +121,12 @@
       this.call.on('state:to:terminated',
                    this._callInactive, this);
 
+      // local stream
       this.media.on('local-stream:ready', function(stream) {
         this.localStream = stream;
       }, this);
-      this.media.on('remote-stream:ready', function(stream) {
-        this.remoteStream = stream;
-      }, this);
       this.media.on('local-stream:terminated', function() {
         this.localStream = undefined;
-      }, this);
-      this.media.on('remote-stream:terminated', function() {
-        this.remoteStream = undefined;
       }, this);
     },
 
