@@ -6,10 +6,14 @@
  * XXX Before long, we're going to want to create a home for backend functional
  * tests, and move many of the tests that current live in this file there.
  */
+
+var EventEmitter = require( "events" ).EventEmitter;
+
 var chai = require("chai");
 var expect = chai.expect;
 var sinon = require("sinon");
 var http = require("http");
+var https = require("https");
 
 require("../../server/server");
 var presence = require("../../server/presence");
@@ -131,14 +135,80 @@ describe("presence", function() {
 
   describe("api", function() {
 
+    describe("#_verifyAssertion", function() {
+
+      it("should send an secure http request to the verifier service",
+        function() {
+          var request = {write: function() {}, end: function() {}};
+          var options = {
+            host: "verifier.login.persona.org",
+            path: "/verify",
+            method: "POST"
+          };
+          sandbox.stub(https, "request").returns(request);
+          api._verifyAssertion("fake assertion data", function() {});
+
+          sinon.assert.calledOnce(https.request);
+          sinon.assert.calledWith(https.request, sinon.match(options));
+        });
+
+      it("should trigger without error if the assertion is valid",
+        function() {
+          var assertionCallback = sinon.spy();
+          var response = new EventEmitter();
+          var request = {write: function() {}, end: function() {}};
+          var answer = {
+            status: "okay",
+            email: "john.doe@mozilla.com"
+          };
+
+          sandbox.stub(https, "request", function(options, callback) {
+            callback(response);
+            return request;
+          });
+          api._verifyAssertion("fake assertion data", assertionCallback);
+
+          response.emit("data", JSON.stringify(answer));
+          response.emit("end");
+
+          sinon.assert.calledOnce(assertionCallback);
+          sinon.assert.calledWithExactly(
+            assertionCallback, null, answer.email);
+        });
+
+      it("should trigger with and error if the assertion is invalid",
+        function() {
+          var assertionCallback = sinon.spy();
+          var response = new EventEmitter();
+          var request = {write: function() {}, end: function() {}};
+          var answer = {
+            status: "not okay",
+            reason: "invalid assertion"
+          };
+
+          sandbox.stub(https, "request", function(options, callback) {
+            callback(response);
+            return request;
+          });
+          api._verifyAssertion("fake assertion data", assertionCallback);
+
+          response.emit("data", JSON.stringify(answer));
+          response.emit("end");
+
+          sinon.assert.calledOnce(assertionCallback);
+          sinon.assert.calledWithExactly(
+            assertionCallback, answer.reason);
+        });
+    });
+
     describe("#signin", function() {
 
       it("should add a new user to the user list and return the nick",
         function(done) {
-          var req = {body: {nick: "foo"}};
+          var req = {body: {assertion: "fake assertion"}};
           var res = {send: sinon.spy()};
           var answer = JSON.stringify({nick: "foo"});
-          sandbox.stub(presence.api, "verifyAssertion", function(a, c) {
+          sandbox.stub(presence.api, "_verifyAssertion", function(a, c) {
             c(null, "foo");
 
             expect(users.get("foo")).to.not.equal(undefined);
@@ -150,6 +220,23 @@ describe("presence", function() {
 
           api.signin(req, res);
         });
+
+      it("should return a 401 if the assertion was invalid", function(done) {
+        var req = {body: {assertion: "fake assertion"}};
+        var res = {send: sinon.spy()};
+        var answer = JSON.stringify({error: "invalid assertion"});
+        sandbox.stub(presence.api, "_verifyAssertion", function(a, c) {
+          c("invalid assertion");
+
+          expect(users.get("foo")).to.equal(undefined);
+
+          sinon.assert.calledOnce(res.send);
+          sinon.assert.calledWithExactly(res.send, 401, answer);
+          done();
+        });
+
+        api.signin(req, res);
+      });
 
     });
 
