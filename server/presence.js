@@ -4,7 +4,8 @@ var https = require('https');
 var url = require('url');
 var app = require("./server").app;
 var httpServer = require("./server").server;
-var logger = require('./logger');
+var config = require('./config').config;
+var logger = require('./logger')(config);
 var Users = require('./users').Users;
 var User = require('./users').User;
 

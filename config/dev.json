@@ -1,5 +1,0 @@
-{
-  "DEBUG": true,
-  "PENDING_CALL_TIMEOUT": 10000,
-  "FAKE_MEDIA_STREAMS": false
-}

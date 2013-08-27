@@ -1,5 +1,7 @@
 {
   "DEBUG": true,
   "PENDING_CALL_TIMEOUT": 4000,
-  "FAKE_MEDIA_STREAMS": true
+  "FAKE_MEDIA_STREAMS": true,
+  "LOG_LEVEL": "error",
+  "AUDIENCE": "http://localhost:5000"
 }

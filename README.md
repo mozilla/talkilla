@@ -20,7 +20,7 @@ Local Development
 
         $ env PORT=5000 node app.js
         # or alternatively:
-        $ env AUDIENCE="http://localhost:5000" make runserver
+        $ make runserver
 
 5. In Firefox, set `media.navigator.permission.disabled` to `true`
 
