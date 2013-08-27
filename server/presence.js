@@ -86,7 +86,7 @@ api = {
     var assertion = req.body.assertion;
     api._verifyAssertion(assertion, function(err, nick) {
       if (err)
-        return res.send(401, JSON.stringify({error: err}));
+        return res.send(400, JSON.stringify({error: err}));
 
       users.add(nick);
       logger.info({type: "signin"});

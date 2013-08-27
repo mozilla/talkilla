@@ -42,6 +42,8 @@ class Driver(WebDriver):
 
     def signin(self):
         """ Signs the user in."""
+        if not self.nick:
+            raise RuntimeError("No nick provided")
         self.switchToSidebar()
         self.waitForElement("#nick").send_keys(self.nick)
         self.clickElement("#submit")

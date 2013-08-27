@@ -137,7 +137,7 @@ describe("presence", function() {
 
     describe("#_verifyAssertion", function() {
 
-      it("should send an secure http request to the verifier service",
+      it("should send a secure http request to the verifier service",
         function() {
           var request = {write: function() {}, end: function() {}};
           var options = {
@@ -176,7 +176,7 @@ describe("presence", function() {
             assertionCallback, null, answer.email);
         });
 
-      it("should trigger with and error if the assertion is invalid",
+      it("should trigger with an error if the assertion is invalid",
         function() {
           var assertionCallback = sinon.spy();
           var response = new EventEmitter();
@@ -221,7 +221,7 @@ describe("presence", function() {
           api.signin(req, res);
         });
 
-      it("should return a 401 if the assertion was invalid", function(done) {
+      it("should return a 400 if the assertion was invalid", function(done) {
         var req = {body: {assertion: "fake assertion"}};
         var res = {send: sinon.spy()};
         var answer = JSON.stringify({error: "invalid assertion"});
@@ -231,7 +231,7 @@ describe("presence", function() {
           expect(users.get("foo")).to.equal(undefined);
 
           sinon.assert.calledOnce(res.send);
-          sinon.assert.calledWithExactly(res.send, 401, answer);
+          sinon.assert.calledWithExactly(res.send, 400, answer);
           done();
         });
 
