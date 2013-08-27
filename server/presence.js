@@ -53,7 +53,7 @@ function configureWs(ws, nick) {
 
 api = {
   _verifyAssertion: function(assertion, callback) {
-    var data = "audience=" + encodeURIComponent(process.env.AUDIENCE);
+    var data = "audience=" + encodeURIComponent(config.AUDIENCE);
     data += "&assertion=" + encodeURIComponent(assertion);
 
     var options = {
