@@ -113,12 +113,20 @@
   background: url(../img/btn-hangup.png);
 }
 
-.btn-audio-mute a {
-  background: url(../img/btn-audio-mute.png);
+.btn-microphone-mute a {
+  background: url(../img/microphone-mute.png);
 }
 
-.btn-audio-mute.active a {
-  background: url(../img/btn-audio-unmute.png);
+.btn-microphone-mute.active a {
+  background: url(../img/microphone.png);
+}
+
+.btn-speaker-mute a {
+  background: url(../img/speaker-mute.png);
+}
+
+.btn-speaker-mute.active a {
+  background: url(../img/speaker.png);
 }
 
 /**
