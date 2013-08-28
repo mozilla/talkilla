@@ -244,6 +244,12 @@ describe("Call Controls View", function() {
     describe("#audioMuteToggle", function() {
       beforeEach(function() {
         $('.btn-audio-mute').removeClass('active');
+
+        callControlsView.localStream = {
+          getAudioTracks: function() {
+            return [];
+          }
+        };
       });
 
       it('should toggle the class on the button', function() {
@@ -252,11 +258,19 @@ describe("Call Controls View", function() {
         expect($('.btn-audio-mute').hasClass("active")).to.be.equal(true);
       });
 
-      it('should set the audio mute state', function() {
-        callControlsView.audioMuteToggle();
+      it('should mute local audio stream tracks', function() {
+        var fakeTrack = {enabled: undefined};
+        callControlsView.localStream = {
+          getAudioTracks: function() {
+            return [fakeTrack];
+          }
+        };
 
-        sinon.assert.calledOnce(media.setMuteState);
-        sinon.assert.calledWithExactly(media.setMuteState, 'audio', true);
+        callControlsView.audioMuteToggle();
+        expect(fakeTrack.enabled).to.equal(false);
+
+        callControlsView.audioMuteToggle();
+        expect(fakeTrack.enabled).to.equal(true);
       });
     });
   });
