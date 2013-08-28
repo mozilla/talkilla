@@ -12,6 +12,10 @@
    * - {Object} incomingData
    */
   app.models.Call = Backbone.Model.extend({
+    defaults: {
+      currentConstraints: {video: false, audio: false},
+      incomingData:       {}
+    },
     timer: undefined,
     media: undefined,
 
@@ -73,10 +77,9 @@
       if (this.media.state.current === 'ongoing')
         return this.upgrade(constraints);
 
-      // Store the constraints in case we need them later.
-      this.constraints = constraints;
+      this.set('currentConstraints', constraints);
 
-      this._startCall(this.constraints);
+      this._startCall(this.get('currentConstraints'));
     },
 
     /**
@@ -84,7 +87,7 @@
      * previous call attempt.
      */
     restart: function() {
-      this._startCall(this.constraints);
+      this._startCall(this.get('currentConstraints'));
     },
 
     _startCall: function(constraints) {
@@ -104,17 +107,18 @@
      * Starts a call based on an incoming call request
      * @param {Object} options object containing:
      *
-     * - video:   set to true to enable video
-     * - audio:   set to true to enable audio
-     * - offer:   information for the media object
-     * - upgrade: is it a connection upgrade?
+     * - constraints: media constraints
+     * - offer:       information for the media object
+     * - upgrade:     is it a connection upgrade?
      *
      * Other items may be set according to the requirements for the particular
      * media.
      */
     incoming: function(options) {
-      this.set({
-        incomingData: options
+      this.set('incomingData', options);
+      this.set('currentConstraints', {
+        video: !!options.video,
+        audio: !!options.audio
       });
       this.state.incoming();
     },
@@ -228,7 +232,8 @@
      * @return {Boolean}
      */
     requiresVideo: function() {
-      return this.media.constraints.video;
+      console.log('requiresVideo', this.get('currentConstraints'));
+      return this.get('currentConstraints').video;
     }
   });
 

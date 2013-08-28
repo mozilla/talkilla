@@ -12,7 +12,6 @@ describe("Call Model", function() {
     // XXX This should probably be a mock, but sinon mocks don't seem to want
     // to work with Backbone.
     media = {
-      constraints: {},
       state: {current: 'ready'},
       answer: sandbox.spy(),
       establish: sandbox.spy(),
@@ -129,7 +128,7 @@ describe("Call Model", function() {
     });
 
     it("should pass the previously saved call data to the media", function() {
-      expect(call.constraints).to.be.equal(callData);
+      expect(call.get('currentConstraints')).to.deep.equal(callData);
       call.restart();
 
       sinon.assert.calledOnce(media.initiate);
@@ -375,13 +374,13 @@ describe("Call Model", function() {
 
   describe("#requiresVideo", function() {
     it("should check if current call has video constraints", function() {
-      media.constraints.video = true;
+      call.set('currentConstraints', {video: true, audio: true});
 
       expect(call.requiresVideo()).to.equal(true);
     });
 
     it("should check if current call has no video constraint", function() {
-      media.constraints.video = false;
+      call.set('currentConstraints', {video: false, audio: true});
 
       expect(call.requiresVideo()).to.equal(false);
     });
