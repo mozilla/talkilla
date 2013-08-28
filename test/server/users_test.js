@@ -7,13 +7,19 @@ var sinon = require("sinon");
 
 var Users = require("../../server/users").Users;
 var User = require("../../server/users").User;
+var logger = require("../../server/logger");
 
 describe("User", function() {
 
-  var user;
+  var user, sandbox;
 
   beforeEach(function() {
+    sandbox = sinon.sandbox.create();
     user = new User("foo");
+  });
+
+  afterEach(function() {
+    sandbox.restore();
   });
 
   describe("#toJSON", function() {
@@ -58,6 +64,18 @@ describe("User", function() {
       sinon.assert.calledOnce(fakeWS.send);
       sinon.assert.calledWithExactly(
         fakeWS.send, JSON.stringify(data), errback);
+    });
+
+    it("should log an error if the websocket does not exist", function() {
+      var data = {message: "some message"};
+      var errback = function() {};
+      sandbox.stub(logger, "error");
+
+      user.send(data, errback);
+
+      sinon.assert.calledOnce(logger.error);
+      sinon.assert.calledWithExactly(
+        logger.error, {type: "websocket", err: new Error()});
     });
 
   });
