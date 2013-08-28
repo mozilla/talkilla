@@ -1,4 +1,4 @@
-/* global describe, it, beforeEach */
+/* global describe, it, beforeEach, afterEach */
 /* jshint expr:true */
 
 var chai = require("chai");
