@@ -135,6 +135,9 @@ describe("presence", function() {
 
   describe("api", function() {
 
+    // XXX: this method is private but critical. That's why we have
+    // test coverage for it. In the future we might pull it out into a
+    // separate object as a way to separate concerns.
     describe("#_verifyAssertion", function() {
 
       it("should send a secure http request to the verifier service",
