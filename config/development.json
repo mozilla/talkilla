@@ -1,5 +1,6 @@
 {
   "DEBUG": true,
   "PENDING_CALL_TIMEOUT": 10000,
-  "FAKE_MEDIA_STREAMS": false
+  "FAKE_MEDIA_STREAMS": false,
+  "LOG_LEVEL": "debug"
 }
