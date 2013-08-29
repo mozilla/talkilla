@@ -5,7 +5,7 @@ var url = require('url');
 var app = require("./server").app;
 var httpServer = require("./server").server;
 var config = require('./config').config;
-var logger = require('./logger')(config);
+var logger = require('./logger');
 var Users = require('./users').Users;
 var User = require('./users').User;
 

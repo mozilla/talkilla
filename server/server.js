@@ -2,7 +2,7 @@
 var express = require('express');
 var http = require('http');
 var config = require('./config').config;
-var logger = require('./logger')(config);
+var logger = require('./logger');
 var app = express();
 
 app.use(express.bodyParser());
