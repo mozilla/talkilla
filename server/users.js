@@ -1,3 +1,5 @@
+var logger = require('./logger');
+
 /**
  * User class constructor
  *
@@ -42,7 +44,13 @@ User.prototype.disconnect = function() {
  */
 User.prototype.send = function(data, errback) {
   var message = JSON.stringify(data);
-  this.ws.send(message, errback);
+  if (this.ws)
+    this.ws.send(message, errback);
+  else
+    logger.error({
+      type: "websocket",
+      err: new Error("The websocket does not exist anymore")
+    });
   return this;
 };
 
