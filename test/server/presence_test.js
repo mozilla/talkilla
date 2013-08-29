@@ -164,6 +164,7 @@ describe("presence", function() {
             status: "okay",
             email: "john.doe@mozilla.com"
           };
+          response.setEncoding = function() {};
 
           sandbox.stub(https, "request", function(options, callback) {
             callback(response);
@@ -188,6 +189,7 @@ describe("presence", function() {
             status: "not okay",
             reason: "invalid assertion"
           };
+          response.setEncoding = function() {};
 
           sandbox.stub(https, "request", function(options, callback) {
             callback(response);

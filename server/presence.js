@@ -67,6 +67,8 @@ api = {
 
     var req = https.request(options, function (res) {
       var ret = "";
+      res.setEncoding('utf8');
+
       res.on("data", function (chunk) {
         ret += chunk;
       });
