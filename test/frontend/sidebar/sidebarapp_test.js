@@ -145,7 +145,7 @@ describe("SidebarApp", function() {
       });
   });
 
-  describe("Browser Id", function() {
+  describe("Browser Id bindings", function() {
 
     var browserIdHandlers;
 
