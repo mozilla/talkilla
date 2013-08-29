@@ -4,6 +4,7 @@ var https = require('https');
 var url = require('url');
 var app = require("./server").app;
 var httpServer = require("./server").server;
+var config = require('./config').config;
 var logger = require('./logger');
 var Users = require('./users').Users;
 var User = require('./users').User;
@@ -52,7 +53,7 @@ function configureWs(ws, nick) {
 
 api = {
   _verifyAssertion: function(assertion, callback) {
-    var data = "audience=" + encodeURIComponent(process.env.AUDIENCE);
+    var data = "audience=" + encodeURIComponent(config.ROOTURL);
     data += "&assertion=" + encodeURIComponent(assertion);
 
     var options = {

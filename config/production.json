@@ -4,4 +4,5 @@
   "ROOTURL": "https://talkilla-stage.mozillalabs.com",
   "PENDING_CALL_TIMEOUT": 30000,
   "FAKE_MEDIA_STREAMS": false
+  "LOG_LEVEL": "info"
 }
