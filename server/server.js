@@ -34,10 +34,14 @@ function uncaughtError(err, req, res, next) {
 }
 app.use(uncaughtError);
 
-app.get('/config.json', function(req, res) {
-  res.header('Content-Type', 'application/json');
-  res.send(200, JSON.stringify(app.get('config')));
-});
+var api = {
+  config: function(req, res) {
+    res.header('Content-Type', 'application/json');
+    res.send(200, JSON.stringify(app.get('config')));
+  }
+};
+
+app.get('/config.json', api.config);
 
 app.start = function(serverPort, callback) {
   app.set('users', {});
@@ -62,4 +66,5 @@ app.shutdown = function(callback) {
 };
 
 module.exports.app = app;
+module.exports.api = api;
 module.exports.server = server;

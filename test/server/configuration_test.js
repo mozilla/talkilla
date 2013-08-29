@@ -1,10 +1,14 @@
-/* global describe, it */
+/* global describe, it, beforeEach, afterEach */
 /* jshint expr:true */
 
 process.env.NO_LOCAL_CONFIG = true;
 
 var expect = require("chai").expect;
 var path = require("path");
+var sinon = require("sinon");
+
+var app = require("../../server/server").app;
+var api = require("../../server/server").api;
 var merge = require("../../server/config").merge;
 var getConfigFromFile = require("../../server/config").getConfigFromFile;
 
@@ -36,5 +40,37 @@ describe("Server", function() {
       expect(config).to.have.property('WSURL');
       expect(config.WSURL).to.be.equal('wss://talkilla.invalid/');
     });
+  });
+
+  describe("api", function() {
+
+    var sandbox;
+
+    beforeEach(function() {
+      sandbox = sinon.sandbox.create();
+    });
+
+    afterEach(function() {
+      sandbox.restore();
+    });
+
+    describe("#config", function() {
+
+      it("should return the config as a JSON", function() {
+        var req = {};
+        var res = {header: sinon.spy(), send: sinon.spy()};
+        var config = {fake: "configuration"};
+        sandbox.stub(app, "get").returns(config);
+        api.config(req, res);
+
+        sinon.assert.calledOnce(res.header);
+        sinon.assert.calledWithExactly(
+          res.header, "Content-Type", "application/json");
+        sinon.assert.calledOnce(res.send);
+        sinon.assert.calledWithExactly(res.send, 200, JSON.stringify(config));
+      });
+
+    });
+
   });
 });
