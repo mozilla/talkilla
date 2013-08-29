@@ -16,7 +16,7 @@ describe("SidebarApp", function() {
       }
     };
     // BrowserId "mock"
-    window.navigator.id = {watch: sinon.spy()};
+    window.navigator.id = {watch: sinon.spy(), logout: sinon.spy()};
 
     sandbox.stub(app.views, "AppView");
     sandbox.stub(AppPort.prototype, "postEvent");
@@ -81,6 +81,19 @@ describe("SidebarApp", function() {
         sidebarApp.port.postEvent, "talkilla.presence-request");
     });
 
+    it("should display an error on login failures", function() {
+      var sidebarApp = new SidebarApp();
+      var error = "fake login failure";
+      sidebarApp.port.postEvent.reset();
+      sandbox.stub(app.utils, "notifyUI");
+
+      sidebarApp.port.trigger("talkilla.login-failure", error);
+
+      sinon.assert.calledOnce(app.utils.notifyUI);
+      sinon.assert.calledWith(app.utils.notifyUI, sinon.match(error));
+      sinon.assert.calledOnce(navigator.id.logout);
+    });
+
     it("should reset user data on logout success", function() {
       var sidebarApp = new SidebarApp();
       sidebarApp.user.set({nick: "jb"});
@@ -132,7 +145,7 @@ describe("SidebarApp", function() {
       });
   });
 
-  describe("Browser Id", function() {
+  describe("Browser Id bindings", function() {
 
     var browserIdHandlers;
 

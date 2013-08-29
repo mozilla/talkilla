@@ -228,7 +228,8 @@
    * FileTransfer model.
    *
    * Attributes:
-   * - {Integer} progress
+   * - {Integer} progress: percentage of ongoing file transfer progress
+   * - {Boolean} incoming: determines if the file transfer is an incoming one
    *
    * Fired when a new chunk is available.
    * @event chunk
@@ -265,14 +266,14 @@
    */
   app.models.FileTransfer = Backbone.Model.extend({
 
-    defaults: {progress: 0},
+    defaults: {progress: 0, incoming: false},
 
     /**
      * Filetransfer model constructor.
      * @param  {Object}  attributes  Model attributes
      * @param  {Object}  options     Model options
      *
-     * Attribues:
+     * Attributes:
      *
      * When initiating a file tranfer
      *
@@ -307,6 +308,7 @@
       }
 
       this.nick = attributes.nick;
+      this.set('incoming', !this.file);
       this.seek = 0;
       this.on("chunk", this._onProgress, this);
     },
@@ -324,6 +326,7 @@
       var progress = this.get("progress");
       var json = {
         nick: this.nick,
+        incoming: this.get('incoming'),
         filename: _.escape(this.filename),
         progress: progress,
         sent: this.seek,
@@ -507,9 +510,8 @@
     },
 
     _onFileTransferCreated: function(entry) {
-      // Check if we are the file sender. If we are not, the file
-      // transfer has been initiated by the other party.
-      if (!(entry instanceof app.models.FileTransfer && entry.file))
+      // Only process outgoing file transfers
+      if (!(entry instanceof app.models.FileTransfer && !entry.get('incoming')))
         return;
 
       var onFileChunk = this._onFileChunk.bind(this, entry);

@@ -242,8 +242,8 @@ describe('handlers', function() {
         });
         expect(requests.length).to.equal(1);
 
-        requests[0].respond(401, { 'Content-Type': 'text/plain' },
-                            'Not Authorised' );
+        requests[0].respond(401, {'Content-Type': 'text/plain'},
+                            JSON.stringify({error: "some error"}));
 
         sinon.assert.calledTwice(handlers.postEvent);
         sinon.assert.calledWith(handlers.postEvent, "talkilla.login-failure");
