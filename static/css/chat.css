@@ -2,6 +2,16 @@
  * Conversation window
  */
 
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  display: table;
+}
+
 /**
  * Pending (i.e. offer & establish) views in the chat window
  */
@@ -25,51 +35,11 @@
 }
 
 /**
- * Video call
+ * Call controls
  */
-
-#call {
-  /* as the .video-area element is displayed inline, treat it as text so we can
-     ensure it's actually centered without knowing its exact width */
-  text-align: center;
-}
-
-#call .video-area {
-  display: inline-block;
-  max-width: 100%;
-  position: relative;
-  overflow: hidden;
-}
-
-#call .remote-video {
-  height: 65vh;
-  z-index: 0;
-  vertical-align: bottom;
-}
-
-/* XXX once we get the local-video stapled to the remote-video,
-   much of this stuff may be irrelevant.  Audit this as part
-   of that landing. */
-#call .local-video {
-  position: absolute;
-  bottom: 5px;
-  right: 5px;
-  width: 20vw;
-  min-width: 80px;
-  max-width: 200px;
-  height: 15vw;
-  min-height: 60px;
-  max-height: 150px;
-  z-index: 1;
-  border: 1px solid #333;
-  background: #ccc;
-}
-
 #call-controls {
-  position: fixed;
+  display: table-row;
   background-color: #FAFAFA;
-  border-bottom: 1px solid #d6d6d6;
-  top: 0;
   width: 100%;
   height: 24px;
   margin: 0;
@@ -81,7 +51,6 @@
 #call-controls .controls {
   list-style-type: none;
   margin: 0;
-  padding: 0;
 }
 
 #call-controls .controls li {
@@ -94,11 +63,6 @@
   height: 16px;
   width: 16px;
   margin: 4px;
-}
-
-.ignored {
-  opacity:0.5;
-  transition: opacity 1s;
 }
 
 .btn-video a {
@@ -122,11 +86,60 @@
 }
 
 /**
+ * Video call
+ */
+#call {
+  display: table-row;
+  height: 100%;
+  /* as the .video-area element is displayed inline, treat it as text so we can
+     ensure it's actually centered without knowing its exact width */
+  text-align: center;
+}
+
+#call .video-area {
+  display: inline-block;
+  max-width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+#call .remote-video {
+  width: 100vw;
+  min-width: 100vw;
+  max-height: 300px;
+  vertical-align: bottom;
+}
+
+/* XXX once we get the local-video stapled to the remote-video,
+   much of this stuff may be irrelevant.  Audit this as part
+   of that landing. */
+#call .local-video {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 20vw;
+  min-width: 80px;
+  max-width: 200px;
+  height: 15vw;
+  min-height: 60px;
+  max-height: 150px;
+  z-index: 1;
+  border: 1px solid #333;
+  background: #ccc;
+}
+
+.ignored {
+  opacity:0.5;
+  transition: opacity 1s;
+}
+
+/**
  * Text chat
  */
 
 #textchat {
-  clear: both;
+  display: table-row;
+  height: 22px;
   font-size: 80%;
 }
 
@@ -141,18 +154,15 @@
 
 #textchat ul li {
   padding: 0 5px;
-}
-
-#textchat ul li:first-child {
-  margin-top: 30px;
-}
-
-#textchat ul li:last-child {
-  margin-bottom: 30px;
+  line-height: 17px;
 }
 
 body.has-video #textchat ul {
-  height: 35vh;
+  position: fixed;
+  bottom: 22px;
+  height: 20vh;
+  min-height: 50px;
+  background: #fff;
 }
 
 body.has-video #textchat ul li:first-child {
@@ -160,23 +170,24 @@ body.has-video #textchat ul li:first-child {
 }
 
 #textchat form {
-  position: fixed;
   width: 100%;
   margin: 0;
   bottom: 0;
+  z-index: 99;
 }
 
 #textchat form input[type="text"] {
   -moz-box-sizing: border-box;
   box-sizing: border-box;
   width: 100%;
-  height: 26px;
-  font-size: 12px;
+  height: 22px;
+  font-size: 11px;
   border-radius: 0;
   border-left: none;
   border-right: none;
   border-bottom: none;
   margin-bottom: 0;
+  padding: 4px 4px;
 }
 
 #textchat .media-body {
