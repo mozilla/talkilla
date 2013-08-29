@@ -81,7 +81,7 @@ describe("SidebarApp", function() {
         sidebarApp.port.postEvent, "talkilla.presence-request");
     });
 
-    it("should notify an error on login failures", function() {
+    it("should display an error on login failures", function() {
       var sidebarApp = new SidebarApp();
       var error = "fake login failure";
       sidebarApp.port.postEvent.reset();
