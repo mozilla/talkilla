@@ -94,6 +94,7 @@ var SidebarApp = (function($, Backbone, _) {
   SidebarApp.prototype._onLoginFailure = function(error) {
     app.utils.notifyUI('Failed to login while communicating with the server: ' +
       error, 'error');
+    navigator.id.logout();
   };
 
   SidebarApp.prototype._onLogoutSuccess = function() {

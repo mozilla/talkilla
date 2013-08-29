@@ -16,7 +16,7 @@ describe("SidebarApp", function() {
       }
     };
     // BrowserId "mock"
-    window.navigator.id = {watch: sinon.spy()};
+    window.navigator.id = {watch: sinon.spy(), logout: sinon.spy()};
 
     sandbox.stub(app.views, "AppView");
     sandbox.stub(AppPort.prototype, "postEvent");
@@ -91,6 +91,7 @@ describe("SidebarApp", function() {
 
       sinon.assert.calledOnce(app.utils.notifyUI);
       sinon.assert.calledWith(app.utils.notifyUI, sinon.match(error));
+      sinon.assert.calledOnce(navigator.id.logout);
     });
 
     it("should reset user data on logout success", function() {
