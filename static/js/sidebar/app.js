@@ -102,7 +102,9 @@ var SidebarApp = (function($, Backbone, _) {
   };
 
   SidebarApp.prototype._onPresenceUnavailable = function(code) {
-    // 1000 is CLOSE_NORMAL
+    // 1000 is CLOSE_NORMAL, meaning that the app itself called close(),
+    // (e.g. because the user clicked on logout), so there's no error
+    // here.
     if (code !== 1000) {
       this.user.clear();
       app.utils.notifyUI('Sorry, the browser lost communication with ' +
