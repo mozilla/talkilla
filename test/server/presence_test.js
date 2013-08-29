@@ -140,6 +140,17 @@ describe("presence", function() {
     // separate object as a way to separate concerns.
     describe("#_verifyAssertion", function() {
 
+      var oldEnv;
+
+      before(function() {
+        oldEnv = process.env.NODE_ENV;
+        process.env.NODE_ENV = "development";
+      });
+
+      after(function() {
+        process.env.NODE_ENV = oldEnv;
+      });
+
       it("should send a secure http request to the verifier service",
         function() {
           var request = {write: function() {}, end: function() {}};

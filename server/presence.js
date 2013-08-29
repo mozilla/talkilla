@@ -4,6 +4,7 @@ var https = require('https');
 var url = require('url');
 var app = require("./server").app;
 var httpServer = require("./server").server;
+var config = require('./config').config;
 var logger = require('./logger');
 var Users = require('./users').Users;
 var User = require('./users').User;
@@ -57,7 +58,7 @@ api = {
     if (process.env.NODE_ENV === "test")
       return callback(null, assertion);
 
-    var data = "audience=" + encodeURIComponent(process.env.AUDIENCE);
+    var data = "audience=" + encodeURIComponent(config.ROOTURL);
     data += "&assertion=" + encodeURIComponent(assertion);
 
     var options = {

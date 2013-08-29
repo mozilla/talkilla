@@ -4,18 +4,13 @@
 process.env.NO_LOCAL_CONFIG = true;
 
 var expect = require("chai").expect;
-var request = require("request");
-var app = require("../../server/server").app;
 var path = require("path");
-var merge = require("../../server/server").merge;
-var getConfigFromFile = require("../../server/server").getConfigFromFile;
-// This is the developer/production environment we are running in. For tests,
-// this is controlled via the main Makefile.
-var nodeEnv = process.env.NODE_ENV;
+var sinon = require("sinon");
 
-var serverPort = 3000;
-var serverHost = "localhost";
-var serverHttpBase = 'http://' + serverHost + ':' + serverPort;
+var app = require("../../server/server").app;
+var api = require("../../server/server").api;
+var merge = require("../../server/config").merge;
+var getConfigFromFile = require("../../server/config").getConfigFromFile;
 
 describe("Server", function() {
 
@@ -47,26 +42,35 @@ describe("Server", function() {
     });
   });
 
-  describe("Specific Configuration", function() {
+  describe("api", function() {
 
-    beforeEach(function(done) {
-      app.start(serverPort, done);
+    var sandbox;
+
+    beforeEach(function() {
+      sandbox = sinon.sandbox.create();
     });
 
-    afterEach(function(done) {
-      app.shutdown(done);
+    afterEach(function() {
+      sandbox.restore();
     });
 
-    it("should render a configuration as JSON", function(done) {
-      app = require("../../server/server").app;
-      expect(app.get('env')).to.equal(nodeEnv);
-      request.get(serverHttpBase + '/config.json', function(err, res, body) {
-        expect(err).to.be.a('null');
-        expect(body).to.be.ok;
-        expect(JSON.parse(body)).to.be.an('object');
-        expect(JSON.parse(body).DEBUG).to.equal(nodeEnv === 'development');
-        done();
+    describe("#config", function() {
+
+      it("should return the config as a JSON", function() {
+        var req = {};
+        var res = {header: sinon.spy(), send: sinon.spy()};
+        var config = {fake: "configuration"};
+        sandbox.stub(app, "get").returns(config);
+        api.config(req, res);
+
+        sinon.assert.calledOnce(res.header);
+        sinon.assert.calledWithExactly(
+          res.header, "Content-Type", "application/json");
+        sinon.assert.calledOnce(res.send);
+        sinon.assert.calledWithExactly(res.send, 200, JSON.stringify(config));
       });
+
     });
+
   });
 });
