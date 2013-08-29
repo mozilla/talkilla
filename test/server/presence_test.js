@@ -1,4 +1,4 @@
-/* global describe, it, beforeEach, afterEach */
+/* global describe, it, before, after, beforeEach, afterEach */
 /* jshint expr:true */
 
 /* The intent is for this to only add unit tests to this file going forward.
