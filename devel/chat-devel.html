@@ -9,7 +9,12 @@
   </style>
 </head>
 <body class="chat">
-  <p><input type="button" id="von" onclick="videoToggle()" value="Toggle video"></p>
+  <p>
+    <input type="button" onclick="videoCall()" value="Video call">
+    <input type="button" onclick="textChatOnly()" value="Text chat only">
+    <input type="button" onclick="offer()" value="Call offer">
+    <input type="button" onclick="establish()" value="Call establishment">
+  </p>
   <iframe src="../static/chat.html" width="260" height="264"></iframe>
   <iframe src="../static/chat.html" width="400" height="420"></iframe>
   <iframe src="../static/chat.html" width="750" height="480"></iframe>
@@ -21,9 +26,9 @@
     fdoc.querySelector('#call').classList.remove('hide');
     // chat
     var chat = fdoc.querySelector('#textchat ul');
-    for (var i=0; i<=20; i++) {
+    for (var i=0; i<=25; i++) {
       var entry = fdoc.createElement('li');
-      entry.innerHTML = "<strong>bob:</strong> Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.";
+      entry.innerHTML = "<strong>bob:</strong> " + (i + 1) + " lorem ipsum dolor sit amet.";
       chat.appendChild(entry);
     }
     chat.scrollTop = chat.scrollTopMax;
@@ -38,15 +43,63 @@
     }, function() {});
   }
 
+  function show(el) {
+    el.style.display = "block";
+  }
+
+  function hide(el) {
+    el.style.display = "none";
+  }
+
+  function forAllFrames(fn) {
+    [].forEach.call(document.querySelectorAll('iframe'), fn);
+  }
+
   window.onload = function() {
-    [].forEach.call(document.querySelectorAll('iframe'), configureIframe);
+    forAllFrames(configureIframe);
   };
 
-  function videoToggle() {
-    [].forEach.call(document.querySelectorAll('iframe'), function(f) {
+  function textChatOnly() {
+    forAllFrames(function(f) {
       var fdoc = f.contentDocument;
-      fdoc.body.classList.toggle("has-video");
-      fdoc.querySelector('#call').classList.toggle("hide");
+      fdoc.body.classList.remove("has-video");
+      hide(fdoc.querySelector("#offer"));
+      hide(fdoc.querySelector("#establish"));
+      hide(fdoc.querySelector("#call"));
+      show(fdoc.querySelector("#textchat"));
+    });
+  }
+
+  function videoCall() {
+    forAllFrames(function(f) {
+      var fdoc = f.contentDocument;
+      fdoc.body.classList.add("has-video");
+      hide(fdoc.querySelector("#offer"));
+      hide(fdoc.querySelector("#establish"));
+      show(fdoc.querySelector("#textchat"));
+      show(fdoc.querySelector("#call"));
+    });
+  }
+
+  function offer() {
+    forAllFrames(function(f) {
+      var fdoc = f.contentDocument;
+      fdoc.body.classList.remove("has-video");
+      hide(fdoc.querySelector("#establish"));
+      hide(fdoc.querySelector("#call"));
+      hide(fdoc.querySelector("#textchat"));
+      show(fdoc.querySelector("#offer"));
+    });
+  }
+
+  function establish() {
+    forAllFrames(function(f) {
+      var fdoc = f.contentDocument;
+      fdoc.body.classList.remove("has-video");
+      hide(fdoc.querySelector("#offer"));
+      hide(fdoc.querySelector("#call"));
+      hide(fdoc.querySelector("#textchat"));
+      show(fdoc.querySelector("#establish"));
     });
   }
   </script>
