@@ -86,6 +86,7 @@ var ChatApp = (function($, Backbone, _) {
     });
 
     this.textChatView = new app.views.TextChatView({
+      call: this.call,
       collection: this.textChat
     });
 

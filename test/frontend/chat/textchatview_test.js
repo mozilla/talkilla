@@ -114,6 +114,7 @@ describe("Text chat views", function() {
 
     it("should be empty by default", function() {
       var view = new app.views.TextChatView({
+        call: new app.models.Call(),
         collection: new app.models.TextChat([], {
           media: media,
           user: user,
@@ -131,6 +132,7 @@ describe("Text chat views", function() {
     it("should update rendering when its collection is updated", function() {
       user.set({nick: "niko"});
       var view = new app.views.TextChatView({
+        call: new app.models.Call(),
         sender: user,
         collection: new app.models.TextChat([
           {nick: "niko", message: "plop"},
