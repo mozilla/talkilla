@@ -118,10 +118,10 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
         self.bob.signin()
 
         self.bob.openConversationWith("larry")
-        self.assertPresenceIconConnected(self.bob);
+        self.assertPresenceIconConnected(self.bob)
 
         self.larry.signout()
-        self.assertPresenceIconDisconnected(self.bob);
+        self.assertPresenceIconDisconnected(self.bob)
 
 if __name__ == "__main__":
     unittest.main(catchbreak=True)
