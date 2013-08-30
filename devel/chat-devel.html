@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Chat devel</title>
+  <style>
+  body {margin: 0; padding: 0;}
+  iframe {border: 1px solid #999;}
+  </style>
+</head>
+<body class="chat">
+  <p><input type="button" id="von" onclick="videoToggle()" value="Toggle video"></p>
+  <iframe src="../static/chat.html" width="260" height="264"></iframe>
+  <iframe src="../static/chat.html" width="400" height="420"></iframe>
+  <iframe src="../static/chat.html" width="750" height="480"></iframe>
+  <script>
+  function configureIframe(f) {
+    var fdoc = f.contentDocument;
+    fdoc.body.classList.add("has-video");
+    // call area
+    fdoc.querySelector('#call').classList.remove('hide');
+    // chat
+    var chat = fdoc.querySelector('#textchat ul');
+    for (var i=0; i<=20; i++) {
+      var entry = fdoc.createElement('li');
+      entry.innerHTML = "<strong>bob:</strong> Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.";
+      chat.appendChild(entry);
+    }
+    chat.scrollTop = chat.scrollTopMax;
+    // videos
+    navigator.mozGetUserMedia({video: true, fake: false}, function(stream) {
+      var local = fdoc.querySelector('#local-video');
+      local.mozSrcObject = stream;
+      local.play();
+      var remote = fdoc.querySelector('#remote-video');
+      remote.mozSrcObject = stream;
+      remote.play();
+    }, function() {});
+  }
+
+  window.onload = function() {
+    [].forEach.call(document.querySelectorAll('iframe'), configureIframe);
+  };
+
+  function videoToggle() {
+    [].forEach.call(document.querySelectorAll('iframe'), function(f) {
+      var fdoc = f.contentDocument;
+      fdoc.body.classList.toggle("has-video");
+      fdoc.querySelector('#call').classList.toggle("hide");
+    });
+  }
+  </script>
+</body>
+</html>
