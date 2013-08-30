@@ -3,5 +3,5 @@
   "PENDING_CALL_TIMEOUT": 4000,
   "FAKE_MEDIA_STREAMS": true,
   "LOG_LEVEL": "error",
-  "PERSONA_INCLUDE_URL": "/js/persona.js"
+  "PERSONA_INCLUDE_URL": "/test/functional/persona.js"
 }
