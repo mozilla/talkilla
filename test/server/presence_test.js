@@ -17,6 +17,7 @@ var https = require("https");
 
 require("../../server/server");
 var presence = require("../../server/presence");
+var logger = require("../../server/logger");
 var findNewNick = presence.findNewNick;
 
 describe("presence", function() {
@@ -307,6 +308,16 @@ describe("presence", function() {
               bar.send, {"incoming_call": forwardedEvent});
           });
 
+        it("should warn on handling offers to unknown users", function() {
+          sandbox.stub(logger, "warn");
+
+          var event = { peer: "bar" };
+
+          api.ws.onCallOffer(event, "foo");
+
+          sinon.assert.calledOnce(logger.warn);
+        });
+
       });
 
       describe("#onCallAccepted", function() {
@@ -326,6 +337,16 @@ describe("presence", function() {
             sinon.assert.calledWith(
               bar.send, {"call_accepted": forwardedEvent});
           });
+
+        it("should warn on handling answers to unknown users", function() {
+          sandbox.stub(logger, "warn");
+
+          var event = { peer: "bar" };
+
+          api.ws.onCallAccepted(event, "foo");
+
+          sinon.assert.calledOnce(logger.warn);
+        });
       });
 
       describe("#onCallHangup", function() {
@@ -345,6 +366,15 @@ describe("presence", function() {
             sinon.assert.calledWith(bar.send, {"call_hangup": forwardedEvent});
           });
 
+        it("should warn on handling hangups to unknown users", function() {
+          sandbox.stub(logger, "warn");
+
+          var event = { peer: "bar" };
+
+          api.ws.onCallHangup(event, "foo");
+
+          sinon.assert.calledOnce(logger.warn);
+        });
       });
 
       describe("#onPresenceRequest", function() {
