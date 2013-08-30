@@ -271,18 +271,6 @@ describe('handlers', function() {
       xhr.restore();
     });
 
-    it('should post an error message if not logged in', function() {
-      _currentUserData.userName = undefined;
-      handlers.postEvent = sandbox.spy();
-      handlers['talkilla.logout']({
-        topic: 'talkilla.logout',
-        data: null
-      });
-
-      sinon.assert.calledOnce(handlers.postEvent);
-      sinon.assert.calledWith(handlers.postEvent, 'talkilla.error');
-    });
-
     it('should tear down the websocket', function() {
       handlers['talkilla.logout']({
         topic: 'talkilla.logout',

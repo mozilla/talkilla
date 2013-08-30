@@ -53,6 +53,11 @@ function configureWs(ws, nick) {
 
 api = {
   _verifyAssertion: function(assertion, callback) {
+    // When we're in the test environment, we bypass the assertion verifiction.
+    // In this case, the email of the user IS the assertion.
+    if (process.env.NODE_ENV === "test")
+      return callback(null, assertion);
+
     var data = "audience=" + encodeURIComponent(config.ROOTURL);
     data += "&assertion=" + encodeURIComponent(assertion);
 

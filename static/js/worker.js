@@ -542,17 +542,13 @@ var handlers = {
 
     this.postEvent('talkilla.login-pending', null);
 
-    ports.broadcastDebug("assertion", msg.data.assertion);
-
     sendAjax('/signin', 'POST', {assertion: msg.data.assertion},
       _signinCallback.bind(this));
   },
 
   'talkilla.logout': function() {
-    if (!_currentUserData.userName) {
-      return this.postEvent('talkilla.error',
-                            'trying to logout when not logged in');
-    }
+    if (!_currentUserData.userName)
+      return;
 
     _presenceSocket.close();
     sendAjax('/signout', 'POST', {nick: _currentUserData.userName},
