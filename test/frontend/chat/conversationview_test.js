@@ -175,7 +175,7 @@ describe("ConversationView", function() {
         expect(document.title).to.be.equal("nick");
       });
 
-    it("should update the presence icon when peer's presence status changes",
+    it("should call _onPeerPresenceChanged when peer's presence status changes",
       function() {
         sandbox.restore(peer.on);
         sandbox.stub(app.views.ConversationView.prototype,
@@ -184,8 +184,7 @@ describe("ConversationView", function() {
           call: call,
           peer: peer,
           user: user,
-          textChat: textChat,
-          el: $('#conversation')
+          textChat: textChat
         });
 
         peer.set({presence: "connected"});
