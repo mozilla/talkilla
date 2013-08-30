@@ -1,4 +1,4 @@
-/* global describe, it, beforeEach, afterEach */
+/* global describe, it, before, after, beforeEach, afterEach */
 /* jshint expr:true */
 
 /* The intent is for this to only add unit tests to this file going forward.
@@ -6,13 +6,18 @@
  * XXX Before long, we're going to want to create a home for backend functional
  * tests, and move many of the tests that current live in this file there.
  */
+
+var EventEmitter = require( "events" ).EventEmitter;
+
 var chai = require("chai");
 var expect = chai.expect;
 var sinon = require("sinon");
 var http = require("http");
+var https = require("https");
 
 require("../../server/server");
 var presence = require("../../server/presence");
+var logger = require("../../server/logger");
 var findNewNick = presence.findNewNick;
 
 describe("presence", function() {
@@ -131,20 +136,124 @@ describe("presence", function() {
 
   describe("api", function() {
 
+    // XXX: this method is private but critical. That's why we have
+    // test coverage for it. In the future we might pull it out into a
+    // separate object as a way to separate concerns.
+    describe("#_verifyAssertion", function() {
+
+      var oldEnv;
+
+      before(function() {
+        oldEnv = process.env.NODE_ENV;
+        process.env.NODE_ENV = "development";
+      });
+
+      after(function() {
+        process.env.NODE_ENV = oldEnv;
+      });
+
+      it("should send a secure http request to the verifier service",
+        function() {
+          var request = {write: function() {}, end: function() {}};
+          var options = {
+            host: "verifier.login.persona.org",
+            path: "/verify",
+            method: "POST"
+          };
+          sandbox.stub(https, "request").returns(request);
+          api._verifyAssertion("fake assertion data", function() {});
+
+          sinon.assert.calledOnce(https.request);
+          sinon.assert.calledWith(https.request, sinon.match(options));
+        });
+
+      it("should trigger without error if the assertion is valid",
+        function() {
+          var assertionCallback = sinon.spy();
+          var response = new EventEmitter();
+          var request = {write: function() {}, end: function() {}};
+          var answer = {
+            status: "okay",
+            email: "john.doe@mozilla.com"
+          };
+          response.setEncoding = function() {};
+
+          sandbox.stub(https, "request", function(options, callback) {
+            callback(response);
+            return request;
+          });
+          api._verifyAssertion("fake assertion data", assertionCallback);
+
+          response.emit("data", JSON.stringify(answer));
+          response.emit("end");
+
+          sinon.assert.calledOnce(assertionCallback);
+          sinon.assert.calledWithExactly(
+            assertionCallback, null, answer.email);
+        });
+
+      it("should trigger with an error if the assertion is invalid",
+        function() {
+          var assertionCallback = sinon.spy();
+          var response = new EventEmitter();
+          var request = {write: function() {}, end: function() {}};
+          var answer = {
+            status: "not okay",
+            reason: "invalid assertion"
+          };
+          response.setEncoding = function() {};
+
+          sandbox.stub(https, "request", function(options, callback) {
+            callback(response);
+            return request;
+          });
+          api._verifyAssertion("fake assertion data", assertionCallback);
+
+          response.emit("data", JSON.stringify(answer));
+          response.emit("end");
+
+          sinon.assert.calledOnce(assertionCallback);
+          sinon.assert.calledWithExactly(
+            assertionCallback, answer.reason);
+        });
+    });
+
     describe("#signin", function() {
 
       it("should add a new user to the user list and return the nick",
-        function() {
-          var req = {body: {nick: "foo"}};
+        function(done) {
+          var req = {body: {assertion: "fake assertion"}};
           var res = {send: sinon.spy()};
           var answer = JSON.stringify({nick: "foo"});
+          sandbox.stub(presence.api, "_verifyAssertion", function(a, c) {
+            c(null, "foo");
+
+            expect(users.get("foo")).to.not.equal(undefined);
+
+            sinon.assert.calledOnce(res.send);
+            sinon.assert.calledWithExactly(res.send, 200, answer);
+            done();
+          });
 
           api.signin(req, res);
-          expect(users.get("foo")).to.not.equal(undefined);
+        });
+
+      it("should return a 400 if the assertion was invalid", function(done) {
+        var req = {body: {assertion: "fake assertion"}};
+        var res = {send: sinon.spy()};
+        var answer = JSON.stringify({error: "invalid assertion"});
+        sandbox.stub(presence.api, "_verifyAssertion", function(a, c) {
+          c("invalid assertion");
+
+          expect(users.get("foo")).to.equal(undefined);
 
           sinon.assert.calledOnce(res.send);
-          sinon.assert.calledWithExactly(res.send, 200, answer);
+          sinon.assert.calledWithExactly(res.send, 400, answer);
+          done();
         });
+
+        api.signin(req, res);
+      });
 
     });
 
@@ -199,6 +308,16 @@ describe("presence", function() {
               bar.send, {"incoming_call": forwardedEvent});
           });
 
+        it("should warn on handling offers to unknown users", function() {
+          sandbox.stub(logger, "warn");
+
+          var event = { peer: "bar" };
+
+          api.ws.onCallOffer(event, "foo");
+
+          sinon.assert.calledOnce(logger.warn);
+        });
+
       });
 
       describe("#onCallAccepted", function() {
@@ -218,6 +337,16 @@ describe("presence", function() {
             sinon.assert.calledWith(
               bar.send, {"call_accepted": forwardedEvent});
           });
+
+        it("should warn on handling answers to unknown users", function() {
+          sandbox.stub(logger, "warn");
+
+          var event = { peer: "bar" };
+
+          api.ws.onCallAccepted(event, "foo");
+
+          sinon.assert.calledOnce(logger.warn);
+        });
       });
 
       describe("#onCallHangup", function() {
@@ -237,6 +366,15 @@ describe("presence", function() {
             sinon.assert.calledWith(bar.send, {"call_hangup": forwardedEvent});
           });
 
+        it("should warn on handling hangups to unknown users", function() {
+          sandbox.stub(logger, "warn");
+
+          var event = { peer: "bar" };
+
+          api.ws.onCallHangup(event, "foo");
+
+          sinon.assert.calledOnce(logger.warn);
+        });
       });
 
       describe("#onPresenceRequest", function() {

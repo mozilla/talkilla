@@ -6,6 +6,13 @@ describe("LoginView", function() {
   var sandbox;
 
   beforeEach(function() {
+    // BrowserId "mock"
+    window.navigator.id = {
+      watch: sinon.spy(),
+      request: sinon.spy(),
+      logout: sinon.spy()
+    };
+
     sandbox = sinon.sandbox.create();
     sandbox.stub(app.views.LoginView.prototype, "render");
     $('body').append([
@@ -54,6 +61,7 @@ describe("LoginView", function() {
 
   describe("signing in and out", function() {
     var loginView;
+    var clickEvent = {preventDefault: function() {}};
 
     beforeEach(function() {
       window.sidebarApp = {
@@ -68,33 +76,25 @@ describe("LoginView", function() {
     });
 
     describe("#signin", function() {
-      it("should call SidebarApp#login", function() {
+
+      it("should call navigator.id.request", function() {
         sandbox.stub(app.utils, "notifyUI");
 
-        loginView.$("input").val("niko");
-        loginView.$("form").trigger("submit");
+        loginView.signin(clickEvent);
 
-        sinon.assert.calledOnce(window.sidebarApp.login);
-        sinon.assert.calledWithExactly(window.sidebarApp.login, "niko");
+        sinon.assert.calledOnce(window.navigator.id.request);
       });
 
-      it("should not call SidebarApp#login if nick is empty", function() {
-        sandbox.stub(app.utils, "notifyUI");
-
-        loginView.$("input").val("");
-        loginView.$("form").trigger("submit");
-
-        sinon.assert.notCalled(window.sidebarApp.login);
-        sinon.assert.calledOnce(app.utils.notifyUI);
-      });
     });
 
     describe("#signout", function() {
-      it("should call SidebarApp#logout", function() {
-        loginView.signout({preventDefault: function() {}});
 
-        sinon.assert.calledOnce(window.sidebarApp.logout);
+      it("should call SidebarApp#logout", function() {
+        loginView.signout(clickEvent);
+
+        sinon.assert.calledOnce(window.navigator.id.logout);
       });
+
     });
   });
 });

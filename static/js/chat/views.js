@@ -240,6 +240,10 @@
     },
 
     render: function() {
+      // call type icon
+      var type = this.call.requiresVideo() ? 'video-icon' : 'audio-icon';
+      this.$('.media-icon').addClass(type);
+
       // XXX: update caller's avatar, though we'd need to access peer
       //      as a User model instance
       return this;
@@ -341,6 +345,10 @@
         this.$(".btn-abort").hide();
         this.$(".btn-call-again").show();
       }
+
+      // call type icon
+      var type = this.call.requiresVideo() ? 'video-icon' : 'audio-icon';
+      this.$('.media-icon').addClass(type);
 
       return this;
     }

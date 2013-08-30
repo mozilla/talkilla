@@ -128,7 +128,7 @@ describe("Call Model", function() {
     });
 
     it("should pass the previously saved call data to the media", function() {
-      expect(call.constraints).to.be.equal(callData);
+      expect(call.get('currentConstraints')).to.deep.equal(callData);
       call.restart();
 
       sinon.assert.calledOnce(media.initiate);
@@ -369,6 +369,20 @@ describe("Call Model", function() {
 
           call.media.trigger("offer-ready", fakeOffer);
         });
+    });
+  });
+
+  describe("#requiresVideo", function() {
+    it("should check if current call has video constraints", function() {
+      call.set('currentConstraints', {video: true, audio: true});
+
+      expect(call.requiresVideo()).to.equal(true);
+    });
+
+    it("should check if current call has no video constraint", function() {
+      call.set('currentConstraints', {video: false, audio: true});
+
+      expect(call.requiresVideo()).to.equal(false);
     });
   });
 });
