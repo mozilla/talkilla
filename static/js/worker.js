@@ -447,7 +447,7 @@ function sendAjax(url, method, data, cb) {
       return;
     if (xhr.readyState === 4 && xhr.status === 200)
       return cb(null, xhr.responseText);
-    cb(xhr.statusText);
+    cb(xhr.statusText, xhr.responseText);
   };
 
   xhr.onerror = function(event) {
@@ -473,9 +473,10 @@ function loadconfig(cb) {
 }
 
 function _signinCallback(err, responseText) {
+  var data = JSON.parse(responseText);
   if (err)
-    return this.postEvent('talkilla.login-failure', err);
-  var username = JSON.parse(responseText).nick;
+    return this.postEvent('talkilla.login-failure', data.error);
+  var username = data.nick;
   if (username) {
     _currentUserData.userName = username;
 
@@ -535,21 +536,19 @@ var handlers = {
 
   // Talkilla events
   'talkilla.login': function(msg) {
-    if (!msg.data || !msg.data.username) {
-      return this.postEvent('talkilla.login-failure', 'no username specified');
+    if (!msg.data || !msg.data.assertion) {
+      return this.postEvent('talkilla.login-failure', 'no assertion given');
     }
 
     this.postEvent('talkilla.login-pending', null);
 
-    sendAjax('/signin', 'POST', {nick: msg.data.username},
+    sendAjax('/signin', 'POST', {assertion: msg.data.assertion},
       _signinCallback.bind(this));
   },
 
   'talkilla.logout': function() {
-    if (!_currentUserData.userName) {
-      return this.postEvent('talkilla.error',
-                            'trying to logout when not logged in');
-    }
+    if (!_currentUserData.userName)
+      return;
 
     _presenceSocket.close();
     sendAjax('/signout', 'POST', {nick: _currentUserData.userName},

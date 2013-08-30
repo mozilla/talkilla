@@ -26,7 +26,7 @@ jshint:
 
 .PHONY: mocha
 mocha:
-	@env NODE_ENV=development ./node_modules/mocha/bin/mocha \
+	@env NODE_ENV=test ./node_modules/mocha/bin/mocha \
 		--reporter spec test/server
 
 .PHONY: runserver

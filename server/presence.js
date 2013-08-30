@@ -1,8 +1,10 @@
 /* jshint unused:false */
 var http = require('http');
+var https = require('https');
 var url = require('url');
 var app = require("./server").app;
 var httpServer = require("./server").server;
+var config = require('./config').config;
 var logger = require('./logger');
 var Users = require('./users').Users;
 var User = require('./users').User;
@@ -50,15 +52,54 @@ function configureWs(ws, nick) {
 }
 
 api = {
+  _verifyAssertion: function(assertion, callback) {
+    // When we're in the test environment, we bypass the assertion verifiction.
+    // In this case, the email of the user IS the assertion.
+    if (process.env.NODE_ENV === "test")
+      return callback(null, assertion);
+
+    var data = "audience=" + encodeURIComponent(config.ROOTURL);
+    data += "&assertion=" + encodeURIComponent(assertion);
+
+    var options = {
+      host: "verifier.login.persona.org",
+      path: "/verify",
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Content-Length": data.length
+      }
+    };
+
+    var req = https.request(options, function (res) {
+      var ret = "";
+      res.setEncoding('utf8');
+
+      res.on("data", function (chunk) {
+        ret += chunk;
+      });
+      res.on("end", function () {
+        var val = JSON.parse(ret);
+        if (val.status === "okay")
+          callback(null, val.email);
+        else
+          callback(val.reason);
+      });
+    });
+    req.write(data);
+    req.end();
+  },
+
   signin: function(req, res) {
-    var nick = req.body.nick;
+    var assertion = req.body.assertion;
+    api._verifyAssertion(assertion, function(err, nick) {
+      if (err)
+        return res.send(400, JSON.stringify({error: err}));
 
-    while (users.hasNick(nick))
-      nick = findNewNick(nick);
-
-    users.add(nick);
-    logger.info({type: "signin"});
-    res.send(200, JSON.stringify(users.get(nick)));
+      users.add(nick);
+      logger.info({type: "signin"});
+      res.send(200, JSON.stringify(users.get(nick)));
+    });
   },
 
   signout: function(req, res) {

@@ -3,5 +3,7 @@
   "WSURL": "wss://talkilla-stage.mozillalabs.com/",
   "ROOTURL": "https://talkilla-stage.mozillalabs.com",
   "PENDING_CALL_TIMEOUT": 30000,
-  "FAKE_MEDIA_STREAMS": false
+  "FAKE_MEDIA_STREAMS": false,
+  "PERSONA_INCLUDE_URL": "https://login.persona.org/include.js",
+  "LOG_LEVEL": "info"
 }
