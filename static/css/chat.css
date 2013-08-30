@@ -36,6 +36,7 @@ body {
  * Pending (i.e. offer & establish) views in the chat window
  */
 .pending {
+  height: 100%;
   padding: 40px 10px 0 10px;
   text-align: center;
 }
@@ -146,10 +147,6 @@ body {
   z-index: 1;
   border: 1px solid #333;
   background: #ccc;
-}
-
-#call.hide {
-  display: none;
 }
 
 .ignored {
