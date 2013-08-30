@@ -3,13 +3,15 @@
  */
 
 html, body {
-  height: 100%;
+  height: 100%; /* necessary to use display: table* on children */
   margin: 0;
   padding: 0;
 }
 
 body {
   display: table;
+  width: 100%;      /* display: table seems to make this required */
+  min-width: 260px; /* Social API chat window default width */
 }
 
 /**
@@ -106,7 +108,7 @@ body {
 #call .remote-video {
   width: 100vw;
   min-width: 100vw;
-  max-height: 300px;
+  max-height: 350px;
   vertical-align: bottom;
 }
 
@@ -128,6 +130,10 @@ body {
   background: #ccc;
 }
 
+#call.hide {
+  display: none;
+}
+
 .ignored {
   opacity:0.5;
   transition: opacity 1s;
@@ -144,12 +150,14 @@ body {
 }
 
 #textchat ul {
-  width: 100%;
-  height: 100vh;
   position: absolute;
+  top: 22px;
+  width: 100%;
+  height: calc(100vh - 24px - 22px); /* viewport height minus topbar height */
   overflow: scroll;
   margin: 0;
   padding: 0;
+  background: #fff;
 }
 
 #textchat ul li {
@@ -159,17 +167,14 @@ body {
 
 body.has-video #textchat ul {
   position: fixed;
+  top: inherit;
   bottom: 22px;
   height: 20vh;
   min-height: 50px;
-  background: #fff;
-}
-
-body.has-video #textchat ul li:first-child {
-  margin-top: 0;
 }
 
 #textchat form {
+  position: fixed;
   width: 100%;
   margin: 0;
   bottom: 0;
