@@ -108,7 +108,7 @@ var SidebarApp = (function($, Backbone, _) {
     if (code !== 1000) {
       this.user.clear();
       app.utils.notifyUI('Sorry, the browser lost communication with ' +
-                         'the server. code: ' + code);
+                         'the server. CloseEvent code: ' + code);
     }
   };
 
