@@ -4,6 +4,8 @@
 var expect = chai.expect;
 
 describe("SidebarApp", function() {
+  "use strict";
+
   var sandbox;
 
   beforeEach(function() {
