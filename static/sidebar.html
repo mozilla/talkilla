@@ -5,22 +5,17 @@
   <title>Talkilla Sidebar</title>
   <link href="vendor/bootstrap-2.1.1/css/bootstrap.css" rel="stylesheet">
   <link href="vendor/bootstrap-2.1.1/css/bootstrap-responsive.css" rel="stylesheet">
-  <link rel="stylesheet" media="all" href="css/style.css">
+  <link rel="stylesheet" media="all" href="css/common.css">
+  <link rel="stylesheet" media="all" href="css/sidebar.css">
 </head>
 <body class="sidebar">
   <!-- Login view -->
   <header id="login">
     <h1 class="title">Welcome to Talkilla</h1>
 
-    <form action="signin" method="post" id="signin" class="form-inline">
-      <div class="input-prepend">
-        <span class="add-on"><i class="icon-user"></i></span>
-        <input class="input-medium" placeholder="What's your name?" id="nick"
-          name="nick" type="text" required>
-      </div>
-
-      <input class="btn" id="submit" type="submit" value="Join">
-    </form>
+    <a href="#" id="signin">
+      <img style="width: 185px; height: 25px;" src="/img/persona_sign_in_blue.png" alt=""></img>
+    </a>
 
     <form action="/signout" id="signout" method="post" class="hide">
       <p>
@@ -56,8 +51,10 @@
   <script>
     $(function() {
       $.getJSON('/config.json', function(config) {
-        app.start(config);
-        window.sidebarApp = new SidebarApp();
+        $.getScript(config.PERSONA_INCLUDE_URL).done(function() {
+          app.start(config);
+          window.sidebarApp = new SidebarApp();
+        });
       });
     });
   </script>

@@ -15,9 +15,10 @@ describe("SidebarApp", function() {
         return {port: {}};
       }
     };
+    // BrowserId "mock"
+    window.navigator.id = {watch: sinon.spy(), logout: sinon.spy()};
 
     sandbox.stub(app.views, "AppView");
-
     sandbox.stub(AppPort.prototype, "postEvent");
   });
 
@@ -80,6 +81,19 @@ describe("SidebarApp", function() {
         sidebarApp.port.postEvent, "talkilla.presence-request");
     });
 
+    it("should display an error on login failures", function() {
+      var sidebarApp = new SidebarApp();
+      var error = "fake login failure";
+      sidebarApp.port.postEvent.reset();
+      sandbox.stub(app.utils, "notifyUI");
+
+      sidebarApp.port.trigger("talkilla.login-failure", error);
+
+      sinon.assert.calledOnce(app.utils.notifyUI);
+      sinon.assert.calledWith(app.utils.notifyUI, sinon.match(error));
+      sinon.assert.calledOnce(navigator.id.logout);
+    });
+
     it("should reset user data on logout success", function() {
       var sidebarApp = new SidebarApp();
       sidebarApp.user.set({nick: "jb"});
@@ -131,26 +145,38 @@ describe("SidebarApp", function() {
       });
   });
 
-  describe("#login", function() {
-    it("should post the talkilla.login event with user's nick", function() {
-      var sidebarApp = new SidebarApp();
+  describe("Browser Id bindings", function() {
 
-      sidebarApp.login("toto");
+    var browserIdHandlers;
 
-      sinon.assert.called(sidebarApp.port.postEvent, "talkilla.login");
-      sinon.assert.calledWithExactly(sidebarApp.port.postEvent,
-                                     "talkilla.login", {username: "toto"});
+    beforeEach(function() {
+      window.navigator.id = {
+        watch: function(callbacks) {
+          browserIdHandlers = callbacks;
+        }
+      };
     });
-  });
 
-  describe("#logout", function() {
-    it("should post the talkilla.logout event", function() {
-      var sidebarApp = new SidebarApp();
+    it("should post a talkilla.login event when the user logs in",
+      function() {
+        var sidebarApp = new SidebarApp();
 
-      sidebarApp.logout();
+        browserIdHandlers.onlogin("fake assertion");
 
-      sinon.assert.called(sidebarApp.port.postEvent, "talkilla.logout");
-    });
+        sinon.assert.called(sidebarApp.port.postEvent, "talkilla.login");
+        sinon.assert.calledWithExactly(sidebarApp.port.postEvent,
+                                       "talkilla.login",
+                                       {assertion: "fake assertion"});
+      });
+
+    it("should post a talkilla.logout event when the user logs out",
+      function() {
+        var sidebarApp = new SidebarApp();
+
+        browserIdHandlers.onlogout();
+
+        sinon.assert.called(sidebarApp.port.postEvent, "talkilla.logout");
+      });
   });
 
   describe("#openConversation", function() {

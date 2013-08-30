@@ -4,5 +4,6 @@
   "ROOTURL": "https://talkilla.mozillalabs.com",
   "PENDING_CALL_TIMEOUT": 30000,
   "FAKE_MEDIA_STREAMS": false,
-  "LOG_LEVEL": 30
+  "PERSONA_INCLUDE_URL": "https://login.persona.org/include.js",
+  "LOG_LEVEL": "info"
 }

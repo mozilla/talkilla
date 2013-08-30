@@ -78,6 +78,11 @@
   /**
    * Displays a notification to the end user. Available types are:
    *
+   * XXX: This need to be refactored. It should not be part of
+   * app.utils. Instead, consider having a Notifications collection
+   * for each application (SidebarApp and ChatApp) and display
+   * notifications via a view when adding a item in the collection.
+   *
    * - error:   red
    * - warning: yellow (default)
    * - info:    blue

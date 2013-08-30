@@ -1,3 +1,5 @@
+NODE_LOCAL_BIN=./node_modules/.bin
+
 .PHONY: test
 test: lint mocha selenium_all
 
@@ -20,13 +22,12 @@ flake8: .venv
 
 .PHONY: jshint
 jshint:
-	@./node_modules/jshint/bin/jshint *.js static server test
+	@$(NODE_LOCAL_BIN)/jshint *.js static server test
 
 .PHONY: mocha
 mocha:
-  # Run tests in both production and development mode so that we can check
-  # for any issues with the different configurations.
-	@env NODE_ENV=development ./node_modules/mocha/bin/mocha --reporter spec test/server
+	@env NODE_ENV=test ./node_modules/mocha/bin/mocha \
+		--reporter spec test/server
 
 .PHONY: runserver
 runserver:
@@ -35,6 +36,12 @@ runserver:
 .PHONY: runserver_dev
 runserver_dev:
 	@env NODE_ENV=development PORT=5000 node app.js
+
+.PHONY: cover_server
+cover_server:
+	@env NODE_ENV=development $(NODE_LOCAL_BIN)/istanbul cover \
+		$(NODE_LOCAL_BIN)/_mocha -- test/server
+	@echo aim your browser at coverage/lcov-report/index.html for details
 
 # XXX refactor this file to not invoke run_selenium_test.sh twice, and call
 # other targets

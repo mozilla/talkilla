@@ -45,8 +45,8 @@ class Driver(WebDriver):
         if not self.nick:
             raise RuntimeError("No nick provided")
         self.switchToSidebar()
-        self.waitForElement("#nick").send_keys(self.nick)
-        self.clickElement("#submit")
+        self.add_cookie({"name": "test email", "value": self.nick})
+        self.clickElement("#signin")
         return self
 
     def signout(self):

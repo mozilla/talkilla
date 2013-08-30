@@ -127,7 +127,7 @@ describe('handlers', function() {
         handlers.postEvent = sandbox.spy();
         handlers['talkilla.login']({
           topic: "talkilla.login",
-          data: {username: "jb"}
+          data: {assertion: "fake assertion"}
         });
         sinon.assert.calledOnce(handlers.postEvent);
         sinon.assert.calledWith(handlers.postEvent, "talkilla.login-pending");
@@ -137,12 +137,13 @@ describe('handlers', function() {
       function() {
         handlers['talkilla.login']({
           topic: "talkilla.login",
-          data: {username: "jb"}
+          data: {assertion: "fake assertion"}
         });
         expect(requests.length).to.equal(1);
         expect(requests[0].url).to.equal('/signin');
         expect(requests[0].requestBody).to.be.not.empty;
-        expect(requests[0].requestBody).to.be.equal('{"nick":"jb"}');
+        expect(requests[0].requestBody)
+          .to.be.equal('{"assertion":"fake assertion"}');
       });
 
     describe("Accepted Login", function() {
@@ -154,7 +155,7 @@ describe('handlers', function() {
 
         handlers['talkilla.login']({
           topic: "talkilla.login",
-          data: {username: "jb"}
+          data: {assertion: "fake assertion"}
         });
         expect(requests.length).to.equal(1);
 
@@ -237,12 +238,12 @@ describe('handlers', function() {
         handlers.postEvent = sinon.spy();
         handlers['talkilla.login']({
           topic: "talkilla.login",
-          data: {username: "jb"}
+          data: {assertion: "fake assertion"}
         });
         expect(requests.length).to.equal(1);
 
-        requests[0].respond(401, { 'Content-Type': 'text/plain' },
-                            'Not Authorised' );
+        requests[0].respond(401, {'Content-Type': 'text/plain'},
+                            JSON.stringify({error: "some error"}));
 
         sinon.assert.calledTwice(handlers.postEvent);
         sinon.assert.calledWith(handlers.postEvent, "talkilla.login-failure");
@@ -268,18 +269,6 @@ describe('handlers', function() {
       _presenceSocket = undefined;
       _currentUserData = undefined;
       xhr.restore();
-    });
-
-    it('should post an error message if not logged in', function() {
-      _currentUserData.userName = undefined;
-      handlers.postEvent = sandbox.spy();
-      handlers['talkilla.logout']({
-        topic: 'talkilla.logout',
-        data: null
-      });
-
-      sinon.assert.calledOnce(handlers.postEvent);
-      sinon.assert.calledWith(handlers.postEvent, 'talkilla.error');
     });
 
     it('should tear down the websocket', function() {

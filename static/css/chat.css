@@ -1,85 +1,23 @@
-.container-fluid {
-  padding-left: 0;
-  padding-right: 0;
-}
-
-.hide {
-  display: none;
-}
+/**
+ * Conversation window
+ */
 
 /**
- * Sidebar
+ * Common utilities
  */
-.sidebar {
-  background: #fdfdfd;
+.media-icon {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
 }
 
-.sidebar header {
-  padding: 0 10px;
-  background: #F5F1E8;
-  border-bottom: 1px solid #ccc;
+.video-icon {
+  background: url(/img/video-icon.png) no-repeat;
 }
 
-.sidebar .title {
-  margin-top: 0;
-  font-size: 20px;
-  font-weight: normal;
-  color: #818A8F;
-}
-
-.sidebar .users {
-  overflow: auto;
-}
-
-.sidebar .users li .active,
-.sidebar .users li .active:hover {
-  background: #E5E5E5;
-}
-
-.sidebar .users li a {
-  clear: left;
-  color: #818A8F;
-  padding-left: 10px;
-  text-decoration: none;
-  line-height: 36px;
-  border-bottom: 1px solid #eee;
-}
-
-.sidebar .users li a:hover {
-  background: #FFFDE9;
-}
-
-.sidebar .users li a .avatar {
-  float: left;
-  position: relative;
-}
-
-.sidebar .users li a img {
-  width: 24px;
-  height: 24px;
-}
-
-.sidebar .users li a .username {
-  padding-left: 10px;
-}
-
-.sidebar .status {
-  display: block;
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  top: 4px;
-  right: -4px;
-  border-radius: 4px;
-  z-index: 1;
-}
-
-.sidebar .status-connected {
-  background: #25CA50;
-}
-
-.sidebar .status-disconnected {
-  display: none;
+.audio-icon {
+  background: url(/img/btn-audio.png) no-repeat;
 }
 
 /**
@@ -105,8 +43,9 @@
 }
 
 /**
- * Conversation window
+ * Video call
  */
+
 #call {
   /* as the .video-area element is displayed inline, treat it as text so we can
      ensure it's actually centered without knowing its exact width */
@@ -201,20 +140,9 @@
 }
 
 /**
- * Notifications
+ * Text chat
  */
-.alert .btn-cancel {
-  float: right;
-}
 
-@media (max-width: 767px) {
-  body {
-    padding-right: 0;
-    padding-left: 0;
-  }
-}
-
-/* Text chat window */
 #textchat {
   clear: both;
   font-size: 80%;
@@ -253,16 +181,20 @@ body.has-video #textchat ul li:first-child {
   position: fixed;
   width: 100%;
   margin: 0;
-  bottom: -8px;
+  bottom: 0;
 }
 
 #textchat form input[type="text"] {
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   width: 100%;
+  height: 26px;
   font-size: 12px;
   border-radius: 0;
   border-left: none;
   border-right: none;
   border-bottom: none;
+  margin-bottom: 0;
 }
 
 #textchat .media-body {
