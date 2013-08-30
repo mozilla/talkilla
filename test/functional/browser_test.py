@@ -99,12 +99,12 @@ class BrowserTest(unittest.TestCase):
         self.assertElementVisible(driver, ".btn-abort")
 
     def assertPresenceIconConnected(self, driver):
-        self.assertElementsCount(driver,
-            'head > link[rel="icon"][href="img/connected.png"]', 1)
+        self.assertElementsCount(
+            driver, 'head > link[rel="icon"][href="img/connected.png"]', 1)
 
     def assertPresenceIconDisconnected(self, driver):
-        self.assertElementsCount(driver,
-            'head > link[rel="icon"][href="img/disconnected.png"]', 1)
+        self.assertElementsCount(
+            driver, 'head > link[rel="icon"][href="img/disconnected.png"]', 1)
 
     def assertCallTimedOut(self, driver):
         self.assertElementVisible(driver, ".btn-call-again")
