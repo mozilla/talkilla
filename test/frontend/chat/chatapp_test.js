@@ -6,9 +6,10 @@ var expect = chai.expect;
 
 describe("ChatApp", function() {
   var sandbox, chatApp, AppPortStub;
-  var callData = {peer: "bob"};
+  var callData = {peer: "bob", peerPresence: "connected"};
   var incomingCallData = {
     peer: "alice",
+    peerPresence: "connected",
     offer: {type: "answer", sdp: "fake"}
   };
 
@@ -104,6 +105,16 @@ describe("ChatApp", function() {
   it("should attach _onCallShutdown to talkilla.call-hangup", function() {
     assertEventTriggersHandler("talkilla.call-hangup",
       "_onCallShutdown", { peer: "mark" });
+  });
+
+  it("should attach _onUserJoined to talkilla.user-joined", function() {
+    assertEventTriggersHandler("talkilla.user-joined",
+      "_onUserJoined", "harvey");
+  });
+
+  it("should attach _onUserLeft to talkilla.user-joined", function() {
+    assertEventTriggersHandler("talkilla.user-left",
+      "_onUserLeft", "harvey");
   });
 
   function assertModelEventTriggersHandler(event, handler) {
@@ -229,6 +240,12 @@ describe("ChatApp", function() {
 
         expect(chatApp.peer.get("nick")).to.equal(callData.peer);
       });
+
+      it("should set peer's presence", function() {
+        chatApp._onConversationOpen(callData);
+
+        expect(chatApp.peer.get("presence")).to.equal(callData.peerPresence);
+      });
     });
 
     describe("#_onIncomingConversation", function() {
@@ -236,6 +253,12 @@ describe("ChatApp", function() {
         chatApp._onIncomingConversation(incomingCallData);
 
         expect(chatApp.peer.get("nick")).to.equal(incomingCallData.peer);
+      });
+
+      it("should set peer's presence", function() {
+        chatApp._onIncomingConversation(incomingCallData);
+
+        expect(chatApp.peer.get("presence")).eql(incomingCallData.peerPresence);
       });
 
       it("should not set the peer if upgrading a call", function() {
@@ -399,6 +422,26 @@ describe("ChatApp", function() {
         sinon.assert.called(chatApp.port.postEvent);
         sinon.assert.calledWith(chatApp.port.postEvent,
                                 "talkilla.call-hangup", {peer: "florian"});
+      });
+    });
+
+    describe("#_onUserJoined", function() {
+      it("should update peer's presence information when joining", function() {
+        chatApp.peer.set({nick: "niko", presence: "disconnected"});
+
+        chatApp._onUserJoined("niko");
+
+        expect(chatApp.peer.get("presence")).eql("connected");
+      });
+    });
+
+    describe("#_onUserLeft", function() {
+      it("should update peer's presence information when leaving", function() {
+        chatApp.peer.set({nick: "niko", presence: "connected"});
+
+        chatApp._onUserLeft("niko");
+
+        expect(chatApp.peer.get("presence")).eql("disconnected");
       });
     });
 

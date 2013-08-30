@@ -35,9 +35,21 @@
         document.title = to.get("nick");
       });
 
+      this.peer.on('change:presence', this._onPeerPresenceChanged, this);
+
       this.call.media.on('local-stream:ready remote-stream:ready', function() {
         this.$el.addClass('has-video');
       }, this);
+    },
+
+    _onPeerPresenceChanged: function(peer) {
+      // XXX: for some reason we have to remove and readd the icon link
+      // see: https://github.com/mixedpuppy/socialapi-demo/blob/gh-pages
+      //      /chatWindow.html#L18
+      this.$('link[rel="icon"]').remove();
+      $('<link rel="icon">')
+        .attr('href', 'img/' + peer.get('presence') + '.png')
+        .appendTo(this.$('head'));
     },
 
     _checkDragTypes: function(types) {

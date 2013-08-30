@@ -136,7 +136,7 @@ describe("ConversationView", function() {
       expect(shouldExplode).to.Throw(Error, /missing parameter: textChat/);
     });
 
-    it("should attach to the app user model", function() {
+    it("should listen to peer's nick change", function() {
       new app.views.ConversationView({
         call: call,
         peer: peer,
@@ -146,6 +146,18 @@ describe("ConversationView", function() {
 
       sinon.assert.called(peer.on);
       sinon.assert.calledWith(peer.on, "change:nick");
+    });
+
+    it("should listen to peer's presence change", function() {
+      new app.views.ConversationView({
+        call: call,
+        peer: peer,
+        user: user,
+        textChat: textChat
+      });
+
+      sinon.assert.called(peer.on);
+      sinon.assert.calledWith(peer.on, "change:presence");
     });
 
     it("should update the document title on change of the peer's details",
@@ -161,6 +173,24 @@ describe("ConversationView", function() {
         peer.on.args[0][1](peer);
 
         expect(document.title).to.be.equal("nick");
+      });
+
+    it("should update the presence icon when peer's presence status changes",
+      function() {
+        sandbox.restore(peer.on);
+        sandbox.stub(app.views.ConversationView.prototype,
+                     "_onPeerPresenceChanged");
+        var view = new app.views.ConversationView({
+          call: call,
+          peer: peer,
+          user: user,
+          textChat: textChat,
+          el: $('#conversation')
+        });
+
+        peer.set({presence: "connected"});
+
+        sinon.assert.calledOnce(view._onPeerPresenceChanged);
       });
 
     describe("drag and drop events", function() {
