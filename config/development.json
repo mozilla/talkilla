@@ -2,5 +2,6 @@
   "DEBUG": true,
   "PENDING_CALL_TIMEOUT": 10000,
   "FAKE_MEDIA_STREAMS": false,
-  "LOG_LEVEL": "debug"
+  "LOG_LEVEL": "debug",
+  "PERSONA_INCLUDE_URL": "https://login.persona.org/include.js"
 }

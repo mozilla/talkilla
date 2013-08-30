@@ -36,7 +36,6 @@
   </nav>
   <!-- /Users view -->
 
-  <script src="https://login.persona.org/include.js"></script>
   <script src="vendor/jquery-1.9.1.js"></script>
   <script src="vendor/jquery.cookie-1.3.1.js"></script>
   <script src="vendor/underscore-1.4.4.js"></script>
@@ -52,8 +51,10 @@
   <script>
     $(function() {
       $.getJSON('/config.json', function(config) {
-        app.start(config);
-        window.sidebarApp = new SidebarApp();
+        $.getScript(config.PERSONA_INCLUDE_URL).done(function() {
+          app.start(config);
+          window.sidebarApp = new SidebarApp();
+        });
       });
     });
   </script>
