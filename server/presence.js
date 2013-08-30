@@ -152,6 +152,15 @@ api = {
      */
     onCallOffer: function(data, nick) {
       var peer = users.get(data.peer);
+
+      if (!peer) {
+        // XXX This could happen in the case of the user disconnecting
+        // just as we call them. We may want to send something back to the
+        // caller to indicate the issue.
+        logger.warn("Could not forward offer to unknown peer");
+        return;
+      }
+
       data.peer = nick;
       peer.send({'incoming_call': data});
       logger.info({type: "call:offer"});
@@ -169,6 +178,15 @@ api = {
      */
     onCallAccepted: function(data, nick) {
       var peer = users.get(data.peer);
+
+      if (!peer) {
+        // XXX This could happen in the case of the user disconnecting
+        // just as the call is accepted. We may want to send something back
+        // to the callee to indicate the issue.
+        logger.warn("Could not forward call accepted to unknown peer");
+        return;
+      }
+
       data.peer = nick;
       peer.send({'call_accepted': data});
       logger.info({type: "call:accepted"});
@@ -184,6 +202,15 @@ api = {
      */
     onCallHangup: function(data, nick) {
       var peer = users.get(data.peer);
+
+      if (!peer) {
+        // XXX This could happen in the case of the user disconnecting
+        // just as the call is hungup. We may want to send something back
+        // to the source to indicate the issue.
+        logger.warn("Could not forward hangup to unknown peer");
+        return;
+      }
+
       peer.send({'call_hangup': {peer: nick}});
       logger.info({type: "call:hangup"});
     },
