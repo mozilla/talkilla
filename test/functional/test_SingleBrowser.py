@@ -3,6 +3,7 @@
 
 import mixins
 import unittest
+import time
 
 from browser_test import SingleNodeBrowserTest
 
@@ -23,6 +24,7 @@ class SingleBrowserTest(mixins.WithSingleBob, SingleNodeBrowserTest):
         self.bob.signin()
 
         self.bob.refresh()
+        time.sleep(2)
 
         self.assertSignedInAs(self.bob, "bob")
 
