@@ -48,7 +48,7 @@
       //      /chatWindow.html#L18
       this.$('link[rel="icon"]').remove();
       $('<link rel="icon">')
-        .attr('href', 'img/' + peer.get('presence') + '.png')
+        .attr('href', 'img/presence/' + peer.get('presence') + '.png')
         .appendTo(this.$('head'));
     },
 

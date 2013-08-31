@@ -100,11 +100,13 @@ class BrowserTest(unittest.TestCase):
 
     def assertPresenceIconConnected(self, driver):
         self.assertElementsCount(
-            driver, 'head > link[rel="icon"][href="img/connected.png"]', 1)
+            driver,
+            'head > link[rel="icon"][href="img/presence/connected.png"]', 1)
 
     def assertPresenceIconDisconnected(self, driver):
         self.assertElementsCount(
-            driver, 'head > link[rel="icon"][href="img/disconnected.png"]', 1)
+            driver,
+            'head > link[rel="icon"][href="img/presence/disconnected.png"]', 1)
 
     def assertCallTimedOut(self, driver):
         self.assertElementVisible(driver, ".btn-call-again")
