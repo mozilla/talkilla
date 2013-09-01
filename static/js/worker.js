@@ -211,7 +211,7 @@ function UserData(initial, config) {
 }
 
 UserData.prototype = {
-  /*jshint es5: true */
+
   get userName() {
     return this._userName;
   },
