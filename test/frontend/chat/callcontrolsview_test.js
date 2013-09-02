@@ -12,7 +12,8 @@ describe("Call Controls View", function() {
            '<li class="btn-video"><a href="#"></a></li>' +
            '<li class="btn-audio"><a href="#"></a></li>' +
            '<li class="btn-hangup"><a href="#"></a></li>' +
-           '<li class="btn-audio-mute"><a href="#"></a></li>' +
+           '<li class="btn-microphone-mute"><a href="#"></a></li>' +
+           '<li class="btn-speaker-mute"><a href="#"></a></li>' +
            '</ul>');
     // Just to hide it from the screen.
     $(el).hide();
@@ -143,7 +144,8 @@ describe("Call Controls View", function() {
       sandbox.stub(app.views.CallControlsView.prototype, "videoCall");
       sandbox.stub(app.views.CallControlsView.prototype, "audioCall");
       sandbox.stub(app.views.CallControlsView.prototype, "hangup");
-      sandbox.stub(app.views.CallControlsView.prototype, "audioMuteToggle");
+      sandbox.stub(app.views.CallControlsView.prototype, "outgoingAudioToggle");
+      sandbox.stub(app.views.CallControlsView.prototype, "incomingAudioToggle");
       callControlsView = new app.views.CallControlsView({el: el});
     });
 
@@ -168,11 +170,11 @@ describe("Call Controls View", function() {
         sinon.assert.calledOnce(callControlsView.hangup);
       });
 
-    it("should call audioMuteToggle() when a click event is fired on the" +
+    it("should call outgoingAudioToggle() when a click event is fired on the" +
       " audio mute button", function() {
-        $(el).find('.btn-audio-mute a').trigger("click");
+        $(el).find('.btn-microphone-mute a').trigger("click");
 
-        sinon.assert.calledOnce(callControlsView.audioMuteToggle);
+        sinon.assert.calledOnce(callControlsView.outgoingAudioToggle);
       });
 
   });
@@ -241,22 +243,43 @@ describe("Call Controls View", function() {
       });
     });
 
-    describe("#audioMuteToggle", function() {
+    describe("#outgoingAudioToggle", function() {
       beforeEach(function() {
-        $('.btn-audio-mute').removeClass('active');
+        $('.btn-microphone-mute').removeClass('active');
       });
 
       it('should toggle the class on the button', function() {
-        callControlsView.audioMuteToggle();
+        callControlsView.outgoingAudioToggle();
 
-        expect($('.btn-audio-mute').hasClass("active")).to.be.equal(true);
+        expect($('.btn-microphone-mute').hasClass("active")).to.be.equal(true);
       });
 
-      it('should set the audio mute state', function() {
-        callControlsView.audioMuteToggle();
+      it('should set the local audio mute state', function() {
+        callControlsView.outgoingAudioToggle();
 
         sinon.assert.calledOnce(media.setMuteState);
-        sinon.assert.calledWithExactly(media.setMuteState, 'audio', true);
+        sinon.assert.calledWithExactly(media.setMuteState,
+                                       'local', 'audio', true);
+      });
+    });
+
+    describe("#incomingAudioToggle", function() {
+      beforeEach(function() {
+        $('.btn-speaker-mute').removeClass('active');
+      });
+
+      it('should toggle the class on the button', function() {
+        callControlsView.incomingAudioToggle();
+
+        expect($('.btn-speaker-mute').hasClass("active")).to.be.equal(true);
+      });
+
+      it('should set the remote audio mute state', function() {
+        callControlsView.incomingAudioToggle();
+
+        sinon.assert.calledOnce(media.setMuteState);
+        sinon.assert.calledWithExactly(media.setMuteState,
+                                       'remote', 'audio', true);
       });
     });
   });

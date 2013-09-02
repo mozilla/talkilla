@@ -98,7 +98,8 @@
       'click .btn-video a': 'videoCall',
       'click .btn-audio a': 'audioCall',
       'click .btn-hangup a': 'hangup',
-      'click .btn-audio-mute a': 'audioMuteToggle'
+      'click .btn-microphone-mute a': 'outgoingAudioToggle',
+      'click .btn-speaker-mute a': 'incomingAudioToggle'
     },
 
     initialize: function(options) {
@@ -138,16 +139,22 @@
       this.call.hangup(true);
     },
 
-    audioMuteToggle: function(event) {
+    outgoingAudioToggle: function(event) {
       if (event)
         event.preventDefault();
 
-      var button = this.$('.btn-audio-mute');
-
+      var button = this.$('.btn-microphone-mute');
       button.toggleClass('active');
+      this.media.setMuteState('local', 'audio', button.hasClass('active'));
+    },
 
-      this.media.setMuteState('audio',
-                              button.hasClass('active'));
+    incomingAudioToggle: function(event) {
+      if (event)
+        event.preventDefault();
+
+      var button = this.$('.btn-speaker-mute');
+      button.toggleClass('active');
+      this.media.setMuteState('remote', 'audio', button.hasClass('active'));
     },
 
     _callPending: function() {
@@ -159,7 +166,8 @@
       this.$('.btn-video').hide();
       this.$('.btn-audio').hide();
       this.$('.btn-hangup').show();
-      this.$('.btn-audio-mute').show();
+      this.$('.btn-microphone-mute').show();
+      this.$('.btn-speaker-mute').show();
     },
 
     _callInactive: function() {
@@ -167,7 +175,8 @@
       this.$('.btn-video').show();
       this.$('.btn-audio').show();
       this.$('.btn-hangup').hide();
-      this.$('.btn-audio-mute').hide();
+      this.$('.btn-microphone-mute').hide();
+      this.$('.btn-speaker-mute').hide();
     }
   });
 
