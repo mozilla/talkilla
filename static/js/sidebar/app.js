@@ -1,4 +1,4 @@
-/*global jQuery, Backbone, _, AppPort*/
+/*global AppPort*/
 /* jshint unused: false */
 /**
  * Sidebar application.

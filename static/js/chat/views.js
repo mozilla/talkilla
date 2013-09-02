@@ -1,4 +1,4 @@
-/* global app, Backbone, _, jQuery */
+/*global app */
 /**
  * Talkilla Backbone views.
  */

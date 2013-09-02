@@ -1,4 +1,3 @@
-/* global describe, it, beforeEach, afterEach */
 /* jshint expr:true */
 
 process.env.NO_LOCAL_CONFIG = true;

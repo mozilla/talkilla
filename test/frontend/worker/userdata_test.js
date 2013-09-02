@@ -1,5 +1,4 @@
-/* global afterEach, beforeEach, chai, describe, sinon, it,
-   UserData, browserPort:true */
+/*global chai, sinon, UserData, browserPort:true */
 
 var expect = chai.expect;
 

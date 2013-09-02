@@ -1,7 +1,5 @@
-/* global afterEach, beforeEach, chai, describe, sinon, it,
-   _currentUserData:true,
-   currentConversation:true, UserData, browserPort:true,
-   storeContact:true, Conversation */
+/*global chai, sinon, _currentUserData:true, currentConversation:true,
+  UserData, browserPort:true, storeContact:true, Conversation */
 /* jshint expr:true */
 
 var expect = chai.expect;

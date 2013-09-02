@@ -1,4 +1,4 @@
-/* global _, Backbone, app, chai, describe, it, sinon, beforeEach, afterEach */
+/*global app, chai, sinon */
 
 /* jshint expr:true */
 var expect = chai.expect;

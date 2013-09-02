@@ -1,5 +1,4 @@
 /* jshint unused:false */
-/* global indexedDB */
 
 var _config = {DEBUG: false};
 var _cookieNickname;

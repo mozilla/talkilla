@@ -1,10 +1,9 @@
-/* global afterEach, beforeEach, chai, describe, sinon, it,
-   Port, _presenceSocket:true, ports, _config:true, createPresenceSocket,
-   _presenceSocketOnMessage, _presenceSocketOnError,
-   _presenceSocketOnClose, _presenceSocketSendMessage,
-   _presenceSocketOnOpen, _presenceSocketReAttached, tryPresenceSocket,
-   _setupWebSocket, _loginExpired, UserData, _currentUserData:true,
-   serverHandlers, _
+/*global Port, _presenceSocket:true, ports, _config:true, createPresenceSocket,
+  _presenceSocketOnMessage, _presenceSocketOnError,
+  _presenceSocketOnClose, _presenceSocketSendMessage,
+  _presenceSocketOnOpen, _presenceSocketReAttached, tryPresenceSocket,
+  _setupWebSocket, _loginExpired, UserData, _currentUserData:true,
+  serverHandlers, chai, sinon
  */
 /* Needed due to the use of non-camelcase in the websocket topics */
 /* jshint camelcase:false */

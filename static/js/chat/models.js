@@ -1,4 +1,4 @@
-/* global app, Backbone, StateMachine, _, tnetbin */
+/*global app, StateMachine, tnetbin */
 /**
  * ChatApp models and collections.
  */

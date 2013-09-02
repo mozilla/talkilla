@@ -1,5 +1,4 @@
-/* global app, chai, describe, it, sinon, beforeEach, afterEach, $,
-          WebRTC */
+/*global app, chai, sinon, WebRTC */
 
 /* jshint expr:true */
 var expect = chai.expect;

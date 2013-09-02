@@ -1,5 +1,4 @@
-/* global app, chai, describe, it, sinon, beforeEach, afterEach,
-   mozRTCSessionDescription, mozRTCPeerConnection */
+/*global app, chai, sinon */
 
 /* jshint expr:true */
 var expect = chai.expect;

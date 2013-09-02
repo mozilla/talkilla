@@ -1,4 +1,4 @@
-/* global app, describe, it, beforeEach, afterEach, sinon, AppPort */
+/*global app, sinon, AppPort */
 
 describe("UserEntryView", function() {
   var sandbox, sidebarApp;

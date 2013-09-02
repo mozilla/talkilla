@@ -6,6 +6,7 @@
   "immed" : false,    // true: Require immediate invocations to be wrapped
                       // in parens e.g. `(function () { } ());`
   "indent" : 2,
+  "jquery": true,
   "latedef" : true,   // true: Require variables to be defined before use
                       // (helps avoid hoisting bugs)
 
@@ -14,6 +15,24 @@
   "trailing" : false, // true: Prohibit trailing whitespaces
   "undef" : true,     // true: Require all non-global variables to be
                       // declared (prevents global leaks)
-  "unused" : true     // true: Require all defined variables be used
+  "unused" : true,     // true: Require all defined variables be used
 
+  "globals": {
+    // mocha globals
+    "after": false,
+    "afterEach": false,
+    "before": false,
+    "beforeEach": false,
+    "describe": false,
+    "it": false,
+
+    // firefox stuff not covered by "browser" option
+    "indexedDB": true,
+    "mozRTCPeerConnection": false,
+    "mozRTCSessionDescription": false,
+
+    "Backbone": false,
+
+    "_": false
+  }
 }

@@ -1,4 +1,4 @@
-/* global app, Backbone */
+/*global app */
 /**
  * Talkilla models and collections.
  */
