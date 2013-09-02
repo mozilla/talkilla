@@ -239,21 +239,30 @@
 
   /**
    * Mutes all the video or audio streams on the connection
-   * @param {String}  type The type of stream to mute, values are
-   *                       'audio' or 'video'
-   * @param {Boolean} mute True to mute the stream, false to unmute
+   * @param {String}  type  The type of stream to mute, values are
+   *                        'local' or 'remote'
+   * @param {String}  media The type of media stream to mute, values are
+   *                        'audio' or 'video'
+   * @param {Boolean} mute  True to mute the stream, false to unmute
    */
-  WebRTC.prototype.setMuteState = function(type, mute) {
-    var streams = this.pc.getLocalStreams();
+  WebRTC.prototype.setMuteState = function(type, media, mute) {
+    var streams;
+
+    if (type === 'local')
+      streams = this.pc.getLocalStreams();
+    else if (type === 'remote')
+      streams = this.pc.getRemoteStreams();
+    else
+      throw new Error("Unsupported stream type: " + type);
 
     function muteTrack(track) {
       track.enabled = !mute;
     }
 
     streams.forEach(function(stream) {
-      if (type === 'audio')
+      if (media === 'audio')
         stream.getAudioTracks().forEach(muteTrack, this);
-      else if (type === 'video')
+      else if (media === 'video')
         stream.getVideoTracks().forEach(muteTrack, this);
     }, this);
   };

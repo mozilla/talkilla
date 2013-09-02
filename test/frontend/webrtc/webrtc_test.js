@@ -22,12 +22,22 @@ describe("WebRTC", function() {
   var audioStreamTrack = {enabled:true};
   var videoStreamTrack = {enabled:true};
 
-  var mediaStream;
+  var localMediaStream, remoteMediaStream;
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
 
-    mediaStream = {
+    localMediaStream = {
+      stop: sandbox.spy(),
+      getAudioTracks: function() {
+        return [audioStreamTrack];
+      },
+      getVideoTracks: function() {
+        return [videoStreamTrack];
+      }
+    };
+
+    remoteMediaStream = {
       stop: sandbox.spy(),
       getAudioTracks: function() {
         return [audioStreamTrack];
@@ -58,7 +68,10 @@ describe("WebRTC", function() {
         return fakeDataChannel;
       },
       getLocalStreams: function() {
-        return [mediaStream];
+        return [localMediaStream];
+      },
+      getRemoteStreams: function() {
+        return [remoteMediaStream];
       }
     });
 
@@ -506,7 +519,7 @@ describe("WebRTC", function() {
       it("should stop local media streams", function() {
         webrtc.terminate();
 
-        sinon.assert.calledOnce(mediaStream.stop);
+        sinon.assert.calledOnce(localMediaStream.stop);
       });
 
       describe("#terminate events", function() {
@@ -538,15 +551,29 @@ describe("WebRTC", function() {
         videoStreamTrack.enabled = true;
       });
 
-      it("should set the mute status for audio tracks", function() {
-        webrtc.setMuteState('audio', true);
+      it("should set the mute status for local audio tracks", function() {
+        webrtc.setMuteState('local', 'audio', true);
 
         expect(audioStreamTrack.enabled).to.be.equal(false);
         expect(videoStreamTrack.enabled).to.be.equal(true);
       });
 
-      it("should set the mute status for video tracks", function() {
-        webrtc.setMuteState('video', true);
+      it("should set the mute status for local video tracks", function() {
+        webrtc.setMuteState('local', 'video', true);
+
+        expect(audioStreamTrack.enabled).to.be.equal(true);
+        expect(videoStreamTrack.enabled).to.be.equal(false);
+      });
+
+      it("should set the mute status for remote audio tracks", function() {
+        webrtc.setMuteState('remote', 'audio', true);
+
+        expect(audioStreamTrack.enabled).to.be.equal(false);
+        expect(videoStreamTrack.enabled).to.be.equal(true);
+      });
+
+      it("should set the mute status for remote video tracks", function() {
+        webrtc.setMuteState('remote', 'video', true);
 
         expect(audioStreamTrack.enabled).to.be.equal(true);
         expect(videoStreamTrack.enabled).to.be.equal(false);
