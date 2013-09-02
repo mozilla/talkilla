@@ -46,11 +46,12 @@ User.prototype.send = function(data, errback) {
   var message = JSON.stringify(data);
   if (this.ws)
     this.ws.send(message, errback);
-  else
+  else {
     logger.error({
       type: "websocket",
       err: new Error("The websocket does not exist anymore")
     });
+  }
   return this;
 };
 
@@ -109,7 +110,7 @@ Users.prototype.get = function(nick) {
 Users.prototype.all = function() {
   return Object.keys(this.users).map(function(nick) {
     return this.users[nick];
-  }.bind(this));
+  }, this);
 };
 
 /**
@@ -131,7 +132,7 @@ Users.prototype.remove = function(nick) {
 Users.prototype.forEach = function(callback) {
   Object.keys(this.users).forEach(function(nick) {
     callback(this.users[nick]);
-  }.bind(this));
+  }, this);
 };
 
 /**
@@ -139,14 +140,13 @@ Users.prototype.forEach = function(callback) {
  * @return {Array} array of users
  */
 Users.prototype.present = function() {
-  var presentUsers = [];
-  Object.keys(this.users).forEach(function(nick) {
-    var user = this.users[nick];
-    if (user.ws)
-      presentUsers.push(user);
-  }.bind(this));
-
-  return presentUsers;
+  return Object.keys(this.users)
+    .filter(function(nick) {
+      return !!this.users[nick].ws;
+    }, this)
+    .map(function(nick) {
+      return this.users[nick];
+    }, this);
 };
 
 /**
