@@ -4,11 +4,14 @@
     "trailing" : false, // true: Prohibit trailing whitespaces
     "camelcase" : true,
     "eqeqeq" : true,    // true: Require triple equals (===) for comparison
-    "immed" : false,    // true: Require immediate invocations to be wrapped in parens e.g. `(function () { } ());`
-    "undef" : true,     // true: Require all non-global variables to be declared (prevents global leaks)
+    "immed" : false,    // true: Require immediate invocations to be wrapped
+                        // in parens e.g. `(function () { } ());`
+    "undef" : true,     // true: Require all non-global variables to be
+                        // declared (prevents global leaks)
     "unused" : true,    // true: Require all defined variables be used
     "browser" : true,   // Web Browser (window, document, etc)
     "devel" : true,     // Development/debugging (alert, confirm, etc)
     "node" : true,      // Node.js
-    "latedef" : true    // true: Require variables to be defined before use (helps avoid hoisting bugs)
+    "latedef" : true    // true: Require variables to be defined before use
+                        // (helps avoid hoisting bugs)
 }
