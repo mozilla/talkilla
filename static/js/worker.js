@@ -13,6 +13,10 @@ var contacts;
 var contactsDb;
 var kContactDBName = "contacts";
 
+function getCurrentUsers() {
+  return currentUsers || [];
+}
+
 function getContactsDatabase(doneCallback, contactDBName) {
   var kDBVersion = 1;
   contactDBName = contactDBName || "TalkillaContacts";
@@ -139,6 +143,12 @@ Conversation.prototype = {
    */
   _sendCall: function() {
     storeContact(this.data.peer);
+
+    // retrieve peer presence information
+    getCurrentUsers().forEach(function(user) {
+      if (user.nick === this.data.peer)
+        this.data.peerPresence = user.presence;
+    }, this);
 
     var topic = this.data.offer ?
       "talkilla.conversation-incoming" :
@@ -298,7 +308,7 @@ var serverHandlers = {
   'userJoined': function(data) {
     this.debug("userJoined", data);
 
-    currentUsers = currentUsers || [];
+    currentUsers = getCurrentUsers();
     // XXX Remove the user if they exist, and then re-add to handle
     // the case if the user doesn't exist.
     // This needs refactoring/handling better with a change for better
@@ -309,12 +319,13 @@ var serverHandlers = {
     // We then add the user with an online presence
     currentUsers.push({nick: data, presence: "connected"});
     ports.broadcastEvent("talkilla.users", currentUsers);
+    ports.broadcastEvent("talkilla.user-joined", data);
   },
 
   'userLeft': function(data) {
     this.debug("userLeft", data);
 
-    currentUsers = currentUsers || [];
+    currentUsers = getCurrentUsers();
     // Show the user as disconnected
     currentUsers = currentUsers.map(function(user) {
       if (user.nick === data)
@@ -322,6 +333,7 @@ var serverHandlers = {
       return user;
     });
     ports.broadcastEvent("talkilla.users", currentUsers);
+    ports.broadcastEvent("talkilla.user-left", data);
   },
 
   'incoming_call': function(data) {
