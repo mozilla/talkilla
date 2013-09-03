@@ -12,7 +12,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 SELENIUM_COMMAND_EXECUTOR = os.getenv("SELENIUM_COMMAND_EXECUTOR",
                                       "http://127.0.0.1:4444/wd/hub")
 BASE_APP_URL = "http://localhost:3000"
-DEFAULT_WAIT_TIMEOUT = 5
+DEFAULT_WAIT_TIMEOUT = 10
 
 
 class Driver(WebDriver):
