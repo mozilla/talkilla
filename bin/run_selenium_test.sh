@@ -12,7 +12,7 @@ set +x
 . ./.venv/bin/activate
 set -x
 
-python $@
+$@
 RESULT=$?
 $DIR/selenium.sh stop
 
