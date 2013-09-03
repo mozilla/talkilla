@@ -232,7 +232,6 @@
      * @return {Boolean}
      */
     requiresVideo: function() {
-      console.log('requiresVideo', this.get('currentConstraints'));
       return this.get('currentConstraints').video;
     }
   });

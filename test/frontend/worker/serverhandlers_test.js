@@ -42,10 +42,21 @@ describe("serverHandlers", function() {
 
       serverHandlers.userJoined("foo");
 
-      sinon.assert.calledOnce(ports.broadcastEvent);
+      sinon.assert.called(ports.broadcastEvent);
       sinon.assert.calledWith(ports.broadcastEvent, "talkilla.users", [
         {nick: "foo", presence: "connected"}
       ]);
+    });
+
+    it("should broadcast a `talkilla.user-joined` event", function() {
+      currentUsers = [];
+      sandbox.stub(ports, "broadcastEvent");
+
+      serverHandlers.userJoined("foo");
+
+      sinon.assert.called(ports.broadcastEvent);
+      sinon.assert.calledWith(ports.broadcastEvent,
+                              "talkilla.user-joined", "foo");
     });
 
   });
@@ -58,10 +69,21 @@ describe("serverHandlers", function() {
 
       serverHandlers.userLeft("foo");
 
-      sinon.assert.calledOnce(ports.broadcastEvent);
+      sinon.assert.called(ports.broadcastEvent);
       sinon.assert.calledWith(ports.broadcastEvent, "talkilla.users", [
         {nick: "foo", presence: "disconnected"}
       ]);
+    });
+
+    it("should broadcast a `talkilla.user-left` event", function() {
+      currentUsers = [];
+      sandbox.stub(ports, "broadcastEvent");
+
+      serverHandlers.userLeft("foo");
+
+      sinon.assert.called(ports.broadcastEvent);
+      sinon.assert.calledWith(ports.broadcastEvent,
+                              "talkilla.user-left", "foo");
     });
 
   });

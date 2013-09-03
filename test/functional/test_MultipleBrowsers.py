@@ -113,5 +113,15 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
         self.assertChatMessageContains(self.bob, "ok", line=3)
         self.assertChatMessageContains(self.larry, "ok", line=3)
 
+    def test_presence_icon(self):
+        self.larry.signin()
+        self.bob.signin()
+
+        self.bob.openConversationWith("larry")
+        self.assertPresenceIconConnected(self.bob)
+
+        self.larry.signout()
+        self.assertPresenceIconDisconnected(self.bob)
+
 if __name__ == "__main__":
     unittest.main(catchbreak=True)

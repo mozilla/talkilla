@@ -114,6 +114,20 @@ describe("Conversation", function() {
 
         sinon.assert.calledOnce(storeContact);
       });
+
+    it("should send peer presence information", function() {
+      sandbox.stub(window, "getCurrentUsers", function() {
+        return [{nick: "florian", presence: "connected"}];
+      });
+      currentConversation = new Conversation(data);
+
+      currentConversation.windowOpened(port);
+
+      sinon.assert.called(port.postEvent);
+      sinon.assert.calledWithMatch(port.postEvent,
+                                   "talkilla.conversation-open",
+                                   {peerPresence: "connected"});
+    });
   });
 
   describe("#handleIncomingCall", function() {
@@ -174,6 +188,25 @@ describe("Conversation", function() {
                                 "talkilla.conversation-incoming",
                                 incomingData);
       });
+
+    it("should send peer presence information", function() {
+      sandbox.stub(window, "getCurrentUsers", function() {
+        return [{nick: "florian", presence: "connected"}];
+      });
+      var incomingData = {
+        offer: {
+          sdp: "fake"
+        },
+        peer: "florian"
+      };
+
+      currentConversation.handleIncomingCall(incomingData);
+
+      sinon.assert.called(port.postEvent);
+      sinon.assert.calledWithMatch(port.postEvent,
+                                   "talkilla.conversation-incoming",
+                                   {peerPresence: "connected"});
+    });
   });
 
   describe("#callAccepted", function() {
