@@ -246,6 +246,14 @@ describe("ChatApp", function() {
 
         expect(chatApp.peer.get("presence")).to.equal(callData.peerPresence);
       });
+
+      it("should trigger peer's presence attribute change", function() {
+        sandbox.stub(chatApp.peer, 'trigger');
+
+        chatApp._onConversationOpen(callData);
+
+        sinon.assert.calledWith(chatApp.peer.trigger, "change:presence");
+      });
     });
 
     describe("#_onIncomingConversation", function() {

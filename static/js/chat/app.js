@@ -131,7 +131,9 @@ var ChatApp = (function($, Backbone, _) {
   // Outgoing calls
   ChatApp.prototype._onConversationOpen = function(data) {
     this.user.set({nick: data.user});
-    this.peer.set({nick: data.peer, presence: data.peerPresence});
+    this.peer
+        .set({nick: data.peer, presence: data.peerPresence}, {silent: true})
+        .trigger('change:presence', this.peer); // force triggering change event
   };
 
   ChatApp.prototype._onCallAccepted = function() {

@@ -10,6 +10,7 @@ describe("ConversationView", function() {
 
     beforeEach(function() {
       $('#fixtures').append([
+        '<link rel="icon"/>',
         '<div id="textchat">',
         '  <ul></ul>',
         '  <form><input name="message"></form>',
@@ -175,22 +176,38 @@ describe("ConversationView", function() {
         expect(document.title).to.be.equal("nick");
       });
 
-    it("should call _onPeerPresenceChanged when peer's presence status changes",
-      function() {
-        sandbox.restore(peer.on);
-        sandbox.stub(app.views.ConversationView.prototype,
-                     "_onPeerPresenceChanged");
-        var view = new app.views.ConversationView({
-          call: call,
-          peer: peer,
-          user: user,
-          textChat: textChat
-        });
-
-        peer.set({presence: "connected"});
-
-        sinon.assert.calledOnce(view._onPeerPresenceChanged);
+    it("should update presence icon when peer's is connected", function() {
+      sandbox.restore(peer.on);
+      var view = new app.views.ConversationView({
+        call: call,
+        peer: peer,
+        user: user,
+        textChat: textChat,
+        el: '#fixtures'
       });
+
+      peer.set({presence: "connected"});
+
+      expect(view.$('link[rel="icon"]').attr('href')).to.equal(
+        'img/presence/connected.png');
+    });
+
+    it("should update presence icon when peer's is disconnected", function() {
+      peer.set('presence', 'connected');
+      sandbox.restore(peer.on);
+      var view = new app.views.ConversationView({
+        call: call,
+        peer: peer,
+        user: user,
+        textChat: textChat,
+        el: '#fixtures'
+      });
+
+      peer.set({presence: "disconnected"});
+
+      expect(view.$('link[rel="icon"]').attr('href')).to.equal(
+        'img/presence/disconnected.png');
+    });
 
     describe("drag and drop events", function() {
       function fakeDropEvent(data) {

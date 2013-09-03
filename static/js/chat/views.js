@@ -46,10 +46,12 @@
       // XXX: for some reason we have to remove and readd the icon link
       // see: https://github.com/mixedpuppy/socialapi-demo/blob/gh-pages
       //      /chatWindow.html#L18
-      this.$('link[rel="icon"]').remove();
+      var $link = this.$('link[rel="icon"]');
+      var $parent = $link.parent();
+      $link.remove();
       $('<link rel="icon">')
         .attr('href', 'img/presence/' + peer.get('presence') + '.png')
-        .appendTo(this.$('head'));
+        .appendTo($parent);
     },
 
     _checkDragTypes: function(types) {
