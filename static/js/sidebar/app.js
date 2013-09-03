@@ -56,6 +56,7 @@ var SidebarApp = (function($, Backbone, _) {
     this.port.on("talkilla.login-failure", this._onLoginFailure.bind(this));
     this.port.on("talkilla.logout-success", this._onLogoutSuccess.bind(this));
     this.port.on("talkilla.error", this._onError.bind(this));
+    this.port.on("talkilla.websocket-error", this._onWebSocketError.bind(this));
     this.port.on("talkilla.presence-unavailable",
                  this._onPresenceUnavailable.bind(this));
     this.port.on("talkilla.chat-window-ready",
@@ -91,6 +92,16 @@ var SidebarApp = (function($, Backbone, _) {
     this.port.postEvent("talkilla.presence-request");
   };
 
+  // XXX a lot of the steps that happen after various types of logouts and
+  // failures are very very similar but not the same, and I suspect some
+  // of this is intentional, and some of it is not.  One of the consequences
+  // here is that the app itself can be left in a whole variety of mostly
+  // similar but non-identical states.  My guess is that there should really
+  // only be one or two states possible.  This needs some factoring out.
+  // However, I suspect the factoring is going to be meaningfully effected by
+  // our efforts to retry connections much of the time, so it probably makes
+  // sense to do it as part of that card.
+
   SidebarApp.prototype._onLoginFailure = function(error) {
     app.utils.notifyUI('Failed to login while communicating with the server: ' +
       error, 'error');
@@ -108,12 +119,20 @@ var SidebarApp = (function($, Backbone, _) {
       error, 'error');
   };
 
+  SidebarApp.prototype._onWebSocketError = function(error) {
+    app.utils.notifyUI('Error while communicating with the WebSocket server: ' +
+      error, 'error');
+    this.user.clear();
+  };
+
   SidebarApp.prototype._onPresenceUnavailable = function(code) {
-    // 1000 is CLOSE_NORMAL
+    // 1000 is CLOSE_NORMAL, meaning that the app itself called close(),
+    // (e.g. because the user clicked on logout), so there's no error
+    // here.
     if (code !== 1000) {
       this.user.clear();
       app.utils.notifyUI('Sorry, the browser lost communication with ' +
-                         'the server. code: ' + code);
+                         'the server. CloseEvent code: ' + code);
     }
   };
 
