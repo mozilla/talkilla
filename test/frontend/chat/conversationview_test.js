@@ -10,6 +10,7 @@ describe("ConversationView", function() {
 
     beforeEach(function() {
       $('#fixtures').append([
+        '<link rel="icon"/>',
         '<div id="textchat">',
         '  <ul></ul>',
         '  <form><input name="message"></form>',
@@ -136,7 +137,7 @@ describe("ConversationView", function() {
       expect(shouldExplode).to.Throw(Error, /missing parameter: textChat/);
     });
 
-    it("should attach to the app user model", function() {
+    it("should listen to peer's nick change", function() {
       new app.views.ConversationView({
         call: call,
         peer: peer,
@@ -146,6 +147,18 @@ describe("ConversationView", function() {
 
       sinon.assert.called(peer.on);
       sinon.assert.calledWith(peer.on, "change:nick");
+    });
+
+    it("should listen to peer's presence change", function() {
+      new app.views.ConversationView({
+        call: call,
+        peer: peer,
+        user: user,
+        textChat: textChat
+      });
+
+      sinon.assert.called(peer.on);
+      sinon.assert.calledWith(peer.on, "change:presence");
     });
 
     it("should update the document title on change of the peer's details",
@@ -162,6 +175,39 @@ describe("ConversationView", function() {
 
         expect(document.title).to.be.equal("nick");
       });
+
+    it("should update presence icon when peer's is connected", function() {
+      sandbox.restore(peer.on);
+      var view = new app.views.ConversationView({
+        call: call,
+        peer: peer,
+        user: user,
+        textChat: textChat,
+        el: '#fixtures'
+      });
+
+      peer.set({presence: "connected"});
+
+      expect(view.$('link[rel="icon"]').attr('href')).to.equal(
+        'img/presence/connected.png');
+    });
+
+    it("should update presence icon when peer's is disconnected", function() {
+      peer.set('presence', 'connected');
+      sandbox.restore(peer.on);
+      var view = new app.views.ConversationView({
+        call: call,
+        peer: peer,
+        user: user,
+        textChat: textChat,
+        el: '#fixtures'
+      });
+
+      peer.set({presence: "disconnected"});
+
+      expect(view.$('link[rel="icon"]').attr('href')).to.equal(
+        'img/presence/disconnected.png');
+    });
 
     describe("drag and drop events", function() {
       function fakeDropEvent(data) {
