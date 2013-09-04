@@ -188,7 +188,7 @@ body {
   line-height: 17px;
 }
 
-body.has-video #textchat ul {
+.has-video #textchat ul {
   position: fixed;
   top: inherit;
   bottom: 22px;
