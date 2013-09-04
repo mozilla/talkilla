@@ -35,9 +35,23 @@
         document.title = to.get("nick");
       });
 
+      this.peer.on('change:presence', this._onPeerPresenceChanged, this);
+
       this.call.media.on('local-stream:ready remote-stream:ready', function() {
         this.$el.addClass('has-video');
       }, this);
+    },
+
+    _onPeerPresenceChanged: function(peer) {
+      // XXX: for some reason we have to remove and readd the icon link
+      // see: https://github.com/mixedpuppy/socialapi-demo/blob/gh-pages
+      //      /chatWindow.html#L18
+      var $link = this.$('link[rel="icon"]');
+      var $parent = $link.parent();
+      $link.remove();
+      $('<link rel="icon">')
+        .attr('href', 'img/presence/' + peer.get('presence') + '.png')
+        .appendTo($parent);
     },
 
     _checkDragTypes: function(types) {
@@ -98,7 +112,8 @@
       'click .btn-video a': 'videoCall',
       'click .btn-audio a': 'audioCall',
       'click .btn-hangup a': 'hangup',
-      'click .btn-audio-mute a': 'audioMuteToggle'
+      'click .btn-microphone-mute a': 'outgoingAudioToggle',
+      'click .btn-speaker-mute a': 'incomingAudioToggle'
     },
 
     initialize: function(options) {
@@ -138,16 +153,22 @@
       this.call.hangup(true);
     },
 
-    audioMuteToggle: function(event) {
+    outgoingAudioToggle: function(event) {
       if (event)
         event.preventDefault();
 
-      var button = this.$('.btn-audio-mute');
-
+      var button = this.$('.btn-microphone-mute');
       button.toggleClass('active');
+      this.media.setMuteState('local', 'audio', button.hasClass('active'));
+    },
 
-      this.media.setMuteState('audio',
-                              button.hasClass('active'));
+    incomingAudioToggle: function(event) {
+      if (event)
+        event.preventDefault();
+
+      var button = this.$('.btn-speaker-mute');
+      button.toggleClass('active');
+      this.media.setMuteState('remote', 'audio', button.hasClass('active'));
     },
 
     _callPending: function() {
@@ -159,7 +180,8 @@
       this.$('.btn-video').hide();
       this.$('.btn-audio').hide();
       this.$('.btn-hangup').show();
-      this.$('.btn-audio-mute').show();
+      this.$('.btn-microphone-mute').show();
+      this.$('.btn-speaker-mute').show();
     },
 
     _callInactive: function() {
@@ -167,7 +189,8 @@
       this.$('.btn-video').show();
       this.$('.btn-audio').show();
       this.$('.btn-hangup').hide();
-      this.$('.btn-audio-mute').hide();
+      this.$('.btn-microphone-mute').hide();
+      this.$('.btn-speaker-mute').hide();
     }
   });
 

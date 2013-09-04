@@ -94,7 +94,7 @@ var ChatApp = (function($, Backbone, _) {
       textChat: this.textChat,
       peer: this.peer,
       user: this.user,
-      el: 'body'
+      el: 'html'
     });
 
     // User events
@@ -108,6 +108,8 @@ var ChatApp = (function($, Backbone, _) {
     this.port.on('talkilla.call-establishment',
                  this._onCallEstablishment.bind(this));
     this.port.on('talkilla.call-hangup', this._onCallShutdown.bind(this));
+    this.port.on('talkilla.user-joined', this._onUserJoined.bind(this));
+    this.port.on('talkilla.user-left', this._onUserLeft.bind(this));
 
     // Outgoing events
     this.call.on('send-offer', this._onSendOffer.bind(this));
@@ -129,7 +131,9 @@ var ChatApp = (function($, Backbone, _) {
   // Outgoing calls
   ChatApp.prototype._onConversationOpen = function(data) {
     this.user.set({nick: data.user});
-    this.peer.set({nick: data.peer});
+    this.peer
+        .set({nick: data.peer, presence: data.peerPresence}, {silent: true})
+        .trigger('change:presence', this.peer); // force triggering change event
   };
 
   ChatApp.prototype._onCallAccepted = function() {
@@ -150,7 +154,7 @@ var ChatApp = (function($, Backbone, _) {
     this.user.set({nick: data.user});
 
     if (!data.upgrade)
-      this.peer.set({nick: data.peer});
+      this.peer.set({nick: data.peer, presence: data.peerPresence});
 
     var options = _.extend(WebRTC.parseOfferConstraints(data.offer), {
       offer: data.offer,
@@ -204,6 +208,16 @@ var ChatApp = (function($, Backbone, _) {
   ChatApp.prototype._onUserSignout = function() {
     // ensure this chat window is closed when the user signs out
     window.close();
+  };
+
+  ChatApp.prototype._onUserJoined = function(nick) {
+    if (this.peer.get('nick') === nick)
+      this.peer.set('presence', 'connected');
+  };
+
+  ChatApp.prototype._onUserLeft = function(nick) {
+    if (this.peer.get('nick') === nick)
+      this.peer.set('presence', 'disconnected');
   };
 
   // if debug is enabled, verbosely log object events to the console

@@ -47,6 +47,8 @@ class Driver(WebDriver):
         self.switchToSidebar()
         self.add_cookie({"name": "test email", "value": self.nick})
         self.clickElement("#signin")
+        # Ensure we've completed logging in before proceeding
+        self.waitForElement("#signout", visible=True)
         return self
 
     def signout(self):
