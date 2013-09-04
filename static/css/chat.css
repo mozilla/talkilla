@@ -135,7 +135,6 @@ body {
 #call .remote-video {
   width: 100vw;
   min-width: 100vw;
-  max-height: 350px;
   vertical-align: bottom;
 }
 
