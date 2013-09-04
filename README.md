@@ -82,6 +82,13 @@ Run the tests, bootstrapping necessary dependencies from the net:
 
     $ make selenium
 
+To run the tests repeatedly, automatically for 10 runs or until failure:
+
+    $ make selenium-repeat
+
+To run an individual file for 20 runs, or until failure:
+
+    $ REPEAT_TEST=test/functional/test_SingleBrowser.py REPEAT_TIMES=20 make selenium-repeat
 
 Working With Individual Functional Test Files
 ---------------------------------------------
