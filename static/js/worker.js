@@ -1,4 +1,9 @@
 /* jshint unused:false */
+/* global indexedDB, importScripts:true, Server */
+
+if ((typeof importScripts) === "undefined")
+  importScripts = function() {};
+importScripts('worker/server.js');
 
 var _config = {DEBUG: false};
 var _cookieNickname;
@@ -11,6 +16,7 @@ var currentUsers;
 var contacts;
 var contactsDb;
 var kContactDBName = "contacts";
+var server = new Server();
 
 function getCurrentUsers() {
   return currentUsers || [];
@@ -553,8 +559,7 @@ var handlers = {
 
     this.postEvent('talkilla.login-pending', null);
 
-    sendAjax('/signin', 'POST', {assertion: msg.data.assertion},
-      _signinCallback.bind(this));
+    server.signin(msg.data.assertion, _signinCallback.bind(this));
   },
 
   'talkilla.logout': function() {
@@ -562,8 +567,7 @@ var handlers = {
       return;
 
     _presenceSocket.close();
-    sendAjax('/signout', 'POST', {nick: _currentUserData.userName},
-      _signoutCallback.bind(this));
+    server.signout(_currentUserData.userName, _signoutCallback.bind(this));
   },
 
   'talkilla.conversation-open': function(event) {
