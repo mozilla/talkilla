@@ -1,5 +1,4 @@
-/* global StateMachine, Backbone, _, tnetbin,
-          mozRTCPeerConnection, mozRTCSessionDescription */
+/*global StateMachine, tnetbin */
 
 (function(exports) {
   "use strict";

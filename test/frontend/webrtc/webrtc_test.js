@@ -1,5 +1,4 @@
-/* global WebRTC, tnetbin,
-          afterEach, beforeEach, chai, describe, sinon, it */
+/*global WebRTC, tnetbin, chai, sinon */
 
 var expect = chai.expect;
 

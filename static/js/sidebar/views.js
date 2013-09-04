@@ -1,4 +1,4 @@
-/* global app, sidebarApp, Backbone, _ */
+/*global app, sidebarApp */
 /**
  * Talkilla Backbone views.
  */

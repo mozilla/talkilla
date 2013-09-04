@@ -1,4 +1,4 @@
-/* global app, describe, it, beforeEach, afterEach, sinon */
+/*global app, sinon */
 
 describe("NotificationsView", function() {
   var sandbox, user, notificationsView;

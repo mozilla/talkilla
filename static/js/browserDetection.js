@@ -1,4 +1,4 @@
-/* global jQuery, CustomEvent */
+/*global CustomEvent */
 /* jshint unused: false */
 
 var browserDetection = (function ($) {

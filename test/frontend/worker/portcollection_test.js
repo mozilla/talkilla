@@ -1,5 +1,4 @@
-/* global chai, describe, sinon, it,
-   Port, PortCollection */
+/*global chai, sinon, Port, PortCollection */
 /* jshint expr:true */
 
 var expect = chai.expect;

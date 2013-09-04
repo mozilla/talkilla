@@ -1,5 +1,4 @@
-/* global app, chai, describe, it, sinon, beforeEach, afterEach,
-   ChatApp, $, _, Backbone, WebRTC */
+/*global app, chai, ChatApp, sinon, WebRTC */
 
 /* jshint expr:true */
 var expect = chai.expect;
