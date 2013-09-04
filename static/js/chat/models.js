@@ -47,7 +47,9 @@
                                      'ongoing'], to: 'pending'},
 
           // Incoming call scenario
-          {name: 'incoming',  from: 'ready',     to: 'incoming'},
+          {name: 'incoming',  from: ['ready',
+                                     'pending',
+                                     'timeout'], to: 'incoming'},
           {name: 'accept',    from: 'incoming',  to: 'pending'},
           {name: 'ignore',    from: 'incoming',  to: 'terminated'},
           {name: 'complete',  from: 'pending',   to: 'ongoing'},
