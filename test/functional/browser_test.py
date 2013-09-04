@@ -113,7 +113,8 @@ class BrowserTest(unittest.TestCase):
 
     def assertSignedInAs(self, driver, nick):
         driver.switchToSidebar()
-        self.assertElementTextEquals(driver, "strong.nick", nick)
+        # We might have just reloaded, so wait a bit in case it isn't there yet.
+        self.assertElementTextEquals(driver, "strong.nick", nick, True)
         self.assertElementVisible(driver, "#signout")
 
     def assertSignedOut(self, driver):
