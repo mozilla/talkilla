@@ -192,8 +192,8 @@ body {
   position: fixed;
   top: inherit;
   bottom: 22px;
-  height: 20vh;
-  min-height: 50px;
+  height: 13vh;
+  min-height: 35px;
 }
 
 #textchat form {
