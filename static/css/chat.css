@@ -188,12 +188,12 @@ body {
   line-height: 17px;
 }
 
-body.has-video #textchat ul {
+.has-video #textchat ul {
   position: fixed;
   top: inherit;
   bottom: 22px;
-  height: 20vh;
-  min-height: 50px;
+  height: 13vh;
+  min-height: 35px;
 }
 
 #textchat form {
