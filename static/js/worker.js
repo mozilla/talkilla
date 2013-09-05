@@ -5,7 +5,6 @@ importScripts('worker/server.js');
 
 var _config = {DEBUG: false};
 var _currentUserData;
-var _presenceSocket;
 var ports;
 var browserPort;
 var currentConversation;
@@ -369,38 +368,6 @@ var serverHandlers = {
   }
 };
 
-function _presenceSocketOnMessage(event) {
-  var data = JSON.parse(event.data);
-  for (var eventType in data)
-    if (eventType in serverHandlers)
-      serverHandlers[eventType](data[eventType]);
-    else
-      ports.broadcastEvent("talkilla." + eventType, data[eventType]);
-}
-
-function _presenceSocketOnOpen(event) {
-  "use strict";
-
-  _currentUserData.connected = true;
-  ports.broadcastEvent("talkilla.presence-open", event);
-}
-
-function _presenceSocketOnError(event) {
-  "use strict";
-
-  ports.broadcastEvent("talkilla.websocket-error", event);
-}
-
-function _presenceSocketOnClose(event) {
-  "use strict";
-
-  _currentUserData.connected = false;
-
-  // XXX: this will need future work to handle retrying presence connections
-  ports.broadcastEvent('talkilla.presence-unavailable', event.code);
-  currentUsers = undefined;
-}
-
 function _setupServer(server) {
   server.on("connected", function() {
     ports.broadcastEvent('talkilla.login-success', {
@@ -426,42 +393,6 @@ function _setupServer(server) {
   });
 }
 
-function _setupWebSocket(ws) {
-  "use strict";
-
-  ws.onopen = _presenceSocketOnOpen;
-  ws.onmessage = _presenceSocketOnMessage;
-  ws.onerror = _presenceSocketOnError;
-  ws.onclose = _presenceSocketOnClose;
-}
-
-function _loginExpired() {
-  "use strict";
-
-  _presenceSocket.removeEventListener("error", _loginExpired);
-  ports.broadcastEvent("talkilla.logout-success", {});
-}
-
-function _presenceSocketReAttached(username, event) {
-  "use strict";
-
-  _presenceSocket.removeEventListener("open", _presenceSocketReAttached);
-  _setupWebSocket(_presenceSocket);
-  _currentUserData.userName = username;
-  _presenceSocketOnOpen(event);
-  ports.broadcastEvent("talkilla.login-success", {username: username});
-}
-
-function tryPresenceSocket(nickname) {
-  "use strict";
-  /*jshint validthis:true */
-
-  _presenceSocket = new WebSocket(_config.WSURL + "?nick=" + nickname);
-  _presenceSocket.addEventListener(
-    "open", _presenceSocketReAttached.bind(this, nickname));
-  _presenceSocket.addEventListener("error", _loginExpired);
-  ports.broadcastEvent("talkilla.presence-pending", {});
-}
 
 function sendAjax(url, method, data, cb) {
   var xhr = new XMLHttpRequest();
@@ -505,7 +436,7 @@ function _signinCallback(err, responseText) {
   if (username) {
     _currentUserData.userName = username;
 
-    _presenceSocket = server.connect(username);
+    server.connect(username);
     ports.broadcastEvent("talkilla.presence-pending", {});
   }
 }
@@ -564,9 +495,6 @@ var handlers = {
     if (!_currentUserData.userName)
       return;
 
-    // XXX: Why are we closing the websocket instead of waiting for
-    // the signout API to do that?
-    _presenceSocket.close();
     server.signout(_currentUserData.userName, _signoutCallback.bind(this));
   },
 

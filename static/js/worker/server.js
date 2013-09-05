@@ -79,8 +79,6 @@ var Server = (function() {
   Server.prototype.connect = function(nick) {
     var ws = new WebSocket(this.options.WSURL + "?nick=" + nick);
     this._ws = this._setupWebSocket(ws);
-
-    return this._ws;
   };
 
   Server.prototype.autoconnect = function(nick) {

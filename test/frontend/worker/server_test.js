@@ -48,11 +48,10 @@ describe("Server", function() {
   describe("#connect", function() {
 
     it("should create a websocket", function() {
-      var server = new Server(), ws;
-      ws = server.connect("foo");
+      var server = new Server();
+      server.connect("foo");
 
       expect(server._ws).to.not.equal(undefined);
-      expect(ws).to.be.equal(server._ws);
     });
 
   });
@@ -60,28 +59,28 @@ describe("Server", function() {
   describe("#autoconnect", function() {
 
     it("should trigger a 'connected' event when it succeeded to reconnect",
-     function() {
-      var server = new Server();
-      var callback = sinon.spy();
+      function() {
+        var server = new Server();
+        var callback = sinon.spy();
 
-      server.on("connected", callback);
-      server.autoconnect("foo");
-      server._ws.onopen();
+        server.on("connected", callback);
+        server.autoconnect("foo");
+        server._ws.onopen();
 
-      sinon.assert.calledOnce(callback);
-     });
+        sinon.assert.calledOnce(callback);
+      });
 
     it("should trigger a 'disconnected' event when it failed to reconnect",
-     function() {
-      var server = new Server();
-      var callback = sinon.spy();
+      function() {
+        var server = new Server();
+        var callback = sinon.spy();
 
-      server.on("disconnected", callback);
-      server.autoconnect("foo");
-      server._ws.onerror();
+        server.on("disconnected", callback);
+        server.autoconnect("foo");
+        server._ws.onerror();
 
-      sinon.assert.calledOnce(callback);
-     });
+        sinon.assert.calledOnce(callback);
+      });
 
   });
 

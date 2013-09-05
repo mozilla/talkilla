@@ -1,8 +1,8 @@
 /*global chai, sinon, ports:true, Port, PortCollection, handlers,
   _currentUserData:true, currentConversation:true, UserData,
-  _presenceSocket:true, tryPresenceSocket, browserPort:true, currentUsers:true,
+  _presenceSocket:true, browserPort:true, currentUsers:true,
   Conversation, _config:true,
-  _cookieNickname:true, server */
+  _cookieNickname:true, Server, server:true */
 /* jshint expr:true */
 
 var expect = chai.expect;
@@ -12,6 +12,7 @@ describe('handlers', function() {
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
+    server = new Server({});
   });
 
   afterEach(function() {
@@ -64,16 +65,15 @@ describe('handlers', function() {
 
     it("should try to connect the presence socket",
       function() {
-        sandbox.stub(window, "tryPresenceSocket");
-        _config.WSURL = "Test";
+        sandbox.stub(server, "autoconnect");
         var event = {
           data: [ {name: "nick", value: "Boriss"} ]
         };
 
         handlers['social.cookies-get-response'](event);
 
-        sinon.assert.calledOnce(tryPresenceSocket);
-        sinon.assert.calledWithExactly(tryPresenceSocket, "Boriss");
+        sinon.assert.calledOnce(server.autoconnect);
+        sinon.assert.calledWithExactly(server.autoconnect, "Boriss");
       });
   });
 
@@ -259,24 +259,14 @@ describe('handlers', function() {
       xhr.restore();
     });
 
-    it('should tear down the websocket', function() {
-      handlers['talkilla.logout']({
-        topic: 'talkilla.logout',
-        data: null
-      });
-
-      sinon.assert.calledOnce(_presenceSocket.close);
-    });
-
     it("should post an ajax message to the server",
       function() {
+        sandbox.stub(server, "signout");
+        console.log(server);
         handlers['talkilla.logout']({
           topic: 'talkilla.logout'
         });
-        expect(requests.length).to.equal(1);
-        expect(requests[0].url).to.equal('/signout');
-        expect(requests[0].requestBody).to.be.not.empty;
-        expect(requests[0].requestBody).to.be.equal('{"nick":"romain"}');
+        sinon.assert.calledOnce(server.signout);
       });
 
     describe("Success logout", function() {
@@ -393,16 +383,16 @@ describe('handlers', function() {
       _currentUserData = undefined;
     });
 
-    it("should NOT call tryPresenceSocket if there is no nick provided",
+    it("should NOT try to connect if there is no nick provided",
       function () {
-        sandbox.stub(window, "tryPresenceSocket");
+        sandbox.stub(server, "autoconnect");
 
         handlers['talkilla.sidebar-ready']({
           topic: "talkilla.sidebar-ready",
           data: {}
         });
 
-        sinon.assert.notCalled(tryPresenceSocket);
+        sinon.assert.notCalled(server.autoconnect);
       });
   });
 
