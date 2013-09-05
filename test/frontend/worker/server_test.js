@@ -57,6 +57,34 @@ describe("Server", function() {
 
   });
 
+  describe("#autoconnect", function() {
+
+    it("should trigger a 'connected' event when it succeeded to reconnect",
+     function() {
+      var server = new Server();
+      var callback = sinon.spy();
+
+      server.on("connected", callback);
+      server.autoconnect("foo");
+      server._ws.onopen();
+
+      sinon.assert.calledOnce(callback);
+     });
+
+    it("should trigger a 'disconnected' event when it failed to reconnect",
+     function() {
+      var server = new Server();
+      var callback = sinon.spy();
+
+      server.on("disconnected", callback);
+      server.autoconnect("foo");
+      server._ws.onerror();
+
+      sinon.assert.calledOnce(callback);
+     });
+
+  });
+
   describe("websocket's events", function() {
 
     it("should trigger a 'connected' event when it opens", function() {

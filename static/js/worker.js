@@ -416,11 +416,12 @@ function _setupServer(server) {
     ports.broadcastEvent("talkilla.websocket-error", event);
   });
 
-  server.on("disconnected", function() {
+  server.on("disconnected", function(event) {
     _currentUserData.connected = false;
 
     // XXX: this will need future work to handle retrying presence connections
     ports.broadcastEvent('talkilla.presence-unavailable', event.code);
+    ports.broadcastEvent("talkilla.logout-success", {});
     currentUsers = undefined;
   });
 }
@@ -544,7 +545,7 @@ var handlers = {
       if (cookie.name === "nick")
         // If we've received the configuration info, then go
         // ahead and log in.
-        tryPresenceSocket(cookie.value);
+        server.autoconnect(cookie.value);
     });
   },
 
