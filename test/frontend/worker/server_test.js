@@ -1,5 +1,5 @@
 /* global Server */
-/* global describe, beforeEach, afterEach, sinon, it */
+/* global describe, beforeEach, afterEach, sinon, it, expect */
 
 // importScripts('worker/microevent.js');
 
@@ -8,6 +8,7 @@ describe("Server", function() {
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
+    sandbox.stub(window, "WebSocket").returns({});
   });
 
   afterEach(function() {
@@ -42,6 +43,81 @@ describe("Server", function() {
                                      callback);
     });
 
+  });
+
+  describe("#connect", function() {
+
+    it("should create a websocket", function() {
+      var server = new Server(), ws;
+      ws = server.connect("foo");
+
+      expect(server._ws).to.not.equal(undefined);
+      expect(ws).to.be.equal(server._ws);
+    });
+
+  });
+
+  describe("websocket's events", function() {
+
+    it("should trigger a 'connected' event when it opens", function() {
+      var server = new Server();
+      var callback = sinon.spy();
+
+      server.on("connected", callback);
+      server.connect("foo");
+      server._ws.onopen();
+
+      sinon.assert.calledOnce(callback);
+    });
+
+    it("should trigger a message event when it receive a message", function() {
+      var server = new Server();
+      var callback = sinon.spy();
+      var event = {data: JSON.stringify({thisis: {an: "event"}})};
+
+      server.on("message", callback);
+      server.connect("foo");
+      server._ws.onmessage(event);
+
+      sinon.assert.calledOnce(callback);
+      sinon.assert.calledWithExactly(callback, "thisis", {an: "event"});
+    });
+
+    it("should trigger a custom event when it receive a message", function() {
+      var server = new Server();
+      var callback = sinon.spy();
+      var event = {data: JSON.stringify({custom: {an: "event"}})};
+
+      server.on("message:custom", callback);
+      server.connect("foo");
+      server._ws.onmessage(event);
+
+      sinon.assert.calledOnce(callback);
+      sinon.assert.calledWithExactly(callback, {an: "event"});
+    });
+
+    it("should trigger an error event when having an error", function() {
+      var server = new Server();
+      var callback = sinon.spy();
+
+      server.on("error", callback);
+      server.connect("foo");
+      server._ws.onerror("an error");
+
+      sinon.assert.calledOnce(callback);
+      sinon.assert.calledWithExactly(callback, "an error");
+    });
+
+    it("should trigger a disconnected event when it closes", function() {
+      var server = new Server();
+      var callback = sinon.spy();
+
+      server.on("disconnected", callback);
+      server.connect("foo");
+      server._ws.onclose();
+
+      sinon.assert.calledOnce(callback);
+    });
   });
 });
 

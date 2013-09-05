@@ -1,8 +1,6 @@
+/* global indexedDB, importScripts, Server */
 /* jshint unused:false */
-/* global indexedDB, importScripts:true, Server */
 
-if ((typeof importScripts) === "undefined")
-  importScripts = function() {};
 importScripts('worker/server.js');
 
 var _config = {DEBUG: false};
@@ -16,7 +14,7 @@ var currentUsers;
 var contacts;
 var contactsDb;
 var kContactDBName = "contacts";
-var server = new Server();
+var server;
 
 function getCurrentUsers() {
   return currentUsers || [];
@@ -408,6 +406,30 @@ function _presenceSocketOnClose(event) {
   currentUsers = undefined;
 }
 
+function _setupServer(server) {
+  server.on("connected", function() {
+    ports.broadcastEvent('talkilla.login-success', {
+      username: _currentUserData.userName
+    });
+  });
+
+  server.on("message", function(type, event) {
+    serverHandlers[type](event);
+  });
+
+  server.on("error", function(event) {
+    ports.broadcastEvent("talkilla.websocket-error", event);
+  });
+
+  server.on("disconnected", function() {
+    _currentUserData.connected = false;
+
+    // XXX: this will need future work to handle retrying presence connections
+    ports.broadcastEvent('talkilla.presence-unavailable', event.code);
+    currentUsers = undefined;
+  });
+}
+
 function _setupWebSocket(ws) {
   "use strict";
 
@@ -415,16 +437,6 @@ function _setupWebSocket(ws) {
   ws.onmessage = _presenceSocketOnMessage;
   ws.onerror = _presenceSocketOnError;
   ws.onclose = _presenceSocketOnClose;
-}
-
-function createPresenceSocket(nickname, callback) {
-  "use strict";
-
-  _presenceSocket = new WebSocket(_config.WSURL + "?nick=" + nickname);
-  _presenceSocket.addEventListener("open", callback);
-  _setupWebSocket(_presenceSocket);
-
-  ports.broadcastEvent("talkilla.presence-pending", {});
 }
 
 function _loginExpired() {
@@ -497,11 +509,8 @@ function _signinCallback(err, responseText) {
   if (username) {
     _currentUserData.userName = username;
 
-    createPresenceSocket(username, function() {
-      ports.broadcastEvent('talkilla.login-success', {
-        username: username
-      });
-    });
+    _presenceSocket = server.connect(username);
+    ports.broadcastEvent("talkilla.presence-pending", {});
   }
 }
 
@@ -752,6 +761,9 @@ loadconfig(function(err, config) {
     return ports.broadcastError(err);
   _config = config;
   _currentUserData = new UserData({}, config);
+  server = new Server(config);
+
+  _setupServer(server);
 
   // If we've already got the cookie data, try to log in
   if (_cookieNickname) {

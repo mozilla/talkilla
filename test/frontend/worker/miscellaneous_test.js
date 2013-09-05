@@ -1,7 +1,7 @@
 /*global chai, sinon, _config:true, loadconfig, _signinCallback,
    _currentUserData:true, UserData, getContactsDatabase,
    storeContact, contacts:true, contactsDb:true, indexedDB,
-   updateCurrentUsers, currentUsers, sendAjax */
+   updateCurrentUsers, currentUsers, sendAjax, _, server */
 var expect = chai.expect;
 var contactDBName = "TalkillaContactsUnitTest";
 
@@ -80,7 +80,7 @@ describe('Miscellaneous', function() {
 
     beforeEach(function() {
       sandbox.stub(window, "WebSocket");
-      socketStub = sinon.stub(window, "createPresenceSocket");
+      socketStub = sinon.stub(server, "connect");
       _config.WSURL = wsurl;
       _currentUserData = new UserData({});
       sandbox.stub(_currentUserData, "send");

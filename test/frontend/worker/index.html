@@ -17,6 +17,11 @@
   <script>mocha.setup('bdd')</script>
   <script src="../../../vendor/jquery-1.9.1.js"></script>
   <script src="../../../vendor/underscore-1.4.4.js"></script>
+  <script>
+    if ((typeof importScripts) === "undefined")
+      importScripts = function() {};
+  </script>
+  <script src="../../../vendor/microevent.js"></script>
   <script src="../../../js/worker/server.js"></script>
   <script src="../../../js/worker.js"></script>
   <script src="conversation_test.js"></script>

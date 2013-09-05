@@ -2,7 +2,7 @@
   _currentUserData:true, currentConversation:true, UserData,
   _presenceSocket:true, tryPresenceSocket, browserPort:true, currentUsers:true,
   _presenceSocketSendMessage, Conversation, _config:true,
-  _cookieNickname:true */
+  _cookieNickname:true, server */
 /* jshint expr:true */
 
 var expect = chai.expect;
@@ -94,7 +94,7 @@ describe('handlers', function() {
     var xhr, rootURL, socketStub, requests;
 
     beforeEach(function() {
-      socketStub = sinon.stub(window, "createPresenceSocket");
+      socketStub = sinon.stub(server, "connect");
       // XXX For some reason, sandbox.useFakeXMLHttpRequest doesn't want to work
       // nicely so we have to manually xhr.restore for now.
       xhr = sinon.useFakeXMLHttpRequest();

@@ -1,4 +1,4 @@
-/*global Port, _presenceSocket:true, ports, _config:true, createPresenceSocket,
+/*global Port, _presenceSocket:true, ports, _config:true
   _presenceSocketOnMessage, _presenceSocketOnError,
   _presenceSocketOnClose, _presenceSocketSendMessage,
   _presenceSocketOnOpen, _presenceSocketReAttached, tryPresenceSocket,
@@ -64,40 +64,6 @@ describe('presence socket', function () {
     });
   });
 
-  describe('#createPresenceSocket', function() {
-    var wsurl = "ws://example.com/";
-
-    beforeEach(function() {
-      _config.WSURL = wsurl;
-      sandbox.stub(window, "WebSocket")
-        .returns({addEventListener: function() {}});
-    });
-
-    it("should configure a socket with a URL from the nick and _config.WSURL",
-      function() {
-        expect(_presenceSocket).to.equal(undefined);
-
-        var nickname = "bill";
-        createPresenceSocket(nickname);
-
-        sinon.assert.calledOnce(WebSocket);
-        sinon.assert.calledWithExactly(WebSocket,
-          wsurl + "?nick=" + nickname);
-        expect(_presenceSocket.onopen).to.equal(_presenceSocketOnOpen);
-        expect(_presenceSocket.onmessage).to.equal(_presenceSocketOnMessage);
-        expect(_presenceSocket.onerror).to.equal(_presenceSocketOnError);
-        expect(_presenceSocket.onclose).to.equal(_presenceSocketOnClose);
-      });
-
-    it("should post a talkilla.presence-pending message",
-      function() {
-        createPresenceSocket("larry");
-        sinon.assert.calledOnce(spy1);
-        sinon.assert.calledWithExactly(spy1,
-          {data: {}, topic: "talkilla.presence-pending"});
-      });
-  });
-
   describe('#_presenceSocketOnOpen', function() {
     beforeEach(function () {
       sandbox.stub(UserData.prototype, "send");
@@ -151,25 +117,6 @@ describe('presence socket', function () {
         };
         _presenceSocketOnMessage(event);
         sinon.assert.calledOnce(serverHandlers.incoming_call);
-      });
-  });
-
-  describe('#_presenceSocketSendMessage', function() {
-    var dummySocket;
-    var wsurl = "ws://example.com/";
-
-    beforeEach(function() {
-      _config.WSURL = wsurl;
-      dummySocket = {send: sandbox.spy(), addEventListener: function() {}};
-      sandbox.stub(window, "WebSocket").returns(dummySocket);
-    });
-
-    it("should send a message to the WebSocket with the supplied string",
-      function() {
-        var data = "test";
-        createPresenceSocket("larry");
-        _presenceSocketSendMessage(data);
-        sinon.assert.calledWith(dummySocket.send, data);
       });
   });
 
