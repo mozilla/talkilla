@@ -4,7 +4,6 @@
 importScripts('worker/server.js');
 
 var _config = {DEBUG: false};
-var _cookieNickname;
 var _currentUserData;
 var _presenceSocket;
 var ports;
@@ -536,23 +535,16 @@ var handlers = {
     // to broadcast all our talkilla.* messages to the social api.
     ports.remove(this);
 
-    browserPort.postEvent('social.cookies-get');
-
     getContactsDatabase();
   },
 
   'social.cookies-get-response': function(event) {
     var cookies = event.data;
     cookies.forEach(function(cookie) {
-      if (cookie.name === "nick") {
+      if (cookie.name === "nick")
         // If we've received the configuration info, then go
         // ahead and log in.
-        if (_config.WSURL)
-          tryPresenceSocket(cookie.value);
-        else
-          // Otherwise save it for once we've got the config information.
-          _cookieNickname = cookie.value;
-      }
+        tryPresenceSocket(cookie.value);
     });
   },
 
@@ -763,11 +755,5 @@ loadconfig(function(err, config) {
 
   _setupServer(server);
 
-  // If we've already got the cookie data, try to log in
-  if (_cookieNickname) {
-    tryPresenceSocket(_cookieNickname);
-    // Now clear the cookieNickname, so that we don't try it again unless we
-    // re-obtain it.
-    _cookieNickname = undefined;
-  }
+  browserPort.postEvent('social.cookies-get');
 });
