@@ -33,11 +33,32 @@ function getConfigFromFile(file) {
       config = merge(config, JSON.parse(fs.readFileSync(localConfigFile)));
     }
   }
+
+  return config;
+}
+
+function setupUrls(config, serverPort) {
+  if (!config.ROOTURL) {
+    /* jshint camelcase: false */
+    // Try from the environment
+    config.ROOTURL = process.env.PUBLIC_URL;
+  }
+
+  if (!config.ROOTURL) {
+    // Fallback to the localhost.
+    config.ROOTURL = "http://localhost:" + serverPort;
+  }
+
+  // Now replace the scheme on the url with what we need for the websocket.
+  // This assumes the url starts with http, if you want anything else, you're on
+  // your own.
+  config.WSURL = "ws" + config.ROOTURL.substr(4);
   return config;
 }
 
 module.exports.merge = merge;
 module.exports.getConfigFromFile = getConfigFromFile;
+module.exports.setupUrls = setupUrls;
 module.exports.config =
   getConfigFromFile('./' + process.env.NODE_ENV + '.json');
 

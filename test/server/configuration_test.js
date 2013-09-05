@@ -1,4 +1,4 @@
-/* jshint expr:true */
+/* jshint expr:true, camelcase: false */
 
 process.env.NO_LOCAL_CONFIG = true;
 
@@ -9,7 +9,7 @@ var sinon = require("sinon");
 var app = require("../../server/server").app;
 var api = require("../../server/server").api;
 var merge = require("../../server/config").merge;
-var getConfigFromFile = require("../../server/config").getConfigFromFile;
+var config = require("../../server/config");
 
 describe("Server", function() {
 
@@ -27,17 +27,63 @@ describe("Server", function() {
        "an object", function() {
       // Use the test configurations
       var testConfigRoot = path.join('..', 'test', 'data');
-      var config = getConfigFromFile(path.join(testConfigRoot, 'test1.json'));
-      expect(config).to.have.property('DEBUG');
-      expect(config.DEBUG).to.be.ok;
-      expect(config).to.have.property('WSURL');
-      expect(config.WSURL).to.be.equal('ws://127.0.0.1:5000/');
+      var testConfig = config.getConfigFromFile(path.join(testConfigRoot,
+                                                          'test1.json'));
+      expect(testConfig).to.have.property('DEBUG');
+      expect(testConfig.DEBUG).to.be.ok;
+      expect(testConfig).to.have.property('WSURL');
+      expect(testConfig.WSURL).to.be.equal('ws://127.0.0.1:5000/');
 
-      config = getConfigFromFile(path.join(testConfigRoot, 'test2.json'));
-      expect(config).to.have.property('DEBUG');
-      expect(config.DEBUG).to.be.not.ok;
-      expect(config).to.have.property('WSURL');
-      expect(config.WSURL).to.be.equal('wss://talkilla.invalid/');
+      testConfig = config.getConfigFromFile(path.join(testConfigRoot,
+                                                      'test2.json'));
+      expect(testConfig).to.have.property('DEBUG');
+      expect(testConfig.DEBUG).to.be.not.ok;
+      expect(testConfig).to.have.property('WSURL');
+      expect(testConfig.WSURL).to.be.equal('wss://talkilla.invalid/');
+    });
+
+    describe("#setUpUrls", function() {
+      var PORT = 3000;
+      var publicUrl = 'https://example.com';
+      // This should match public url, save for the scheme
+      var wsUrl = 'wss://example.com';
+
+      afterEach(function() {
+        delete process.env.PUBLIC_URL;
+      });
+
+      it("should default to localhost", function() {
+        var testConfig = config.setupUrls({}, PORT);
+
+        expect(testConfig).to.have.property('ROOTURL');
+        expect(testConfig.ROOTURL).to.be.equal('http://localhost:' + PORT);
+        expect(testConfig).to.have.property('WSURL');
+        expect(testConfig.WSURL).to.be.equal('ws://localhost:' + PORT);
+      });
+
+      it("should use the public url from the environment if defined",
+        function() {
+          process.env.PUBLIC_URL = publicUrl;
+
+          var testConfig = config.setupUrls({}, PORT);
+
+          expect(testConfig).to.have.property('ROOTURL');
+          expect(testConfig.ROOTURL).to.be.equal(publicUrl);
+          expect(testConfig).to.have.property('WSURL');
+          expect(testConfig.WSURL).to.be.equal(wsUrl);
+        });
+
+      it("should use the root url from the configuration if defined",
+        function() {
+          var testConfig = config.setupUrls({
+            ROOTURL: 'http://example2.com'
+          }, PORT);
+
+          expect(testConfig).to.have.property('ROOTURL');
+          expect(testConfig.ROOTURL).to.be.equal('http://example2.com');
+          expect(testConfig).to.have.property('WSURL');
+          expect(testConfig.WSURL).to.be.equal('ws://example2.com');
+        });
     });
   });
 
