@@ -379,10 +379,6 @@ function _presenceSocketOnMessage(event) {
       ports.broadcastEvent("talkilla." + eventType, data[eventType]);
 }
 
-function _presenceSocketSendMessage(data) {
-  _presenceSocket.send(data);
-}
-
 function _presenceSocketOnOpen(event) {
   "use strict";
 
@@ -612,7 +608,7 @@ var handlers = {
     if (currentUsers)
       this.postEvent('talkilla.users', currentUsers);
     else
-      _presenceSocketSendMessage(JSON.stringify({'presence_request': null}));
+      server.send({'presence_request': null});
   },
 
   /**
@@ -623,7 +619,7 @@ var handlers = {
    * - offer:    an RTCSessionDescription containing the sdp data for the call.
    */
   'talkilla.call-offer': function(event) {
-    _presenceSocketSendMessage(JSON.stringify({'call_offer': event.data}));
+    server.send({'call_offer': event.data});
   },
 
   /**
@@ -634,7 +630,7 @@ var handlers = {
    * - offer:    an RTCSessionDescription containing the sdp data for the call.
    */
   'talkilla.call-answer': function(event) {
-    _presenceSocketSendMessage(JSON.stringify({'call_accepted': event.data}));
+    server.send({'call_accepted': event.data});
   },
 
   /**
@@ -643,7 +639,7 @@ var handlers = {
    * - peer: the person you are talking to.
    */
   'talkilla.call-hangup': function (event) {
-    _presenceSocketSendMessage(JSON.stringify({'call_hangup': event.data}));
+    server.send({'call_hangup': event.data});
   }
 };
 

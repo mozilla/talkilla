@@ -8,7 +8,7 @@ describe("Server", function() {
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
-    sandbox.stub(window, "WebSocket").returns({});
+    sandbox.stub(window, "WebSocket").returns({send: sinon.spy()});
   });
 
   afterEach(function() {
@@ -117,6 +117,19 @@ describe("Server", function() {
       server._ws.onclose();
 
       sinon.assert.calledOnce(callback);
+    });
+  });
+
+  describe("#send", function() {
+    it("should send serialized data throught the websocket", function() {
+      var server = new Server();
+
+      server.connect("foo");
+      server.send({some: "data"});
+
+      sinon.assert.calledOnce(server._ws.send);
+      sinon.assert.calledWithExactly(server._ws.send,
+                                     JSON.stringify({some: "data"}));
     });
   });
 });

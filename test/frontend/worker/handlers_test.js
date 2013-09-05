@@ -1,7 +1,7 @@
 /*global chai, sinon, ports:true, Port, PortCollection, handlers,
   _currentUserData:true, currentConversation:true, UserData,
   _presenceSocket:true, tryPresenceSocket, browserPort:true, currentUsers:true,
-  _presenceSocketSendMessage, Conversation, _config:true,
+  Conversation, _config:true,
   _cookieNickname:true, server */
 /* jshint expr:true */
 
@@ -212,14 +212,15 @@ describe('handlers', function() {
     it("should request for the initial presence state" +
        "if there is no current users", function() {
         currentUsers = undefined;
-        _presenceSocket = {send: sinon.spy()};
+        sandbox.stub(server, "send");
         handlers['talkilla.presence-request']({
           topic: "talkilla.presence-request",
           data: {}
         });
 
-        var message = JSON.stringify({"presence_request": null});
-        sinon.assert.calledWith(_presenceSocket.send, message);
+        sinon.assert.calledOnce(server.send);
+        sinon.assert.calledWithExactly(server.send,
+                                       {"presence_request": null});
       });
 
     it("should notify new sidebars only if there's a logged in user",
@@ -421,7 +422,7 @@ describe('handlers', function() {
   describe("talkilla.call-offer", function() {
     it("should send a websocket message when receiving talkilla.call-offer",
       function() {
-        sandbox.stub(window, "_presenceSocketSendMessage");
+        sandbox.stub(server, "send");
         var data = {
           peer: "tom",
           offer: { sdp: "sdp", type: "type" }
@@ -432,16 +433,15 @@ describe('handlers', function() {
           data: data
         });
 
-        sinon.assert.calledOnce(_presenceSocketSendMessage);
-        sinon.assert.calledWithExactly(_presenceSocketSendMessage,
-         JSON.stringify({'call_offer': data }));
+        sinon.assert.calledOnce(server.send);
+        sinon.assert.calledWithExactly(server.send, {'call_offer': data });
       });
   });
 
   describe("talkilla.call-answer", function() {
     it("should send a websocket message when receiving talkilla.call-answer",
       function() {
-        sandbox.stub(window, "_presenceSocketSendMessage");
+        sandbox.stub(server, "send");
         var data = {
           peer: "fred",
           offer: { sdp: "sdp", type: "type" }
@@ -452,9 +452,8 @@ describe('handlers', function() {
           data: data
         });
 
-        sinon.assert.calledOnce(_presenceSocketSendMessage);
-        sinon.assert.calledWithExactly(_presenceSocketSendMessage,
-         JSON.stringify({ 'call_accepted': data }));
+        sinon.assert.calledOnce(server.send);
+        sinon.assert.calledWithExactly(server.send, { 'call_accepted': data });
       });
   });
 
@@ -465,7 +464,7 @@ describe('handlers', function() {
 
     it("should send a websocket message when receiving talkilla.call-hangup",
       function() {
-        sandbox.stub(window, "_presenceSocketSendMessage");
+        sandbox.stub(server, "send");
         var data = {
           peer: "florian"
         };
@@ -475,9 +474,8 @@ describe('handlers', function() {
           data: data
         });
 
-        sinon.assert.calledOnce(_presenceSocketSendMessage);
-        sinon.assert.calledWithExactly(_presenceSocketSendMessage,
-         JSON.stringify({ 'call_hangup': data }));
+        sinon.assert.calledOnce(server.send);
+        sinon.assert.calledWithExactly(server.send, { 'call_hangup': data });
       });
   });
 

@@ -1,6 +1,6 @@
-/*global Port, _presenceSocket:true, ports, _config:true
+/*global Port, _presenceSocket:true, ports, _config:true,
   _presenceSocketOnMessage, _presenceSocketOnError,
-  _presenceSocketOnClose, _presenceSocketSendMessage,
+  _presenceSocketOnClose,
   _presenceSocketOnOpen, _presenceSocketReAttached, tryPresenceSocket,
   _setupWebSocket, _loginExpired, UserData, _currentUserData:true,
   serverHandlers, chai, sinon
