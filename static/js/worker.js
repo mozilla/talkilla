@@ -571,6 +571,8 @@ var handlers = {
     if (!_currentUserData.userName)
       return;
 
+    // XXX: Why are we closing the websocket instead of waiting for
+    // the signout API to do that?
     _presenceSocket.close();
     server.signout(_currentUserData.userName, _signoutCallback.bind(this));
   },
