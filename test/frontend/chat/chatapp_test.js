@@ -384,6 +384,16 @@ describe("ChatApp", function() {
           sinon.assert.notCalled(chatApp.call.hangup);
         });
 
+      it("should not try to hangup the call if the call attempt timed out",
+        function() {
+          sandbox.stub(chatApp.call, "hangup");
+          chatApp.call.state.current = "timeout";
+
+          chatApp._onWindowClose();
+
+          sinon.assert.notCalled(chatApp.call.hangup);
+        });
+
     });
 
     describe("#_onSendOffer", function() {
