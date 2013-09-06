@@ -234,11 +234,11 @@ describe("Call Controls View", function() {
 
     describe("#hangup", function() {
       it('should hangup the call', function() {
-        sandbox.stub(callControlsView.call, "hangup");
+        sandbox.stub(callControlsView.call, "hangupIfNecessary");
 
         callControlsView.hangup();
 
-        sinon.assert.calledOnce(callControlsView.call.hangup);
+        sinon.assert.calledOnce(callControlsView.call.hangupIfNecessary);
       });
     });
 

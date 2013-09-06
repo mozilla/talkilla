@@ -188,13 +188,15 @@
     },
 
     /**
-     * Hangs up a call.
+     * Hangs up a call. An internal API, which only works from
+     * certain states (XXX which?).  Prefer hangupIfNecessary
+     * whenever possible.
      *
      * @param {Boolean} sendMsg Set to true if to trigger sending hangup
      *                          to the peer. This should be false in the
      *                          case of an incoming hangup message.
      */
-    hangup: function(sendMsg) {
+    _hangup: function(sendMsg) {
       this.state.hangup();
       this.media.terminate();
 
@@ -217,7 +219,7 @@
       if (this.state.current !== "terminated" &&
           this.state.current !== "timeout" &&
           this.state.current !== "ready")
-        this.hangup(sendMsg);
+        this._hangup(sendMsg);
     },
 
     /**

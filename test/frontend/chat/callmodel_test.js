@@ -296,15 +296,15 @@ describe("Call Model", function() {
     });
   });
 
-  describe("#hangup", function() {
+  describe("#_hangup", function() {
     it("should change the state from ready to terminated", function() {
-      call.hangup();
+      call._hangup();
       expect(call.state.current).to.equal('terminated');
     });
 
     it("should change the state from pending to terminated", function() {
       call.start({});
-      call.hangup();
+      call._hangup();
       expect(call.state.current).to.equal('terminated');
     });
 
@@ -312,14 +312,14 @@ describe("Call Model", function() {
       _.extend(media, Backbone.Events);
       call.start({});
       call.establish({answer: {type: "answer", sdp: "sdp"}});
-      call.hangup();
+      call._hangup();
       expect(call.state.current).to.equal('terminated');
     });
 
     it("should call hangup on the media element", function() {
       media.terminate = sandbox.stub();
       call.start({});
-      call.hangup();
+      call._hangup();
 
       sinon.assert.calledOnce(media.terminate);
       sinon.assert.calledWithExactly(media.terminate);
@@ -331,7 +331,7 @@ describe("Call Model", function() {
 
       sandbox.stub(call, "trigger");
 
-      call.hangup(true);
+      call._hangup(true);
 
       sinon.assert.called(call.trigger);
       sinon.assert.calledWithExactly(call.trigger, "send-hangup",
@@ -341,16 +341,16 @@ describe("Call Model", function() {
 
   describe("#hangupIfNecessary", function() {
     beforeEach(function() {
-      sandbox.stub(call, "hangup");
+      sandbox.stub(call, "_hangup");
     });
 
-    it("should call hangup", function() {
+    it("should call _hangup", function() {
       call.state.current = 'pending';
 
       call.hangupIfNecessary(true);
 
-      sinon.assert.called(call.hangup);
-      sinon.assert.calledWithExactly(call.hangup, true);
+      sinon.assert.called(call._hangup);
+      sinon.assert.calledWithExactly(call._hangup, true);
     });
 
     it("should not call hangup if the state is ready", function() {
@@ -358,7 +358,7 @@ describe("Call Model", function() {
 
       call.hangupIfNecessary(false);
 
-      sinon.assert.notCalled(call.hangup);
+      sinon.assert.notCalled(call._hangup);
     });
 
     it("should not call hangup if the state is timeout", function() {
@@ -366,7 +366,7 @@ describe("Call Model", function() {
 
       call.hangupIfNecessary(false);
 
-      sinon.assert.notCalled(call.hangup);
+      sinon.assert.notCalled(call._hangup);
     });
 
     it("should not call hangup if the state is terminated", function() {
@@ -374,7 +374,7 @@ describe("Call Model", function() {
 
       call.hangupIfNecessary(false);
 
-      sinon.assert.notCalled(call.hangup);
+      sinon.assert.notCalled(call._hangup);
     });
   });
 
