@@ -8,7 +8,6 @@ var expect = require("chai").expect;
 var path = require("path");
 var sinon = require("sinon");
 
-var app = require("../../server/server").app;
 var api = require("../../server/server").api;
 var merge = require("../../server/config").merge;
 var config = require("../../server/config");
@@ -115,7 +114,8 @@ describe("Server", function() {
         sinon.assert.calledWithExactly(
           res.header, "Content-Type", "application/json");
         sinon.assert.calledOnce(res.send);
-        sinon.assert.calledWithExactly(res.send, 200, JSON.stringify(config.config));
+        sinon.assert.calledWithExactly(res.send, 200,
+                                       JSON.stringify(config.config));
       });
 
     });

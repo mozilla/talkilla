@@ -30,8 +30,6 @@ function merge(obj, other) {
  * - Replace the "http" from ROOTURL with "ws" (this also handles https -> wss).
  *
  * @param  {Object} config     The configuration object to modify
- * @param  {Object} serverPort The default server port, for use when falling
- *                             back to the websocket.
  * @return {Object}
  */
 function setupUrls(config) {
@@ -52,7 +50,6 @@ function setupUrls(config) {
  * Retrieves a configuration object from a JSON file.
  *
  * @param  {String}  file       Path to JSON configuration file
- * @param  {Integer} serverPort The port the server is using to listen
  * @return {Object}
  */
 function getConfigFromFile(file) {
