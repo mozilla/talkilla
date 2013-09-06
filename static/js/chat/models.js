@@ -206,6 +206,21 @@
     },
 
     /**
+     * Hangs up a call if necessary, i.e. if the call state is in a place
+     * where hangup needs to be sent.
+     *
+     * @param {Boolean} sendMsg Set to true if to trigger sending hangup
+     *                          to the peer. This should be false in the
+     *                          case of an incoming hangup message.
+     */
+    hangupIfNecessary: function(sendMsg) {
+      if (this.state.current !== "terminated" &&
+          this.state.current !== "timeout" &&
+          this.state.current !== "ready")
+        this.hangup(sendMsg);
+    },
+
+    /**
      * Upgrades ongoing call with new media constraints.
      *
      * @param {Object} constraints object containing:

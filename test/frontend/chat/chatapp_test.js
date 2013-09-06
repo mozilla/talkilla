@@ -327,14 +327,14 @@ describe("ChatApp", function() {
 
     describe("#_onCallShutdown", function() {
       beforeEach(function() {
-        sandbox.stub(chatApp.call, "hangup");
+        sandbox.stub(chatApp.call, "hangupIfNecessary");
         sandbox.stub(window, "close");
         chatApp._onCallShutdown();
       });
 
       it("should hangup the call", function() {
-        sinon.assert.calledOnce(chatApp.call.hangup);
-        sinon.assert.calledWithExactly(chatApp.call.hangup, false);
+        sinon.assert.calledOnce(chatApp.call.hangupIfNecessary);
+        sinon.assert.calledWithExactly(chatApp.call.hangupIfNecessary, false);
       });
 
       it("should close the window", function() {
@@ -365,35 +365,14 @@ describe("ChatApp", function() {
 
     describe("#_onWindowClose", function() {
 
-      it("should hangup the call", function() {
-        sandbox.stub(chatApp.call, "hangup");
+      it("should hangup the call if necessary", function() {
+        sandbox.stub(chatApp.call, "hangupIfNecessary");
 
         chatApp._onWindowClose();
 
-        sinon.assert.called(chatApp.call.hangup);
-        sinon.assert.calledWith(chatApp.call.hangup);
+        sinon.assert.called(chatApp.call.hangupIfNecessary);
+        sinon.assert.calledWith(chatApp.call.hangupIfNecessary);
       });
-
-      it("should not try to hangup the call if the call is already terminated",
-        function() {
-          sandbox.stub(chatApp.call, "hangup");
-          chatApp.call.state.current = "terminated";
-
-          chatApp._onWindowClose();
-
-          sinon.assert.notCalled(chatApp.call.hangup);
-        });
-
-      it("should not try to hangup the call if the call attempt timed out",
-        function() {
-          sandbox.stub(chatApp.call, "hangup");
-          chatApp.call.state.current = "timeout";
-
-          chatApp._onWindowClose();
-
-          sinon.assert.notCalled(chatApp.call.hangup);
-        });
-
     });
 
     describe("#_onSendOffer", function() {

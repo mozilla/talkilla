@@ -339,6 +339,45 @@ describe("Call Model", function() {
     });
   });
 
+  describe("#hangupIfNecessary", function() {
+    beforeEach(function() {
+      sandbox.stub(call, "hangup");
+    });
+
+    it("should call hangup", function() {
+      call.state.current = 'pending';
+
+      call.hangupIfNecessary(true);
+
+      sinon.assert.called(call.hangup);
+      sinon.assert.calledWithExactly(call.hangup, true);
+    });
+
+    it("should not call hangup if the state is ready", function() {
+      call.state.current = 'ready';
+
+      call.hangupIfNecessary(false);
+
+      sinon.assert.notCalled(call.hangup);
+    });
+
+    it("should not call hangup if the state is timeout", function() {
+      call.state.current = 'timeout';
+
+      call.hangupIfNecessary(false);
+
+      sinon.assert.notCalled(call.hangup);
+    });
+
+    it("should not call hangup if the state is terminated", function() {
+      call.state.current = 'terminated';
+
+      call.hangupIfNecessary(false);
+
+      sinon.assert.notCalled(call.hangup);
+    });
+  });
+
   describe("#upgrade", function() {
     it("should change the state from ready to pending", function() {
       call.state.current = 'ongoing';
