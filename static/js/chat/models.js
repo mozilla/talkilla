@@ -48,7 +48,6 @@
 
           // Incoming call scenario
           {name: 'incoming',  from: ['ready',
-                                     'pending',
                                      'timeout'], to: 'incoming'},
           {name: 'accept',    from: 'incoming',  to: 'pending'},
           {name: 'ignore',    from: 'incoming',  to: 'terminated'},

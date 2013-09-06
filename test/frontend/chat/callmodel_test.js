@@ -173,14 +173,6 @@ describe("Call Model", function() {
       expect(call.state.current).to.equal('incoming');
     });
 
-    it("should change the state from pending to incoming", function() {
-      call.state.current = 'pending';
-
-      call.incoming({});
-
-      expect(call.state.current).to.equal('incoming');
-    });
-
     it("should change the state from timeout to incoming", function() {
       call.state.current = 'timeout';
 
