@@ -268,8 +268,8 @@ describe("WebRTC", function() {
           }).initiate();
         });
 
-        it("should emit a `state:initiate` event", function(done) {
-          webrtc.once('state:initiate', function() {
+        it("should emit a `transition:initiate` event", function(done) {
+          webrtc.once('transition:initiate', function() {
             done();
           }).initiate();
         });
@@ -332,8 +332,8 @@ describe("WebRTC", function() {
         });
 
       describe("#upgrade events", function() {
-        it("should emit a `state:upgrade` event", function(done) {
-          webrtc.once('state:upgrade', function() {
+        it("should emit a `transition:upgrade` event", function(done) {
+          webrtc.once('transition:upgrade', function() {
             done();
           }).initiate().establish({}).upgrade({});
         });
@@ -404,8 +404,8 @@ describe("WebRTC", function() {
           }).answer(fakeOffer);
         });
 
-        it("should emit a `state:initiate` event", function(done) {
-          webrtc.once('state:answer', function() {
+        it("should emit a `transition:answer` event", function(done) {
+          webrtc.once('transition:answer', function() {
             done();
           }).answer(fakeOffer);
         });

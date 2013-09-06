@@ -9,6 +9,30 @@ from browser_test import MultipleNodeBrowserTest
 
 class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
                            MultipleNodeBrowserTest):
+
+    def test_callback_after_timeout(self):
+        self.larry.signin()
+        self.bob.signin()
+
+        self.bob.openConversationWith("larry").startCall(True)
+        self.assertPendingOutgoingCall(self.bob)
+
+        self.larry.switchToChatWindow()
+        self.assertIncomingCall(self.larry)
+
+        self.assertCallTimedOut(self.bob)
+
+        # Now try calling back
+        self.larry.openConversationWith("bob").startCall(True)
+        self.assertPendingOutgoingCall(self.larry)
+
+        self.bob.switchToChatWindow()
+        self.assertIncomingCall(self.bob)
+        self.bob.acceptCall()
+
+        self.assertOngoingCall(self.bob)
+        self.assertOngoingCall(self.larry)
+
     def test_signin_users(self):
         self.bob.signin()
         self.assertSignedInAs(self.bob, "bob")
@@ -122,6 +146,7 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
 
         self.larry.signout()
         self.assertPresenceIconDisconnected(self.bob)
+
 
 if __name__ == "__main__":
     unittest.main(catchbreak=True)
