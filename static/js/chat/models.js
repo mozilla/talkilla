@@ -1,4 +1,4 @@
-/* global app, Backbone, StateMachine, _, tnetbin */
+/*global app, StateMachine, tnetbin */
 /**
  * ChatApp models and collections.
  */
@@ -47,7 +47,8 @@
                                      'ongoing'], to: 'pending'},
 
           // Incoming call scenario
-          {name: 'incoming',  from: 'ready',     to: 'incoming'},
+          {name: 'incoming',  from: ['ready',
+                                     'timeout'], to: 'incoming'},
           {name: 'accept',    from: 'incoming',  to: 'pending'},
           {name: 'ignore',    from: 'incoming',  to: 'terminated'},
           {name: 'complete',  from: 'pending',   to: 'ongoing'},
@@ -58,7 +59,7 @@
         callbacks: {
           onenterstate: function(event, from, to) {
             this.trigger("change:state", to, from, event);
-            this.trigger("state:" + event);
+            this.trigger("transition:" + event);
             this.trigger("state:to:" + to);
           }.bind(this)
         }

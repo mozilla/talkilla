@@ -1,6 +1,6 @@
-/* global afterEach, beforeEach, chai, describe, sinon, it,
-   browserPort:true, currentConversation:true, serverHandlers,
-   Conversation, currentUsers:true, ports */
+/*global chai, sinon, browserPort:true, currentConversation:true,
+  serverHandlers, Conversation, currentUsers:true, ports */
+
 /* Needed due to the use of non-camelcase in the websocket topics */
 /* jshint camelcase:false */
 var expect = chai.expect;

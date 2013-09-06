@@ -37,9 +37,10 @@ App configuration is done using JSON files stored in the `config/` directory:
 - `local.json` for any settings you may want to override locally
   (this file is never versionned)
 
-Settings are:
+Optional settings are:
 
 - `DEBUG`: to have log messages printed out to the browser console
+- `ROOTURL`: the url to the server (this can also be specified by PUBLIC_URL in the environment)
 - `WSURL`: the url to the [WebSocket](http://www.websocket.org/) server endpoint
 
 Unit Tests

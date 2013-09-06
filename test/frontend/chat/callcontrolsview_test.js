@@ -1,5 +1,4 @@
-/* global app, chai, describe, it, sinon, before, beforeEach, afterEach,
-   $ */
+/*global app, chai, sinon */
 
 var expect = chai.expect;
 

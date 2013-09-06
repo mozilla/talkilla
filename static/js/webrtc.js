@@ -1,5 +1,4 @@
-/* global StateMachine, Backbone, _, tnetbin,
-          mozRTCPeerConnection, mozRTCSessionDescription */
+/*global StateMachine, tnetbin */
 
 (function(exports) {
   "use strict";
@@ -34,7 +33,7 @@
       callbacks: {
         onenterstate: function(event, from, to) {
           this.trigger("change:state", to, from, event);
-          this.trigger("state:" + event);
+          this.trigger("transition:" + event);
           this.trigger("state:to:" + to);
         }.bind(this)
       }

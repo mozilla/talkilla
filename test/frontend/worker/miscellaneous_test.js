@@ -1,8 +1,7 @@
-/* global afterEach, beforeEach, chai, describe,
-   it, sinon, _config:true, loadconfig, _signinCallback,
+/*global chai, sinon, _config:true, loadconfig, _signinCallback,
    _currentUserData:true, UserData, getContactsDatabase,
    storeContact, contacts:true, contactsDb:true, indexedDB,
-   updateCurrentUsers, currentUsers, sendAjax, _ */
+   updateCurrentUsers, currentUsers, sendAjax */
 var expect = chai.expect;
 var contactDBName = "TalkillaContactsUnitTest";
 

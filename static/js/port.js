@@ -1,4 +1,3 @@
-/* global Backbone, _ */
 /**
  * Social API Worker Port wrapper & message events listener/dispatcher.
  */

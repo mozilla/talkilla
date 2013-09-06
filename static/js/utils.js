@@ -1,4 +1,4 @@
-/* global app, _, sidebarApp*/
+/*global app, sidebarApp*/
 /**
  * Talkilla utilities.
  */

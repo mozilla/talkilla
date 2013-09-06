@@ -1,4 +1,4 @@
-/*global jQuery, Backbone, _, AppPort, WebRTC*/
+/*global AppPort, WebRTC*/
 /* jshint unused: false */
 /**
  * Talkilla application.
@@ -118,7 +118,7 @@ var ChatApp = (function($, Backbone, _) {
     this.textChat.on('send-answer', this._onSendAnswer.bind(this));
     this.call.on('send-timeout', this._onSendTimeout.bind(this));
     this.call.on('send-hangup', this._onCallHangup.bind(this));
-    this.call.on('state:accept', this._onCallAccepted.bind(this));
+    this.call.on('transition:accept', this._onCallAccepted.bind(this));
 
     // Internal events
     window.addEventListener("unload", this._onWindowClose.bind(this));
