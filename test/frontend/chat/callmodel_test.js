@@ -166,7 +166,18 @@ describe("Call Model", function() {
     var callData = {video: true, audio: true};
 
     it("should change the state from ready to incoming", function() {
+      call.state.current = 'ready';
+
       call.incoming({});
+
+      expect(call.state.current).to.equal('incoming');
+    });
+
+    it("should change the state from timeout to incoming", function() {
+      call.state.current = 'timeout';
+
+      call.incoming({});
+
       expect(call.state.current).to.equal('incoming');
     });
 
