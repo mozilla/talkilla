@@ -262,7 +262,6 @@ describe('handlers', function() {
     it("should post an ajax message to the server",
       function() {
         sandbox.stub(server, "signout");
-        console.log(server);
         handlers['talkilla.logout']({
           topic: 'talkilla.logout'
         });

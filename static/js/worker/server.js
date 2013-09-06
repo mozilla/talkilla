@@ -1,7 +1,7 @@
-/* global importScripts, MicroEvent */
+/* global importScripts, BackboneEvents */
 /* jshint unused:false */
 
-importScripts('../vendor/microevent.js');
+importScripts('../vendor/backbone-events-standalone-0.1.5.js');
 
 var Server = (function() {
   function Server(options) {
@@ -9,8 +9,7 @@ var Server = (function() {
     this._ws = undefined;
   }
 
-  MicroEvent.mixin(Server);
-  Server.prototype.on = Server.prototype.bind;
+  BackboneEvents.mixin(Server.prototype);
 
   Server.prototype._setupWebSocket = function(ws) {
     ws.onopen    = this.trigger.bind(this, "connected");

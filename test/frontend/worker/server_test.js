@@ -1,8 +1,6 @@
 /* global Server */
 /* global describe, beforeEach, afterEach, sinon, it, expect */
 
-// importScripts('worker/microevent.js');
-
 describe("Server", function() {
   var sandbox;
 
