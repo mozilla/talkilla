@@ -18,9 +18,41 @@ function merge(obj, other) {
 }
 
 /**
+ * Sets up root and websocket urls on a configuration object.
+ *
+ * The general rules for ROOTURL are:
+ * - Use the ROOTURL from the config, or
+ * - Use the PUBLIC_URL specified in the environment, or
+ * - Use localhost with the serverPort.
+ *
+ * For WSURL:
+ * - Use the WSURL from the config, or
+ * - Replace the "http" from ROOTURL with "ws" (this also handles https -> wss).
+ *
+ * @param  {Object} config     The configuration object to modify
+ * @param  {Object} serverPort The default server port, for use when falling
+ *                             back to the websocket.
+ * @return {Object}
+ */
+function setupUrls(config) {
+  var port = process.env.PORT || 5000;
+
+  config.ROOTURL = config.ROOTURL ||
+                   process.env.PUBLIC_URL ||
+                   "http://localhost:" + port;
+
+  // Now replace the scheme on the url with what we need for the websocket.
+  // This assumes the url starts with http, if you want anything else, you're on
+  // your own.
+  config.WSURL = config.WSURL || "ws" + config.ROOTURL.substr(4);
+  return config;
+}
+
+/**
  * Retrieves a configuration object from a JSON file.
  *
- * @param  {String} file Path to JSON configuration file
+ * @param  {String}  file       Path to JSON configuration file
+ * @param  {Integer} serverPort The port the server is using to listen
  * @return {Object}
  */
 function getConfigFromFile(file) {
@@ -34,31 +66,11 @@ function getConfigFromFile(file) {
     }
   }
 
-  return config;
-}
-
-function setupUrls(config, serverPort) {
-  if (!config.ROOTURL) {
-    /* jshint camelcase: false */
-    // Try from the environment
-    config.ROOTURL = process.env.PUBLIC_URL;
-  }
-
-  if (!config.ROOTURL) {
-    // Fallback to the localhost.
-    config.ROOTURL = "http://localhost:" + serverPort;
-  }
-
-  // Now replace the scheme on the url with what we need for the websocket.
-  // This assumes the url starts with http, if you want anything else, you're on
-  // your own.
-  config.WSURL = "ws" + config.ROOTURL.substr(4);
-  return config;
+  return setupUrls(config);
 }
 
 module.exports.merge = merge;
 module.exports.getConfigFromFile = getConfigFromFile;
-module.exports.setupUrls = setupUrls;
 module.exports.config =
   getConfigFromFile('./' + process.env.NODE_ENV + '.json');
 

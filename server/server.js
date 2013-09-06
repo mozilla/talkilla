@@ -1,7 +1,7 @@
 /* jshint unused:false */
 var express = require('express');
 var http = require('http');
-var config = require('./config');
+var config = require('./config').config;
 var logger = require('./logger');
 var app = express();
 
@@ -13,18 +13,15 @@ var server = http.createServer(app);
 
 // development settings
 app.configure('development', function() {
-  app.set('config', config.config);
   app.use('/test', express.static(__dirname + '/../test'));
 });
 
 // production settings
 app.configure('production', function() {
-  app.set('config', config.config);
 });
 
 // test settings
 app.configure('test', function() {
-  app.set('config', config.config);
   app.use('/test', express.static(__dirname + '/../test'));
 });
 
@@ -37,7 +34,7 @@ app.use(uncaughtError);
 var api = {
   config: function(req, res) {
     res.header('Content-Type', 'application/json');
-    res.send(200, JSON.stringify(app.get('config')));
+    res.send(200, JSON.stringify(config));
   }
 };
 
@@ -46,11 +43,6 @@ app.get('/config.json', api.config);
 app.start = function(serverPort, callback) {
   app.set('users', {});
 
-  var appConfig = app.get('config');
-
-  appConfig = config.setupUrls(appConfig, serverPort);
-
-  app.set('config', appConfig);
   server.listen(serverPort, callback);
 };
 

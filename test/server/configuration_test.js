@@ -1,6 +1,8 @@
-/* jshint expr:true, camelcase: false */
+/* jshint expr:true */
 
 process.env.NO_LOCAL_CONFIG = true;
+process.env.PORT = 3000;
+var PORT = 3000;
 
 var expect = require("chai").expect;
 var path = require("path");
@@ -23,27 +25,8 @@ describe("Server", function() {
       expect(merge({a: 1}, {a: 2})).to.deep.equal({a: 2});
     });
 
-    it("getConfigFromFile should parse a JSON configuration file and return " +
-       "an object", function() {
-      // Use the test configurations
+    describe("#getConfigFromFile", function() {
       var testConfigRoot = path.join('..', 'test', 'data');
-      var testConfig = config.getConfigFromFile(path.join(testConfigRoot,
-                                                          'test1.json'));
-      expect(testConfig).to.have.property('DEBUG');
-      expect(testConfig.DEBUG).to.be.ok;
-      expect(testConfig).to.have.property('WSURL');
-      expect(testConfig.WSURL).to.be.equal('ws://127.0.0.1:5000/');
-
-      testConfig = config.getConfigFromFile(path.join(testConfigRoot,
-                                                      'test2.json'));
-      expect(testConfig).to.have.property('DEBUG');
-      expect(testConfig.DEBUG).to.be.not.ok;
-      expect(testConfig).to.have.property('WSURL');
-      expect(testConfig.WSURL).to.be.equal('wss://talkilla.invalid/');
-    });
-
-    describe("#setUpUrls", function() {
-      var PORT = 3000;
       var publicUrl = 'https://example.com';
       // This should match public url, save for the scheme
       var wsUrl = 'wss://example.com';
@@ -52,8 +35,28 @@ describe("Server", function() {
         delete process.env.PUBLIC_URL;
       });
 
+      it("getConfigFromFile should parse a JSON configuration file and " +
+         "return an object", function() {
+        // Use the test configurations
+        var testConfig = config.getConfigFromFile(path.join(testConfigRoot,
+                                                            'test1.json'));
+        expect(testConfig).to.have.property('DEBUG');
+        expect(testConfig.DEBUG).to.be.ok;
+        expect(testConfig).to.have.property('WSURL');
+        expect(testConfig.WSURL).to.be.equal('ws://127.0.0.1:5000/');
+
+        testConfig = config.getConfigFromFile(path.join(testConfigRoot,
+                                                        'test2.json'));
+        expect(testConfig).to.have.property('DEBUG');
+        expect(testConfig.DEBUG).to.be.not.ok;
+        expect(testConfig).to.have.property('WSURL');
+        expect(testConfig.WSURL).to.be.equal('wss://talkilla.invalid/');
+      });
+
       it("should default to localhost", function() {
-        var testConfig = config.setupUrls({}, PORT);
+        var testConfig =
+          config.getConfigFromFile(path.join(testConfigRoot,
+                                             'test3.json'), PORT);
 
         expect(testConfig).to.have.property('ROOTURL');
         expect(testConfig.ROOTURL).to.be.equal('http://localhost:' + PORT);
@@ -65,7 +68,9 @@ describe("Server", function() {
         function() {
           process.env.PUBLIC_URL = publicUrl;
 
-          var testConfig = config.setupUrls({}, PORT);
+          var testConfig =
+            config.getConfigFromFile(path.join(testConfigRoot,
+                                               'test3.json'), PORT);
 
           expect(testConfig).to.have.property('ROOTURL');
           expect(testConfig.ROOTURL).to.be.equal(publicUrl);
@@ -75,9 +80,9 @@ describe("Server", function() {
 
       it("should use the root url from the configuration if defined",
         function() {
-          var testConfig = config.setupUrls({
-            ROOTURL: 'http://example2.com'
-          }, PORT);
+          var testConfig =
+            config.getConfigFromFile(path.join(testConfigRoot,
+                                               'test4.json'), PORT);
 
           expect(testConfig).to.have.property('ROOTURL');
           expect(testConfig.ROOTURL).to.be.equal('http://example2.com');
@@ -104,15 +109,13 @@ describe("Server", function() {
       it("should return the config as a JSON", function() {
         var req = {};
         var res = {header: sinon.spy(), send: sinon.spy()};
-        var config = {fake: "configuration"};
-        sandbox.stub(app, "get").returns(config);
         api.config(req, res);
 
         sinon.assert.calledOnce(res.header);
         sinon.assert.calledWithExactly(
           res.header, "Content-Type", "application/json");
         sinon.assert.calledOnce(res.send);
-        sinon.assert.calledWithExactly(res.send, 200, JSON.stringify(config));
+        sinon.assert.calledWithExactly(res.send, 200, JSON.stringify(config.config));
       });
 
     });
