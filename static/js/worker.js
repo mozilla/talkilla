@@ -1,7 +1,9 @@
-/* global indexedDB, importScripts, Server */
+/* global indexedDB, importScripts, Server, HTTP */
 /* jshint unused:false */
 
-importScripts('worker/server.js');
+importScripts('../vendor/backbone-events-standalone-0.1.5.js');
+importScripts('worker/http.js');   // exposes HTTP
+importScripts('worker/server.js'); // exposes Server
 
 var _config = {DEBUG: false};
 var _currentUserData;
@@ -378,31 +380,9 @@ function _setupServer(server) {
   });
 }
 
-
-function sendAjax(url, method, data, cb) {
-  var xhr = new XMLHttpRequest();
-
-  xhr.onload = function(event) {
-    // sinon.js can call us with a null event a second time, so just ignore it.
-    if (!event)
-      return;
-    if (xhr.readyState === 4 && xhr.status === 200)
-      return cb(null, xhr.responseText);
-    cb(xhr.statusText, xhr.responseText);
-  };
-
-  xhr.onerror = function(event) {
-    if (event && event.target)
-      cb(event.target.status ? event.target.statusText : "We are offline");
-  };
-
-  xhr.open(method || 'GET', url, true);
-  xhr.setRequestHeader("Content-Type", "application/json");
-  xhr.send(JSON.stringify(data));
-}
-
 function loadconfig(cb) {
-  sendAjax('/config.json', 'GET', {}, function(err, data) {
+  var http = new HTTP();
+  http.get('/config.json', {}, function(err, data) {
     var config;
     try {
       config = JSON.parse(data);

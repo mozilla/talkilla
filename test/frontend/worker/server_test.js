@@ -16,12 +16,12 @@ describe("Server", function() {
   describe("#signin", function() {
     it("should send a signin request to the server", function() {
       var server = new Server(), callback = function() {};
-      sandbox.stub(server, "post");
+      sandbox.stub(server.http, "post");
 
       server.signin("fake assertion", callback);
 
-      sinon.assert.calledOnce(server.post);
-      sinon.assert.calledWithExactly(server.post, "/signin",
+      sinon.assert.calledOnce(server.http.post);
+      sinon.assert.calledWithExactly(server.http.post, "/signin",
                                      {assertion: "fake assertion"},
                                      callback);
     });
@@ -31,12 +31,12 @@ describe("Server", function() {
 
     it("should send a signout request to the server", function() {
       var server = new Server(), callback = function() {};
-      sandbox.stub(server, "post");
+      sandbox.stub(server.http, "post");
 
       server.signout("foo", callback);
 
-      sinon.assert.calledOnce(server.post);
-      sinon.assert.calledWithExactly(server.post, "/signout",
+      sinon.assert.calledOnce(server.http.post);
+      sinon.assert.calledWithExactly(server.http.post, "/signout",
                                      {nick: "foo"},
                                      callback);
     });

@@ -1,7 +1,7 @@
 /*global chai, sinon, _config:true, loadconfig, _signinCallback,
    _currentUserData:true, UserData, getContactsDatabase,
    storeContact, contacts:true, contactsDb:true, indexedDB,
-   updateCurrentUsers, currentUsers, sendAjax, _, server */
+   updateCurrentUsers, currentUsers, _, server */
 var expect = chai.expect;
 var contactDBName = "TalkillaContactsUnitTest";
 
@@ -47,31 +47,6 @@ describe('Miscellaneous', function() {
         requests[0].respond(200, {
           'Content-Type': 'application/json'
         }, '{"WSURL": "ws://fake", "DEBUG": true}');
-      });
-  });
-
-  describe("#sendAjax", function() {
-
-    var xhr, request;
-
-    beforeEach(function() {
-      xhr = sinon.useFakeXMLHttpRequest();
-      xhr.onCreate = function (xhrRequest) {
-        request = xhrRequest;
-      };
-    });
-
-    it("should execute the callback with an error AND the response body",
-      function() {
-        var callback = sinon.spy();
-        sendAjax("/somewhere", "POST", {some: "data"}, callback);
-
-        request.respond(400, {}, "response body");
-
-        sinon.assert.calledOnce(callback);
-        sinon.assert.calledWithExactly(callback,
-                                       request.statusText,
-                                       "response body");
       });
   });
 
