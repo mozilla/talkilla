@@ -95,7 +95,7 @@ describe("Server", function() {
       sinon.assert.calledOnce(callback);
     });
 
-    it("should trigger a message event when it receive a message", function() {
+    it("should trigger a message event when it receives one", function() {
       var server = new Server();
       var callback = sinon.spy();
       var event = {data: JSON.stringify({thisis: {an: "event"}})};
@@ -108,7 +108,7 @@ describe("Server", function() {
       sinon.assert.calledWithExactly(callback, "thisis", {an: "event"});
     });
 
-    it("should trigger a custom event when it receive a message", function() {
+    it("should trigger a custom event when it receives a message", function() {
       var server = new Server();
       var callback = sinon.spy();
       var event = {data: JSON.stringify({custom: {an: "event"}})};

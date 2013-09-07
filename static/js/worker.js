@@ -295,20 +295,23 @@ function updateCurrentUsers(data) {
   currentUsers = users;
 }
 
-var serverHandlers = {
-  'debug': function(label, data) {
-    ports.broadcastDebug("server event: " + label, data);
-  },
+function _setupServer(server) {
+  server.on("connected", function() {
+    ports.broadcastEvent('talkilla.login-success', {
+      username: _currentUserData.userName
+    });
+  });
 
-  'users': function(data) {
-    this.debug("users", data);
+  server.on("message", function(label, data) {
+    ports.broadcastDebug("server event: " + label, data);
+  });
+
+  server.on("message:users", function(data) {
     updateCurrentUsers(data);
     ports.broadcastEvent("talkilla.users", currentUsers);
-  },
+  });
 
-  'userJoined': function(data) {
-    this.debug("userJoined", data);
-
+  server.on("message:userJoined", function(data) {
     currentUsers = getCurrentUsers();
     // XXX Remove the user if they exist, and then re-add to handle
     // the case if the user doesn't exist.
@@ -321,11 +324,9 @@ var serverHandlers = {
     currentUsers.push({nick: data, presence: "connected"});
     ports.broadcastEvent("talkilla.users", currentUsers);
     ports.broadcastEvent("talkilla.user-joined", data);
-  },
+  });
 
-  'userLeft': function(data) {
-    this.debug("userLeft", data);
-
+  server.on("message:userLeft", function(data) {
     currentUsers = getCurrentUsers();
     // Show the user as disconnected
     currentUsers = currentUsers.map(function(user) {
@@ -335,11 +336,9 @@ var serverHandlers = {
     });
     ports.broadcastEvent("talkilla.users", currentUsers);
     ports.broadcastEvent("talkilla.user-left", data);
-  },
+  });
 
-  'incoming_call': function(data) {
-    this.debug("incoming_call", data);
-
+  server.on("message:incoming_call", function(data) {
     // If we're in a conversation, and it is not with the peer,
     // then ignore it
     if (currentConversation) {
@@ -354,29 +353,15 @@ var serverHandlers = {
     }
 
     currentConversation = new Conversation(data);
-  },
-
-  'call_accepted': function(data) {
-    this.debug("call_accepted", data);
-    currentConversation.callAccepted(data);
-  },
-
-  'call_hangup': function(data) {
-    this.debug("call_hangup", data);
-    if (currentConversation)
-      currentConversation.callHangup(data);
-  }
-};
-
-function _setupServer(server) {
-  server.on("connected", function() {
-    ports.broadcastEvent('talkilla.login-success', {
-      username: _currentUserData.userName
-    });
   });
 
-  server.on("message", function(type, event) {
-    serverHandlers[type](event);
+  server.on("message:call_accepted", function(data) {
+    currentConversation.callAccepted(data);
+  });
+
+  server.on("message:call_hangup", function(data) {
+    if (currentConversation)
+      currentConversation.callHangup(data);
   });
 
   server.on("error", function(event) {

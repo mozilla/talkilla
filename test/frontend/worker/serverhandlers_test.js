@@ -1,15 +1,19 @@
 /*global chai, sinon, browserPort:true, currentConversation:true,
-  serverHandlers, Conversation, currentUsers:true, ports */
+  Server, Conversation, currentUsers:true, ports, updateCurrentUsers,
+  _setupServer */
 
 /* Needed due to the use of non-camelcase in the websocket topics */
 /* jshint camelcase:false */
 var expect = chai.expect;
 
 describe("serverHandlers", function() {
-  var sandbox;
+  var sandbox, server;
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
+    currentUsers = [];
+    server = new Server();
+    _setupServer(server);
   });
 
   afterEach(function() {
@@ -17,30 +21,41 @@ describe("serverHandlers", function() {
     sandbox.restore();
   });
 
-  describe("`users` event", function() {
+  describe("`message:users` event", function() {
+
+    it("should update the current list of users", function() {
+      sandbox.stub(ports, "broadcastEvent");
+      sandbox.stub(window, "updateCurrentUsers");
+
+      server.trigger("message:users", "fake");
+
+      sinon.assert.calledOnce(updateCurrentUsers);
+      sinon.assert.calledWith(updateCurrentUsers, "fake");
+    });
 
     it("should broadcast a `talkilla.users` event with the list of users",
       function() {
-        var data = "fake users list";
+        sandbox.stub(ports, "broadcastEvent");
         sandbox.stub(window, "updateCurrentUsers", function(data) {
           currentUsers = data;
         });
-        sandbox.stub(ports, "broadcastEvent");
-        serverHandlers.users(data);
+
+        server.trigger("message:users", "fake");
 
         sinon.assert.calledOnce(ports.broadcastEvent);
         sinon.assert.calledWith(
-          ports.broadcastEvent, "talkilla.users", "fake users list");
+          ports.broadcastEvent, "talkilla.users", "fake");
       });
+
   });
 
-  describe("`userJoined` event", function() {
+  describe("`message:userJoined` event", function() {
 
     it("should broadcast a `talkilla.users` event", function() {
       currentUsers = [];
       sandbox.stub(ports, "broadcastEvent");
 
-      serverHandlers.userJoined("foo");
+      server.trigger("message:userJoined", "foo");
 
       sinon.assert.called(ports.broadcastEvent);
       sinon.assert.calledWith(ports.broadcastEvent, "talkilla.users", [
@@ -52,7 +67,7 @@ describe("serverHandlers", function() {
       currentUsers = [];
       sandbox.stub(ports, "broadcastEvent");
 
-      serverHandlers.userJoined("foo");
+      server.trigger("message:userJoined", "foo");
 
       sinon.assert.called(ports.broadcastEvent);
       sinon.assert.calledWith(ports.broadcastEvent,
@@ -61,13 +76,13 @@ describe("serverHandlers", function() {
 
   });
 
-  describe("`userLeft` event", function() {
+  describe("`message:userLeft` event", function() {
 
     it("should broadcast a `talkilla.users` event", function() {
       currentUsers = [{nick: "foo", presence: "connected"}];
       sandbox.stub(ports, "broadcastEvent");
 
-      serverHandlers.userLeft("foo");
+      server.trigger("message:userLeft", "foo");
 
       sinon.assert.called(ports.broadcastEvent);
       sinon.assert.calledWith(ports.broadcastEvent, "talkilla.users", [
@@ -79,7 +94,7 @@ describe("serverHandlers", function() {
       currentUsers = [];
       sandbox.stub(ports, "broadcastEvent");
 
-      serverHandlers.userLeft("foo");
+      server.trigger("message:userLeft", "foo");
 
       sinon.assert.called(ports.broadcastEvent);
       sinon.assert.calledWith(ports.broadcastEvent,
@@ -88,7 +103,7 @@ describe("serverHandlers", function() {
 
   });
 
-  describe("#incoming_call", function() {
+  describe("`message:incoming_call` event", function() {
     beforeEach(function() {
       browserPort = {postEvent: sandbox.spy()};
     });
@@ -104,7 +119,8 @@ describe("serverHandlers", function() {
         peer: "alice",
         offer: {type: "fake", sdp: "sdp" }
       };
-      serverHandlers.incoming_call(data);
+
+      server.trigger("message:incoming_call", data);
 
       expect(currentConversation).to.be.an.instanceOf(Conversation);
       expect(currentConversation.data).to.deep.equal(data);
@@ -120,7 +136,7 @@ describe("serverHandlers", function() {
           peer: "alice",
           offer: {type: "fake", sdp: "sdp" }
         };
-        serverHandlers.incoming_call(data);
+        server.trigger("message:incoming_call", data);
 
         sinon.assert.calledOnce(currentConversation.handleIncomingCall);
         sinon.assert.calledWith(currentConversation.handleIncomingCall,
@@ -128,7 +144,7 @@ describe("serverHandlers", function() {
       });
   });
 
-  describe("#call_accepted", function() {
+  describe("`message:call_accepted` event", function() {
 
     it("should call callAccepted on the conversation", function () {
       var data = {
@@ -140,7 +156,7 @@ describe("serverHandlers", function() {
         callAccepted: sandbox.spy()
       };
 
-      serverHandlers.call_accepted(data);
+      server.trigger("message:call_accepted", data);
 
       sinon.assert.calledOnce(currentConversation.callAccepted);
       sinon.assert.calledWithExactly(currentConversation.callAccepted,
@@ -149,7 +165,7 @@ describe("serverHandlers", function() {
 
   });
 
-  describe("#call_hangup", function() {
+  describe("`message:call_hangup` event", function() {
     var callData, callHangupStub;
 
     beforeEach(function() {
@@ -167,7 +183,7 @@ describe("serverHandlers", function() {
     });
 
     it("should call callHangup on the conversation", function() {
-      serverHandlers.call_hangup(callData);
+      server.trigger("message:call_hangup", callData);
 
       sinon.assert.calledOnce(callHangupStub);
       sinon.assert.calledWithExactly(callHangupStub, callData);
