@@ -365,7 +365,7 @@ describe("ChatApp", function() {
 
     describe("#_onWindowClose", function() {
 
-      it("should hangup the call", function() {
+      it("should hangup the call if necessary", function() {
         sandbox.stub(chatApp.call, "hangup");
 
         chatApp._onWindowClose();
@@ -373,17 +373,6 @@ describe("ChatApp", function() {
         sinon.assert.called(chatApp.call.hangup);
         sinon.assert.calledWith(chatApp.call.hangup);
       });
-
-      it("should not try to hangup the call if the call is already terminated",
-        function() {
-          sandbox.stub(chatApp.call, "hangup");
-          chatApp.call.state.current = "terminated";
-
-          chatApp._onWindowClose();
-
-          sinon.assert.notCalled(chatApp.call.hangup);
-        });
-
     });
 
     describe("#_onSendOffer", function() {

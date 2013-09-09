@@ -297,14 +297,33 @@ describe("Call Model", function() {
   });
 
   describe("#hangup", function() {
-    it("should change the state from ready to terminated", function() {
-      call.hangup();
+    it("should not hangup if the state is ready", function() {
+      call.state.current = 'ready';
+
+      call.hangup(false);
+
+      expect(call.state.current).to.equal('ready');
+    });
+
+    it("should not hangup if the state is timeout", function() {
+      call.state.current = 'timeout';
+
+      call.hangup(false);
+
+      expect(call.state.current).to.equal('timeout');
+    });
+
+    it("should not hangup if the state is terminated", function() {
+      call.state.current = 'terminated';
+
+      call.hangup(false);
+
       expect(call.state.current).to.equal('terminated');
     });
 
     it("should change the state from pending to terminated", function() {
       call.start({});
-      call.hangup();
+      call.hangup(false);
       expect(call.state.current).to.equal('terminated');
     });
 
@@ -312,14 +331,14 @@ describe("Call Model", function() {
       _.extend(media, Backbone.Events);
       call.start({});
       call.establish({answer: {type: "answer", sdp: "sdp"}});
-      call.hangup();
+      call.hangup(false);
       expect(call.state.current).to.equal('terminated');
     });
 
     it("should call hangup on the media element", function() {
       media.terminate = sandbox.stub();
       call.start({});
-      call.hangup();
+      call.hangup(false);
 
       sinon.assert.calledOnce(media.terminate);
       sinon.assert.calledWithExactly(media.terminate);
