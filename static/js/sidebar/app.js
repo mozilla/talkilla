@@ -68,7 +68,8 @@ var SidebarApp = (function($, Backbone, _) {
   }
 
   SidebarApp.prototype._login = function(assertion) {
-    this.port.postEvent('talkilla.login', {assertion: assertion});
+    if (!this.user.isLoggedIn())
+      this.port.postEvent('talkilla.login', {assertion: assertion});
   };
 
   SidebarApp.prototype._logout = function() {
