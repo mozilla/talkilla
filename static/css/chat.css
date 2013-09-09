@@ -119,23 +119,20 @@ body {
  */
 #call {
   display: table-row;
-  height: 100%;
-  /* as the .video-area element is displayed inline, treat it as text so we can
-     ensure it's actually centered without knowing its exact width */
-  text-align: center;
+  height: calc(100vw / 1.33333); /* keep 4:3 video aspect ratio */
 }
 
 #call .video-area {
-  display: inline-block;
-  max-width: 100%;
   position: relative;
   overflow: hidden;
+  margin-bottom: -5px;
 }
 
 #call .remote-video {
   width: 100vw;
   min-width: 100vw;
-  vertical-align: bottom;
+  max-height: 80vh;
+  z-index: 1;
 }
 
 /* XXX once we get the local-video stapled to the remote-video,
@@ -143,7 +140,7 @@ body {
    of that landing. */
 #call .local-video {
   position: absolute;
-  top: 5px;
+  bottom: 10px;
   right: 5px;
   width: 20vw;
   min-width: 80px;
@@ -151,7 +148,7 @@ body {
   height: 15vw;
   min-height: 60px;
   max-height: 150px;
-  z-index: 1;
+  z-index: 99;
   border: 1px solid #333;
   background: #ccc;
 }
@@ -167,15 +164,13 @@ body {
 
 #textchat {
   display: table-row;
-  height: 22px;
   font-size: 80%;
 }
 
 #textchat ul {
-  position: absolute;
-  top: 22px;
   width: 100%;
-  height: calc(100vh - 24px - 22px); /* viewport height minus topbar height */
+  /* height: viewport height - controls height - form height */
+  height: calc(100vh - 24px - 22px);
   overflow: scroll;
   margin: 0;
   padding: 0;
@@ -183,30 +178,31 @@ body {
 }
 
 #textchat ul li {
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   padding: 0 5px;
   line-height: 17px;
+  width: 100%;
 }
 
 .has-video #textchat ul {
-  position: fixed;
-  top: inherit;
-  bottom: 22px;
-  height: 13vh;
-  min-height: 35px;
+  /* top: viewport height - video height) */
+  top: calc(100vh - 100vw / 1.33333);
+  /* height: viewport height - video height - controls height - form height */
+  height: calc((100vh - 100vw / 1.33333) - 24px - 22px);
 }
 
 #textchat form {
-  position: fixed;
-  width: 100%;
-  margin: 0;
-  bottom: 0;
+  display: table-row;
+  height: 22px;
+  width: 100vw;
   z-index: 99;
 }
 
 #textchat form input[type="text"] {
   -moz-box-sizing: border-box;
   box-sizing: border-box;
-  width: 100%;
+  width: 100vw;
   height: 22px;
   font-size: 11px;
   border-radius: 0;
@@ -256,4 +252,24 @@ body {
   line-height: 15px;
   text-align: center;
   width: 100%;
+}
+
+@media screen and (max-height: 300px) {
+  #call {
+    height: 60vh;
+  }
+
+  #call .remote-video {
+    /**
+     * XXX: we can't keep both video aspect ratio and display 3 lines of chat
+     *      text, so we letterbox the video
+     */
+    height: 60vh;
+    transform: scale(1.35);
+  }
+
+  .has-video #textchat ul {
+    /* height: viewport height - video height - controls height - form height */
+    height: calc(100vh - 60vh - 24px - 22px);
+  }
 }
