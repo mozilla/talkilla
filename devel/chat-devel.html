@@ -19,6 +19,9 @@
   <iframe src="../static/chat.html" width="400" height="420"></iframe>
   <iframe src="../static/chat.html" width="750" height="480"></iframe>
   <script>
+  // XXX for all three frames to show video, the
+  // media.navigator.permission.disabled pref must be set to true.  This a
+  // workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=868095
   function configureIframe(f) {
     var fdoc = f.contentDocument;
     fdoc.body.classList.add("has-video");
@@ -40,7 +43,9 @@
       var remote = fdoc.querySelector('#remote-video');
       remote.mozSrcObject = stream;
       remote.play();
-    }, function() {});
+    }, function(err) {
+      console.log("mozGetUserMedia err: " + err);
+    });
   }
 
   function show(el) {
@@ -52,7 +57,7 @@
   }
 
   function forAllFrames(fn) {
-    [].forEach.call(document.querySelectorAll('iframe'), fn);
+    Array.prototype.forEach.call(document.querySelectorAll('iframe'), fn);
   }
 
   window.onload = function() {
