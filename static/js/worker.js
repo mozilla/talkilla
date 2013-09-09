@@ -1,9 +1,12 @@
+/* global indexedDB, importScripts, Server, HTTP */
 /* jshint unused:false */
 
+importScripts('../vendor/backbone-events-standalone-0.1.5.js',
+              'worker/http.js',    // exposes HTTP
+              'worker/server.js'); // exposes Server
+
 var _config = {DEBUG: false};
-var _cookieNickname;
 var _currentUserData;
-var _presenceSocket;
 var ports;
 var browserPort;
 var currentConversation;
@@ -11,6 +14,7 @@ var currentUsers;
 var contacts;
 var contactsDb;
 var kContactDBName = "contacts";
+var server;
 
 function getCurrentUsers() {
   return currentUsers || [];
@@ -293,20 +297,23 @@ function updateCurrentUsers(data) {
   currentUsers = users;
 }
 
-var serverHandlers = {
-  'debug': function(label, data) {
-    ports.broadcastDebug("server event: " + label, data);
-  },
+function _setupServer(server) {
+  server.on("connected", function() {
+    ports.broadcastEvent('talkilla.login-success', {
+      username: _currentUserData.userName
+    });
+  });
 
-  'users': function(data) {
-    this.debug("users", data);
+  server.on("message", function(label, data) {
+    ports.broadcastDebug("server event: " + label, data);
+  });
+
+  server.on("message:users", function(data) {
     updateCurrentUsers(data);
     ports.broadcastEvent("talkilla.users", currentUsers);
-  },
+  });
 
-  'userJoined': function(data) {
-    this.debug("userJoined", data);
-
+  server.on("message:userJoined", function(data) {
     currentUsers = getCurrentUsers();
     // XXX Remove the user if they exist, and then re-add to handle
     // the case if the user doesn't exist.
@@ -319,11 +326,9 @@ var serverHandlers = {
     currentUsers.push({nick: data, presence: "connected"});
     ports.broadcastEvent("talkilla.users", currentUsers);
     ports.broadcastEvent("talkilla.user-joined", data);
-  },
+  });
 
-  'userLeft': function(data) {
-    this.debug("userLeft", data);
-
+  server.on("message:userLeft", function(data) {
     currentUsers = getCurrentUsers();
     // Show the user as disconnected
     currentUsers = currentUsers.map(function(user) {
@@ -333,11 +338,9 @@ var serverHandlers = {
     });
     ports.broadcastEvent("talkilla.users", currentUsers);
     ports.broadcastEvent("talkilla.user-left", data);
-  },
+  });
 
-  'incoming_call': function(data) {
-    this.debug("incoming_call", data);
-
+  server.on("message:incoming_call", function(data) {
     // If we're in a conversation, and it is not with the peer,
     // then ignore it
     if (currentConversation) {
@@ -352,127 +355,34 @@ var serverHandlers = {
     }
 
     currentConversation = new Conversation(data);
-  },
+  });
 
-  'call_accepted': function(data) {
-    this.debug("call_accepted", data);
+  server.on("message:call_accepted", function(data) {
     currentConversation.callAccepted(data);
-  },
+  });
 
-  'call_hangup': function(data) {
-    this.debug("call_hangup", data);
+  server.on("message:call_hangup", function(data) {
     if (currentConversation)
       currentConversation.callHangup(data);
-  }
-};
+  });
 
-function _presenceSocketOnMessage(event) {
-  var data = JSON.parse(event.data);
-  for (var eventType in data)
-    if (eventType in serverHandlers)
-      serverHandlers[eventType](data[eventType]);
-    else
-      ports.broadcastEvent("talkilla." + eventType, data[eventType]);
-}
+  server.on("error", function(event) {
+    ports.broadcastEvent("talkilla.websocket-error", event);
+  });
 
-function _presenceSocketSendMessage(data) {
-  _presenceSocket.send(data);
-}
+  server.on("disconnected", function(event) {
+    _currentUserData.connected = false;
 
-function _presenceSocketOnOpen(event) {
-  "use strict";
-
-  _currentUserData.connected = true;
-  ports.broadcastEvent("talkilla.presence-open", event);
-}
-
-function _presenceSocketOnError(event) {
-  "use strict";
-
-  ports.broadcastEvent("talkilla.websocket-error", event);
-}
-
-function _presenceSocketOnClose(event) {
-  "use strict";
-
-  _currentUserData.connected = false;
-
-  // XXX: this will need future work to handle retrying presence connections
-  ports.broadcastEvent('talkilla.presence-unavailable', event.code);
-  currentUsers = undefined;
-}
-
-function _setupWebSocket(ws) {
-  "use strict";
-
-  ws.onopen = _presenceSocketOnOpen;
-  ws.onmessage = _presenceSocketOnMessage;
-  ws.onerror = _presenceSocketOnError;
-  ws.onclose = _presenceSocketOnClose;
-}
-
-function createPresenceSocket(nickname, callback) {
-  "use strict";
-
-  _presenceSocket = new WebSocket(_config.WSURL + "?nick=" + nickname);
-  _presenceSocket.addEventListener("open", callback);
-  _setupWebSocket(_presenceSocket);
-
-  ports.broadcastEvent("talkilla.presence-pending", {});
-}
-
-function _loginExpired() {
-  "use strict";
-
-  _presenceSocket.removeEventListener("error", _loginExpired);
-  ports.broadcastEvent("talkilla.logout-success", {});
-}
-
-function _presenceSocketReAttached(username, event) {
-  "use strict";
-
-  _presenceSocket.removeEventListener("open", _presenceSocketReAttached);
-  _setupWebSocket(_presenceSocket);
-  _currentUserData.userName = username;
-  _presenceSocketOnOpen(event);
-  ports.broadcastEvent("talkilla.login-success", {username: username});
-}
-
-function tryPresenceSocket(nickname) {
-  "use strict";
-  /*jshint validthis:true */
-
-  _presenceSocket = new WebSocket(_config.WSURL + "?nick=" + nickname);
-  _presenceSocket.addEventListener(
-    "open", _presenceSocketReAttached.bind(this, nickname));
-  _presenceSocket.addEventListener("error", _loginExpired);
-  ports.broadcastEvent("talkilla.presence-pending", {});
-}
-
-function sendAjax(url, method, data, cb) {
-  var xhr = new XMLHttpRequest();
-
-  xhr.onload = function(event) {
-    // sinon.js can call us with a null event a second time, so just ignore it.
-    if (!event)
-      return;
-    if (xhr.readyState === 4 && xhr.status === 200)
-      return cb(null, xhr.responseText);
-    cb(xhr.statusText, xhr.responseText);
-  };
-
-  xhr.onerror = function(event) {
-    if (event && event.target)
-      cb(event.target.status ? event.target.statusText : "We are offline");
-  };
-
-  xhr.open(method || 'GET', url, true);
-  xhr.setRequestHeader("Content-Type", "application/json");
-  xhr.send(JSON.stringify(data));
+    // XXX: this will need future work to handle retrying presence connections
+    ports.broadcastEvent('talkilla.presence-unavailable', event.code);
+    ports.broadcastEvent("talkilla.logout-success", {});
+    currentUsers = undefined;
+  });
 }
 
 function loadconfig(cb) {
-  sendAjax('/config.json', 'GET', {}, function(err, data) {
+  var http = new HTTP();
+  http.get('/config.json', {}, function(err, data) {
     var config;
     try {
       config = JSON.parse(data);
@@ -491,11 +401,8 @@ function _signinCallback(err, responseText) {
   if (username) {
     _currentUserData.userName = username;
 
-    createPresenceSocket(username, function() {
-      ports.broadcastEvent('talkilla.login-success', {
-        username: username
-      });
-    });
+    server.connect(username);
+    ports.broadcastEvent("talkilla.presence-pending", {});
   }
 }
 
@@ -525,23 +432,16 @@ var handlers = {
     // to broadcast all our talkilla.* messages to the social api.
     ports.remove(this);
 
-    browserPort.postEvent('social.cookies-get');
-
     getContactsDatabase();
   },
 
   'social.cookies-get-response': function(event) {
     var cookies = event.data;
     cookies.forEach(function(cookie) {
-      if (cookie.name === "nick") {
+      if (cookie.name === "nick")
         // If we've received the configuration info, then go
         // ahead and log in.
-        if (_config.WSURL)
-          tryPresenceSocket(cookie.value);
-        else
-          // Otherwise save it for once we've got the config information.
-          _cookieNickname = cookie.value;
-      }
+        server.autoconnect(cookie.value);
     });
   },
 
@@ -553,17 +453,14 @@ var handlers = {
 
     this.postEvent('talkilla.login-pending', null);
 
-    sendAjax('/signin', 'POST', {assertion: msg.data.assertion},
-      _signinCallback.bind(this));
+    server.signin(msg.data.assertion, _signinCallback.bind(this));
   },
 
   'talkilla.logout': function() {
     if (!_currentUserData.userName)
       return;
 
-    _presenceSocket.close();
-    sendAjax('/signout', 'POST', {nick: _currentUserData.userName},
-      _signoutCallback.bind(this));
+    server.signout(_currentUserData.userName, _signoutCallback.bind(this));
   },
 
   'talkilla.conversation-open': function(event) {
@@ -599,7 +496,7 @@ var handlers = {
     if (currentUsers)
       this.postEvent('talkilla.users', currentUsers);
     else
-      _presenceSocketSendMessage(JSON.stringify({'presence_request': null}));
+      server.send({'presence_request': null});
   },
 
   /**
@@ -610,7 +507,7 @@ var handlers = {
    * - offer:    an RTCSessionDescription containing the sdp data for the call.
    */
   'talkilla.call-offer': function(event) {
-    _presenceSocketSendMessage(JSON.stringify({'call_offer': event.data}));
+    server.send({'call_offer': event.data});
   },
 
   /**
@@ -621,7 +518,7 @@ var handlers = {
    * - offer:    an RTCSessionDescription containing the sdp data for the call.
    */
   'talkilla.call-answer': function(event) {
-    _presenceSocketSendMessage(JSON.stringify({'call_accepted': event.data}));
+    server.send({'call_accepted': event.data});
   },
 
   /**
@@ -630,7 +527,7 @@ var handlers = {
    * - peer: the person you are talking to.
    */
   'talkilla.call-hangup': function (event) {
-    _presenceSocketSendMessage(JSON.stringify({'call_hangup': event.data}));
+    server.send({'call_hangup': event.data});
   }
 };
 
@@ -748,12 +645,9 @@ loadconfig(function(err, config) {
     return ports.broadcastError(err);
   _config = config;
   _currentUserData = new UserData({}, config);
+  server = new Server(config);
 
-  // If we've already got the cookie data, try to log in
-  if (_cookieNickname) {
-    tryPresenceSocket(_cookieNickname);
-    // Now clear the cookieNickname, so that we don't try it again unless we
-    // re-obtain it.
-    _cookieNickname = undefined;
-  }
+  _setupServer(server);
+
+  browserPort.postEvent('social.cookies-get');
 });
