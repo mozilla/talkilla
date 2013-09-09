@@ -154,8 +154,32 @@ describe('Call Establish View', function() {
       sandbox.stub(window, "clearTimeout");
     });
 
-    it("should show the element when the state changes to pending from ready",
+    it("should show the element when the state changes from ready to pending",
       function() {
+        establishView.$el.hide();
+
+        call.state.start();
+
+        expect(establishView.$el.is(":visible")).to.be.equal(true);
+      });
+
+    // This is for the case where the estabilsh view is used for both pending,
+    // and the call timeout displays.
+    it("should show the element when the state changes to timeout",
+      function() {
+        call.state.start();
+        establishView.$el.hide();
+
+        call.state.timeout();
+
+        expect(establishView.$el.is(":visible")).to.be.equal(true);
+      });
+
+    it("should show the element when the state changes from timeout to pending",
+      function() {
+        call.state.start();
+        call.state.timeout();
+
         establishView.$el.hide();
 
         call.state.start();

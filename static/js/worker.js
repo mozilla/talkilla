@@ -1,9 +1,9 @@
 /* global indexedDB, importScripts, Server, HTTP */
 /* jshint unused:false */
 
-importScripts('../vendor/backbone-events-standalone-0.1.5.js');
-importScripts('worker/http.js');   // exposes HTTP
-importScripts('worker/server.js'); // exposes Server
+importScripts('../vendor/backbone-events-standalone-0.1.5.js',
+              'worker/http.js',    // exposes HTTP
+              'worker/server.js'); // exposes Server
 
 var _config = {DEBUG: false};
 var _currentUserData;

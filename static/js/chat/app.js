@@ -201,9 +201,7 @@ var ChatApp = (function($, Backbone, _) {
   };
 
   ChatApp.prototype._onWindowClose = function(data) {
-    var callState = this.call.state.current;
-    if (callState !== "terminated")
-      this.call.hangup(true);
+    this.call.hangup(true);
   };
 
   ChatApp.prototype._onUserSignout = function() {

@@ -315,14 +315,20 @@
     },
 
     _handleStateChanges: function(to, from) {
-      if (to === "pending" && from === "ready") {
+      // XXX Pending gets used for incoming and outgoing, so we have to
+      // make sure we're coming from one of the outgoing states.
+      if ((to === "pending" &&
+           (from === "ready" || from === "timeout")) ||
+          to === "timeout") {
         this.$el.show();
-      } else if (from === "pending") {
+      }
+      else {
+        this.$el.hide();
+      }
+
+      if (from === "pending") {
         this.audioLibrary.stop('outgoing');
         clearTimeout(this.timer);
-
-        if (to !== "timeout")
-          this.$el.hide();
       }
 
       this.render();
