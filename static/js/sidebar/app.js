@@ -68,7 +68,8 @@ var SidebarApp = (function($, Backbone, _) {
   }
 
   SidebarApp.prototype._login = function(assertion) {
-    this.port.postEvent('talkilla.login', {assertion: assertion});
+    if (!this.user.isLoggedIn())
+      this.port.postEvent('talkilla.login', {assertion: assertion});
   };
 
   SidebarApp.prototype._logout = function() {
@@ -87,6 +88,7 @@ var SidebarApp = (function($, Backbone, _) {
   };
 
   SidebarApp.prototype._onLoginSuccess = function(data) {
+    console.log("login success");
     $.cookie('nick', data.username, {expires: 10});
     this.user.set({nick: data.username, presence: "connected"});
     this.port.postEvent("talkilla.presence-request");
