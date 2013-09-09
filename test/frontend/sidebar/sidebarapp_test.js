@@ -170,6 +170,17 @@ describe("SidebarApp", function() {
                                        {assertion: "fake assertion"});
       });
 
+    it("should not post a talkilla.login event if already logged in",
+      function() {
+        var sidebarApp = new SidebarApp();
+        sidebarApp.user.set("nick", "foo").set("presence", "connected");
+
+        sidebarApp.port.postEvent.reset();
+        browserIdHandlers.onlogin("fake assertion");
+
+        sinon.assert.notCalled(sidebarApp.port.postEvent);
+      });
+
     it("should post a talkilla.logout event when the user logs out",
       function() {
         var sidebarApp = new SidebarApp();
