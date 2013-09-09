@@ -296,15 +296,34 @@ describe("Call Model", function() {
     });
   });
 
-  describe("#_hangup", function() {
-    it("should change the state from ready to terminated", function() {
-      call._hangup();
+  describe("#hangup", function() {
+    it("should not hangup if the state is ready", function() {
+      call.state.current = 'ready';
+
+      call.hangup(false);
+
+      expect(call.state.current).to.equal('ready');
+    });
+
+    it("should not hangup if the state is timeout", function() {
+      call.state.current = 'timeout';
+
+      call.hangup(false);
+
+      expect(call.state.current).to.equal('timeout');
+    });
+
+    it("should not hangup if the state is terminated", function() {
+      call.state.current = 'terminated';
+
+      call.hangup(false);
+
       expect(call.state.current).to.equal('terminated');
     });
 
     it("should change the state from pending to terminated", function() {
       call.start({});
-      call._hangup();
+      call.hangup(false);
       expect(call.state.current).to.equal('terminated');
     });
 
@@ -312,14 +331,14 @@ describe("Call Model", function() {
       _.extend(media, Backbone.Events);
       call.start({});
       call.establish({answer: {type: "answer", sdp: "sdp"}});
-      call._hangup();
+      call.hangup(false);
       expect(call.state.current).to.equal('terminated');
     });
 
     it("should call hangup on the media element", function() {
       media.terminate = sandbox.stub();
       call.start({});
-      call._hangup();
+      call.hangup(false);
 
       sinon.assert.calledOnce(media.terminate);
       sinon.assert.calledWithExactly(media.terminate);
@@ -331,50 +350,11 @@ describe("Call Model", function() {
 
       sandbox.stub(call, "trigger");
 
-      call._hangup(true);
+      call.hangup(true);
 
       sinon.assert.called(call.trigger);
       sinon.assert.calledWithExactly(call.trigger, "send-hangup",
                                      {peer: "Mark"});
-    });
-  });
-
-  describe("#hangupIfNecessary", function() {
-    beforeEach(function() {
-      sandbox.stub(call, "_hangup");
-    });
-
-    it("should call _hangup", function() {
-      call.state.current = 'pending';
-
-      call.hangupIfNecessary(true);
-
-      sinon.assert.called(call._hangup);
-      sinon.assert.calledWithExactly(call._hangup, true);
-    });
-
-    it("should not call hangup if the state is ready", function() {
-      call.state.current = 'ready';
-
-      call.hangupIfNecessary(false);
-
-      sinon.assert.notCalled(call._hangup);
-    });
-
-    it("should not call hangup if the state is timeout", function() {
-      call.state.current = 'timeout';
-
-      call.hangupIfNecessary(false);
-
-      sinon.assert.notCalled(call._hangup);
-    });
-
-    it("should not call hangup if the state is terminated", function() {
-      call.state.current = 'terminated';
-
-      call.hangupIfNecessary(false);
-
-      sinon.assert.notCalled(call._hangup);
     });
   });
 

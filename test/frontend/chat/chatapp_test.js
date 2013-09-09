@@ -327,14 +327,14 @@ describe("ChatApp", function() {
 
     describe("#_onCallShutdown", function() {
       beforeEach(function() {
-        sandbox.stub(chatApp.call, "hangupIfNecessary");
+        sandbox.stub(chatApp.call, "hangup");
         sandbox.stub(window, "close");
         chatApp._onCallShutdown();
       });
 
       it("should hangup the call", function() {
-        sinon.assert.calledOnce(chatApp.call.hangupIfNecessary);
-        sinon.assert.calledWithExactly(chatApp.call.hangupIfNecessary, false);
+        sinon.assert.calledOnce(chatApp.call.hangup);
+        sinon.assert.calledWithExactly(chatApp.call.hangup, false);
       });
 
       it("should close the window", function() {
@@ -366,12 +366,12 @@ describe("ChatApp", function() {
     describe("#_onWindowClose", function() {
 
       it("should hangup the call if necessary", function() {
-        sandbox.stub(chatApp.call, "hangupIfNecessary");
+        sandbox.stub(chatApp.call, "hangup");
 
         chatApp._onWindowClose();
 
-        sinon.assert.called(chatApp.call.hangupIfNecessary);
-        sinon.assert.calledWith(chatApp.call.hangupIfNecessary);
+        sinon.assert.called(chatApp.call.hangup);
+        sinon.assert.calledWith(chatApp.call.hangup);
       });
     });
 

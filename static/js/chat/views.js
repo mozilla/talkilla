@@ -150,7 +150,7 @@
       if (event)
         event.preventDefault();
 
-      this.call.hangupIfNecessary(true);
+      this.call.hangup(true);
     },
 
     outgoingAudioToggle: function(event) {

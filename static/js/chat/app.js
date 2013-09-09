@@ -189,7 +189,7 @@ var ChatApp = (function($, Backbone, _) {
   // Call Hangup
   ChatApp.prototype._onCallShutdown = function() {
     this.audioLibrary.stop('incoming');
-    this.call.hangupIfNecessary(false);
+    this.call.hangup(false);
     window.close();
   };
 
@@ -200,7 +200,7 @@ var ChatApp = (function($, Backbone, _) {
   };
 
   ChatApp.prototype._onWindowClose = function(data) {
-    this.call.hangupIfNecessary(true);
+    this.call.hangup(true);
   };
 
   ChatApp.prototype._onUserSignout = function() {

@@ -37,6 +37,11 @@
 
       this.state = StateMachine.create({
         initial: 'ready',
+        // XXX This state machine needs refactoring to separate out
+        // the pending state into two states: one for incoming, one
+        // for outgoing. When this is done,
+        // app.views.CallEstablishView._handleStateChanges needs
+        // re-auditing.
         events: [
           // Call initiation scenario
           {name: 'start',     from: ['ready',
@@ -188,15 +193,19 @@
     },
 
     /**
-     * Hangs up a call. An internal API, which only works from
-     * certain states (XXX which?).  Prefer hangupIfNecessary
-     * whenever possible.
+     * Hangs up a call if necessary, i.e. if the call state is in a place
+     * where hangup needs to be sent.
      *
      * @param {Boolean} sendMsg Set to true if to trigger sending hangup
      *                          to the peer. This should be false in the
      *                          case of an incoming hangup message.
      */
-    _hangup: function(sendMsg) {
+    hangup: function(sendMsg) {
+      if (this.state.current === "terminated" ||
+          this.state.current === "timeout" ||
+          this.state.current === "ready")
+        return;
+
       this.state.hangup();
       this.media.terminate();
 
@@ -205,21 +214,6 @@
           peer: this.peer.get("nick")
         });
       }
-    },
-
-    /**
-     * Hangs up a call if necessary, i.e. if the call state is in a place
-     * where hangup needs to be sent.
-     *
-     * @param {Boolean} sendMsg Set to true if to trigger sending hangup
-     *                          to the peer. This should be false in the
-     *                          case of an incoming hangup message.
-     */
-    hangupIfNecessary: function(sendMsg) {
-      if (this.state.current !== "terminated" &&
-          this.state.current !== "timeout" &&
-          this.state.current !== "ready")
-        this._hangup(sendMsg);
     },
 
     /**

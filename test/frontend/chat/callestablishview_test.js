@@ -163,6 +163,8 @@ describe('Call Establish View', function() {
         expect(establishView.$el.is(":visible")).to.be.equal(true);
       });
 
+    // This is for the case where the estabilsh view is used for both pending,
+    // and the call timeout displays.
     it("should show the element when the state changes to timeout",
       function() {
         call.state.start();
