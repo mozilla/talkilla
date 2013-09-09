@@ -1,8 +1,8 @@
 /*global chai, sinon, ports:true, Port, PortCollection, handlers,
   _currentUserData:true, currentConversation:true, UserData,
   _presenceSocket:true, browserPort:true, currentUsers:true,
-  Conversation, _config:true,
-  _cookieNickname:true, Server, server:true */
+  Conversation, _config:true, _loginPending:true, _autologinPending: true,
+  _cookieNickname:true, Server, server:true, _signinCallback */
 /* jshint expr:true */
 
 var expect = chai.expect;
@@ -65,6 +65,7 @@ describe('handlers', function() {
 
     it("should try to connect the presence socket",
       function() {
+        _currentUserData = {};
         sandbox.stub(server, "autoconnect");
         var event = {
           data: [ {name: "nick", value: "Boriss"} ]
@@ -93,6 +94,7 @@ describe('handlers', function() {
         ROOTURL: rootURL
       });
       sandbox.stub(_currentUserData, "send");
+      _loginPending = _autologinPending = false;
     });
 
     afterEach(function() {
@@ -131,6 +133,35 @@ describe('handlers', function() {
         expect(requests[0].requestBody).to.be.not.empty;
         expect(requests[0].requestBody)
           .to.be.equal('{"assertion":"fake assertion"}');
+      });
+
+    it("should not do anything if a login is already pending", function() {
+      _loginPending = true;
+      sandbox.stub(window, "_signinCallback");
+      handlers.postEvent = sandbox.spy();
+
+      handlers['talkilla.login']({
+        topic: "talkilla.login",
+        data: {assertion: "fake assertion"}
+      });
+
+      sinon.assert.notCalled(handlers.postEvent);
+      sinon.assert.notCalled(_signinCallback);
+    });
+
+    it("should not do anything if an auto login is already pending",
+      function() {
+        _autologinPending = true;
+        sandbox.stub(window, "_signinCallback");
+        handlers.postEvent = sandbox.spy();
+
+        handlers['talkilla.login']({
+          topic: "talkilla.login",
+          data: {assertion: "fake assertion"}
+        });
+
+        sinon.assert.notCalled(handlers.postEvent);
+        sinon.assert.notCalled(_signinCallback);
       });
 
     describe("Accepted Login", function() {
