@@ -1,6 +1,6 @@
 /*global chai, sinon, browserPort:true, currentConversation:true,
   Server, Conversation, currentUsers:true, ports, updateCurrentUsers,
-  _setupServer */
+  _setupServer, _currentUserData:true, UserData */
 
 /* Needed due to the use of non-camelcase in the websocket topics */
 /* jshint camelcase:false */
@@ -11,7 +11,9 @@ describe("serverHandlers", function() {
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
+
     currentUsers = [];
+    _currentUserData = new UserData();
     server = new Server();
     _setupServer(server);
   });
@@ -19,6 +21,31 @@ describe("serverHandlers", function() {
   afterEach(function() {
     currentConversation = undefined;
     sandbox.restore();
+  });
+
+  describe("`connected` event", function() {
+
+    it("should set the user data as connected", function() {
+      sandbox.stub(_currentUserData, "send");
+
+      server.trigger("connected");
+
+      expect(_currentUserData.connected).to.be.equal(true);
+    });
+
+    it("should broadcast a `talkilla.login-success` event", function() {
+      sandbox.stub(_currentUserData, "send");
+      _currentUserData.userName = "harvey";
+      sandbox.stub(ports, "broadcastEvent");
+
+      server.trigger("connected");
+
+      sinon.assert.calledOnce(ports.broadcastEvent);
+      sinon.assert.calledWithExactly(
+        ports.broadcastEvent, "talkilla.login-success", {username: "harvey"}
+      );
+    });
+
   });
 
   describe("`message:users` event", function() {
@@ -189,4 +216,43 @@ describe("serverHandlers", function() {
       sinon.assert.calledWithExactly(callHangupStub, callData);
     });
   });
+
+  describe("`disconnected` event", function() {
+
+    it("should set the user data as connected", function() {
+      sandbox.stub(_currentUserData, "send");
+
+      server.trigger("disconnected", {code: 1006});
+
+      expect(_currentUserData.connected).to.be.equal(false);
+    });
+
+    it("should broadcast a `talkilla.presence-unavailable` event", function() {
+      sandbox.stub(_currentUserData, "send");
+      _currentUserData.userName = "harvey";
+      sandbox.stub(ports, "broadcastEvent");
+
+      server.trigger("disconnected", {code: 1006});
+
+      sinon.assert.calledTwice(ports.broadcastEvent);
+      sinon.assert.calledWithExactly(
+        ports.broadcastEvent, "talkilla.presence-unavailable", 1006
+      );
+    });
+
+    it("should broadcast a `talkilla.logout-success` event", function() {
+      sandbox.stub(_currentUserData, "send");
+      _currentUserData.userName = "harvey";
+      sandbox.stub(ports, "broadcastEvent");
+
+      server.trigger("disconnected", {code: 1006});
+
+      sinon.assert.calledTwice(ports.broadcastEvent);
+      sinon.assert.calledWithExactly(
+        ports.broadcastEvent, "talkilla.logout-success", {}
+      );
+    });
+
+  });
+
 });
