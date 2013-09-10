@@ -186,8 +186,6 @@ body {
 }
 
 .has-video #textchat ul {
-  /* top: viewport height - video height) */
-  top: calc(100vh - 100vw / 1.33333);
   /* height: viewport height - video height - controls height - form height */
   height: calc((100vh - 100vw / 1.33333) - 24px - 22px);
 }
@@ -254,6 +252,9 @@ body {
   width: 100%;
 }
 
+/**
+ * Small height window
+ */
 @media screen and (max-height: 300px) {
   #call {
     height: 60vh;
@@ -271,5 +272,52 @@ body {
   .has-video #textchat ul {
     /* height: viewport height - video height - controls height - form height */
     height: calc(100vh - 60vh - 24px - 22px);
+  }
+}
+
+/**
+ * Large view
+ */
+@media screen and (min-width: 720px) {
+  #call {
+    background: #000;
+    height: calc(60vh - 24px);
+  }
+
+  #call .video-area {
+    margin-bottom: 0;
+    max-height: calc(60vh - 22px);
+  }
+
+  #call .local-video {
+    display: block;
+    position: static;
+    bottom: none;
+    right: none;
+    float: left;
+    width: 50%;
+    height: 100%;
+    min-width: 50%;
+    max-width: none;
+    min-height: none;
+    max-height: none;
+    border: none;
+  }
+
+  #call .remote-video {
+    position: static;
+    display: block;
+    float: left;
+    width: 50%;
+    height: 100%;
+    min-width: 50%;
+    max-width: none;
+    min-height: none;
+    max-height: none;
+  }
+
+  .has-video #textchat ul {
+    /* height: viewport height - video height - controls height - form height */
+    height: calc(40vh - 22px);
   }
 }
