@@ -1,6 +1,6 @@
 /*global chai, sinon, browserPort:true, currentConversation:true,
   Server, Conversation, currentUsers:true, ports, updateCurrentUsers,
-  _setupServer */
+  _setupServer, _currentUserData:true, UserData */
 
 /* Needed due to the use of non-camelcase in the websocket topics */
 /* jshint camelcase:false */
