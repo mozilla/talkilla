@@ -14,6 +14,7 @@
     <input type="button" onclick="textChatOnly()" value="Text chat only">
     <input type="button" onclick="offer()" value="Call offer">
     <input type="button" onclick="establish()" value="Call establishment">
+    <input type="button" onclick="popup()" value="Popup">
   </p>
   <iframe src="../static/chat.html" width="260" height="264"></iframe>
   <iframe src="../static/chat.html" width="260" height="420"></iframe>
@@ -24,25 +25,24 @@
   // XXX for all three frames to show video, the
   // media.navigator.permission.disabled pref must be set to true.  This a
   // workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=868095
-  function configureIframe(f) {
-    var fdoc = f.contentDocument;
-    fdoc.body.classList.add("has-video");
+  function configure(doc) {
+    doc.body.classList.add("has-video");
     // call area
-    fdoc.querySelector('#call').classList.remove('hide');
+    doc.querySelector('#call').classList.remove('hide');
     // chat
-    var chat = fdoc.querySelector('#textchat ul');
+    var chat = doc.querySelector('#textchat ul');
     for (var i=0; i<=25; i++) {
-      var entry = fdoc.createElement('li');
+      var entry = doc.createElement('li');
       entry.innerHTML = "<strong>bob:</strong> " + (i + 1) + " lorem ipsum dolor sit amet.";
       chat.appendChild(entry);
     }
     chat.scrollTop = chat.scrollTopMax;
     // videos
     navigator.mozGetUserMedia({video: true, fake: false}, function(stream) {
-      var local = fdoc.querySelector('#local-video');
+      var local = doc.querySelector('#local-video');
       local.mozSrcObject = stream;
       local.play();
-      var remote = fdoc.querySelector('#remote-video');
+      var remote = doc.querySelector('#remote-video');
       remote.mozSrcObject = stream;
       remote.play();
     }, function(err) {
@@ -63,8 +63,17 @@
   }
 
   window.onload = function() {
-    forAllFrames(configureIframe);
+    forAllFrames(function(frame) {
+      configure(frame.contentDocument);
+    });
   };
+
+  function popup() {
+    var w = window.open("../static/chat.html");
+    w.onload = function() {
+      configure(w.document);
+    };
+  }
 
   function textChatOnly() {
     forAllFrames(function(f) {
