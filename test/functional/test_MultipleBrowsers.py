@@ -59,6 +59,7 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
         self.larry.signin()
 
         self.bob.openConversationWith("larry")
+        assert self.bob.title == "larry"
 
     def test_video_call(self):
         self.bob.signin()
@@ -69,6 +70,7 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
 
         self.larry.switchToChatWindow()
         self.assertIncomingCall(self.larry)
+        assert self.larry.title == "bob"
         self.larry.acceptCall()
 
         self.assertOngoingCall(self.bob)

@@ -247,7 +247,7 @@ describe("ChatApp", function() {
       });
 
       it("should trigger peer's presence attribute change", function() {
-        sandbox.stub(chatApp.peer, 'trigger');
+        sandbox.stub(chatApp.peer, 'trigger').returns(chatApp.peer);
 
         chatApp._onConversationOpen(callData);
 

@@ -7,6 +7,8 @@ importScripts('../vendor/backbone-events-standalone-0.1.5.js',
 
 var _config = {DEBUG: false};
 var _currentUserData;
+var _loginPending = false;
+var _autologinPending = false;
 var ports;
 var browserPort;
 var currentConversation;
@@ -299,6 +301,8 @@ function updateCurrentUsers(data) {
 
 function _setupServer(server) {
   server.on("connected", function() {
+    _autologinPending = false;
+    _currentUserData.connected = true;
     ports.broadcastEvent('talkilla.login-success', {
       username: _currentUserData.userName
     });
@@ -371,6 +375,8 @@ function _setupServer(server) {
   });
 
   server.on("disconnected", function(event) {
+    _autologinPending = false;
+    _currentUserData.userName = undefined;
     _currentUserData.connected = false;
 
     // XXX: this will need future work to handle retrying presence connections
@@ -394,6 +400,7 @@ function loadconfig(cb) {
 }
 
 function _signinCallback(err, responseText) {
+  _loginPending = false;
   var data = JSON.parse(responseText);
   if (err)
     return this.postEvent('talkilla.login-failure', data.error);
@@ -407,6 +414,7 @@ function _signinCallback(err, responseText) {
 }
 
 function _signoutCallback(err, responseText) {
+  _loginPending = false;
   if (err)
     return this.postEvent('talkilla.error', 'Bad signout:' + err);
 
@@ -438,10 +446,13 @@ var handlers = {
   'social.cookies-get-response': function(event) {
     var cookies = event.data;
     cookies.forEach(function(cookie) {
-      if (cookie.name === "nick")
+      if (cookie.name === "nick") {
+        _autologinPending = true;
+        _currentUserData.userName = cookie.value;
         // If we've received the configuration info, then go
         // ahead and log in.
         server.autoconnect(cookie.value);
+      }
     });
   },
 
@@ -450,7 +461,10 @@ var handlers = {
     if (!msg.data || !msg.data.assertion) {
       return this.postEvent('talkilla.login-failure', 'no assertion given');
     }
+    if (_loginPending || _autologinPending)
+      return;
 
+    _loginPending = true;
     this.postEvent('talkilla.login-pending', null);
 
     server.signin(msg.data.assertion, _signinCallback.bind(this));
