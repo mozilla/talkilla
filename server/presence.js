@@ -14,23 +14,6 @@ var wss = new WebSocketServer({noServer: true});
 var users = new Users();
 var api;
 
-function findNewNick(aNick) {
-  var nickParts = /^(.+?)(\d*)$/.exec(aNick);
-
-  // If there was not a digit at the end of the nick, just append 1.
-  var newDigits = "1";
-  // If there was a digit at the end of the nick, increment it.
-  if (nickParts[2]) {
-    newDigits = (parseInt(nickParts[2], 10) + 1).toString();
-    // If there were leading 0s, add them back on, after we've incremented (e.g.
-    // 009 --> 010).
-    for (var len = nickParts[2].length - newDigits.length; len > 0; --len)
-      newDigits = "0" + newDigits;
-  }
-
-  return nickParts[1] + newDigits;
-}
-
 /**
  * Configures a WebSocket connection.
  *
@@ -282,7 +265,6 @@ wss.on('error', function(err) {
 wss.on('close', function(ws) {});
 
 
-module.exports.findNewNick = findNewNick;
 module.exports.configureWs = configureWs;
 module.exports.api = api;
 module.exports._users = users;
