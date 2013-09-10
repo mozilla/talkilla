@@ -281,17 +281,20 @@ body {
 @media screen and (min-width: 720px) {
   #call {
     background: #000;
-    height: calc(60vh - 24px);
+    height: calc(60vh - 24px - 22px);
   }
 
   #call .video-area {
+    display: table-cell;
+    max-height: calc(60vh - 24px - 22px);
     margin-bottom: 0;
-    max-height: calc(60vh - 22px);
+    vertical-align: middle;
   }
 
   #call .local-video {
     display: block;
     position: static;
+    background: #000;
     bottom: none;
     right: none;
     float: left;
@@ -300,7 +303,7 @@ body {
     min-width: 50%;
     max-width: none;
     min-height: none;
-    max-height: none;
+    max-height: 60vh;
     border: none;
   }
 
@@ -313,11 +316,11 @@ body {
     min-width: 50%;
     max-width: none;
     min-height: none;
-    max-height: none;
+    max-height: 60vh;
   }
 
   .has-video #textchat ul {
     /* height: viewport height - video height - controls height - form height */
-    height: calc(40vh - 22px);
+    height: calc(40vh - 24px - 22px);
   }
 }
