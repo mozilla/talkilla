@@ -112,6 +112,9 @@ api = {
 
   stream: function(req, res) {
     var nick = req.body.nick;
+    if (!nick)
+      return res.send(400, JSON.stringify({}));
+
     users.get(nick).touch().waitForEvents(function(events) {
       res.send(200, JSON.stringify(events));
     });

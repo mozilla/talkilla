@@ -300,6 +300,16 @@ describe("presence", function() {
         users.get("foo").send(event);
       });
 
+      it("should fail if no nick is provided", function() {
+        var req = {body: {}};
+        var res = {send: sinon.spy()};
+
+        api.stream(req, res);
+
+        sinon.assert.calledOnce(res.send);
+        sinon.assert.calledWithExactly(res.send, 400, JSON.stringify({}));
+      });
+
     });
 
     describe.skip("WebSocket", function() {
