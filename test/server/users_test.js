@@ -16,6 +16,7 @@ describe("User", function() {
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
     user = new User("foo");
+    user.ondisconnect = sinon.spy();
   });
 
   afterEach(function() {
@@ -26,27 +27,6 @@ describe("User", function() {
 
     it("should return a JSON serialisable structure", function() {
       expect(user.toJSON()).to.deep.equal({nick: "foo"});
-    });
-
-  });
-
-  describe("#connect", function() {
-
-    it("should attach the given websocket to the user", function() {
-      user.connect("fake ws");
-      expect(user.ws).to.equal("fake ws");
-    });
-
-  });
-
-  describe("#disconnect", function() {
-
-    it("should close the WebSocket of a user and remove it", function() {
-      var fakeWS = {close: sinon.spy()};
-      user.connect(fakeWS).disconnect();
-
-      sinon.assert.calledOnce(fakeWS.close);
-      expect(user.ws).to.equal(undefined);
     });
 
   });
@@ -117,6 +97,48 @@ describe("User", function() {
            user.send({some: "data"});
          }, 10);
        });
+
+  });
+
+  describe("#connect", function() {
+
+    it("should start the disconnect timeout", function() {
+      user.connect();
+      expect(user.timeout).to.not.equal(undefined);
+    });
+
+  });
+
+  describe("#touch", function() {
+
+    it("should reset the current timeout", function() {
+      var oldTimeout, newTimeout;
+
+      user.connect();
+      oldTimeout = user.timeout;
+      user.touch();
+      newTimeout = user.timeout;
+
+      expect(oldTimeout).to.not.equal(newTimeout);
+    });
+
+    it("should return the user itself", function() {
+      expect(user.touch()).to.equal(user);
+    });
+
+  });
+
+  describe("#disconnect", function() {
+
+    it("should trigger the ondisconnect callback", function() {
+      user.disconnect();
+      sinon.assert.calledOnce(user.ondisconnect);
+    });
+
+    it("should turn the timeout into an undefined object", function() {
+      user.disconnect();
+      expect(user.timeout).to.equal(undefined);
+    });
 
   });
 

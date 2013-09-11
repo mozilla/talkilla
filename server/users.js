@@ -8,34 +8,13 @@ var logger = require('./logger');
  */
 function User(nick) {
   this.nick = nick;
+
+  this.timeout = undefined;
+  this.ondisconnect = undefined;
+
   this.events = [];
   this.pending = {};
-  this.ws = undefined;
 }
-
-/**
- * Attach a WebSocket to the user
- *
- * @param {WebSocket} ws The WebSocket to attach
- * @return {User} chainable
- */
-User.prototype.connect = function(ws) {
-  this.ws = ws;
-  return this;
-};
-
-/**
- * Close and remove the WebSocket.
- *
- * @return {User} chainable
- */
-User.prototype.disconnect = function() {
-  if (this.ws) {
-    this.ws.close();
-    this.ws = undefined;
-  }
-  return this;
-};
 
 /**
  * Send data throught the attached WebSocket
@@ -55,6 +34,22 @@ User.prototype.send = function(data) {
   }
 
   return this;
+};
+
+User.prototype.connect = function() {
+  this.timeout = setTimeout(function() {
+    this.disconnect();
+  }.bind(this));
+};
+
+User.prototype.touch = function() {
+  clearTimeout(this.timeout);
+  this.connect();
+  return this;
+};
+
+User.prototype.disconnect = function() {
+  this.ondisconnect && this.ondisconnect();
 };
 
 /**
@@ -77,6 +72,10 @@ User.prototype.waitForEvents = function(callback) {
 
     this.pending = {timeout: timeout, callback: callback};
   }
+};
+
+User.prototype.present = function() {
+  return !!this.timeout;
 };
 
 /**
@@ -157,7 +156,7 @@ Users.prototype.forEach = function(callback) {
 Users.prototype.present = function() {
   return Object.keys(this.users)
     .filter(function(nick) {
-      return !!this.users[nick].ws;
+      return !!this.users[nick].present();
     }, this)
     .map(function(nick) {
       return this.users[nick];
