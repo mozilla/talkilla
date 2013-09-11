@@ -171,7 +171,7 @@ body {
   width: 100%;
   /* height: viewport height - controls height - form height */
   height: calc(100vh - 24px - 22px);
-  overflow: scroll;
+  overflow: auto;
   margin: 0;
   padding: 0;
   background: #fff;
@@ -321,6 +321,6 @@ body {
 
   .has-video #textchat ul {
     /* height: viewport height - video height - controls height - form height */
-    height: calc(40vh - 24px - 22px);
+    height: calc(100vh - 60vh - 24px - 22px);
   }
 }
