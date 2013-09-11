@@ -120,6 +120,66 @@ api = {
     });
   },
 
+  callOffer: function(req, res) {
+    var nick = req.body.nick;
+    var data = JSON.parse(req.body.data);
+    var peer = users.get(data.peer);
+
+    if (!peer) {
+      // XXX This could happen in the case of the user disconnecting
+      // just as we call them. We may want to send something back to the
+      // caller to indicate the issue.
+      logger.warn("Could not forward offer to unknown peer");
+      return res.send(200, JSON.stringify({}));
+    }
+
+    data.peer = nick;
+    peer.send({'incoming_call': data});
+    logger.info({type: "call:offer"});
+  },
+
+  callAccepted: function(req, res) {
+    var nick = req.body.nick;
+    var data = JSON.parse(req.body.data);
+    var peer = users.get(data.peer);
+
+    if (!peer) {
+      // XXX This could happen in the case of the user disconnecting
+      // just as we call them. We may want to send something back to the
+      // caller to indicate the issue.
+      logger.warn("Could not forward offer to unknown peer");
+      return res.send(200, JSON.stringify({}));
+    }
+
+    data.peer = nick;
+    peer.send({'call_accepted': data});
+    logger.info({type: "call:accepted"});
+  },
+
+  callHangup: function(req, res) {
+    var nick = req.body.nick;
+    var data = JSON.parse(req.body.data);
+    var peer = users.get(data.peer);
+
+    if (!peer) {
+      // XXX This could happen in the case of the user disconnecting
+      // just as we call them. We may want to send something back to the
+      // caller to indicate the issue.
+      logger.warn("Could not forward offer to unknown peer");
+      return res.send(200, JSON.stringify({}));
+    }
+
+    data.peer = nick;
+    peer.send({'call_hangup': data});
+    logger.info({type: "call:hangup"});
+  },
+
+  presenceRequest: function(req, res) {
+    var user = users.get(req.body.nick);
+    var presentUsers = users.toJSON(users.present());
+    res.send(200, JSON.stringify({users: presentUsers}));
+  },
+
   ws: {
     /**
      * Any ws JSON message received is parsed and emitted as a
