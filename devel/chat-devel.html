@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Chat devel</title>
+  <style>
+  body {margin: 0; padding: 0;}
+  iframe {border: 1px solid #999;}
+  </style>
+</head>
+<body class="chat">
+  <p>
+    <input type="button" onclick="videoCall()" value="Video call">
+    <input type="button" onclick="textChatOnly()" value="Text chat only">
+    <input type="button" onclick="offer()" value="Call offer">
+    <input type="button" onclick="establish()" value="Call establishment">
+    <input type="button" onclick="popup()" value="Popup">
+  </p>
+  <iframe src="../static/chat.html" width="260" height="264"></iframe>
+  <iframe src="../static/chat.html" width="260" height="420"></iframe>
+  <iframe src="../static/chat.html" width="400" height="420"></iframe>
+  <iframe src="../static/chat.html" width="1280" height="800"></iframe>
+  <iframe src="../static/chat.html" width="1280" height="400"></iframe>
+  <script>
+  // XXX for all three frames to show video, the
+  // media.navigator.permission.disabled pref must be set to true.  This a
+  // workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=868095
+  function configure(doc) {
+    doc.body.classList.add("has-video");
+    // call area
+    doc.querySelector('#call').classList.remove('hide');
+    // chat
+    var chat = doc.querySelector('#textchat ul');
+    for (var i=0; i<=25; i++) {
+      var entry = doc.createElement('li');
+      entry.innerHTML = "<strong>bob:</strong> " + (i + 1) + " lorem ipsum dolor sit amet.";
+      chat.appendChild(entry);
+    }
+    chat.scrollTop = chat.scrollTopMax;
+    // videos
+    navigator.mozGetUserMedia({video: true, fake: false}, function(stream) {
+      var local = doc.querySelector('#local-video');
+      local.mozSrcObject = stream;
+      local.play();
+      var remote = doc.querySelector('#remote-video');
+      remote.mozSrcObject = stream;
+      remote.play();
+    }, function(err) {
+      console.log("mozGetUserMedia err: " + err);
+    });
+  }
+
+  function show(el) {
+    el.style.display = "block";
+  }
+
+  function hide(el) {
+    el.style.display = "none";
+  }
+
+  function forAllFrames(fn) {
+    Array.prototype.forEach.call(document.querySelectorAll('iframe'), fn);
+  }
+
+  window.onload = function() {
+    forAllFrames(function(frame) {
+      configure(frame.contentDocument);
+    });
+  };
+
+  function popup() {
+    var w = window.open("../static/chat.html");
+    w.onload = function() {
+      configure(w.document);
+    };
+  }
+
+  function textChatOnly() {
+    forAllFrames(function(f) {
+      var fdoc = f.contentDocument;
+      fdoc.body.classList.remove("has-video");
+      hide(fdoc.querySelector("#offer"));
+      hide(fdoc.querySelector("#establish"));
+      hide(fdoc.querySelector("#call"));
+      show(fdoc.querySelector("#textchat"));
+    });
+  }
+
+  function videoCall() {
+    forAllFrames(function(f) {
+      var fdoc = f.contentDocument;
+      fdoc.body.classList.add("has-video");
+      hide(fdoc.querySelector("#offer"));
+      hide(fdoc.querySelector("#establish"));
+      show(fdoc.querySelector("#textchat"));
+      show(fdoc.querySelector("#call"));
+    });
+  }
+
+  function offer() {
+    forAllFrames(function(f) {
+      var fdoc = f.contentDocument;
+      fdoc.body.classList.remove("has-video");
+      hide(fdoc.querySelector("#establish"));
+      hide(fdoc.querySelector("#call"));
+      hide(fdoc.querySelector("#textchat"));
+      show(fdoc.querySelector("#offer"));
+    });
+  }
+
+  function establish() {
+    forAllFrames(function(f) {
+      var fdoc = f.contentDocument;
+      fdoc.body.classList.remove("has-video");
+      hide(fdoc.querySelector("#offer"));
+      hide(fdoc.querySelector("#call"));
+      hide(fdoc.querySelector("#textchat"));
+      show(fdoc.querySelector("#establish"));
+    });
+  }
+  </script>
+</body>
+</html>
