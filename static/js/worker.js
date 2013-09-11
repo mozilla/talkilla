@@ -302,6 +302,7 @@ function updateCurrentUsers(data) {
 function _setupServer(server) {
   server.on("connected", function() {
     _autologinPending = false;
+    _currentUserData.connected = true;
     ports.broadcastEvent('talkilla.login-success', {
       username: _currentUserData.userName
     });
