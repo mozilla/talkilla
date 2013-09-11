@@ -4,6 +4,7 @@ var chai = require("chai");
 var expect = chai.expect;
 var sinon = require("sinon");
 
+var config = require('../../server/config').config;
 var Users = require("../../server/users").Users;
 var User = require("../../server/users").User;
 var logger = require("../../server/logger");
@@ -52,30 +53,70 @@ describe("User", function() {
 
   describe("#send", function() {
 
-    it("should send data throught the attached websocket", function() {
-      var fakeWS = {send: sinon.spy()};
+    it("should queue the data if no pending timeout is available", function() {
       var data = {message: "some message"};
-      var errback = function() {};
-      user.connect(fakeWS);
 
-      user.send(data, errback);
+      user.send(data);
 
-      sinon.assert.calledOnce(fakeWS.send);
-      sinon.assert.calledWithExactly(
-        fakeWS.send, JSON.stringify(data), errback);
+      expect(user.events).to.deep.equal([data]);
     });
 
-    it("should log an error if the websocket does not exist", function() {
-      var data = {message: "some message"};
-      var errback = function() {};
-      sandbox.stub(logger, "error");
+    it("should stop the timeout if one is available and trigger the callback",
+      function(done) {
+        var data = {message: "some message"};
+        var callback = function(events) {
+          expect(events).to.deep.equal([data]);
+          done();
+        };
+        var timeout = setTimeout(function() {
+          throw new Error("timeout triggered");
+        }, 1000);
+        user.pending = {timeout: timeout, callback: callback};
 
-      user.send(data, errback);
+        user.send(data);
+      });
+  });
 
-      sinon.assert.calledOnce(logger.error);
-      sinon.assert.calledWithExactly(
-        logger.error, {type: "websocket", err: new Error()});
+  describe("#waitForEvents", function() {
+
+    it("should execute the given callback if there is events",
+      function(done) {
+        user.events = [1, 2, 3];
+        user.waitForEvents(function(events) {
+          expect(events).to.deep.equal([1, 2, 3]);
+          done();
+        });
+      });
+
+    it("should timeout if no events are sent in the meantime", function(done) {
+      var beforeTimeout = new Date().getTime();
+      user.waitForEvents(function(events) {
+        var afterTimeout = new Date().getTime();
+
+        expect(events).to.deep.equal([]);
+        expect((afterTimeout - beforeTimeout) >= config.LONG_POLLING_TIMEOUT)
+          .to.equal(true);
+        done();
+      });
     });
+
+    it("should stop the timeout and execute the callback " +
+       "if events are sent in the meantime", function(done) {
+         var beforeTimeout = new Date().getTime();
+
+         user.waitForEvents(function(events) {
+           var afterTimeout = new Date().getTime();
+
+           expect(events).to.deep.equal([{some: "data"}]);
+           expect((afterTimeout - beforeTimeout) < config.LONG_POLLING_TIMEOUT)
+             .to.equal(true);
+           done();
+         });
+
+         setTimeout(function() {
+           user.send({some: "data"});
+         }, 10);
+       });
 
   });
 

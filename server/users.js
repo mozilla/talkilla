@@ -1,3 +1,4 @@
+var config = require('./config').config;
 var logger = require('./logger');
 
 /**
@@ -7,6 +8,8 @@ var logger = require('./logger');
  */
 function User(nick) {
   this.nick = nick;
+  this.events = [];
+  this.pending = {};
   this.ws = undefined;
 }
 
@@ -42,16 +45,15 @@ User.prototype.disconnect = function() {
  *
  * @return {User} chainable
  */
-User.prototype.send = function(data, errback) {
-  var message = JSON.stringify(data);
-  if (this.ws)
-    this.ws.send(message, errback);
-  else {
-    logger.error({
-      type: "websocket",
-      err: new Error("The websocket does not exist anymore")
-    });
+User.prototype.send = function(data) {
+  if (this.pending.timeout) {
+    clearTimeout(this.pending.timeout);
+    this.pending.callback([data]);
+    this.pending = {};
+  } else {
+    this.events.push(data);
   }
+
   return this;
 };
 
@@ -62,6 +64,19 @@ User.prototype.send = function(data, errback) {
  */
 User.prototype.toJSON = function() {
   return {nick: this.nick};
+};
+
+User.prototype.waitForEvents = function(callback) {
+  if (this.events.length > 0) {
+    callback(this.events);
+    this.events = [];
+  } else {
+    var timeout = setTimeout(function() {
+      callback([]);
+    }, config.LONG_POLLING_TIMEOUT);
+
+    this.pending = {timeout: timeout, callback: callback};
+  }
 };
 
 /**
