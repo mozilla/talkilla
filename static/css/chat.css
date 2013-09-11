@@ -305,14 +305,11 @@ body {
     display: block;
     position: static;
     background: #000;
-    bottom: none;
-    right: none;
     float: left;
     width: 50%;
     height: 100%;
     min-width: 50%;
     max-width: none;
-    min-height: none;
     max-height: 60vh;
     border: none;
   }
@@ -325,7 +322,6 @@ body {
     height: 100%;
     min-width: 50%;
     max-width: none;
-    min-height: none;
     max-height: 60vh;
   }
 
