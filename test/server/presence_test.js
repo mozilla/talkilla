@@ -272,7 +272,37 @@ describe("presence", function() {
 
     });
 
-    describe("WebSocket", function() {
+    describe("#stream", function() {
+
+      it("should send an empty list of events", function(done) {
+        var req = {body: {nick: "foo"}};
+        var res = {send: function(code, data) {
+          expect(code).to.equal(200);
+          expect(data).to.equal(JSON.stringify([]));
+          done()
+        }};
+
+        users.add("foo");
+        api.stream(req, res);
+      });
+
+      it("should return a list of events", function(done) {
+        var event = {some: "data"};
+        var req = {body: {nick: "foo"}};
+        var res = {send: function(code, data) {
+          expect(code).to.equal(200);
+          expect(data).to.equal(JSON.stringify([event]));
+          done()
+        }};
+
+        users.add("foo");
+        api.stream(req, res);
+        users.get("foo").send(event);
+      });
+
+    });
+
+    describe.skip("WebSocket", function() {
 
       describe("#onMessage", function() {
 
@@ -424,7 +454,7 @@ describe("presence", function() {
 
     });
 
-    describe("#upgrade", function() {
+    describe.skip("#upgrade", function() {
       it("should manually upgrade the connection to WebSockets", function() {
         var fakeReq = {url: "/?nick=foo"};
         users.add("foo");
@@ -452,7 +482,7 @@ describe("presence", function() {
       });
     });
 
-    describe("#onWebSocket", function() {
+    describe.skip("#onWebSocket", function() {
 
       it("should attach a configured websocket to the user", function() {
         var fakeWS = {on: function() {}};

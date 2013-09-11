@@ -110,6 +110,13 @@ api = {
     res.send(200, JSON.stringify(true));
   },
 
+  stream: function(req, res) {
+    var nick = req.body.nick;
+    users.get(nick).touch().waitForEvents(function(events) {
+      res.send(200, JSON.stringify(events));
+    });
+  },
+
   ws: {
     /**
      * Any ws JSON message received is parsed and emitted as a
