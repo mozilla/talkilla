@@ -178,10 +178,13 @@ body {
 }
 
 #textchat ul li {
+  /* XXX this box-sizing stuff is band-aiding over some other problem.
+   * Remove & find/fix the root cause */
   -moz-box-sizing: border-box;
   box-sizing: border-box;
+
   padding: 0 5px;
-  line-height: 17px;
+  line-height: 17px; // XXX why?
   width: 100%;
 }
 
@@ -198,8 +201,11 @@ body {
 }
 
 #textchat form input[type="text"] {
+  /* XXX this box-sizing stuff is band-aiding over some other problem.
+   * Remove & find/fix the root cause */
   -moz-box-sizing: border-box;
   box-sizing: border-box;
+
   width: 100vw;
   height: 22px;
   font-size: 11px;
