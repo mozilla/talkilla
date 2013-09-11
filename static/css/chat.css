@@ -140,7 +140,7 @@ body {
    of that landing. */
 #call .local-video {
   position: absolute;
-  bottom: 10px;
+  bottom: 10px; /* 10px seems to give stablest stapling across most sizes */
   right: 5px;
   width: 20vw;
   min-width: 80px;
@@ -267,6 +267,10 @@ body {
      */
     height: 60vh;
     transform: scale(1.35);
+  }
+
+  #call .local-video {
+    bottom: 3px; /* the default of 10px looks odd when the window is small */
   }
 
   .has-video #textchat ul {
