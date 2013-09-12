@@ -64,6 +64,24 @@ var Server = (function() {
     }.bind(this));
   };
 
+  Server.prototype.callOffer = function(data, callback) {
+    this.http.post("/calloffer", data, callback);
+  };
+
+  Server.prototype.callAccepted = function(data, callback) {
+    this.http.post("/callaccepted", data, callback);
+  };
+
+  Server.prototype.callHangup = function(data, callback) {
+    this.http.post("/callhangup", data, callback);
+  };
+
+  Server.prototype.presenceRequest = function(callback) {
+    this.http.get("/presencerequest", null, function(err, response) {
+      callback(err, JSON.parse(response));
+    });
+  };
+
   Server.prototype.send = function(data) {
     this._ws.send(JSON.stringify(data));
   };

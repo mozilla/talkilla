@@ -117,6 +117,65 @@ describe("Server", function() {
 
   });
 
+  describe("#callOffer", function() {
+
+    it("should send an offer to a peer", function() {
+      var offerData = "fake offer payload";
+      var callback = function() {};
+      sandbox.stub(server.http, "post");
+      server.callOffer(offerData, callback);
+
+      sinon.assert.calledOnce(server.http.post);
+      sinon.assert.calledWithExactly(
+        server.http.post, "/calloffer", offerData, callback);
+    });
+
+  });
+
+  describe("#callAnswer", function() {
+
+    it("should accept a call from peer", function() {
+      var answerData = "fake answer payload";
+      var callback = function() {};
+      sandbox.stub(server.http, "post");
+      server.callAccepted(answerData, callback);
+
+      sinon.assert.calledOnce(server.http.post);
+      sinon.assert.calledWithExactly(
+        server.http.post, "/callaccepted", answerData, callback);
+    });
+
+  });
+
+  describe("#callHangup", function() {
+
+    it("should hangup the call", function() {
+      var hangupData = "fake hangup payload";
+      var callback = function() {};
+      sandbox.stub(server.http, "post");
+      server.callHangup(hangupData, callback);
+
+      sinon.assert.calledOnce(server.http.post);
+      sinon.assert.calledWithExactly(
+        server.http.post, "/callhangup", hangupData, callback);
+    });
+
+  });
+
+  describe("#presenceRequest", function() {
+
+    it("should send a presence request", function() {
+      var callback = function() {};
+      sandbox.stub(server.http, "get");
+
+      server.presenceRequest(callback);
+
+      sinon.assert.calledOnce(server.http.get);
+      sinon.assert.calledWith(server.http.get, "/presencerequest", null);
+    });
+
+  });
+
   describe.skip("websocket's events", function() {
 
     it("should trigger a 'connected' event when it opens", function() {
