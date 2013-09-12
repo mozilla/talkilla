@@ -57,7 +57,8 @@ describe("Server", function() {
     it("should trigger a connected event", function(done) {
       var server = new Server();
       sandbox.stub(server.http, "post", function(method, nick, callback) {
-        callback(null, "fake response");
+        sandbox.stub(server, "_longPolling");
+        callback(null, "[]");
       });
       server.on("connected", function() {
         done();
@@ -78,11 +79,24 @@ describe("Server", function() {
       server.connect("foo");
     });
 
+    it("should call #_longPolling", function(done) {
+      var server = new Server();
+      sandbox.stub(server, "_longPolling");
+      sandbox.stub(server.http, "post", function(method, nick, callback) {
+        callback(null, "[]");
+        sinon.assert.calledOnce(server._longPolling);
+        sinon.assert.calledWithExactly(server._longPolling, "foo", []);
+        done();
+      });
+
+      server.connect("foo");
+    });
+
   });
 
   describe("#autoconnect", function() {
 
-    it("should request a stream", function() {
+     it("should request a stream", function() {
       var server = new Server();
       sandbox.stub(server.http, "post");
       server.autoconnect("foo");
@@ -94,7 +108,8 @@ describe("Server", function() {
     it("should trigger a connected event", function(done) {
       var server = new Server();
       sandbox.stub(server.http, "post", function(method, nick, callback) {
-        callback(null, "fake response");
+        sandbox.stub(server, "_longPolling");
+        callback(null, "[]");
       });
       server.on("connected", function() {
         done();
@@ -113,6 +128,104 @@ describe("Server", function() {
       });
 
       server.autoconnect("foo");
+    });
+
+    it("should call #_longPolling", function(done) {
+      var server = new Server();
+      sandbox.stub(server, "_longPolling");
+      sandbox.stub(server.http, "post", function(method, nick, callback) {
+        callback(null, "[]");
+        sinon.assert.calledOnce(server._longPolling);
+        sinon.assert.calledWithExactly(server._longPolling, "foo", []);
+        done();
+      });
+
+      server.autoconnect("foo");
+    });
+
+  });
+
+  describe("#_longPolling", function() {
+
+    it("should request a stream", function() {
+      var server = new Server();
+      sandbox.stub(server.http, "post");
+      server._longPolling("foo", []);
+
+      sinon.assert.calledOnce(server.http.post);
+      sinon.assert.calledWith(server.http.post, "/stream", {nick: "foo"});
+    });
+
+    it("should trigger a stream:error event if the request failed",
+      function(done) {
+        var server = new Server();
+        sandbox.stub(server.http, "post", function(method, data, callback) {
+          callback("error", "some error");
+        });
+        server.on("stream:error", function(error) {
+          expect(error).to.equal("some error");
+          done();
+        });
+        server._longPolling("foo", []);
+      });
+
+    it("should trigger a message event for each event", function(done) {
+      var nbCall = 1;
+      var server = new Server();
+      var events = [
+        {first:  "event 1"},
+        {second: "event 2"},
+        {third:  "event 3"}
+      ]
+      sandbox.stub(server.http, "post");
+      server.on("message", function(type, event) {
+        if (nbCall === 1) {
+          expect(type).to.equal("first");
+          expect(event).to.equal("event 1");
+        }
+
+        if (nbCall === 2){
+          expect(type).to.equal("second");
+          expect(event).to.equal("event 2");
+        }
+
+        if (nbCall === 3) {
+          expect(type).to.equal("third");
+          expect(event).to.equal("event 3");
+          done();
+        }
+
+        nbCall += 1;
+      });
+
+      server._longPolling("foo", events);
+    });
+
+    it("should trigger a custom message event", function(done) {
+      var server = new Server();
+      var events = [{"sometype":  "event"}];
+
+      sandbox.stub(server.http, "post");
+      server.on("message:sometype", function(event) {
+        expect(event).to.equal("event");
+        done();
+      });
+
+      server._longPolling("foo", events);
+    });
+
+    it("should call #_longPolling again", function(done) {
+      var server = new Server();
+
+      sandbox.stub(server.http, "post", function(method, data, callback) {
+        sandbox.stub(server, "_longPolling");
+        callback(null, "[]");
+        sinon.assert.calledOnce(server._longPolling);
+        sinon.assert.calledWithExactly(server._longPolling, "foo", []);
+        done()
+      });
+
+      server._longPolling("foo", []);
     });
 
   });
