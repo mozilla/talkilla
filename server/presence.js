@@ -161,6 +161,11 @@ api = {
 
 app.post('/signin', api.signin);
 app.post('/signout', api.signout);
+app.post('/stream', api.stream);
+app.post('/calloffer', api.callOffer);
+app.post('/callaccepted', api.callAccepted);
+app.post('/callhangup', api.callHangup);
+app.post('/presenceRequest', api.presenceRequest);
 
 module.exports.findNewNick = findNewNick;
 module.exports.api = api;
