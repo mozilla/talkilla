@@ -510,7 +510,7 @@ var handlers = {
     if (currentUsers)
       this.postEvent('talkilla.users', currentUsers);
     else
-      server.send({'presence_request': null});
+      server.presenceRequest();
   },
 
   /**
@@ -521,7 +521,7 @@ var handlers = {
    * - offer:    an RTCSessionDescription containing the sdp data for the call.
    */
   'talkilla.call-offer': function(event) {
-    server.send({'call_offer': event.data});
+    server.callOffer(event.data);
   },
 
   /**
@@ -532,7 +532,7 @@ var handlers = {
    * - offer:    an RTCSessionDescription containing the sdp data for the call.
    */
   'talkilla.call-answer': function(event) {
-    server.send({'call_accepted': event.data});
+    server.callAccepted(event.data);
   },
 
   /**
@@ -541,7 +541,7 @@ var handlers = {
    * - peer: the person you are talking to.
    */
   'talkilla.call-hangup': function (event) {
-    server.send({'call_hangup': event.data});
+    server.callHangup(event.data);
   }
 };
 
