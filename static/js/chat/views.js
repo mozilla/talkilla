@@ -405,6 +405,9 @@
       if (!localVideo)
         return this;
       localVideo.mozSrcObject = stream;
+      localVideo.onplaying = function() {
+        localVideo.classList.remove('hide');
+      };
       localVideo.play();
       return this;
     },

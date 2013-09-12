@@ -42,6 +42,9 @@
       var local = doc.querySelector('#local-video');
       local.mozSrcObject = stream;
       local.play();
+      local.onplaying = function() {
+        local.classList.remove('hide');
+      };
       var remote = doc.querySelector('#remote-video');
       remote.mozSrcObject = stream;
       remote.play();
