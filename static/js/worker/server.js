@@ -100,10 +100,6 @@ var Server = (function() {
     });
   };
 
-  Server.prototype.send = function(data) {
-    this._ws.send(JSON.stringify(data));
-  };
-
   return Server;
 }());
 
