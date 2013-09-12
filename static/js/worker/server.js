@@ -47,13 +47,21 @@ var Server = (function() {
   };
 
   Server.prototype.connect = function(nick) {
-    var ws = new WebSocket(this.options.WSURL + "?nick=" + nick);
-    this._ws = this._setupWebSocket(ws);
+    this.http.post("/stream", {nick: nick}, function(err, response) {
+      if (err)
+        return this.trigger("error", response);
+
+      this.trigger("connected");
+    }.bind(this));
   };
 
   Server.prototype.autoconnect = function(nick) {
-    var ws = new WebSocket(this.options.WSURL + "?nick=" + nick);
-    this._ws = this._tryWebSocket(ws);
+    this.http.post("/stream", {nick: nick}, function(err, response) {
+      if (err)
+        return this.trigger("disconnected", response);
+
+      this.trigger("connected");
+    }.bind(this));
   };
 
   Server.prototype.send = function(data) {
