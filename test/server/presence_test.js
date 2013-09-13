@@ -11,7 +11,6 @@ var EventEmitter = require( "events" ).EventEmitter;
 var chai = require("chai");
 var expect = chai.expect;
 var sinon = require("sinon");
-var http = require("http");
 var https = require("https");
 
 require("../../server/server");
@@ -208,7 +207,7 @@ describe("presence", function() {
         var res = {send: function(code, data) {
           expect(code).to.equal(200);
           expect(data).to.equal(JSON.stringify([]));
-          done()
+          done();
         }};
         sandbox.stub(user, "present").returns(true);
 
@@ -222,7 +221,7 @@ describe("presence", function() {
         var res = {send: function(code, data) {
           expect(code).to.equal(200);
           expect(data).to.equal(JSON.stringify([event]));
-          done()
+          done();
         }};
         sandbox.stub(user, "present").returns(true);
 
@@ -274,7 +273,7 @@ describe("presence", function() {
     describe("#callAccepted", function() {
 
       it("should forward the event to the peer after swapping the nick",
-         function() {
+        function() {
           var req = {body: {data: JSON.stringify({peer: "bar"}), nick: "foo"}};
           var res = {send: function() {}};
           var forwardedEvent = {peer: "foo"};
@@ -286,7 +285,7 @@ describe("presence", function() {
           sinon.assert.calledOnce(bar.send);
           sinon.assert.calledWith(
             bar.send, {"call_accepted": forwardedEvent});
-         });
+        });
 
       it("should warn on handling answers to unknown users", function() {
         sandbox.stub(logger, "warn");
@@ -302,7 +301,7 @@ describe("presence", function() {
     describe("#callHangup", function() {
 
       it("should forward the event to the peer after swapping the nick",
-         function() {
+        function() {
           var req = {body: {data: JSON.stringify({peer: "bar"}), nick: "foo"}};
           var res = {send: function() {}};
           var forwardedEvent = {peer: "foo"};
@@ -314,7 +313,7 @@ describe("presence", function() {
           sinon.assert.calledOnce(bar.send);
           sinon.assert.calledWith(
             bar.send, {"call_hangup": forwardedEvent});
-         });
+        });
 
       it("should warn on handling hangups to unknown users", function() {
         sandbox.stub(logger, "warn");

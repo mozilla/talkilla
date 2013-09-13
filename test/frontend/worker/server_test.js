@@ -1,5 +1,5 @@
 /* global Server */
-/* global describe, beforeEach, afterEach, sinon, it, expect */
+/* global describe, beforeEach, afterEach, sinon, it, expect, server */
 
 describe("Server", function() {
   var sandbox;
@@ -96,7 +96,7 @@ describe("Server", function() {
 
   describe("#autoconnect", function() {
 
-     it("should request a stream", function() {
+    it("should request a stream", function() {
       var server = new Server();
       sandbox.stub(server.http, "post");
       server.autoconnect("foo");
@@ -176,7 +176,7 @@ describe("Server", function() {
         {first:  "event 1"},
         {second: "event 2"},
         {third:  "event 3"}
-      ]
+      ];
       sandbox.stub(server.http, "post");
       server.on("message", function(type, event) {
         if (nbCall === 1) {
@@ -222,7 +222,7 @@ describe("Server", function() {
         callback(null, "[]");
         sinon.assert.calledOnce(server._longPolling);
         sinon.assert.calledWithExactly(server._longPolling, "foo", []);
-        done()
+        done();
       });
 
       server._longPolling("foo", []);

@@ -1,5 +1,4 @@
 var config = require('./config').config;
-var logger = require('./logger');
 
 /**
  * User class constructor
@@ -50,7 +49,8 @@ User.prototype.touch = function() {
 
 User.prototype.disconnect = function() {
   clearTimeout(this.timeout);
-  this.ondisconnect && this.ondisconnect();
+  if (this.ondisconnect)
+    this.ondisconnect();
 };
 
 /**

@@ -7,7 +7,6 @@ var sinon = require("sinon");
 var config = require('../../server/config').config;
 var Users = require("../../server/users").Users;
 var User = require("../../server/users").User;
-var logger = require("../../server/logger");
 
 describe("User", function() {
 
@@ -81,22 +80,23 @@ describe("User", function() {
     });
 
     it("should stop the timeout and execute the callback " +
-       "if events are sent in the meantime", function(done) {
-         var beforeTimeout = new Date().getTime();
+       "if events are sent in the meantime",
+      function(done) {
+        var beforeTimeout = new Date().getTime();
 
-         user.waitForEvents(function(events) {
-           var afterTimeout = new Date().getTime();
+        user.waitForEvents(function(events) {
+          var afterTimeout = new Date().getTime();
 
-           expect(events).to.deep.equal([{some: "data"}]);
-           expect((afterTimeout - beforeTimeout) < config.LONG_POLLING_TIMEOUT)
-             .to.equal(true);
-           done();
-         });
+          expect(events).to.deep.equal([{some: "data"}]);
+          expect((afterTimeout - beforeTimeout) < config.LONG_POLLING_TIMEOUT)
+            .to.equal(true);
+          done();
+        });
 
-         setTimeout(function() {
-           user.send({some: "data"});
-         }, 10);
-       });
+        setTimeout(function() {
+          user.send({some: "data"});
+        }, 10);
+      });
 
   });
 
