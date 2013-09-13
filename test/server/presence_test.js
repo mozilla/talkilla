@@ -203,18 +203,20 @@ describe("presence", function() {
     describe("#stream", function() {
 
       it("should send an empty list of events", function(done) {
+        var user = users.add("foo").get("foo");
         var req = {body: {nick: "foo"}};
         var res = {send: function(code, data) {
           expect(code).to.equal(200);
           expect(data).to.equal(JSON.stringify([]));
           done()
         }};
+        sandbox.stub(user, "present").returns(true);
 
-        users.add("foo");
         api.stream(req, res);
       });
 
       it("should return a list of events", function(done) {
+        var user = users.add("foo").get("foo");
         var event = {some: "data"};
         var req = {body: {nick: "foo"}};
         var res = {send: function(code, data) {
@@ -222,10 +224,10 @@ describe("presence", function() {
           expect(data).to.equal(JSON.stringify([event]));
           done()
         }};
+        sandbox.stub(user, "present").returns(true);
 
-        users.add("foo");
         api.stream(req, res);
-        users.get("foo").send(event);
+        user.send(event);
       });
 
       it("should fail if no nick is provided", function() {

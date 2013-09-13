@@ -96,10 +96,22 @@ api = {
 
   stream: function(req, res) {
     var nick = req.body.nick;
-    if (!nick)
+    var user = users.get(nick);
+    if (!user)
       return res.send(400, JSON.stringify({}));
 
-    users.get(nick).touch().waitForEvents(function(events) {
+    // Send the initial present users list
+    if (!user.present()) {
+      var presentUsers = users.present();
+      var userList = users.toJSON(presentUsers);
+      user.send({users: presentUsers});
+      presentUsers.forEach(function(user) {
+        user.send({userJoined: nick});
+      });
+      logger.info({type: "connection"});
+    }
+
+    user.touch().waitForEvents(function(events) {
       res.send(200, JSON.stringify(events));
     });
   },

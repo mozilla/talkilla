@@ -509,8 +509,6 @@ var handlers = {
   'talkilla.presence-request': function(event) {
     if (currentUsers)
       this.postEvent('talkilla.users', currentUsers);
-    else
-      server.presenceRequest();
   },
 
   /**
