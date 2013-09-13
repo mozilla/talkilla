@@ -519,7 +519,7 @@ var handlers = {
    * - offer:    an RTCSessionDescription containing the sdp data for the call.
    */
   'talkilla.call-offer': function(event) {
-    server.callOffer(event.data);
+    server.callOffer(event.data, _currentUserData.userName);
   },
 
   /**
@@ -530,7 +530,7 @@ var handlers = {
    * - offer:    an RTCSessionDescription containing the sdp data for the call.
    */
   'talkilla.call-answer': function(event) {
-    server.callAccepted(event.data);
+    server.callAccepted(event.data, _currentUserData.userName);
   },
 
   /**
@@ -539,7 +539,7 @@ var handlers = {
    * - peer: the person you are talking to.
    */
   'talkilla.call-hangup': function (event) {
-    server.callHangup(event.data);
+    server.callHangup(event.data, _currentUserData.userName);
   }
 };
 

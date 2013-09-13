@@ -118,7 +118,7 @@ api = {
 
   callOffer: function(req, res) {
     var nick = req.body.nick;
-    var data = JSON.parse(req.body.data);
+    var data = req.body.data;
     var peer = users.get(data.peer);
 
     if (!peer) {
@@ -136,7 +136,7 @@ api = {
 
   callAccepted: function(req, res) {
     var nick = req.body.nick;
-    var data = JSON.parse(req.body.data);
+    var data = req.body.data;
     var peer = users.get(data.peer);
 
     if (!peer) {
@@ -154,7 +154,7 @@ api = {
 
   callHangup: function(req, res) {
     var nick = req.body.nick;
-    var data = JSON.parse(req.body.data);
+    var data = req.body.data;
     var peer = users.get(data.peer);
 
     if (!peer) {

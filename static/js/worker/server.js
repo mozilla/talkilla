@@ -82,16 +82,16 @@ var Server = (function() {
     }.bind(this));
   };
 
-  Server.prototype.callOffer = function(data, callback) {
-    this.http.post("/calloffer", data, callback);
+  Server.prototype.callOffer = function(data, nick, callback) {
+    this.http.post("/calloffer", {data: data, nick: nick}, callback);
   };
 
-  Server.prototype.callAccepted = function(data, callback) {
-    this.http.post("/callaccepted", data, callback);
+  Server.prototype.callAccepted = function(data, nick, callback) {
+    this.http.post("/callaccepted", {data: data, nick: nick}, callback);
   };
 
-  Server.prototype.callHangup = function(data, callback) {
-    this.http.post("/callhangup", data, callback);
+  Server.prototype.callHangup = function(data, nick, callback) {
+    this.http.post("/callhangup", {data: data, nick: nick}, callback);
   };
 
   Server.prototype.presenceRequest = function(callback) {
