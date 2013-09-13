@@ -227,18 +227,6 @@ describe('handlers', function() {
         sinon.assert.calledWith(handlers.postEvent, "talkilla.users");
       });
 
-    it("should request for the initial presence state" +
-       "if there is no current users", function() {
-        currentUsers = undefined;
-        sandbox.stub(server, "presenceRequest");
-        handlers['talkilla.presence-request']({
-          topic: "talkilla.presence-request",
-          data: {}
-        });
-
-        sinon.assert.calledOnce(server.presenceRequest);
-      });
-
     it("should notify new sidebars only if there's a logged in user",
       function() {
         handlers.postEvent = sinon.spy();
