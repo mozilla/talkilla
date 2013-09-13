@@ -75,6 +75,12 @@ api = {
         return res.send(400, JSON.stringify({error: err}));
 
       users.add(nick);
+      users.get(nick).ondisconnect = function() {
+        users.present().forEach(function(user) {
+          user.send({userLeft: nick});
+        });
+        logger.info({type: "disconnection"});
+      };
       logger.info({type: "signin"});
       res.send(200, JSON.stringify(users.get(nick)));
     });
