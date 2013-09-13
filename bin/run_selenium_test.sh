@@ -18,4 +18,7 @@ $DIR/selenium.sh stop
 
 set +x
 
+echo "----- Browser console log output -----"
+cat firefox.log
+
 exit $RESULT
