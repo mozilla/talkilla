@@ -401,23 +401,28 @@
     },
 
     _displayLocalVideo: function(stream) {
-      var localVideo = this.$('#local-video')[0];
+      var $localVideo = this.$('#local-video'),
+          localVideo = $localVideo.get(0);
       if (!localVideo)
         return this;
       localVideo.mozSrcObject = stream;
+      localVideo.onplaying = function() {
+        if (this.call.requiresVideo())
+          $localVideo.show();
+      }.bind(this);
       localVideo.play();
       return this;
     },
 
     _displayRemoteVideo: function(stream) {
-      var remoteVideo = this.$('#remote-video')[0];
+      var remoteVideo = this.$('#remote-video').get(0);
       remoteVideo.mozSrcObject = stream;
       remoteVideo.play();
       return this;
     },
 
     _terminateLocalVideo: function() {
-      var localVideo = this.$('#local-video')[0];
+      var localVideo = this.$('#local-video').get(0);
       if (!localVideo || !localVideo.mozSrcObject)
         return this;
 
@@ -425,7 +430,7 @@
     },
 
     _terminateRemoteVideo: function() {
-      var remoteVideo = this.$('#remote-video')[0];
+      var remoteVideo = this.$('#remote-video').get(0);
       if (!remoteVideo || !remoteVideo.mozSrcObject)
         return this;
 

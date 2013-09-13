@@ -184,7 +184,6 @@ body {
   box-sizing: border-box;
 
   padding: 0 5px;
-  line-height: 17px; // XXX why?
   width: 100%;
 }
 
@@ -268,15 +267,19 @@ body {
 
   #call .remote-video {
     /**
-     * XXX: we can't keep both video aspect ratio and display 3 lines of chat
-     *      text, so we letterbox the video
+     * XXX:
+     *   - we can't keep both video aspect ratio and display 3 lines of chat
+     *     text, so we letterbox the video
+     *   - for unknown reason the video element displays a 5px margin at the
+     *     bottom, hence the computation for substracting it from target height
      */
-    height: 60vh;
+    height: calc(60vh - 5px);
+    max-height: calc(60vh - 5px);
     transform: scale(1.35);
   }
 
   #call .local-video {
-    bottom: 3px; /* the default of 10px looks odd when the window is small */
+    bottom: 5px; /* the default of 10px looks odd when the window is small */
   }
 
   .has-video #textchat ul {
@@ -296,7 +299,7 @@ body {
 
   #call .video-area {
     display: table-cell;
-    max-height: calc(60vh - 24px - 22px);
+    height: 60vh;
     margin-bottom: 0;
     vertical-align: middle;
   }
@@ -327,6 +330,6 @@ body {
 
   .has-video #textchat ul {
     /* height: viewport height - video height - controls height - form height */
-    height: calc(100vh - 60vh - 24px - 22px);
+    height: calc(100vh - 60vh - 24px - 22px - 5px);
   }
 }

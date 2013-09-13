@@ -72,20 +72,23 @@ describe("CallView", function() {
     });
 
     describe("media streams", function() {
-      var el, callView, localElement, remoteElement;
+      var el, callView, $localElement, localElement, remoteElement;
 
       beforeEach(function() {
         call.media = _.extend({}, Backbone.Events);
 
-        el = $('<div><div id="local-video"></div><div id="remote-video">' +
-               '</div></div>');
+        el = $(['<div>',
+                '  <div id="local-video"></div>',
+                '  <div id="remote-video"></div>',
+                '</div>'].join(''));
         $("#fixtures").append(el);
         callView = new app.views.CallView({el: el, call: call});
 
-        localElement = el.find('#local-video')[0];
+        $localElement = el.find('#local-video');
+        localElement = $localElement.get(0);
         localElement.play = sandbox.spy();
 
-        remoteElement = el.find('#remote-video')[0];
+        remoteElement = el.find('#remote-video').get(0);
         remoteElement.play = sandbox.spy();
       });
 
@@ -102,6 +105,31 @@ describe("CallView", function() {
             call.media.trigger("local-stream:ready", fakeLocalStream);
 
             sinon.assert.calledOnce(localElement.play);
+          });
+
+        it("should show the local-video element for video calls", function() {
+          sandbox.stub(jQuery.prototype, "show");
+          sandbox.stub(call, "requiresVideo").returns(true);
+          localElement.play = function() {
+            localElement.onplaying();
+          };
+
+          call.media.trigger("local-stream:ready", fakeLocalStream);
+
+          sinon.assert.calledOnce($localElement.show);
+        });
+
+        it("should not show the local-video element for audio calls",
+          function() {
+            sandbox.stub(jQuery.prototype, "show");
+            sandbox.stub(call, "requiresVideo").returns(false);
+            localElement.play = function() {
+              localElement.onplaying();
+            };
+
+            call.media.trigger("local-stream:ready", fakeLocalStream);
+
+            sinon.assert.notCalled($localElement.show);
           });
       });
 
