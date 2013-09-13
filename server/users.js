@@ -39,7 +39,7 @@ User.prototype.send = function(data) {
 User.prototype.connect = function() {
   this.timeout = setTimeout(function() {
     this.disconnect();
-  }.bind(this));
+  }.bind(this), config.LONG_POLLING_TIMEOUT * 2);
 };
 
 User.prototype.touch = function() {
@@ -49,6 +49,7 @@ User.prototype.touch = function() {
 };
 
 User.prototype.disconnect = function() {
+  clearTimeout(this.timeout);
   this.ondisconnect && this.ondisconnect();
 };
 
