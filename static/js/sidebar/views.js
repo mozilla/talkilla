@@ -239,7 +239,7 @@
 
       // Display the correct buttons now we've loaded.
       // XXX We should probably delay this until after
-      // naviagtor.id.watch completes, but we need to work
+      // navigator.id.watch completes, but we need to work
       // out full mechanisms and flows for what happens there.
       this.render();
     },
