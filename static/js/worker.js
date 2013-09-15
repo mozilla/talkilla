@@ -12,14 +12,21 @@ var _autologinPending = false;
 var ports;
 var browserPort;
 var currentConversation;
-var currentUsers;
-var contacts;
+var currentUsers = {};
+var contacts = [];
 var contactsDb;
 var kContactDBName = "contacts";
 var server;
 
-function getCurrentUsers() {
-  return currentUsers || [];
+// XXX we use this to map to what the sidebar wants, really
+// the sidebar should change so that we can just send the object.
+function getCurrentUsersArray() {
+  if (currentUsers === {})
+    return undefined;
+
+  return Object.keys(currentUsers).map(function(userId) {
+    return {nick: userId, presence: currentUsers[userId].presence};
+  });
 }
 
 function getContactsDatabase(doneCallback, contactDBName) {
@@ -47,8 +54,21 @@ function getContactsDatabase(doneCallback, contactDBName) {
         contacts.push(cursor.value.username);
         cursor.continue();
       }
-      else if (doneCallback)
-        doneCallback();
+      else {
+        // cursor navigation is complete, now add the found contacts to
+        // the current users list.
+        contacts.forEach(function (userId) {
+          if (!(userId in currentUsers))
+            currentUsers[userId] = {presence: "disconnected"};
+        });
+        // We need to broadcast the list in case we've been slow loading
+        // the database and the initial presence list has already been
+        // broadcast.
+        ports.broadcastEvent('talkilla.users', getCurrentUsersArray());
+
+        if (doneCallback)
+          doneCallback();
+      }
     };
   };
 
@@ -150,10 +170,10 @@ Conversation.prototype = {
     storeContact(this.data.peer);
 
     // retrieve peer presence information
-    getCurrentUsers().forEach(function(user) {
-      if (user.nick === this.data.peer)
-        this.data.peerPresence = user.presence;
-    }, this);
+    // There's a small chance we've not received the currentUsers
+    // information yet, so check that we have data for this user.
+    if (this.data.peer in currentUsers)
+      this.data.peerPresence = currentUsers[this.data.peer].presence;
 
     var topic = this.data.offer ?
       "talkilla.conversation-incoming" :
@@ -285,20 +305,6 @@ UserData.prototype = {
   }
 };
 
-function updateCurrentUsers(data) {
-  var usersMap = {};
-  var users = data.map(function(u) {
-    usersMap[u.nick] = true;
-    return {nick: u.nick, presence: "connected"};
-  });
-  contacts.forEach(function(name) {
-    if (!Object.prototype.hasOwnProperty.call(usersMap, name))
-      users.push({nick: name, presence: "disconnected"});
-  });
-  users.sort(function(u1, u2) { return u1.nick.localeCompare(u2.nick); });
-  currentUsers = users;
-}
-
 function _setupServer(server) {
   server.on("connected", function() {
     _autologinPending = false;
@@ -306,6 +312,9 @@ function _setupServer(server) {
     ports.broadcastEvent('talkilla.login-success', {
       username: _currentUserData.userName
     });
+
+    // We're logged in so send the presence request now
+    server.send({'presence_request': null});
   });
 
   server.on("message", function(label, data) {
@@ -313,34 +322,31 @@ function _setupServer(server) {
   });
 
   server.on("message:users", function(data) {
-    updateCurrentUsers(data);
-    ports.broadcastEvent("talkilla.users", currentUsers);
+    data.forEach(function(user) {
+      currentUsers[user.nick] = {presence: "connected"};
+    });
+
+    ports.broadcastEvent("talkilla.users", getCurrentUsersArray());
   });
 
   server.on("message:userJoined", function(data) {
-    currentUsers = getCurrentUsers();
-    // XXX Remove the user if they exist, and then re-add to handle
-    // the case if the user doesn't exist.
-    // This needs refactoring/handling better with a change for better
-    // storage of users
-    currentUsers = currentUsers.filter(function(user) {
-      return user.nick !== data;
-    });
-    // We then add the user with an online presence
-    currentUsers.push({nick: data, presence: "connected"});
-    ports.broadcastEvent("talkilla.users", currentUsers);
+    if (data in currentUsers)
+      currentUsers[data].presence = "connected";
+    else
+      currentUsers[data] = {presence: "connected"};
+
+    ports.broadcastEvent("talkilla.users", getCurrentUsersArray());
     ports.broadcastEvent("talkilla.user-joined", data);
   });
 
   server.on("message:userLeft", function(data) {
-    currentUsers = getCurrentUsers();
     // Show the user as disconnected
-    currentUsers = currentUsers.map(function(user) {
-      if (user.nick === data)
-        user.presence = "disconnected";
-      return user;
-    });
-    ports.broadcastEvent("talkilla.users", currentUsers);
+    if (!(data in currentUsers))
+      return;
+
+    currentUsers[data].presence = "disconnected";
+
+    ports.broadcastEvent("talkilla.users", getCurrentUsersArray());
     ports.broadcastEvent("talkilla.user-left", data);
   });
 
@@ -382,7 +388,7 @@ function _setupServer(server) {
     // XXX: this will need future work to handle retrying presence connections
     ports.broadcastEvent('talkilla.presence-unavailable', event.code);
     ports.broadcastEvent("talkilla.logout-success", {});
-    currentUsers = undefined;
+    currentUsers = {};
   });
 }
 
@@ -419,7 +425,7 @@ function _signoutCallback(err, responseText) {
     return this.postEvent('talkilla.error', 'Bad signout:' + err);
 
   _currentUserData.reset();
-  currentUsers = undefined;
+  currentUsers = {};
   ports.broadcastEvent('talkilla.logout-success');
 }
 
@@ -439,8 +445,6 @@ var handlers = {
     // Don't have it in the main list of ports, as we don't need
     // to broadcast all our talkilla.* messages to the social api.
     ports.remove(this);
-
-    getContactsDatabase();
   },
 
   'social.cookies-get-response': function(event) {
@@ -507,10 +511,7 @@ var handlers = {
    * Called when the sidebar request the initial presence state.
    */
   'talkilla.presence-request': function(event) {
-    if (currentUsers)
-      this.postEvent('talkilla.users', currentUsers);
-    else
-      server.send({'presence_request': null});
+    this.postEvent('talkilla.users', getCurrentUsersArray());
   },
 
   /**
@@ -665,3 +666,7 @@ loadconfig(function(err, config) {
 
   browserPort.postEvent('social.cookies-get');
 });
+
+// This currently doesn't rely on anything else, so just schedule
+// the load as soon as we've finished setting up the worker.
+getContactsDatabase();

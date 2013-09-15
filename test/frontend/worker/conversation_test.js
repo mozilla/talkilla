@@ -1,5 +1,6 @@
 /*global chai, sinon, _currentUserData:true, currentConversation:true,
-  UserData, browserPort:true, storeContact:true, Conversation */
+  UserData, browserPort:true, storeContact:true, Conversation,
+  currentUsers: true */
 /* jshint expr:true */
 
 var expect = chai.expect;
@@ -47,6 +48,9 @@ describe("Conversation", function() {
       // Avoid touching the contacts db which we haven't initialized.
       sandbox.stub(window, "storeContact");
       _currentUserData = new UserData({_userName: "romain"});
+      currentUsers = {
+        florian: { presence: "connected" }
+      };
       port = {
         postEvent: sandbox.spy()
       };
@@ -57,6 +61,7 @@ describe("Conversation", function() {
 
     afterEach(function() {
       _currentUserData = undefined;
+      currentUsers = {};
       port = undefined;
     });
 
@@ -114,9 +119,6 @@ describe("Conversation", function() {
       });
 
     it("should send peer presence information", function() {
-      sandbox.stub(window, "getCurrentUsers", function() {
-        return [{nick: "florian", presence: "connected"}];
-      });
       currentConversation = new Conversation(data);
 
       currentConversation.windowOpened(port);
@@ -140,6 +142,10 @@ describe("Conversation", function() {
       };
       initData = {
         peer: "florian"
+      };
+
+      currentUsers = {
+        florian: { presence: "connected" }
       };
 
       currentConversation = new Conversation(initData);
@@ -188,9 +194,6 @@ describe("Conversation", function() {
       });
 
     it("should send peer presence information", function() {
-      sandbox.stub(window, "getCurrentUsers", function() {
-        return [{nick: "florian", presence: "connected"}];
-      });
       var incomingData = {
         offer: {
           sdp: "fake"

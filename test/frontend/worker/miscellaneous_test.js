@@ -1,9 +1,8 @@
 /*global chai, sinon, _config:true, loadconfig, _signinCallback,
-   _currentUserData:true, UserData, getContactsDatabase,
+   _currentUserData:true, UserData, getContactsDatabase, browserPort: true,
    storeContact, contacts:true, contactsDb:true, indexedDB,
-   updateCurrentUsers, currentUsers, _, server */
+   currentUsers, _, server */
 var expect = chai.expect;
-var contactDBName = "TalkillaContactsUnitTest";
 
 describe('Miscellaneous', function() {
   "use strict";
@@ -11,9 +10,11 @@ describe('Miscellaneous', function() {
 
   beforeEach(function () {
     sandbox = sinon.sandbox.create();
+    browserPort = {postEvent: sandbox.spy()};
   });
 
   afterEach(function () {
+    browserPort = undefined;
     sandbox.restore();
   });
 
@@ -84,6 +85,19 @@ describe('Miscellaneous', function() {
   });
 
   describe("storeContact", function() {
+    var contactDBName, i = 0;
+
+    beforeEach(function(done) {
+      // For some reason, indexedDB doesn't like creating two
+      // databases with the same name in one run.
+      contactDBName = "TalkillaContactsUnitTest" + i++;
+      getContactsDatabase(function() {
+        // Check that we start with an empty contact list.
+        expect(contacts).to.eql([]);
+        done();
+      }, contactDBName);
+    });
+
     afterEach(function() {
       contactsDb.close();
       contactsDb = undefined;
@@ -92,33 +106,50 @@ describe('Miscellaneous', function() {
     });
 
     it("should store contacts", function(done) {
+      storeContact("foo", function() {
+        // Check that the contact has been added to the cached list.
+        expect(contacts).to.eql(["foo"]);
+        // Drop all references to the contact list
+        contacts = undefined;
+        contactsDb = undefined;
         getContactsDatabase(function() {
-          // Check that we start with an empty contact list.
-          expect(contacts).to.eql([]);
-          storeContact("foo", function() {
-            // Check that the contact has been added to the cached list.
-            expect(contacts).to.eql(["foo"]);
-            // Drop all references to the contact list
-            contacts = undefined;
-            contactsDb = undefined;
-            getContactsDatabase(function() {
-              expect(contacts).to.eql(["foo"]);
-              done();
-            }, contactDBName);
-          });
+          expect(contacts).to.eql(["foo"]);
+          done();
         }, contactDBName);
       });
-  });
+    });
 
-  describe("show offline contacts", function() {
-    it("should merge local contacts with online contacts from the server",
-       function() {
-          contacts = ["foo"];
-          updateCurrentUsers([{nick: "jb"}]);
-          expect(currentUsers).to.eql([
-            {nick: "foo", presence: "disconnected"},
-            {nick: "jb", presence: "connected"}
+    describe("load contacts", function () {
+      beforeEach(function(done) {
+        // Store a contact for the tests
+        storeContact("foo", function() {
+          contacts = undefined;
+          contactsDb = undefined;
+          done();
+        }, contactDBName);
+      });
+
+      it("should add contacts to the currentUsers list", function(done) {
+        // Drop all references to the contact list
+        getContactsDatabase(function() {
+          expect(currentUsers).to.eql({
+            foo: {presence: "disconnected"}
+          });
+          done();
+        }, contactDBName);
+      });
+
+      it("should broadcast a talkilla.users event", function(done) {
+        sandbox.stub(ports, "broadcastEvent");
+        // Drop all references to the contact list
+        getContactsDatabase(function() {
+          sinon.assert.calledOnce(ports.broadcastEvent);
+          sinon.assert.calledWith(ports.broadcastEvent, "talkilla.users", [
+            {nick: "foo", presence: "disconnected"}
           ]);
-        });
+          done();
+        }, contactDBName);
+      });
+    });
   });
 });

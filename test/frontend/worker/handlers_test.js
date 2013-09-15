@@ -32,6 +32,7 @@ describe('handlers', function() {
 
     afterEach(function() {
       currentConversation = undefined;
+      browserPort = undefined;
     });
 
     it("should remove a closed port on receiving social.port-closing",
@@ -429,19 +430,6 @@ describe('handlers', function() {
         sinon.assert.calledWith(handlers.postEvent, "talkilla.users");
       });
 
-    it("should request for the initial presence state" +
-       "if there is no current users", function() {
-        currentUsers = undefined;
-        sandbox.stub(server, "send");
-        handlers['talkilla.presence-request']({
-          topic: "talkilla.presence-request",
-          data: {}
-        });
-
-        sinon.assert.calledOnce(server.send);
-        sinon.assert.calledWithExactly(server.send,
-                                       {"presence_request": null});
-      });
   });
 
   describe("talkilla.call-offer", function() {
