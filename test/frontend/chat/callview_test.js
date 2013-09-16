@@ -47,13 +47,6 @@ describe("CallView", function() {
       expect(shouldExplode).to.Throw(Error, /missing parameter: call/);
     });
 
-    it("should throw an error when no el parameter is given", function() {
-      function shouldExplode() {
-        new app.views.CallView({call: 'fakeWebrtc'});
-      }
-      expect(shouldExplode).to.Throw(Error, /missing parameter: el/);
-    });
-
     describe("Change events", function() {
       var callView;
 
@@ -180,6 +173,14 @@ describe("CallView", function() {
     beforeEach(function() {
       $("#fixtures").append($('<div id="call"><div id="foo"></div></div>'));
       callView = new app.views.CallView({el: $("#fixtures #call"), call: call});
+    });
+
+    it("should render the attached template", function() {
+      var callView = new app.views.CallView({call: call});
+
+      callView.render();
+
+      expect(callView.$el.html()).ok;
     });
 
     it("should show this widget when a call is ongoing", function() {

@@ -378,13 +378,19 @@
    * Video/Audio Call View
    */
   app.views.CallView = Backbone.View.extend({
+    //tagName: "div",
+
+    // template: _.template([
+    //   '<div class="video-area">',
+    //   '  <video id="remote-video" class="remote-video"></video>',
+    //   '  <video id="local-video" class="local-video hide" muted></video>',
+    //   '</div>',
+    // ].join('')),
 
     initialize: function(options) {
       options = options || {};
       if (!options.call)
         throw new Error("missing parameter: call");
-      if (!options.el)
-        throw new Error("missing parameter: el");
 
       this.call = options.call;
       this.call.media.on('local-stream:ready', this._displayLocalVideo, this);
