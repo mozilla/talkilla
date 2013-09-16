@@ -413,8 +413,10 @@ describe('handlers', function() {
   });
 
   describe("talkilla.call-offer", function() {
+
     it("should send a websocket message when receiving talkilla.call-offer",
       function() {
+        _currentUserData = {userName: "tom"};
         sandbox.stub(server, "callOffer");
         var data = {
           peer: "tom",
@@ -427,13 +429,14 @@ describe('handlers', function() {
         });
 
         sinon.assert.calledOnce(server.callOffer);
-        sinon.assert.calledWithExactly(server.callOffer, data);
+        sinon.assert.calledWithExactly(server.callOffer, data, "tom");
       });
   });
 
   describe("talkilla.call-answer", function() {
     it("should send a websocket message when receiving talkilla.call-answer",
       function() {
+        _currentUserData = {userName: "fred"};
         sandbox.stub(server, "callAccepted");
         var data = {
           peer: "fred",
@@ -446,7 +449,7 @@ describe('handlers', function() {
         });
 
         sinon.assert.calledOnce(server.callAccepted);
-        sinon.assert.calledWithExactly(server.callAccepted, data);
+        sinon.assert.calledWithExactly(server.callAccepted, data, "fred");
       });
   });
 
@@ -457,6 +460,7 @@ describe('handlers', function() {
 
     it("should send a websocket message when receiving talkilla.call-hangup",
       function() {
+        _currentUserData = {userName: "florian"};
         sandbox.stub(server, "callHangup");
         var data = {
           peer: "florian"
@@ -468,7 +472,7 @@ describe('handlers', function() {
         });
 
         sinon.assert.calledOnce(server.callHangup);
-        sinon.assert.calledWithExactly(server.callHangup, data);
+        sinon.assert.calledWithExactly(server.callHangup, data, "florian");
       });
   });
 

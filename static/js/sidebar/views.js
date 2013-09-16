@@ -203,7 +203,7 @@
       else
         this.$el.hide();
       // show/hide invite if user is alone
-      if (this.collection.length === 1) {
+      if (this.user.isLoggedIn() && this.collection.length === 0) {
         if (!this.activeNotification)
           this.activeNotification =
             app.utils.notifyUI('You are the only person logged in, ' +

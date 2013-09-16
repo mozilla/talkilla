@@ -245,7 +245,7 @@ describe("presence", function() {
 
       it("should forward the event to the peer after swapping the nick",
         function() {
-          var req = {body: {data: JSON.stringify({peer: "bar"}), nick: "foo"}};
+          var req = {body: {data: {peer: "bar"}, nick: "foo"}};
           var res = {send: function() {}};
           var forwardedEvent = {peer: "foo"};
           var bar = users.add("foo").add("bar").get("bar");
@@ -260,7 +260,7 @@ describe("presence", function() {
 
       it("should warn on handling offers to unknown users", function() {
         sandbox.stub(logger, "warn");
-        var req = {body: {data: JSON.stringify({peer: "bar"})}};
+        var req = {body: {data: {peer: "bar"}}};
         var res = {send: function() {}};
 
         api.callOffer(req, res);
@@ -274,7 +274,7 @@ describe("presence", function() {
 
       it("should forward the event to the peer after swapping the nick",
         function() {
-          var req = {body: {data: JSON.stringify({peer: "bar"}), nick: "foo"}};
+          var req = {body: {data: {peer: "bar"}, nick: "foo"}};
           var res = {send: function() {}};
           var forwardedEvent = {peer: "foo"};
           var bar = users.add("foo").add("bar").get("bar");
@@ -289,7 +289,7 @@ describe("presence", function() {
 
       it("should warn on handling answers to unknown users", function() {
         sandbox.stub(logger, "warn");
-        var req = {body: {data: JSON.stringify({peer: "bar"})}};
+        var req = {body: {data: {peer: "bar"}}};
         var res = {send: function() {}};
 
         api.callAccepted(req, res);
@@ -302,7 +302,7 @@ describe("presence", function() {
 
       it("should forward the event to the peer after swapping the nick",
         function() {
-          var req = {body: {data: JSON.stringify({peer: "bar"}), nick: "foo"}};
+          var req = {body: {data: {peer: "bar"}, nick: "foo"}};
           var res = {send: function() {}};
           var forwardedEvent = {peer: "foo"};
           var bar = users.add("foo").add("bar").get("bar");
@@ -317,7 +317,7 @@ describe("presence", function() {
 
       it("should warn on handling hangups to unknown users", function() {
         sandbox.stub(logger, "warn");
-        var req = {body: {data: JSON.stringify({peer: "bar"})}};
+        var req = {body: {data: {peer: "bar"}}};
         var res = {send: function() {}};
 
         api.callHangup(req, res);

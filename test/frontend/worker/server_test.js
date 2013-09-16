@@ -236,11 +236,14 @@ describe("Server", function() {
       var offerData = "fake offer payload";
       var callback = function() {};
       sandbox.stub(server.http, "post");
-      server.callOffer(offerData, callback);
+      server.callOffer(offerData, "foo", callback);
 
       sinon.assert.calledOnce(server.http.post);
       sinon.assert.calledWithExactly(
-        server.http.post, "/calloffer", offerData, callback);
+        server.http.post, "/calloffer", {
+          data: offerData,
+          nick: "foo"
+        }, callback);
     });
 
   });
@@ -251,11 +254,14 @@ describe("Server", function() {
       var answerData = "fake answer payload";
       var callback = function() {};
       sandbox.stub(server.http, "post");
-      server.callAccepted(answerData, callback);
+      server.callAccepted(answerData, "bar", callback);
 
       sinon.assert.calledOnce(server.http.post);
       sinon.assert.calledWithExactly(
-        server.http.post, "/callaccepted", answerData, callback);
+        server.http.post, "/callaccepted", {
+          data: answerData,
+          nick: "bar"
+        }, callback);
     });
 
   });
@@ -266,11 +272,14 @@ describe("Server", function() {
       var hangupData = "fake hangup payload";
       var callback = function() {};
       sandbox.stub(server.http, "post");
-      server.callHangup(hangupData, callback);
+      server.callHangup(hangupData, "xoo", callback);
 
       sinon.assert.calledOnce(server.http.post);
       sinon.assert.calledWithExactly(
-        server.http.post, "/callhangup", hangupData, callback);
+        server.http.post, "/callhangup", {
+          data: hangupData,
+          nick: "xoo"
+        }, callback);
     });
 
   });
