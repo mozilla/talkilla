@@ -190,6 +190,8 @@ describe('handlers', function() {
           requests[0].respond(401, {'Content-Type': 'text/plain'},
                               JSON.stringify({error: "some error"}));
 
+          // This gets called twice - once for login-pending, tested elsewhere,
+          // and once for the actual login-failure.
           sinon.assert.calledTwice(handlers.postEvent);
           sinon.assert.calledWith(handlers.postEvent, "talkilla.login-failure");
         });
