@@ -60,34 +60,35 @@ describe("CallView", function() {
       beforeEach(function() {
         sandbox.stub(call, "on");
 
-        sandbox.stub(app.views.CallView.prototype, "ongoing");
-        sandbox.stub(app.views.CallView.prototype, "terminated");
+        sandbox.stub(app.views.CallView.prototype, "render");
         callView = new app.views.CallView({el: $("#call"), call: call});
       });
 
       it("should attach to state:to:... events on the call model", function() {
-        sinon.assert.calledTwice(call.on);
-        sinon.assert.calledWith(call.on, 'state:to:ongoing');
-        sinon.assert.calledWith(call.on, 'state:to:terminated');
+        sinon.assert.calledOnce(call.on);
+        sinon.assert.calledWith(call.on, 'change:state');
       });
 
     });
 
     describe("media streams", function() {
-      var el, callView, localElement, remoteElement;
+      var el, callView, $localElement, localElement, remoteElement;
 
       beforeEach(function() {
         call.media = _.extend({}, Backbone.Events);
 
-        el = $('<div><div id="local-video"></div><div id="remote-video">' +
-               '</div></div>');
+        el = $(['<div>',
+                '  <div id="local-video"></div>',
+                '  <div id="remote-video"></div>',
+                '</div>'].join(''));
         $("#fixtures").append(el);
         callView = new app.views.CallView({el: el, call: call});
 
-        localElement = el.find('#local-video')[0];
+        $localElement = el.find('#local-video');
+        localElement = $localElement.get(0);
         localElement.play = sandbox.spy();
 
-        remoteElement = el.find('#remote-video')[0];
+        remoteElement = el.find('#remote-video').get(0);
         remoteElement.play = sandbox.spy();
       });
 
@@ -104,6 +105,31 @@ describe("CallView", function() {
             call.media.trigger("local-stream:ready", fakeLocalStream);
 
             sinon.assert.calledOnce(localElement.play);
+          });
+
+        it("should show the local-video element for video calls", function() {
+          sandbox.stub(jQuery.prototype, "show");
+          sandbox.stub(call, "requiresVideo").returns(true);
+          localElement.play = function() {
+            localElement.onplaying();
+          };
+
+          call.media.trigger("local-stream:ready", fakeLocalStream);
+
+          sinon.assert.calledOnce($localElement.show);
+        });
+
+        it("should not show the local-video element for audio calls",
+          function() {
+            sandbox.stub(jQuery.prototype, "show");
+            sandbox.stub(call, "requiresVideo").returns(false);
+            localElement.play = function() {
+              localElement.onplaying();
+            };
+
+            call.media.trigger("local-stream:ready", fakeLocalStream);
+
+            sinon.assert.notCalled($localElement.show);
           });
       });
 
@@ -148,27 +174,31 @@ describe("CallView", function() {
     });
   });
 
-  describe("#ongoing", function() {
-    it("should show this widget", function() {
-      var el = $('<div><div id="foo"></div></div>');
-      $("#fixtures").append(el);
-      var callView = new app.views.CallView({el: el, call: call});
+  describe("#render", function() {
+    var callView;
 
-      callView.ongoing();
+    beforeEach(function() {
+      $("#fixtures").append($('<div id="call"><div id="foo"></div></div>'));
+      callView = new app.views.CallView({el: $("#fixtures #call"), call: call});
+    });
+
+    it("should show this widget when a call is ongoing", function() {
+      call.state.current = "ongoing";
+
+      callView.render();
 
       expect(callView.$el.is(':visible')).to.equal(true);
     });
-  });
 
-  describe("#terminated", function() {
-    it("should hide this widget", function() {
-      var el = $('<div><div id="foo"></div></div>');
-      $("#fixtures").append(el);
-      var callView = new app.views.CallView({el: el, call: call});
+    it("should hide this widget when a call isn't ongoing", function() {
+      var states = ["pending", "incoming", "terminated", "timeout"];
+      states.forEach(function(state) {
+        call.state.current = state;
 
-      callView.terminated();
+        callView.render();
 
-      expect(callView.$el.is(':visible')).to.equal(false);
+        expect(callView.$el.is(':visible')).to.equal(false);
+      });
     });
   });
 });

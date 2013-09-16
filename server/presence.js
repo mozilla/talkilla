@@ -12,23 +12,6 @@ var User = require('./users').User;
 var users = new Users();
 var api;
 
-function findNewNick(aNick) {
-  var nickParts = /^(.+?)(\d*)$/.exec(aNick);
-
-  // If there was not a digit at the end of the nick, just append 1.
-  var newDigits = "1";
-  // If there was a digit at the end of the nick, increment it.
-  if (nickParts[2]) {
-    newDigits = (parseInt(nickParts[2], 10) + 1).toString();
-    // If there were leading 0s, add them back on, after we've incremented (e.g.
-    // 009 --> 010).
-    for (var len = nickParts[2].length - newDigits.length; len > 0; --len)
-      newDigits = "0" + newDigits;
-  }
-
-  return nickParts[1] + newDigits;
-}
-
 api = {
   _verifyAssertion: function(assertion, callback) {
     // When we're in the test environment, we bypass the assertion verifiction.
@@ -178,6 +161,5 @@ app.post('/calloffer', api.callOffer);
 app.post('/callaccepted', api.callAccepted);
 app.post('/callhangup', api.callHangup);
 
-module.exports.findNewNick = findNewNick;
 module.exports.api = api;
 module.exports._users = users;

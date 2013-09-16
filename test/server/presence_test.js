@@ -16,7 +16,6 @@ var https = require("https");
 require("../../server/server");
 var presence = require("../../server/presence");
 var logger = require("../../server/logger");
-var findNewNick = presence.findNewNick;
 
 describe("presence", function() {
 
@@ -33,31 +32,6 @@ describe("presence", function() {
       users.remove(user.nick);
     });
     sandbox.restore();
-  });
-
-  describe("#findNewNick", function() {
-
-    it("should preserve existing chars of the nick when finding a new one",
-      function() {
-        var testNicks = {
-          "foo": "foo1",
-          "foo1": "foo2",
-          "foo10": "foo11",
-          "foo0": "foo1",
-          "foo01": "foo02",
-          "foo09": "foo10",
-
-          // Now put a number in the "first part".
-          "fo1o": "fo1o1",
-          "fo1o1": "fo1o2",
-          "fo1o10": "fo1o11",
-          "fo1o0": "fo1o1",
-          "fo1o01": "fo1o02",
-          "fo1o09": "fo1o10"
-        };
-        for (var nick in testNicks)
-          expect(findNewNick(nick)).to.equal(testNicks[nick]);
-      });
   });
 
   describe("api", function() {

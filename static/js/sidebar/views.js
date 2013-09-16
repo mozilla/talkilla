@@ -236,6 +236,12 @@
       this.user = options.user;
 
       this.user.on('change', this.render, this);
+
+      // Display the correct buttons now we've loaded.
+      // XXX We should probably delay this until after
+      // navigator.id.watch completes, but we need to work
+      // out full mechanisms and flows for what happens there.
+      this.render();
     },
 
     render: function() {

@@ -395,36 +395,34 @@
                          this._terminateRemoteVideo, this);
       this.call.media.on('connection-upgraded', this.ongoing, this);
 
-      this.call.on('state:to:ongoing', this.ongoing, this);
-      this.call.on('state:to:terminated', this.terminated, this);
-    },
+      this.call.on('change:state', this.render, this);
 
-    ongoing: function() {
-      this.$el.show();
-    },
-
-    terminated: function() {
-      this.$el.hide();
+      this.render();
     },
 
     _displayLocalVideo: function(stream) {
-      var localVideo = this.$('#local-video')[0];
+      var $localVideo = this.$('#local-video'),
+          localVideo = $localVideo.get(0);
       if (!localVideo)
         return this;
       localVideo.mozSrcObject = stream;
+      localVideo.onplaying = function() {
+        if (this.call.requiresVideo())
+          $localVideo.show();
+      }.bind(this);
       localVideo.play();
       return this;
     },
 
     _displayRemoteVideo: function(stream) {
-      var remoteVideo = this.$('#remote-video')[0];
+      var remoteVideo = this.$('#remote-video').get(0);
       remoteVideo.mozSrcObject = stream;
       remoteVideo.play();
       return this;
     },
 
     _terminateLocalVideo: function() {
-      var localVideo = this.$('#local-video')[0];
+      var localVideo = this.$('#local-video').get(0);
       if (!localVideo || !localVideo.mozSrcObject)
         return this;
 
@@ -432,11 +430,18 @@
     },
 
     _terminateRemoteVideo: function() {
-      var remoteVideo = this.$('#remote-video')[0];
+      var remoteVideo = this.$('#remote-video').get(0);
       if (!remoteVideo || !remoteVideo.mozSrcObject)
         return this;
 
       remoteVideo.mozSrcObject = undefined;
+    },
+
+    render: function() {
+      if (this.call.state.current === "ongoing")
+        this.$el.show();
+      else
+        this.$el.hide();
     }
   });
 
@@ -498,12 +503,26 @@
     },
 
     initialize: function(options) {
+      if (!options.call)
+        throw new Error("missing parameter: call");
       if (!options.collection)
         throw new Error("missing parameter: collection");
 
+      this.call = options.call;
       this.collection = options.collection;
 
+      this.call.on('state:to:pending state:to:incoming', this.hide, this);
+      this.call.on('state:to:ongoing state:to:timeout', this.show, this);
+
       this.collection.on('add', this.render, this);
+    },
+
+    hide: function() {
+      this.$el.hide();
+    },
+
+    show: function() {
+      this.$el.show();
     },
 
     sendMessage: function(event) {
