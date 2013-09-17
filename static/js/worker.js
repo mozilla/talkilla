@@ -21,8 +21,8 @@ var server;
 // XXX we use this to map to what the sidebar wants, really
 // the sidebar should change so that we can just send the object.
 function getCurrentUsersArray() {
-  if (currentUsers === {})
-    return undefined;
+  if (Object.keys(currentUsers).length === 0)
+    return [];
 
   return Object.keys(currentUsers).map(function(userId) {
     return {nick: userId, presence: currentUsers[userId].presence};
@@ -58,7 +58,7 @@ function getContactsDatabase(doneCallback, contactDBName) {
         // cursor navigation is complete, now add the found contacts to
         // the current users list.
         contacts.forEach(function (userId) {
-          if (!(userId in currentUsers))
+          if (!Object.prototype.hasOwnProperty.call(currentUsers, userId))
             currentUsers[userId] = {presence: "disconnected"};
         });
         // We need to broadcast the list in case we've been slow loading
@@ -329,25 +329,25 @@ function _setupServer(server) {
     ports.broadcastEvent("talkilla.users", getCurrentUsersArray());
   });
 
-  server.on("message:userJoined", function(data) {
-    if (data in currentUsers)
-      currentUsers[data].presence = "connected";
+  server.on("message:userJoined", function(userId) {
+    if (Object.prototype.hasOwnProperty.call(currentUsers, userId))
+      currentUsers[userId].presence = "connected";
     else
-      currentUsers[data] = {presence: "connected"};
+      currentUsers[userId] = {presence: "connected"};
 
     ports.broadcastEvent("talkilla.users", getCurrentUsersArray());
-    ports.broadcastEvent("talkilla.user-joined", data);
+    ports.broadcastEvent("talkilla.user-joined", userId);
   });
 
-  server.on("message:userLeft", function(data) {
+  server.on("message:userLeft", function(userId) {
     // Show the user as disconnected
-    if (!(data in currentUsers))
+    if (!Object.prototype.hasOwnProperty.call(currentUsers, userId))
       return;
 
-    currentUsers[data].presence = "disconnected";
+    currentUsers[userId].presence = "disconnected";
 
     ports.broadcastEvent("talkilla.users", getCurrentUsersArray());
-    ports.broadcastEvent("talkilla.user-left", data);
+    ports.broadcastEvent("talkilla.user-left", userId);
   });
 
   server.on("message:incoming_call", function(data) {
