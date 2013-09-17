@@ -1,7 +1,7 @@
 /*global chai, sinon, _config:true, loadconfig, _signinCallback,
    _currentUserData:true, UserData, getContactsDatabase, browserPort: true,
    storeContact, contacts:true, contactsDb:true, indexedDB,
-   currentUsers, _, server */
+   currentUsers, _, server, ports */
 var expect = chai.expect;
 
 describe('Miscellaneous', function() {
