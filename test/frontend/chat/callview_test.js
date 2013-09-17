@@ -6,12 +6,24 @@ var expect = chai.expect;
 describe("CallView", function() {
   "use strict";
 
-  var fakeLocalStream = "fakeLocalStream";
-  var fakeRemoteStream = "fakeRemoteStream";
+  var fakeLocalStream;
+  var fakeRemoteStream;
+
   var el = 'fakeDom';
   var sandbox, media, call;
 
-  beforeEach(function() {
+  beforeEach(function(done) {
+
+    navigator.mozGetUserMedia({video: true, fake: true},
+      function onSuccess(stream) {
+        fakeRemoteStream = fakeLocalStream = stream;
+        done();
+      },
+      function onError() {
+        throw new Error("mozGetUserMedia error");
+      }
+    );
+
     sandbox = sinon.sandbox.create();
     // XXX This should probably be a mock, but sinon mocks don't seem to want
     // to work with Backbone.
@@ -65,23 +77,19 @@ describe("CallView", function() {
     });
 
     describe("media streams", function() {
-      var el, callView, $localElement, localElement, remoteElement;
+      var callView, $localElement, localElement, remoteElement;
 
       beforeEach(function() {
         call.media = _.extend({}, Backbone.Events);
 
-        el = $(['<div>',
-                '  <div id="local-video"></div>',
-                '  <div id="remote-video"></div>',
-                '</div>'].join(''));
-        $("#fixtures").append(el);
-        callView = new app.views.CallView({el: el, call: call});
+        callView = new app.views.CallView({call: call});
+        $("#fixtures").append(callView.render().$el.html());
 
-        $localElement = el.find('#local-video');
+        $localElement = callView.$el.find('#local-video');
         localElement = $localElement.get(0);
         localElement.play = sandbox.spy();
 
-        remoteElement = el.find('#remote-video').get(0);
+        remoteElement = callView.$el.find('#remote-video').get(0);
         remoteElement.play = sandbox.spy();
       });
 
@@ -133,7 +141,7 @@ describe("CallView", function() {
 
             call.media.trigger("local-stream:terminated");
 
-            expect(localElement.mozSrcObject).to.equal(undefined);
+            expect(localElement.mozSrcObject).to.equal(null);
           });
       });
 
@@ -161,7 +169,7 @@ describe("CallView", function() {
 
             call.media.trigger("remote-stream:terminated");
 
-            expect(remoteElement.mozSrcObject).to.equal(undefined);
+            expect(remoteElement.mozSrcObject).to.equal(null);
           });
       });
     });
@@ -172,7 +180,8 @@ describe("CallView", function() {
 
     beforeEach(function() {
       $("#fixtures").append($('<div id="call"><div id="foo"></div></div>'));
-      callView = new app.views.CallView({el: $("#fixtures #call"), call: call});
+      callView = new app.views.CallView(
+        {el: $("#fixtures > #call"), call: call});
     });
 
     it("should render a div with a call class", function() {

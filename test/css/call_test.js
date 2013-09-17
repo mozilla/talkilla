@@ -7,7 +7,6 @@ describe("CallView", function() {
 
   var fakeLocalStream = "fakeLocalStream";
   var fakeRemoteStream = "fakeRemoteStream";
-  var el = 'fakeDom';
   var sandbox, media, call;
 
   beforeEach(function() {

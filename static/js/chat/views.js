@@ -433,7 +433,7 @@
       if (!localVideo || !localVideo.mozSrcObject)
         return this;
 
-      localVideo.mozSrcObject = undefined;
+      localVideo.mozSrcObject = null;
     },
 
     _terminateRemoteVideo: function() {
@@ -441,7 +441,7 @@
       if (!remoteVideo || !remoteVideo.mozSrcObject)
         return this;
 
-      remoteVideo.mozSrcObject = undefined;
+      remoteVideo.mozSrcObject = null;
     },
 
     render: function() {
@@ -451,6 +451,8 @@
         this.$el.show();
       else
         this.$el.hide();
+
+      return this;
     }
   });
 
