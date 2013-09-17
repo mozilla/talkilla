@@ -180,7 +180,8 @@ describe("CallView", function() {
 
       callView.render();
 
-      expect(callView.$el.html()).ok;
+      expect(callView.el.tagName.toLowerCase()).to.equal('div');
+      //XXX test class here
     });
 
     it("should show this widget when a call is ongoing", function() {

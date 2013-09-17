@@ -378,14 +378,14 @@
    * Video/Audio Call View
    */
   app.views.CallView = Backbone.View.extend({
-    //tagName: "div",
+    tagName: "div",
 
-    // template: _.template([
-    //   '<div class="video-area">',
-    //   '  <video id="remote-video" class="remote-video"></video>',
-    //   '  <video id="local-video" class="local-video hide" muted></video>',
-    //   '</div>',
-    // ].join('')),
+    template: _.template([
+      '<div class="video-area">',
+      '  <video id="remote-video" class="remote-video"></video>',
+      '  <video id="local-video" class="local-video hide" muted></video>',
+      '</div>'
+    ].join('')),
 
     initialize: function(options) {
       options = options || {};
@@ -444,6 +444,8 @@
     },
 
     render: function() {
+      this.$el.html(this.template());
+
       if (this.call.state.current === "ongoing")
         this.$el.show();
       else
