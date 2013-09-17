@@ -212,6 +212,7 @@ class Driver(WebDriver):
 
 def create(nick=None):
     driver = Driver(command_executor=SELENIUM_COMMAND_EXECUTOR,
-                    desired_capabilities={"browserName": "firefox"},
+                    desired_capabilities={"browserName": "firefox",
+                                          "browserSideLog": True},
                     nick=nick)
     return driver
