@@ -175,13 +175,13 @@ describe("CallView", function() {
       callView = new app.views.CallView({el: $("#fixtures #call"), call: call});
     });
 
-    it("should render the attached template", function() {
+    it("should render a div with a call class", function() {
       var callView = new app.views.CallView({call: call});
 
       callView.render();
 
       expect(callView.el.tagName.toLowerCase()).to.equal('div');
-      //XXX test class here
+      expect(callView.$el.hasClass("call")).to.equal(true);
     });
 
     it("should show this widget when a call is ongoing", function() {

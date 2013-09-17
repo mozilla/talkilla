@@ -379,6 +379,7 @@
    */
   app.views.CallView = Backbone.View.extend({
     tagName: "div",
+    className: "call",
 
     template: _.template([
       '<div class="video-area">',
