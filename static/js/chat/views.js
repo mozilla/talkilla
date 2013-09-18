@@ -403,8 +403,6 @@
       this.call.media.on('connection-upgraded', this.ongoing, this);
 
       this.call.on('change:state', this.render, this);
-
-      this.render();
     },
 
     _displayLocalVideo: function(stream) {
