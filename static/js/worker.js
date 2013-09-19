@@ -1,9 +1,13 @@
-/* global indexedDB, importScripts, Server, HTTP */
+/* global indexedDB, importScripts, Server, HTTP, SPA */
 /* jshint unused:false */
 
 importScripts('../vendor/backbone-events-standalone-0.1.5.js',
               'worker/http.js',    // exposes HTTP
-              'worker/server.js'); // exposes Server
+              'spa/spa.js',
+              'spa/port.js',
+              'spa/server.js',
+              'spa/talkilla_spa.js',
+              'spa/dummy_worker.js'); // exposes Server
 
 var _config = {DEBUG: false};
 var _currentUserData;
@@ -16,7 +20,7 @@ var currentUsers = {};
 var contacts = [];
 var contactsDb;
 var kContactDBName = "contacts";
-var server;
+var spa;
 
 // XXX we use this to map to what the sidebar wants, really
 // the sidebar should change so that we can just send the object.
@@ -305,8 +309,8 @@ UserData.prototype = {
   }
 };
 
-function _setupServer(server) {
-  server.on("connected", function() {
+function _setupSPA(spa) {
+  spa.on("connected", function() {
     _autologinPending = false;
     _currentUserData.connected = true;
     // XXX: we should differentiate login and presence
@@ -315,11 +319,11 @@ function _setupServer(server) {
     });
   });
 
-  server.on("message", function(label, data) {
-    ports.broadcastDebug("server event: " + label, data);
+  spa.on("message", function(label, data) {
+    ports.broadcastDebug("spa event: " + label, data);
   });
 
-  server.on("message:users", function(data) {
+  spa.on("message:users", function(data) {
     data.forEach(function(user) {
       currentUsers[user.nick] = {presence: "connected"};
     });
@@ -327,7 +331,7 @@ function _setupServer(server) {
     ports.broadcastEvent("talkilla.users", getCurrentUsersArray());
   });
 
-  server.on("message:userJoined", function(userId) {
+  spa.on("message:userJoined", function(userId) {
     if (Object.prototype.hasOwnProperty.call(currentUsers, userId))
       currentUsers[userId].presence = "connected";
     else
@@ -337,7 +341,7 @@ function _setupServer(server) {
     ports.broadcastEvent("talkilla.user-joined", userId);
   });
 
-  server.on("message:userLeft", function(userId) {
+  spa.on("message:userLeft", function(userId) {
     // Show the user as disconnected
     if (!Object.prototype.hasOwnProperty.call(currentUsers, userId))
       return;
@@ -348,7 +352,7 @@ function _setupServer(server) {
     ports.broadcastEvent("talkilla.user-left", userId);
   });
 
-  server.on("message:incoming_call", function(data) {
+  spa.on("message:incoming_call", function(data) {
     // If we're in a conversation, and it is not with the peer,
     // then ignore it
     if (currentConversation) {
@@ -365,20 +369,20 @@ function _setupServer(server) {
     currentConversation = new Conversation(data);
   });
 
-  server.on("message:call_accepted", function(data) {
+  spa.on("message:call_accepted", function(data) {
     currentConversation.callAccepted(data);
   });
 
-  server.on("message:call_hangup", function(data) {
+  spa.on("message:call_hangup", function(data) {
     if (currentConversation)
       currentConversation.callHangup(data);
   });
 
-  server.on("error", function(event) {
+  spa.on("error", function(event) {
     ports.broadcastEvent("talkilla.websocket-error", event);
   });
 
-  server.on("disconnected", function(event) {
+  spa.on("disconnected", function(event) {
     _autologinPending = false;
     _currentUserData.userName = undefined;
     _currentUserData.connected = false;
@@ -412,7 +416,7 @@ function _signinCallback(err, responseText) {
   if (username) {
     _currentUserData.userName = username;
 
-    server.connect(username);
+    spa.connect(username);
     ports.broadcastEvent("talkilla.presence-pending", {});
   }
 }
@@ -453,7 +457,7 @@ var handlers = {
         _currentUserData.userName = cookie.value;
         // If we've received the configuration info, then go
         // ahead and log in.
-        server.autoconnect(cookie.value);
+        spa.autoconnect(cookie.value);
       }
     });
   },
@@ -469,14 +473,14 @@ var handlers = {
     _loginPending = true;
     this.postEvent('talkilla.login-pending', null);
 
-    server.signin(msg.data.assertion, _signinCallback.bind(this));
+    spa.signin(msg.data.assertion, _signinCallback.bind(this));
   },
 
   'talkilla.logout': function() {
     if (!_currentUserData.userName)
       return;
 
-    server.signout(_currentUserData.userName, _signoutCallback.bind(this));
+    spa.signout(_currentUserData.userName, _signoutCallback.bind(this));
   },
 
   'talkilla.conversation-open': function(event) {
@@ -522,7 +526,7 @@ var handlers = {
    * - offer:    an RTCSessionDescription containing the sdp data for the call.
    */
   'talkilla.call-offer': function(event) {
-    server.callOffer(event.data, _currentUserData.userName);
+    spa.callOffer(event.data, _currentUserData.userName);
   },
 
   /**
@@ -533,7 +537,7 @@ var handlers = {
    * - offer:    an RTCSessionDescription containing the sdp data for the call.
    */
   'talkilla.call-answer': function(event) {
-    server.callAccepted(event.data, _currentUserData.userName);
+    spa.callAccepted(event.data, _currentUserData.userName);
   },
 
   /**
@@ -542,7 +546,7 @@ var handlers = {
    * - peer: the person you are talking to.
    */
   'talkilla.call-hangup': function (event) {
-    server.callHangup(event.data, _currentUserData.userName);
+    spa.callHangup(event.data, _currentUserData.userName);
   }
 };
 
@@ -660,9 +664,9 @@ loadconfig(function(err, config) {
     return ports.broadcastError(err);
   _config = config;
   _currentUserData = new UserData({}, config);
-  server = new Server(config);
+  spa = new SPA(config);
 
-  _setupServer(server);
+  _setupSPA(spa);
 
   browserPort.postEvent('social.cookies-get');
 });
