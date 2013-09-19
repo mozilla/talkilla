@@ -91,6 +91,10 @@ To run an individual file for 20 runs, or until failure:
 
     $ REPEAT_TEST=test/functional/test_SingleBrowser.py REPEAT_TIMES=20 make selenium-repeat
 
+To get full debug output from selenium and Firefox, specify FULL_SELENIUM_DEBUG on the command line:
+
+    $ FULL_SELENIUM_DEBUG=1 make selenium
+
 Working With Individual Functional Test Files
 ---------------------------------------------
 
