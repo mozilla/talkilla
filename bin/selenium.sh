@@ -38,7 +38,11 @@ start() {
         exit 1
     fi
     # options are listed at http://code.google.com/p/selenium/wiki/FirefoxDriver
-    java -jar $SELENIUM_JAR_FILENAME -Dwebdriver.firefox.bin=$PWD/bin/firefox -Dwebdriver.log.file=$PWD/console.log -Dwebdriver.firefox.logfile=$PWD/firefox.log &>/dev/null &
+    if [ $FULL_SELENIUM_DEBUG ]; then
+      java -jar $SELENIUM_JAR_FILENAME -Dwebdriver.firefox.bin=$PWD/bin/firefox -Dwebdriver.log.file=$PWD/console.log -Dwebdriver.firefox.logfile=/dev/stdout &
+    else
+      java -jar $SELENIUM_JAR_FILENAME -Dwebdriver.firefox.bin=$PWD/bin/firefox -Dwebdriver.log.file=$PWD/console.log -Dwebdriver.firefox.logfile=$PWD/firefox.log &>/dev/null &
+    fi
     PID=$!
     echo $PID > $SELENIUM_PID_FILE
     CODE="000"
