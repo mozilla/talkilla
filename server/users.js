@@ -1,4 +1,6 @@
 var config = require('./config').config;
+var logger = require('./logger');
+
 
 /**
  * User class constructor
@@ -28,8 +30,11 @@ User.prototype.send = function(data) {
     clearTimeout(this.pending.timeout);
     this.pending.callback([data]);
     this.pending = {};
-  } else {
+  } else if (this.present()) {
     this.events.push(data);
+  } else {
+    logger.warn("Could not forward event " +
+                JSON.stringify(data) + " to non present peer");
   }
 
   return this;

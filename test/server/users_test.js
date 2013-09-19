@@ -5,6 +5,7 @@ var expect = chai.expect;
 var sinon = require("sinon");
 
 var config = require('../../server/config').config;
+var logger = require('../../server/logger');
 var Users = require("../../server/users").Users;
 var User = require("../../server/users").User;
 
@@ -34,6 +35,7 @@ describe("User", function() {
 
     it("should queue the data if no pending timeout is available", function() {
       var data = {message: "some message"};
+      sandbox.stub(user, "present").returns(true);
 
       user.send(data);
 
@@ -54,17 +56,28 @@ describe("User", function() {
 
         user.send(data);
       });
+
+    it("should log a warning if the user is not present", function() {
+      var data = {message: "some message"};
+      sandbox.stub(user, "present").returns(false);
+      sandbox.stub(logger, "warn");
+
+      user.send(data);
+
+      expect(user.events).to.deep.equal([]);
+      sinon.assert.calledOnce(logger.warn);
+    });
   });
 
   describe("#waitForEvents", function() {
 
     it("should execute the given callback if there is events",
-      function(done) {
+      function() {
         user.events = [1, 2, 3];
         user.waitForEvents(function(events) {
           expect(events).to.deep.equal([1, 2, 3]);
-          done();
         });
+        expect(user.events).to.deep.equal([]);
       });
 
     it("should timeout if no events are sent in the meantime", function(done) {
