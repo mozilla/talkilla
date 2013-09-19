@@ -13,6 +13,7 @@ var TalkillaSPA = (function() {
     this.port.on("call:offer", this._onCallOffer.bind(this));
     this.port.on("call:accepted", this._onCallAccepted.bind(this));
     this.port.on("call:hangup", this._onCallHangup.bind(this));
+    this.port.on("presence:request", this._onPresenceRequest.bind(this));
 
     this.server.on("connected", this._onServerEvent.bind(this, "connected"));
     this.server.on("disconnected",
@@ -64,6 +65,10 @@ var TalkillaSPA = (function() {
     this.server.callHangup(data.data, data.nick, function(err, response) {
       this.port.post("call:hangup-callback", {err: err, response: response});
     }.bind(this));
+  };
+
+  TalkillaSPA.prototype._onPresenceRequest = function(data) {
+    this.server.presenceRequest(data.nick);
   };
 
   return TalkillaSPA;

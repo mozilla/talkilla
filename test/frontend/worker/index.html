@@ -23,7 +23,11 @@
   </script>
   <script src="../../../vendor/backbone-events-standalone-0.1.5.js"></script>
   <script src="../../../js/worker/http.js"></script>
-  <script src="../../../js/worker/server.js"></script>
+  <script src="../../../js/spa/port.js"></script>
+  <script src="../../../js/spa/server.js"></script>
+  <script src="../../../js/spa/talkilla_spa.js"></script>
+  <script src="../../../js/spa/dummy_worker.js"></script>
+  <script src="../../../js/spa/spa.js"></script>
   <script src="../../../js/worker.js"></script>
   <script src="conversation_test.js"></script>
   <script src="handlers_test.js"></script>
@@ -33,9 +37,9 @@
   <script src="presencesocket_test.js"></script>
   <script src="serverhandlers_test.js"></script>
   <script src="userdata_test.js"></script>
-  <script src="server_test.js"></script>
  <script>
-    mocha.run(function () { $('body').append("<p id='complete'>complete</p>"); });
+   var expect = chai.expect;
+   mocha.run(function () { $('body').append("<p id='complete'>complete</p>"); });
  </script>
 </body>
 </html>

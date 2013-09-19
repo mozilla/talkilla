@@ -1,21 +1,21 @@
 /*global chai, sinon, browserPort:true, currentConversation:true,
-  Server, Conversation, currentUsers:true, ports,
-  _setupServer, _currentUserData:true, UserData */
+  SPA, Conversation, currentUsers:true, ports,
+  _setupSPA, _currentUserData:true, UserData */
 
 /* Needed due to the use of non-camelcase in the websocket topics */
 /* jshint camelcase:false */
 var expect = chai.expect;
 
 describe("serverHandlers", function() {
-  var sandbox, server;
+  var sandbox, spa;
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
 
     currentUsers = [];
     _currentUserData = new UserData();
-    server = new Server();
-    _setupServer(server);
+    spa = new SPA();
+    _setupSPA(spa);
     sandbox.stub(_currentUserData, "send");
   });
 
@@ -27,7 +27,7 @@ describe("serverHandlers", function() {
   describe("`connected` event", function() {
 
     it("should set the user data as connected", function() {
-      server.trigger("connected");
+      spa.trigger("connected");
 
       expect(_currentUserData.connected).to.be.equal(true);
     });
@@ -36,7 +36,7 @@ describe("serverHandlers", function() {
       _currentUserData.userName = "harvey";
       sandbox.stub(ports, "broadcastEvent");
 
-      server.trigger("connected");
+      spa.trigger("connected");
 
       sinon.assert.calledOnce(ports.broadcastEvent);
       sinon.assert.calledWithExactly(
@@ -58,7 +58,7 @@ describe("serverHandlers", function() {
     it("should update the current list of users", function() {
       currentUsers = {jb: {presence: "disconnected"}};
 
-      server.trigger("message:users", [
+      spa.trigger("message:users", [
         {nick: "james"},
         {nick: "harvey"}
       ]);
@@ -72,7 +72,7 @@ describe("serverHandlers", function() {
 
     it("should broadcast a `talkilla.users` event with the list of users",
       function() {
-        server.trigger("message:users", [{nick: "jb"}]);
+        spa.trigger("message:users", [{nick: "jb"}]);
 
         sinon.assert.calledOnce(ports.broadcastEvent);
         sinon.assert.calledWith(
@@ -89,7 +89,7 @@ describe("serverHandlers", function() {
       currentUsers = [];
       sandbox.stub(ports, "broadcastEvent");
 
-      server.trigger("message:userJoined", "foo");
+      spa.trigger("message:userJoined", "foo");
 
       sinon.assert.called(ports.broadcastEvent);
       sinon.assert.calledWith(ports.broadcastEvent, "talkilla.users", [
@@ -101,7 +101,7 @@ describe("serverHandlers", function() {
       currentUsers = [];
       sandbox.stub(ports, "broadcastEvent");
 
-      server.trigger("message:userJoined", "foo");
+      spa.trigger("message:userJoined", "foo");
 
       sinon.assert.called(ports.broadcastEvent);
       sinon.assert.calledWith(ports.broadcastEvent,
@@ -118,7 +118,7 @@ describe("serverHandlers", function() {
     it("should not broadcast anything if the user is not in the " +
        "current users list", function() {
 
-      server.trigger("message:userLeft", "foo");
+      spa.trigger("message:userLeft", "foo");
 
       sinon.assert.notCalled(ports.broadcastEvent);
     });
@@ -126,7 +126,7 @@ describe("serverHandlers", function() {
     it("should broadcast a `talkilla.users` event", function() {
       currentUsers = {foo: {presence: "connected"}};
 
-      server.trigger("message:userLeft", "foo");
+      spa.trigger("message:userLeft", "foo");
 
       sinon.assert.called(ports.broadcastEvent);
       sinon.assert.calledWith(ports.broadcastEvent, "talkilla.users", [
@@ -137,7 +137,7 @@ describe("serverHandlers", function() {
     it("should broadcast a `talkilla.user-left` event", function() {
       currentUsers = {foo: {presence: "connected"}};
 
-      server.trigger("message:userLeft", "foo");
+      spa.trigger("message:userLeft", "foo");
 
       sinon.assert.called(ports.broadcastEvent);
       sinon.assert.calledWith(ports.broadcastEvent,
@@ -163,7 +163,7 @@ describe("serverHandlers", function() {
         offer: {type: "fake", sdp: "sdp" }
       };
 
-      server.trigger("message:incoming_call", data);
+      spa.trigger("message:incoming_call", data);
 
       expect(currentConversation).to.be.an.instanceOf(Conversation);
       expect(currentConversation.data).to.deep.equal(data);
@@ -179,7 +179,7 @@ describe("serverHandlers", function() {
           peer: "alice",
           offer: {type: "fake", sdp: "sdp" }
         };
-        server.trigger("message:incoming_call", data);
+        spa.trigger("message:incoming_call", data);
 
         sinon.assert.calledOnce(currentConversation.handleIncomingCall);
         sinon.assert.calledWith(currentConversation.handleIncomingCall,
@@ -199,7 +199,7 @@ describe("serverHandlers", function() {
         callAccepted: sandbox.spy()
       };
 
-      server.trigger("message:call_accepted", data);
+      spa.trigger("message:call_accepted", data);
 
       sinon.assert.calledOnce(currentConversation.callAccepted);
       sinon.assert.calledWithExactly(currentConversation.callAccepted,
@@ -226,7 +226,7 @@ describe("serverHandlers", function() {
     });
 
     it("should call callHangup on the conversation", function() {
-      server.trigger("message:call_hangup", callData);
+      spa.trigger("message:call_hangup", callData);
 
       sinon.assert.calledOnce(callHangupStub);
       sinon.assert.calledWithExactly(callHangupStub, callData);
@@ -236,7 +236,7 @@ describe("serverHandlers", function() {
   describe("`disconnected` event", function() {
 
     it("should set the user data as disconnected", function() {
-      server.trigger("disconnected", {code: 1006});
+      spa.trigger("disconnected", {code: 1006});
 
       expect(_currentUserData.connected).to.be.equal(false);
     });
@@ -245,7 +245,7 @@ describe("serverHandlers", function() {
       _currentUserData.userName = "harvey";
       sandbox.stub(ports, "broadcastEvent");
 
-      server.trigger("disconnected", {code: 1006});
+      spa.trigger("disconnected", {code: 1006});
 
       sinon.assert.calledTwice(ports.broadcastEvent);
       sinon.assert.calledWithExactly(
@@ -257,7 +257,7 @@ describe("serverHandlers", function() {
       _currentUserData.userName = "harvey";
       sandbox.stub(ports, "broadcastEvent");
 
-      server.trigger("disconnected", {code: 1006});
+      spa.trigger("disconnected", {code: 1006});
 
       sinon.assert.calledTwice(ports.broadcastEvent);
       sinon.assert.calledWithExactly(

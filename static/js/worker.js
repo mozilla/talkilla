@@ -1,4 +1,4 @@
-/* global indexedDB, importScripts, Server, HTTP, SPA */
+/* global indexedDB, importScripts, SPA, HTTP, SPA */
 /* jshint unused:false */
 
 importScripts('../vendor/backbone-events-standalone-0.1.5.js',
@@ -514,7 +514,7 @@ var handlers = {
    */
   'talkilla.presence-request': function(event) {
     var users = getCurrentUsersArray();
-    server.presenceRequest(_currentUserData.userName);
+    spa.presenceRequest(_currentUserData.userName);
     this.postEvent('talkilla.users', users);
   },
 

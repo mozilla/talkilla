@@ -1,7 +1,7 @@
 /*global chai, sinon, _config:true, loadconfig, _signinCallback,
    _currentUserData:true, UserData, getContactsDatabase, browserPort: true,
    storeContact, contacts:true, contactsDb:true, indexedDB,
-   currentUsers, _, server, ports */
+  currentUsers, _, spa, ports */
 var expect = chai.expect;
 
 describe('Miscellaneous', function() {
@@ -56,7 +56,7 @@ describe('Miscellaneous', function() {
 
     beforeEach(function() {
       sandbox.stub(window, "WebSocket");
-      socketStub = sinon.stub(server, "connect");
+      socketStub = sinon.stub(spa, "connect");
       _config.WSURL = wsurl;
       _currentUserData = new UserData({});
       sandbox.stub(_currentUserData, "send");

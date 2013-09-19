@@ -67,5 +67,9 @@ var SPA = (function() {
     this._send("call:hangup", {data: data, nick: nick});
   };
 
+  SPA.prototype.presenceRequest = function(nick) {
+    this._send("presence:request", {nick: nick});
+  };
+
   return SPA;
 }());
