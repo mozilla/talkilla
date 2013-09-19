@@ -76,7 +76,7 @@ var Server = (function() {
 
     this.http.post("/stream", {nick: nick}, function(err, response) {
       if (err)
-        return this.trigger("stream:error", response);
+        return this.trigger("disconnected", response);
 
       this._longPolling(nick, JSON.parse(response));
     }.bind(this));
