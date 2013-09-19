@@ -2,7 +2,7 @@
 
 import os
 
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException,TimeoutException,WebDriverException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
@@ -80,6 +80,12 @@ class Driver(WebDriver):
     def ignoreCall(self):
         """ Ignore an incoming call."""
         self.clickElement(".btn-ignore")
+
+    def hangupCall(self):
+        """ Hangs up a call."""
+        self.detectWindowClose("""
+            document.getElementsByClassName("btn-hangup")[0].childNodes[0].click();
+        """)
 
     def sendChatMessage(self, message):
         """ Sends a text chat message.
@@ -209,6 +215,29 @@ class Driver(WebDriver):
 
         return self.find_elements_by_css_selector(css_selector)
 
+    def detectWindowClose(self, javascriptAction):
+        """ Detects closing of a window when a javascript action is run.
+
+            Args
+            - javascriptAction - the action to run that causes the window
+                                 to close
+        """
+        pageUnloadEventFired = False
+        try:
+            unloaded = self.execute_async_script(javascriptAction)
+        except WebDriverException as e:
+            # XXX Using detection of a string may be flakey. Hopefully
+            # Marionette will provide us with a proper exception we can
+            # catch.
+            if not "Detected a page unload event" in e.msg:
+                raise
+            else:
+                pageUnloadEventFired = True
+
+        # This ensures that the exception has actually fired, and didn't
+        # just get passed by, or a timeout exception
+        if not pageUnloadEventFired:
+            raise RuntimeError("Did not detect an unload event")
 
 def create(nick=None):
     driver = Driver(command_executor=SELENIUM_COMMAND_EXECUTOR,
