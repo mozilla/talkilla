@@ -1,3 +1,11 @@
+This branch is a spike that we did investigating the possiblity of moving
+from pure unit tests for views to partial integration tests.  See 
+
+https://trello.com/c/v4zj8HCd/245-as-a-developer-i-should-be-able-to-easily-write-a-behaviorial-test-for-views-so-that-refactoring-markup-can-be-done-efficiently
+
+for details.  We're keeping the branch around for future reference as we
+continue to explore ways to improve our testings strategies.
+
 Talkilla
 ========
 
