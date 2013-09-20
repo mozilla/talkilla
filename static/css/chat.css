@@ -117,18 +117,18 @@ body {
 /**
  * Video call
  */
-#call {
+.call {
   display: table-row;
   height: calc(100vw / 1.33333); /* keep 4:3 video aspect ratio */
 }
 
-#call .video-area {
+.call .video-area {
   position: relative;
   overflow: hidden;
   margin-bottom: -5px;
 }
 
-#call .remote-video {
+.call .remote-video {
   width: 100vw;
   min-width: 100vw;
   max-height: 80vh;
@@ -138,7 +138,7 @@ body {
 /* XXX once we get the local-video stapled to the remote-video,
    much of this stuff may be irrelevant.  Audit this as part
    of that landing. */
-#call .local-video {
+.call .local-video {
   position: absolute;
   bottom: 10px; /* 10px seems to give stablest stapling across most sizes */
   right: 5px;
@@ -261,11 +261,11 @@ body {
  * Small height window
  */
 @media screen and (max-height: 300px) {
-  #call {
+  .call {
     height: 60vh;
   }
 
-  #call .remote-video {
+  .call .remote-video {
     /**
      * XXX:
      *   - we can't keep both video aspect ratio and display 3 lines of chat
@@ -278,7 +278,7 @@ body {
     transform: scale(1.35);
   }
 
-  #call .local-video {
+  .call .local-video {
     bottom: 5px; /* the default of 10px looks odd when the window is small */
   }
 
@@ -292,21 +292,21 @@ body {
  * Large view
  */
 @media screen and (min-width: 720px) {
-  #call {
+  .call {
     background: #000;
     height: calc(60vh - 24px - 22px);
     text-align: center; /* cause entire video-area to be centered relative to
                          * to window */
   }
 
-  #call .video-area {
+  .call .video-area {
     display: inline-block; /* table-cell would insert unwanted extra padding */
     height: 60vh;
     margin-bottom: 0;
     vertical-align: middle;
   }
 
-  #call .local-video {
+  .call .local-video {
     position: static;
     background: #000;
     float: left;
@@ -318,7 +318,7 @@ body {
     border: none;
   }
 
-  #call .remote-video {
+  .call .remote-video {
     position: static;
     display: block;
     float: left;

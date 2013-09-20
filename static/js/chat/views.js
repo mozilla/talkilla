@@ -383,10 +383,11 @@
 
     template: _.template([
       '<div class="video-area">',
-      '  <video id="remote-video" class="remote-video"></video>',
-      '  <video id="local-video" class="local-video hide" muted></video>',
+      '  <video class="remote-video"></video>',
+      '  <video class="local-video hide" muted></video>',
       '</div>'
     ].join('')),
+
 
     initialize: function(options) {
       options = options || {};
@@ -394,6 +395,10 @@
         throw new Error("missing parameter: call");
 
       this.call = options.call;
+      this.setElement($("#call").get(0));
+      this.render();
+      this.$el.show();
+
       this.call.media.on('local-stream:ready', this._displayLocalVideo, this);
       this.call.media.on('remote-stream:ready', this._displayRemoteVideo, this);
       this.call.media.on('local-stream:terminated',
@@ -406,7 +411,7 @@
     },
 
     _displayLocalVideo: function(stream) {
-      var $localVideo = this.$('#local-video'),
+      var $localVideo = this.$('.local-video'),
           localVideo = $localVideo.get(0);
       if (!localVideo)
         return this;
@@ -420,14 +425,14 @@
     },
 
     _displayRemoteVideo: function(stream) {
-      var remoteVideo = this.$('#remote-video').get(0);
+      var remoteVideo = this.$('.remote-video').get(0);
       remoteVideo.mozSrcObject = stream;
       remoteVideo.play();
       return this;
     },
 
     _terminateLocalVideo: function() {
-      var localVideo = this.$('#local-video').get(0);
+      var localVideo = this.$('.local-video').get(0);
       if (!localVideo || !localVideo.mozSrcObject)
         return this;
 
@@ -435,7 +440,7 @@
     },
 
     _terminateRemoteVideo: function() {
-      var remoteVideo = this.$('#remote-video').get(0);
+      var remoteVideo = this.$('.remote-video').get(0);
       if (!remoteVideo || !remoteVideo.mozSrcObject)
         return this;
 

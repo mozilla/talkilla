@@ -60,7 +60,7 @@ var ChatApp = (function($, Backbone, _) {
 
     this.callView = new app.views.CallView({
       call: this.call
-    }).setElement("#call");
+    });
 
     this.callOfferView = new app.views.CallOfferView({
       call: this.call,

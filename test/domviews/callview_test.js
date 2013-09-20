@@ -85,12 +85,10 @@ describe("CallView", function() {
         callView = new app.views.CallView({call: call});
         $("#fixtures").append(callView.render().$el.html());
 
-        $localElement = callView.$el.find('#local-video');
+        $localElement = callView.$el.find('.local-video');
         localElement = $localElement.get(0);
-        localElement.play = sandbox.spy();
 
-        remoteElement = callView.$el.find('#remote-video').get(0);
-        remoteElement.play = sandbox.spy();
+        remoteElement = callView.$el.find('.remote-video').get(0);
       });
 
       describe("local-stream:ready", function() {
@@ -102,10 +100,14 @@ describe("CallView", function() {
           });
 
         it("should call play on the local-video element",
-          function() {
-            call.media.trigger("local-stream:ready", fakeLocalStream);
+          function(done) {
+            function onPlaying() {
+              expect(true).to.equal(true);
+              done();
+            }
+            localElement.addEventListener("playing", onPlaying);
 
-            sinon.assert.calledOnce(localElement.play);
+            call.media.trigger("local-stream:ready", fakeLocalStream);
           });
 
         it("should show the local-video element for video calls", function() {
@@ -155,10 +157,15 @@ describe("CallView", function() {
           });
 
         it("should play the remote videoStream",
-          function() {
-            call.media.trigger("remote-stream:ready", fakeRemoteStream);
+          function(done) {
 
-            sinon.assert.calledOnce(remoteElement.play);
+            function onPlaying() {
+              expect(true).to.equal(true);
+              done();
+            }
+            remoteElement.addEventListener("playing", onPlaying);
+
+            call.media.trigger("remote-stream:ready", fakeRemoteStream);
           });
       });
 
