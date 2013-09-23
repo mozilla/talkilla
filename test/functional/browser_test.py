@@ -37,6 +37,14 @@ def debug_on(*exceptions):
     return decorator
 
 
+# Utility function to aid debugging. Call this in a try/except/raise block
+# to get a url dumped which is a screenshot of the frame that the driver is
+# showing.
+# XXX Make the tests do this automatically on failure
+def output_base64_screenshot(driver):
+    print("data:image/png;base64," + driver.get_screenshot_as_base64())
+
+
 def kill_app(app):
     os.kill(app.pid, signal.SIGTERM)
 

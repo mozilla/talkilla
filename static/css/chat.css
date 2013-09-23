@@ -295,17 +295,18 @@ body {
   #call {
     background: #000;
     height: calc(60vh - 24px - 22px);
+    text-align: center; /* cause entire video-area to be centered relative to
+                         * to window */
   }
 
   #call .video-area {
-    display: table-cell;
+    display: inline-block; /* table-cell would insert unwanted extra padding */
     height: 60vh;
     margin-bottom: 0;
     vertical-align: middle;
   }
 
   #call .local-video {
-    display: block;
     position: static;
     background: #000;
     float: left;

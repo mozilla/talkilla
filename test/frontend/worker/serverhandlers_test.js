@@ -1,5 +1,5 @@
 /*global chai, sinon, browserPort:true, currentConversation:true,
-  Server, Conversation, currentUsers:true, ports, updateCurrentUsers,
+  Server, Conversation, currentUsers:true, ports,
   _setupServer, _currentUserData:true, UserData */
 
 /* Needed due to the use of non-camelcase in the websocket topics */
@@ -16,6 +16,8 @@ describe("serverHandlers", function() {
     _currentUserData = new UserData();
     server = new Server();
     _setupServer(server);
+    sandbox.stub(server, "send");
+    sandbox.stub(_currentUserData, "send");
   });
 
   afterEach(function() {
@@ -26,15 +28,12 @@ describe("serverHandlers", function() {
   describe("`connected` event", function() {
 
     it("should set the user data as connected", function() {
-      sandbox.stub(_currentUserData, "send");
-
       server.trigger("connected");
 
       expect(_currentUserData.connected).to.be.equal(true);
     });
 
     it("should broadcast a `talkilla.login-success` event", function() {
-      sandbox.stub(_currentUserData, "send");
       _currentUserData.userName = "harvey";
       sandbox.stub(ports, "broadcastEvent");
 
@@ -46,32 +45,49 @@ describe("serverHandlers", function() {
       );
     });
 
+    it("should request for the initial presence state", function() {
+      server.trigger("connected");
+
+      sinon.assert.calledOnce(server.send);
+      sinon.assert.calledWithExactly(server.send,
+                                     {"presence_request": null});
+    });
+
   });
 
   describe("`message:users` event", function() {
+    beforeEach(function() {
+      sandbox.stub(ports, "broadcastEvent");
+    });
+
+    afterEach(function() {
+      currentUsers = {};
+    });
 
     it("should update the current list of users", function() {
-      sandbox.stub(ports, "broadcastEvent");
-      sandbox.stub(window, "updateCurrentUsers");
+      currentUsers = {jb: {presence: "disconnected"}};
 
-      server.trigger("message:users", "fake");
+      server.trigger("message:users", [
+        {nick: "james"},
+        {nick: "harvey"}
+      ]);
 
-      sinon.assert.calledOnce(updateCurrentUsers);
-      sinon.assert.calledWith(updateCurrentUsers, "fake");
+      expect(currentUsers).to.deep.equal({
+        jb: {presence: "disconnected"},
+        james: {presence: "connected"},
+        harvey: {presence: "connected"}
+      });
     });
 
     it("should broadcast a `talkilla.users` event with the list of users",
       function() {
-        sandbox.stub(ports, "broadcastEvent");
-        sandbox.stub(window, "updateCurrentUsers", function(data) {
-          currentUsers = data;
-        });
-
-        server.trigger("message:users", "fake");
+        server.trigger("message:users", [{nick: "jb"}]);
 
         sinon.assert.calledOnce(ports.broadcastEvent);
         sinon.assert.calledWith(
-          ports.broadcastEvent, "talkilla.users", "fake");
+          ports.broadcastEvent, "talkilla.users", [
+            { nick: "jb", presence: "connected" }
+          ]);
       });
 
   });
@@ -104,10 +120,20 @@ describe("serverHandlers", function() {
   });
 
   describe("`message:userLeft` event", function() {
+    beforeEach(function () {
+      sandbox.stub(ports, "broadcastEvent");
+    });
+
+    it("should not broadcast anything if the user is not in the " +
+       "current users list", function() {
+
+      server.trigger("message:userLeft", "foo");
+
+      sinon.assert.notCalled(ports.broadcastEvent);
+    });
 
     it("should broadcast a `talkilla.users` event", function() {
-      currentUsers = [{nick: "foo", presence: "connected"}];
-      sandbox.stub(ports, "broadcastEvent");
+      currentUsers = {foo: {presence: "connected"}};
 
       server.trigger("message:userLeft", "foo");
 
@@ -118,8 +144,7 @@ describe("serverHandlers", function() {
     });
 
     it("should broadcast a `talkilla.user-left` event", function() {
-      currentUsers = [];
-      sandbox.stub(ports, "broadcastEvent");
+      currentUsers = {foo: {presence: "connected"}};
 
       server.trigger("message:userLeft", "foo");
 
@@ -219,16 +244,13 @@ describe("serverHandlers", function() {
 
   describe("`disconnected` event", function() {
 
-    it("should set the user data as connected", function() {
-      sandbox.stub(_currentUserData, "send");
-
+    it("should set the user data as disconnected", function() {
       server.trigger("disconnected", {code: 1006});
 
       expect(_currentUserData.connected).to.be.equal(false);
     });
 
     it("should broadcast a `talkilla.presence-unavailable` event", function() {
-      sandbox.stub(_currentUserData, "send");
       _currentUserData.userName = "harvey";
       sandbox.stub(ports, "broadcastEvent");
 
@@ -241,7 +263,6 @@ describe("serverHandlers", function() {
     });
 
     it("should broadcast a `talkilla.logout-success` event", function() {
-      sandbox.stub(_currentUserData, "send");
       _currentUserData.userName = "harvey";
       sandbox.stub(ports, "broadcastEvent");
 
