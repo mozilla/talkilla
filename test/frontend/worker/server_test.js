@@ -156,13 +156,13 @@ describe("Server", function() {
       sinon.assert.calledWith(server.http.post, "/stream", {nick: "foo"});
     });
 
-    it("should trigger a stream:error event if the request failed",
+    it("should trigger a disconnected event if the request failed",
       function(done) {
         var server = new Server();
         sandbox.stub(server.http, "post", function(method, data, callback) {
           callback("error", "some error");
         });
-        server.on("stream:error", function(error) {
+        server.on("disconnected", function(error) {
           expect(error).to.equal("some error");
           done();
         });
@@ -287,13 +287,14 @@ describe("Server", function() {
   describe("#presenceRequest", function() {
 
     it("should send a presence request", function() {
-      var callback = function() {};
-      sandbox.stub(server.http, "get");
+      sandbox.stub(server.http, "post");
 
-      server.presenceRequest(callback);
+      server.presenceRequest("foo");
 
-      sinon.assert.calledOnce(server.http.get);
-      sinon.assert.calledWith(server.http.get, "/presencerequest", null);
+      sinon.assert.calledOnce(server.http.post);
+      sinon.assert.calledWith(server.http.post, "/presencerequest", {
+        nick: "foo"
+      });
     });
 
   });

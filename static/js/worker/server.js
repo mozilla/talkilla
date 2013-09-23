@@ -94,10 +94,8 @@ var Server = (function() {
     this.http.post("/callhangup", {data: data, nick: nick}, callback);
   };
 
-  Server.prototype.presenceRequest = function(callback) {
-    this.http.get("/presencerequest", null, function(err, response) {
-      callback(err, JSON.parse(response));
-    });
+  Server.prototype.presenceRequest = function(nick) {
+    this.http.post("/presencerequest", {nick: nick});
   };
 
   return Server;

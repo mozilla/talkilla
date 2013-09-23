@@ -83,20 +83,21 @@ api = {
     if (!user)
       return res.send(400, JSON.stringify({}));
 
-    // Send the initial present users list
     if (!user.present()) {
-      var presentUsers = users.present();
-      var userList = users.toJSON(presentUsers);
-      user.send({users: presentUsers});
-      presentUsers.forEach(function(user) {
+      users.present().forEach(function(user) {
         user.send({userJoined: nick});
       });
+      user.touch();
+      // XXX: Here we force the first long-polling request to return
+      // without a timeout. It's because we need to be connected to
+      // request the presence. We should fix that on the frontend.
+      res.send(200, JSON.stringify([]));
       logger.info({type: "connection"});
+    } else {
+      user.touch().waitForEvents(function(events) {
+        res.send(200, JSON.stringify(events));
+      });
     }
-
-    user.touch().waitForEvents(function(events) {
-      res.send(200, JSON.stringify(events));
-    });
   },
 
   callOffer: function(req, res) {
@@ -156,7 +157,7 @@ api = {
   presenceRequest: function(req, res) {
     var user = users.get(req.body.nick);
     var presentUsers = users.toJSON(users.present());
-    res.send(200, JSON.stringify({users: presentUsers}));
+    user.send({users: presentUsers});
   }
 };
 
