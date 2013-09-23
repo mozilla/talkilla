@@ -48,19 +48,19 @@ var SidebarApp = (function($, Backbone, _) {
     });
 
     // user events
-    this.user.on("signout", this._onUserSignout.bind(this));
+    this.user.on("signout", this._onUserSignout, this);
 
     // port events
-    this.port.on('talkilla.users', this._onUserListReceived.bind(this));
-    this.port.on("talkilla.login-success", this._onLoginSuccess.bind(this));
-    this.port.on("talkilla.login-failure", this._onLoginFailure.bind(this));
-    this.port.on("talkilla.logout-success", this._onLogoutSuccess.bind(this));
-    this.port.on("talkilla.error", this._onError.bind(this));
-    this.port.on("talkilla.websocket-error", this._onWebSocketError.bind(this));
+    this.port.on('talkilla.users', this._onUserListReceived, this);
+    this.port.on("talkilla.login-success", this._onLoginSuccess, this);
+    this.port.on("talkilla.login-failure", this._onLoginFailure, this);
+    this.port.on("talkilla.logout-success", this._onLogoutSuccess, this);
+    this.port.on("talkilla.error", this._onError, this);
+    this.port.on("talkilla.websocket-error", this._onWebSocketError, this);
     this.port.on("talkilla.presence-unavailable",
-                 this._onPresenceUnavailable.bind(this));
+                 this._onPresenceUnavailable, this);
     this.port.on("talkilla.chat-window-ready",
-                 this._onChatWindowReady.bind(this));
+                 this._onChatWindowReady, this);
 
     this.port.postEvent("talkilla.sidebar-ready");
 

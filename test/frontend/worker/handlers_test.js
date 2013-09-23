@@ -32,6 +32,7 @@ describe('handlers', function() {
 
     afterEach(function() {
       currentConversation = undefined;
+      browserPort = undefined;
     });
 
     it("should remove a closed port on receiving social.port-closing",
@@ -76,6 +77,19 @@ describe('handlers', function() {
         sinon.assert.calledOnce(server.autoconnect);
         sinon.assert.calledWithExactly(server.autoconnect, "Boriss");
       });
+
+    it("should NOT try to connect if there is no nick provided",
+      function () {
+        sandbox.stub(server, "autoconnect");
+
+        handlers['social.cookies-get-response']({
+          topic: "social.cookies-get-response",
+          data: []
+        });
+
+        sinon.assert.notCalled(server.autoconnect);
+      });
+
   });
 
   describe("talkilla.login", function() {
@@ -102,14 +116,6 @@ describe('handlers', function() {
       xhr.restore();
       socketStub.restore();
     });
-
-    it("should call postEvent with a failure message if I pass in bad data",
-      function() {
-        handlers.postEvent = sandbox.spy();
-        handlers['talkilla.login']({topic: "talkilla.login", data: null});
-        sinon.assert.calledOnce(handlers.postEvent);
-        sinon.assert.calledWith(handlers.postEvent, "talkilla.login-failure");
-      });
 
     it("should call postEvent with a pending message if I pass in valid data",
       function() {
@@ -163,6 +169,34 @@ describe('handlers', function() {
         sinon.assert.notCalled(handlers.postEvent);
         sinon.assert.notCalled(_signinCallback);
       });
+
+    describe("Failed login", function() {
+      it("should call postEvent with a failure message if I pass in bad data",
+        function() {
+          handlers.postEvent = sandbox.spy();
+          handlers['talkilla.login']({topic: "talkilla.login", data: null});
+          sinon.assert.calledOnce(handlers.postEvent);
+          sinon.assert.calledWith(handlers.postEvent, "talkilla.login-failure");
+        });
+
+      it("should post a fail message if the server rejected login",
+        function() {
+          handlers.postEvent = sinon.spy();
+          handlers['talkilla.login']({
+            topic: "talkilla.login",
+            data: {assertion: "fake assertion"}
+          });
+          expect(requests.length).to.equal(1);
+
+          requests[0].respond(401, {'Content-Type': 'text/plain'},
+                              JSON.stringify({error: "some error"}));
+
+          // This gets called twice - once for login-pending, tested elsewhere,
+          // and once for the actual login-failure.
+          sinon.assert.calledTwice(handlers.postEvent);
+          sinon.assert.calledWith(handlers.postEvent, "talkilla.login-failure");
+        });
+    });
 
     describe("Accepted Login", function() {
       var port;
@@ -229,7 +263,7 @@ describe('handlers', function() {
 
     it("should request for the initial presence state" +
        "if there is no current users", function() {
-        currentUsers = undefined;
+        currentUsers = {};
         sandbox.stub(server, "presenceRequest");
         handlers['talkilla.presence-request']({
           topic: "talkilla.presence-request",
@@ -405,28 +439,68 @@ describe('handlers', function() {
 
     beforeEach(function() {
       _currentUserData = new UserData();
+      sandbox.stub(_currentUserData, "send");
     });
 
     afterEach(function() {
       _currentUserData = undefined;
     });
 
-    it("should NOT try to connect if there is no nick provided",
-      function () {
-        sandbox.stub(server, "autoconnect");
-
+    it("should notify new sidebars of the logged in user",
+      function() {
+        _currentUserData.userName = "jb";
+        handlers.postEvent = sinon.spy();
         handlers['talkilla.sidebar-ready']({
           topic: "talkilla.sidebar-ready",
           data: {}
         });
 
-        sinon.assert.notCalled(server.autoconnect);
+        sinon.assert.calledOnce(handlers.postEvent);
+        sinon.assert.calledWith(handlers.postEvent, "talkilla.login-success");
       });
+
+    it("should notify new sidebars only if there's a logged in user",
+      function() {
+        handlers.postEvent = sinon.spy();
+        handlers['talkilla.sidebar-ready']({
+          topic: "talkilla.sidebar-ready",
+          data: {}
+        });
+
+        sinon.assert.notCalled(handlers.postEvent);
+      });
+
+  });
+
+  describe("talkilla.presence-request", function () {
+    beforeEach(function() {
+      _currentUserData = new UserData();
+      sandbox.stub(_currentUserData, "send");
+    });
+
+    afterEach(function() {
+      _currentUserData = null;
+    });
+
+    it("should notify new sidebars of current users",
+      function() {
+        _currentUserData.userName = "jb";
+        _presenceSocket = {send: sinon.spy()};
+        currentUsers = {};
+        handlers.postEvent = sinon.spy();
+        handlers['talkilla.presence-request']({
+          topic: "talkilla.presence-request",
+          data: {}
+        });
+
+        sinon.assert.calledWith(handlers.postEvent, "talkilla.users");
+      });
+
   });
 
   describe("talkilla.call-offer", function() {
 
-    it("should send a websocket message when receiving talkilla.call-offer",
+    it("should post an offer when receiving a talkilla.call-offer event",
       function() {
         _currentUserData = {userName: "tom"};
         sandbox.stub(server, "callOffer");

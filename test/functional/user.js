@@ -1,3 +1,4 @@
+user_pref("browser.dom.window.dump.enabled", true);
 user_pref("media.peerconnection.default_iceservers", "[]");
 user_pref("media.peerconnection.use_document_iceservers", false);
 user_pref("social.activeProviders", "{\"http://localhost:3000\":1}");

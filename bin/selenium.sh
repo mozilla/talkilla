@@ -1,8 +1,8 @@
 #!/bin/bash
 
-FIREFOX_BZIP2_FILENAME="firefox-26.0a1.en-US.linux-x86_64.tar.bz2"
+FIREFOX_BZIP2_FILENAME="firefox-27.0a1.en-US.linux-x86_64.tar.bz2"
 FIREFOX_BZIP2_URL="http://ftp.mozilla.org/pub/mozilla.org/firefox/nightly/latest-mozilla-central/$FIREFOX_BZIP2_FILENAME"
-SELENIUM_JAR_FILENAME="selenium-server-standalone-2.33.0b.jar"
+SELENIUM_JAR_FILENAME="selenium-server-standalone-2.33.0c.jar"
 SELENIUM_JAR_URL="http://ftp.mozilla.org/pub/mozilla.org/webtools/selenium/socialapi/$SELENIUM_JAR_FILENAME"
 SELENIUM_PID_FILE="/tmp/selenium-server-pid"
 PWD=`pwd`
@@ -38,7 +38,11 @@ start() {
         exit 1
     fi
     # options are listed at http://code.google.com/p/selenium/wiki/FirefoxDriver
-    java -jar $SELENIUM_JAR_FILENAME -Dwebdriver.firefox.bin=$PWD/bin/firefox -Dwebdriver.log.file=$PWD/console.log -Dwebdriver.firefox.logfile=$PWD/firefox.log &>/dev/null &
+    if [ $FULL_SELENIUM_DEBUG ]; then
+      java -jar $SELENIUM_JAR_FILENAME -Dwebdriver.firefox.bin=$PWD/bin/firefox -Dwebdriver.log.file=$PWD/console.log -Dwebdriver.firefox.logfile=/dev/stdout &
+    else
+      java -jar $SELENIUM_JAR_FILENAME -Dwebdriver.firefox.bin=$PWD/bin/firefox -Dwebdriver.log.file=$PWD/console.log -Dwebdriver.firefox.logfile=$PWD/firefox.log &>/dev/null &
+    fi
     PID=$!
     echo $PID > $SELENIUM_PID_FILE
     CODE="000"
