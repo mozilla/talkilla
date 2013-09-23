@@ -298,6 +298,24 @@ describe("presence", function() {
 
         sinon.assert.calledOnce(logger.warn);
       });
+    });
+
+    describe("#presenceRequest", function() {
+
+      it("should send the list of present users", function() {
+        var presentUsers, foo, bar;
+        var req = {body: {nick: "foo"}};
+        var res = {send: sinon.spy()};
+        users.add("foo").add("bar")
+        bar = users.get("bar");
+        foo = users.get("foo");
+        presentUsers = JSON.stringify({users: users.toJSON(users.present())});
+
+        api.presenceRequest(req, res);
+
+        sinon.assert.calledOnce(res.send);
+        sinon.assert.calledWith(res.send, 200, presentUsers);
+      });
 
     });
   });

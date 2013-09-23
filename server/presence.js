@@ -151,6 +151,12 @@ api = {
     data.peer = nick;
     peer.send({'call_hangup': data});
     logger.info({type: "call:hangup"});
+  },
+
+  presenceRequest: function(req, res) {
+    var user = users.get(req.body.nick);
+    var presentUsers = users.toJSON(users.present());
+    res.send(200, JSON.stringify({users: presentUsers}));
   }
 };
 
@@ -160,6 +166,7 @@ app.post('/stream', api.stream);
 app.post('/calloffer', api.callOffer);
 app.post('/callaccepted', api.callAccepted);
 app.post('/callhangup', api.callHangup);
+app.post('/presenceRequest', api.presenceRequest);
 
 module.exports.api = api;
 module.exports._users = users;
