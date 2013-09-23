@@ -290,9 +290,9 @@
       this.call = options.call;
       this.audioLibrary = options.audioLibrary;
 
-      this.call.on('send-offer', this._onSendOffer.bind(this));
+      this.call.on('send-offer', this._onSendOffer, this);
 
-      this.call.on("change:state", this._handleStateChanges.bind(this));
+      this.call.on("change:state", this._handleStateChanges, this);
     },
 
     /**
