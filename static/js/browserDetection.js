@@ -12,6 +12,10 @@ var browserDetection = (function ($) {
       $('#browser-firefox').show();
       $('#browser-unknown').hide();
     }
+    else {
+      $('#browser-firefox').hide();
+      $('#browser-unknown').show();
+    }
 
     $('.title').text($('.title').text() + this._getHostSpecificText());
   };

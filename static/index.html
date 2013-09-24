@@ -10,11 +10,39 @@
 <body>
   <div class="span9 main">
     <h1 class="title">Welcome to Talkilla!</h1>
+    <p>To find out more about Talkilla, please read the
+      <a href="https://wiki.mozilla.org/Talkilla">wiki page</a>. Talkilla
+      is under active development, please be aware that some features are
+      currently incomplete.
+    </p>
+
     <div id="browser-firefox" hidden>
-      To get started on Talkilla, click the button to add it to Firefox:
-      <button onclick="browserDetection.activateSocial(this)">Activate Talkilla</button>
+      <p>Currently we are looking for feedback about specific issues:
+        <ul>
+          <li>Login / Browser set up issues</li>
+          <li>Issues starting conversations</li>
+          <li>Call Stability issues</li>
+        </ul>
+      </p>
+
+      <p>We are happy to receive feedback via
+        <a href="https://wiki.mozilla.org/Talkilla#Communication_Channels">irc</a>,
+        <a href="https://wiki.mozilla.org/Talkilla#Communication_Channels">email</a>,
+        <a href="https://bugzilla.mozilla.org/enter_bug.cgi?format=guided#h=dupes|Talkilla|">bugzilla</a>,
+        direct conversation. You may also want to look at our
+        <a href="https://wiki.mozilla.org/Talkilla#Development">Trello boards</a>
+        for the current and planned work.
+      </p>
+
+      <p>To get started on Talkilla, click the button to add it to Firefox:
+        <button onclick="browserDetection.activateSocial(this)">Activate Talkilla</button>
+      </p>
+
+      <p>If you've already clicked it, you don't need to click it again, just look for
+        the chat icon on your toolbar if the sidebar isn't displayed.
+      </p>
     </div>
-    <div id="browser-unknown">
+    <div id="browser-unknown" hidden>
       <p>We're sorry, but your browser does not have the necessary support for
       Talkilla. Talkilla currently only supports Firefox 24 or higher - we plan
       to support all WebRTC browsers in the future.</p>
