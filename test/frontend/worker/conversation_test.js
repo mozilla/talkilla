@@ -1,23 +1,26 @@
 /*global chai, sinon, _currentUserData:true, currentConversation:true,
-  UserData, browserPort:true, storeContact:true, Conversation,
-  currentUsers: true */
+  UserData, browserPort:true, contactsDb, Conversation,
+  currentUsers:true */
 /* jshint expr:true */
 
 var expect = chai.expect;
 
 describe("Conversation", function() {
-  var sandbox;
+  var sandbox, contactsDbName, i = 0;
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
     browserPort = {
       postEvent: sandbox.spy()
     };
+    contactsDbName = "TalkillaContactsTest" + i++;
+    contactsDb.options.dbname = contactsDbName;
   });
 
   afterEach(function() {
     browserPort = undefined;
     currentConversation = undefined;
+    indexedDB.deleteDatabase(contactsDbName);
     sandbox.restore();
   });
 
@@ -46,7 +49,7 @@ describe("Conversation", function() {
 
     beforeEach(function() {
       // Avoid touching the contacts db which we haven't initialized.
-      sandbox.stub(window, "storeContact");
+      sandbox.stub(contactsDb, "add");
       _currentUserData = new UserData({_userName: "romain"});
       currentUsers = {
         florian: { presence: "connected" }
@@ -115,7 +118,7 @@ describe("Conversation", function() {
 
         currentConversation.windowOpened(port);
 
-        sinon.assert.calledOnce(storeContact);
+        sinon.assert.calledOnce(contactsDb.add);
       });
 
     it("should send peer presence information", function() {
@@ -135,7 +138,7 @@ describe("Conversation", function() {
 
     beforeEach(function() {
       // Avoid touching the contacts db which we haven't initialized.
-      sandbox.stub(window, "storeContact");
+      sandbox.stub(contactsDb, "add");
       _currentUserData = new UserData({_userName: "romain"});
       port = {
         postEvent: sandbox.spy()
