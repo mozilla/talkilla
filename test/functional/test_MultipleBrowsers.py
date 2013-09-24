@@ -76,6 +76,8 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
         self.assertOngoingCall(self.bob)
         self.assertOngoingCall(self.larry)
 
+        self.bob.hangupCall()
+
     def test_video_call_timeout(self):
         self.bob.signin()
         self.larry.signin()
