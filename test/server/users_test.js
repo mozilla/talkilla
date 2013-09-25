@@ -42,17 +42,13 @@ describe("User", function() {
       expect(user.events).to.deep.equal([data]);
     });
 
-    it("should stop the timeout if one is available and trigger the callback",
+    it("should stop to wait for events if one is available",
       function(done) {
         var data = {message: "some message"};
-        var callback = function(events) {
+        user.waitForEvents(function(events) {
           expect(events).to.deep.equal([data]);
           done();
-        };
-        var timeout = setTimeout(function() {
-          throw new Error("timeout triggered");
-        }, 1000);
-        user.pending = {timeout: timeout, callback: callback};
+        });
 
         user.send(data);
       });

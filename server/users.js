@@ -1,6 +1,21 @@
 var config = require('./config').config;
 var logger = require('./logger');
 
+function Waiter(callback) {
+  this.timeout = undefined;
+  this.callback = callback;
+}
+
+Waiter.prototype.after = function(timeout, data) {
+  this.timeout = setTimeout(function() {
+    this.callback(data);
+  }.bind(this), timeout);
+};
+
+Waiter.prototype.resolve = function(data) {
+  clearTimeout(this.timeout);
+  this.callback(data);
+};
 
 /**
  * User class constructor
@@ -25,7 +40,7 @@ function User(nick) {
   // long-polling timeout and callback.
   // Beware, `this.pending.timeout` and `this.timeout` have different
   // purposes.
-  this.pending = {timeout: null, callback: null};
+  this.pending = undefined;
 }
 
 /**
@@ -35,24 +50,18 @@ function User(nick) {
  * @return {User} chainable
  */
 User.prototype.send = function(data) {
-  if (this.pending.timeout) {
-    // If there is an existing pending long-polling connection, we
-    // call the associated callback with the provided data and cancel
-    // the default behaviour.
-    clearTimeout(this.pending.timeout);
-    this.pending.callback([data]);
-    this.pending = {timeout: null, callback: null};
-  } else if (this.present()) {
-    // if there is no existing pending long-polling connection but the
-    // user is present, we queue the data.
+  if (this.pending)
+    // If there is an existing timeout, we resolve it with the
+    // provided data.
+    this.pending.resolve([data]);
+  else if (this.present())
+    // Otherwise, if the user is present, we queue the data.
     this.events.push(data);
-  } else {
+  else
     // if we try to send data to a non present user we do not fail but
     // we log a warning.
     logger.warn("Could not forward event " +
                 JSON.stringify(data) + " to non present peer");
-  }
-
   return this;
 };
 
@@ -102,18 +111,16 @@ User.prototype.toJSON = function() {
  *
  */
 User.prototype.waitForEvents = function(callback) {
-  if (this.events.length > 0) {
-    // If there is available events in the queue, trigger the callback
-    // immediately.
-    callback(this.events);
-    this.events = [];
-  } else {
-    // Otherwise, setup a timeout with a default behaviour.
-    var timeout = setTimeout(function() {
-      callback([]);
-    }, config.LONG_POLLING_TIMEOUT);
+  // Setup a timeout with an empty list of events as the default
+  // behaviour.
+  this.pending = new Waiter(callback);
+  this.pending.after(config.LONG_POLLING_TIMEOUT, []);
 
-    this.pending = {timeout: timeout, callback: callback};
+  // If there is available events in the queue, resolve the timeout
+  // immediately.
+  if (this.events.length) {
+    this.pending.resolve(this.events);
+    this.events = [];
   }
 };
 
@@ -225,5 +232,6 @@ Users.prototype.toJSON = function(users) {
   });
 };
 
+module.exports.Waiter = Waiter;
 module.exports.Users = Users;
 module.exports.User = User;
