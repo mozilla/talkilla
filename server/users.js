@@ -10,29 +10,45 @@ var logger = require('./logger');
 function User(nick) {
   this.nick = nick;
 
+  // `this.timeout` represents the current timeout until the user is
+  // considered as disconnected.
   this.timeout = undefined;
+  // `this.ondisconnect` is the callback called when the user is
+  // disconnected (i.e. when the timeout is triggered).
   this.ondisconnect = undefined;
 
+  // `this.events` is a Queue of events. It is used in case the user
+  // is present (i.e. the timeout was not yet triggered) but he
+  // receives events between two long-polling connections.
   this.events = [];
-  this.pending = {};
+  // `this.pending` is an object carrying the current pending
+  // long-polling timeout and callback.
+  // Beware, `this.pending.timeout` and `this.timeout` have different
+  // purposes.
+  this.pending = {timeout: null, callback: null};
 }
 
 /**
- * Send data throught the attached WebSocket
+ * Send data to the user.
  *
- * @param {Object} data An object to send throught the WebSocket
- * @param {Function} errback An optional error callback
- *
+ * @param {Object} data An abitrary JSON serializable object
  * @return {User} chainable
  */
 User.prototype.send = function(data) {
   if (this.pending.timeout) {
+    // If there is an existing pending long-polling connection, we
+    // call the associated callback with the provided data and cancel
+    // the default behaviour.
     clearTimeout(this.pending.timeout);
     this.pending.callback([data]);
-    this.pending = {};
+    this.pending = {timeout: null, callback: null};
   } else if (this.present()) {
+    // if there is no existing pending long-polling connection but the
+    // user is present, we queue the data.
     this.events.push(data);
   } else {
+    // if we try to send data to a non present user we do not fail but
+    // we log a warning.
     logger.warn("Could not forward event " +
                 JSON.stringify(data) + " to non present peer");
   }
@@ -46,6 +62,11 @@ User.prototype.connect = function() {
   }.bind(this), config.LONG_POLLING_TIMEOUT * 2);
 };
 
+/**
+ * Extend the timeout until the user is considered as disconnected.
+ *
+ * @return {User} chainable
+ */
 User.prototype.touch = function() {
   clearTimeout(this.timeout);
   this.connect();
@@ -67,11 +88,27 @@ User.prototype.toJSON = function() {
   return {nick: this.nick};
 };
 
+/**
+ * Wait for events to be sent to the user.
+ *
+ * Trigger the provided callback as soon as events are sent to the
+ * user.
+ *
+ * If no event has been provided during a certain time
+ * (i.e. config.LONG_POLLING_TIMEOUT) we return a empty array of
+ * events.
+ *
+ * @param {Function} callback The callback to trigger in case of events.
+ *
+ */
 User.prototype.waitForEvents = function(callback) {
   if (this.events.length > 0) {
+    // If there is available events in the queue, trigger the callback
+    // immediately.
     callback(this.events);
     this.events = [];
   } else {
+    // Otherwise, setup a timeout with a default behaviour.
     var timeout = setTimeout(function() {
       callback([]);
     }, config.LONG_POLLING_TIMEOUT);
@@ -80,6 +117,9 @@ User.prototype.waitForEvents = function(callback) {
   }
 };
 
+/**
+ * A user is present if he has not been disconnected yet.
+ */
 User.prototype.present = function() {
   return !!this.timeout;
 };

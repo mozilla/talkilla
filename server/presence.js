@@ -77,9 +77,24 @@ api = {
     res.send(200, JSON.stringify(true));
   },
 
+  /*
+   * Long Polling API
+   *
+   * This API provides a stream of event via a long polling mechanism.
+   * The connection hangs for n seconds as long as there is no events.
+   * If in the meantime there is incoming events, then the API returns
+   * immediately with events as a response.
+   *
+   * Events received between reconnections are not lost.
+   */
   stream: function(req, res) {
     var nick = req.body.nick;
     var user = users.get(nick);
+    // XXX: Here we verify if the user is signed in. Of course the
+    // nickname is not a sufficient proof of authentication nor
+    // authorization. We should fix that in the signin API by
+    // generating a secret token and verify it. Probably as a session
+    // property.
     if (!user)
       return res.send(400, JSON.stringify({}));
 
