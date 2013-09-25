@@ -202,7 +202,7 @@ Users.prototype.forEach = function(callback) {
 Users.prototype.present = function() {
   return Object.keys(this.users)
     .filter(function(nick) {
-      return !!this.users[nick].present();
+      return this.users[nick].present();
     }, this)
     .map(function(nick) {
       return this.users[nick];
