@@ -183,20 +183,18 @@ describe('handlers', function() {
       it("should post a fail message if the server rejected login",
         function() {
           handlers.postEvent = sinon.spy();
+          sandbox.stub(spa, "signin", function(assertion, callback) {
+            handlers.postEvent.reset();
+
+            callback("error", "{}");
+            sinon.assert.calledOnce(handlers.postEvent);
+            sinon.assert.calledWith(handlers.postEvent, "talkilla.login-failure");
+          });
+
           handlers['talkilla.login']({
             topic: "talkilla.login",
             data: {assertion: "fake assertion"}
           });
-          expect(requests.length).to.equal(1);
-
-          requests[0].respond(401, {'Content-Type': 'text/plain'},
-                              JSON.stringify({error: "some error"}));
-
-          // This gets called twice - once for login-pending, tested elsewhere,
-          // and once for the actual login-failure.
-          sinon.assert.calledTwice(handlers.postEvent);
-          sinon.assert.calledWith(handlers.postEvent, "talkilla.login-failure");
-        });
     });
 
     describe("Accepted Login", function() {
