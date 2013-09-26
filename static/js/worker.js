@@ -309,12 +309,10 @@ function _setupServer(server) {
   server.on("connected", function() {
     _autologinPending = false;
     _currentUserData.connected = true;
+    // XXX: we should differentiate login and presence
     ports.broadcastEvent('talkilla.login-success', {
       username: _currentUserData.userName
     });
-
-    // We're logged in so send the presence request now
-    server.send({'presence_request': null});
   });
 
   server.on("message", function(label, data) {
@@ -511,7 +509,9 @@ var handlers = {
    * Called when the sidebar request the initial presence state.
    */
   'talkilla.presence-request': function(event) {
-    this.postEvent('talkilla.users', getCurrentUsersArray());
+    var users = getCurrentUsersArray();
+    server.presenceRequest(_currentUserData.userName);
+    this.postEvent('talkilla.users', users);
   },
 
   /**
@@ -522,7 +522,7 @@ var handlers = {
    * - offer:    an RTCSessionDescription containing the sdp data for the call.
    */
   'talkilla.call-offer': function(event) {
-    server.send({'call_offer': event.data});
+    server.callOffer(event.data, _currentUserData.userName);
   },
 
   /**
@@ -533,7 +533,7 @@ var handlers = {
    * - offer:    an RTCSessionDescription containing the sdp data for the call.
    */
   'talkilla.call-answer': function(event) {
-    server.send({'call_accepted': event.data});
+    server.callAccepted(event.data, _currentUserData.userName);
   },
 
   /**
@@ -542,7 +542,7 @@ var handlers = {
    * - peer: the person you are talking to.
    */
   'talkilla.call-hangup': function (event) {
-    server.send({'call_hangup': event.data});
+    server.callHangup(event.data, _currentUserData.userName);
   }
 };
 
