@@ -510,8 +510,7 @@ var handlers = {
    */
   'talkilla.presence-request': function(event) {
     var users = getCurrentUsersArray();
-    if (users.length === 0)
-      server.presenceRequest(_currentUserData.userName);
+    server.presenceRequest(_currentUserData.userName);
     this.postEvent('talkilla.users', users);
   },
 
