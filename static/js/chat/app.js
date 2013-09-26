@@ -122,7 +122,7 @@ var ChatApp = (function($, Backbone, _) {
     this.call.on('transition:accept', this._onCallAccepted, this);
 
     // Internal events
-    window.addEventListener("unload", this._onWindowClose, this);
+    window.addEventListener("unload", this._onWindowClose.bind(this));
 
     this.port.postEvent('talkilla.chat-window-ready', {});
 
