@@ -175,6 +175,28 @@ describe("presence", function() {
 
     describe("#stream", function() {
 
+      it("should send to all the present users an new one joined", function() {
+        var foo = users.add("foo").get("foo");
+        var bar = users.add("bar").get("bar");
+        var xoo = users.add("xoo").get("xoo");
+        var oof = users.add("oof").get("oof");
+        var req = {body: {nick: "foo"}};
+        var res = {send: function() {}};
+        sandbox.stub(bar, "present").returns(true);
+        sandbox.stub(xoo, "present").returns(true);
+        sandbox.stub(bar, "send").returns(true);
+        sandbox.stub(xoo, "send").returns(true);
+        sandbox.stub(oof, "send").returns(true);
+
+        api.stream(req, res);
+
+        sinon.assert.calledOnce(bar.send);
+        sinon.assert.calledWith(bar.send, {userJoined: "foo"});
+        sinon.assert.calledOnce(xoo.send);
+        sinon.assert.calledWith(xoo.send, {userJoined: "foo"});
+        sinon.assert.notCalled(oof.send);
+      });
+
       it("should send an empty list of events", function(done) {
         var user = users.add("foo").get("foo");
         var req = {body: {nick: "foo"}};
