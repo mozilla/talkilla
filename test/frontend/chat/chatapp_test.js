@@ -152,17 +152,6 @@ describe("ChatApp", function() {
         "talkilla.chat-window-ready", {});
     });
 
-  it("should attach _onWindowClose to unload on window", function() {
-    sandbox.stub(ChatApp.prototype, "_onWindowClose");
-    chatApp = new ChatApp();
-    var unloadEvent = document.createEvent("Event");
-    unloadEvent.initEvent("unload", false, false);
-
-    window.dispatchEvent(unloadEvent);
-
-    sinon.assert.calledOnce(chatApp._onWindowClose);
-  });
-
   it("should initialize the callEstablishView property", function() {
     "use strict";
     sandbox.stub(app.views, "CallEstablishView");
@@ -362,18 +351,6 @@ describe("ChatApp", function() {
       });
     });
 
-    describe("#_onWindowClose", function() {
-
-      it("should hangup the call if necessary", function() {
-        sandbox.stub(chatApp.call, "hangup");
-
-        chatApp._onWindowClose();
-
-        sinon.assert.called(chatApp.call.hangup);
-        sinon.assert.calledWith(chatApp.call.hangup);
-      });
-    });
-
     describe("#_onSendOffer", function() {
       var offer;
 
@@ -437,6 +414,22 @@ describe("ChatApp", function() {
         chatApp._onUserLeft("niko");
 
         expect(chatApp.peer.get("presence")).eql("disconnected");
+      });
+    });
+
+    describe("Events", function() {
+      describe("unload", function() {
+        it("should hangup the call", function() {
+          sandbox.stub(chatApp.call, "hangup");
+
+          var unloadEvent = document.createEvent("Event");
+          unloadEvent.initEvent("unload", false, false);
+
+          window.dispatchEvent(unloadEvent);
+
+          sinon.assert.called(chatApp.call.hangup);
+          sinon.assert.calledWith(chatApp.call.hangup);
+        });
       });
     });
 
