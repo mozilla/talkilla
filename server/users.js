@@ -84,6 +84,7 @@ User.prototype.touch = function() {
 
 User.prototype.disconnect = function() {
   clearTimeout(this.timeout);
+  this.timeout = undefined;
   if (this.ondisconnect)
     this.ondisconnect();
 };

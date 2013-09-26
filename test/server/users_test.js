@@ -138,6 +138,9 @@ describe("User", function() {
   });
 
   describe("#disconnect", function() {
+    beforeEach(function() {
+      user.connect();
+    });
 
     it("should trigger the ondisconnect callback", function() {
       user.disconnect();
