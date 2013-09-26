@@ -31,29 +31,41 @@ class FrontEndSuite(unittest.TestCase):
         cls.drvr.quit()
         os.kill(cls.node_app.pid, signal.SIGTERM)
 
-    def check_page_for_zero_failures(self, url):
+    def check_page(self, url):
         self.drvr.get(url)
         self.drvr.find_element_by_id('complete')
         failNode = self.drvr.find_element_by_css_selector('.failures > em')
-        assert failNode.text == "0"
+        if failNode.text == "0":
+            return
+        raise AssertionError(self.get_failure_details())
+
+    def get_failure_details(self):
+        fail_nodes = self.drvr.find_elements_by_css_selector('.test.fail')
+        details = ["%d failure(s) encountered:" % len(fail_nodes)]
+        for node in fail_nodes:
+            details.append(
+                node.find_element_by_tag_name('h2').text.split("\n")[0])
+            details.append(
+                node.find_element_by_css_selector('.error').text)
+        return "\n".join(details)
 
     def test_index_html(self):
-        self.check_page_for_zero_failures(SERVER_PREFIX + "index.html")
+        self.check_page(SERVER_PREFIX + "index.html")
 
     def test_chat_index_html(self):
-        self.check_page_for_zero_failures(SERVER_PREFIX + "chat/index.html")
+        self.check_page(SERVER_PREFIX + "chat/index.html")
 
     def test_port_html(self):
-        self.check_page_for_zero_failures(SERVER_PREFIX + "port/index.html")
+        self.check_page(SERVER_PREFIX + "port/index.html")
 
     def test_sidebar_html(self):
-        self.check_page_for_zero_failures(SERVER_PREFIX + "sidebar/index.html")
+        self.check_page(SERVER_PREFIX + "sidebar/index.html")
 
     def test_webrtc_index_html(self):
-        self.check_page_for_zero_failures(SERVER_PREFIX + "webrtc/index.html")
+        self.check_page(SERVER_PREFIX + "webrtc/index.html")
 
     def test_worker_index_html(self):
-        self.check_page_for_zero_failures(SERVER_PREFIX + "worker/index.html")
+        self.check_page(SERVER_PREFIX + "worker/index.html")
 
 
 if __name__ == "__main__":
