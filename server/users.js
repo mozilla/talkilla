@@ -1,4 +1,21 @@
+var config = require('./config').config;
 var logger = require('./logger');
+
+function Waiter(callback) {
+  this.timeout = undefined;
+  this.callback = callback;
+}
+
+Waiter.prototype.after = function(timeout, data) {
+  this.timeout = setTimeout(function() {
+    this.callback(data);
+  }.bind(this), timeout);
+};
+
+Waiter.prototype.resolve = function(data) {
+  clearTimeout(this.timeout);
+  this.callback(data);
+};
 
 /**
  * User class constructor
@@ -7,52 +24,69 @@ var logger = require('./logger');
  */
 function User(nick) {
   this.nick = nick;
-  this.ws = undefined;
+
+  // `this.timeout` represents the current timeout until the user is
+  // considered as disconnected.
+  this.timeout = undefined;
+  // `this.ondisconnect` is the callback called when the user is
+  // disconnected (i.e. when the timeout is triggered).
+  this.ondisconnect = undefined;
+
+  // `this.events` is a Queue of events. It is used in case the user
+  // is present (i.e. the timeout was not yet triggered) but he
+  // receives events between two long-polling connections.
+  this.events = [];
+  // `this.pending` is an object carrying the current pending
+  // long-polling timeout and callback.
+  // Beware, `this.pending.timeout` and `this.timeout` have different
+  // purposes.
+  this.pending = undefined;
 }
 
 /**
- * Attach a WebSocket to the user
+ * Send data to the user.
  *
- * @param {WebSocket} ws The WebSocket to attach
+ * @param {Object} data An abitrary JSON serializable object
  * @return {User} chainable
  */
-User.prototype.connect = function(ws) {
-  this.ws = ws;
+User.prototype.send = function(data) {
+  if (this.pending)
+    // If there is an existing timeout, we resolve it with the
+    // provided data.
+    this.pending.resolve([data]);
+  else if (this.present())
+    // Otherwise, if the user is present, we queue the data.
+    this.events.push(data);
+  else
+    // if we try to send data to a non present user we do not fail but
+    // we log a warning.
+    logger.warn("Could not forward event " +
+                JSON.stringify(data) + " to non present peer");
   return this;
 };
 
+User.prototype.connect = function() {
+  this.timeout = setTimeout(function() {
+    this.disconnect();
+  }.bind(this), config.LONG_POLLING_TIMEOUT * 2);
+};
+
 /**
- * Close and remove the WebSocket.
+ * Extend the timeout until the user is considered as disconnected.
  *
  * @return {User} chainable
  */
+User.prototype.touch = function() {
+  clearTimeout(this.timeout);
+  this.connect();
+  return this;
+};
+
 User.prototype.disconnect = function() {
-  if (this.ws) {
-    this.ws.close();
-    this.ws = undefined;
-  }
-  return this;
-};
-
-/**
- * Send data throught the attached WebSocket
- *
- * @param {Object} data An object to send throught the WebSocket
- * @param {Function} errback An optional error callback
- *
- * @return {User} chainable
- */
-User.prototype.send = function(data, errback) {
-  var message = JSON.stringify(data);
-  if (this.ws)
-    this.ws.send(message, errback);
-  else {
-    logger.error({
-      type: "websocket",
-      err: new Error("The websocket does not exist anymore")
-    });
-  }
-  return this;
+  clearTimeout(this.timeout);
+  this.timeout = undefined;
+  if (this.ondisconnect)
+    this.ondisconnect();
 };
 
 /**
@@ -62,6 +96,40 @@ User.prototype.send = function(data, errback) {
  */
 User.prototype.toJSON = function() {
   return {nick: this.nick};
+};
+
+/**
+ * Wait for events to be sent to the user.
+ *
+ * Trigger the provided callback as soon as events are sent to the
+ * user.
+ *
+ * If no event has been provided during a certain time
+ * (i.e. config.LONG_POLLING_TIMEOUT) we return a empty array of
+ * events.
+ *
+ * @param {Function} callback The callback to trigger in case of events.
+ *
+ */
+User.prototype.waitForEvents = function(callback) {
+  // Setup a timeout with an empty list of events as the default
+  // behaviour.
+  this.pending = new Waiter(callback);
+  this.pending.after(config.LONG_POLLING_TIMEOUT, []);
+
+  // If there is available events in the queue, resolve the timeout
+  // immediately.
+  if (this.events.length) {
+    this.pending.resolve(this.events);
+    this.events = [];
+  }
+};
+
+/**
+ * A user is present if he has not been disconnected yet.
+ */
+User.prototype.present = function() {
+  return !!this.timeout;
 };
 
 /**
@@ -142,7 +210,7 @@ Users.prototype.forEach = function(callback) {
 Users.prototype.present = function() {
   return Object.keys(this.users)
     .filter(function(nick) {
-      return !!this.users[nick].ws;
+      return this.users[nick].present();
     }, this)
     .map(function(nick) {
       return this.users[nick];
@@ -165,5 +233,6 @@ Users.prototype.toJSON = function(users) {
   });
 };
 
+module.exports.Waiter = Waiter;
 module.exports.Users = Users;
 module.exports.User = User;

@@ -9,30 +9,8 @@ var logger = require('./logger');
 var Users = require('./users').Users;
 var User = require('./users').User;
 
-var WebSocketServer = require('ws').Server;
-var wss = new WebSocketServer({noServer: true});
 var users = new Users();
 var api;
-
-/**
- * Configures a WebSocket connection.
- *
- * @param  {WebSocket} ws WebSocket client connection
- * @return {WebSocket}
- */
-function configureWs(ws, nick) {
-  ws.on("message", api.ws.onMessage.bind(ws, nick));
-  ws.on("close", api.ws.onClose.bind(ws, nick));
-
-  ws.on("call_offer", api.ws.onCallOffer);
-  ws.on("call_accepted", api.ws.onCallAccepted);
-  ws.on("call_hangup", api.ws.onCallHangup);
-
-  ws.on("presence_request", api.ws.onPresenceRequest);
-
-  logger.info({type: "connection"});
-  return ws;
-}
 
 api = {
   _verifyAssertion: function(assertion, callback) {
@@ -80,6 +58,12 @@ api = {
         return res.send(400, JSON.stringify({error: err}));
 
       users.add(nick);
+      users.get(nick).ondisconnect = function() {
+        users.present().forEach(function(user) {
+          user.send({userLeft: nick});
+        });
+        logger.info({type: "disconnection"});
+      };
       logger.info({type: "signin"});
       res.send(200, JSON.stringify(users.get(nick)));
     });
@@ -93,179 +77,112 @@ api = {
     res.send(200, JSON.stringify(true));
   },
 
-  ws: {
-    /**
-     * Any ws JSON message received is parsed and emitted as a
-     * dedicated event. Emitted events:
-     *
-     * - call_offer: call offer event
-     * - call_accepted: call accepted event
-     * - call_hangup: call hung up event
-     *
-     * @param  {WebSocket} ws WebSocket client connection
-     * @return {WebSocket}
-     */
-    onMessage: function(nick, message) {
-      var events;
+  /*
+   * Long Polling API
+   *
+   * This API provides a stream of event via a long polling mechanism.
+   * The connection hangs for n seconds as long as there is no events.
+   * If in the meantime there is incoming events, then the API returns
+   * immediately with events as a response.
+   *
+   * Events received between reconnections are not lost.
+   */
+  stream: function(req, res) {
+    var nick = req.body.nick;
+    var user = users.get(nick);
+    // XXX: Here we verify if the user is signed in. Of course the
+    // nickname is not a sufficient proof of authentication nor
+    // authorization. We should fix that in the signin API by
+    // generating a secret token and verify it. Probably as a session
+    // property.
+    if (!user)
+      return res.send(400, JSON.stringify({}));
 
-      try {
-        events = JSON.parse(message);
-      } catch (e) {
-        logger.error({type: "websocket", err: e});
-      }
-
-      // XXX: should we have an error if events is not an object?
-      if (!events || typeof events !== 'object')
-        return;
-
-      for (var type in events) {
-        this.emit(type, events[type], nick);
-      }
-    },
-
-    /**
-     * Handles a received call_offer message. It will send an
-     * incoming_call message to the user specified by data.peer.
-     *
-     * call_offer parameters:
-     *
-     * - peer    the id of the user to call. This will be replaced
-     *           by the id of the user making the call.
-     * - offer   the sdp offer for the connection
-     */
-    onCallOffer: function(data, nick) {
-      var peer = users.get(data.peer);
-
-      if (!peer) {
-        // XXX This could happen in the case of the user disconnecting
-        // just as we call them. We may want to send something back to the
-        // caller to indicate the issue.
-        logger.warn("Could not forward offer to unknown peer");
-        return;
-      }
-
-      data.peer = nick;
-      peer.send({'incoming_call': data});
-      logger.info({type: "call:offer"});
-    },
-
-    /**
-     * Handles a received call_accepted message. It will send an
-     * call_accepted message to the user specified by data.peer.
-     *
-     * call_accepted parameters:
-     *
-     * - peer   the id of the user who initiated the call. This will be
-     *           replaced by the id of the user receiving the call.
-     * - offer   the sdp offer for the connection
-     */
-    onCallAccepted: function(data, nick) {
-      var peer = users.get(data.peer);
-
-      if (!peer) {
-        // XXX This could happen in the case of the user disconnecting
-        // just as the call is accepted. We may want to send something back
-        // to the callee to indicate the issue.
-        logger.warn("Could not forward call accepted to unknown peer");
-        return;
-      }
-
-      data.peer = nick;
-      peer.send({'call_accepted': data});
-      logger.info({type: "call:accepted"});
-    },
-
-    /**
-     * When a call is hung up.
-     *
-     * data is expected to contain
-     * - peer: id of the peer user for which the call should be hung up.
-     *
-     * The 'peer' value will be translated to the id of the sender.
-     */
-    onCallHangup: function(data, nick) {
-      var peer = users.get(data.peer);
-
-      if (!peer) {
-        // XXX This could happen in the case of the user disconnecting
-        // just as the call is hungup. We may want to send something back
-        // to the source to indicate the issue.
-        logger.warn("Could not forward hangup to unknown peer");
-        return;
-      }
-
-      peer.send({'call_hangup': {peer: nick}});
-      logger.info({type: "call:hangup"});
-    },
-
-    /**
-     * Called when the client requests for the current presence state.
-     * It returns a list of current users connected to the server
-     * (aka. present).
-     *
-     * data is empty
-     */
-    onPresenceRequest: function(data, nick) {
-      var user = users.get(nick);
-      var presentUsers = users.toJSON(users.present());
-      user.send({users: presentUsers});
-    },
-
-    // when a connection is closed, remove it from the pool as well
-    // and update the list of online users
-    onClose: function(nick) {
-      var user = users.get(nick);
-
-      if (user)
-        user.disconnect();
-
+    if (!user.present()) {
       users.present().forEach(function(user) {
-        user.send({userLeft: nick}, function() {});
+        user.send({userJoined: nick});
       });
-
-      logger.info({type: "disconnection"});
+      user.touch();
+      // XXX: Here we force the first long-polling request to return
+      // without a timeout. It's because we need to be connected to
+      // request the presence. We should fix that on the frontend.
+      res.send(200, JSON.stringify([]));
+      logger.info({type: "connection"});
+    } else {
+      user.touch().waitForEvents(function(events) {
+        res.send(200, JSON.stringify(events));
+      });
     }
   },
 
-  upgrade: function(req, socket, upgradeHead) {
-    var nick = url.parse(req.url, true).query.nick;
-    var res = new http.ServerResponse(req);
+  callOffer: function(req, res) {
+    var nick = req.body.nick;
+    var data = req.body.data;
+    var peer = users.get(data.peer);
 
-    if (!(users.hasNick(nick))) {
-      res.assignSocket(socket);
-      res.statusCode = 400;
-      res.end();
-      return;
+    if (!peer) {
+      // XXX This could happen in the case of the user disconnecting
+      // just as we call them. We may want to send something back to the
+      // caller to indicate the issue.
+      logger.warn("Could not forward offer to unknown peer");
+      return res.send(200, JSON.stringify({}));
     }
 
-    var callback = api.onWebSocket.bind(this, nick);
-    wss.handleUpgrade(req, socket, upgradeHead, callback);
+    data.peer = nick;
+    peer.send({'incoming_call': data});
+    logger.info({type: "call:offer"});
   },
 
-  onWebSocket: function(nick, ws) {
-    var presentUsers = users.present();
+  callAccepted: function(req, res) {
+    var nick = req.body.nick;
+    var data = req.body.data;
+    var peer = users.get(data.peer);
 
-    // attach the WebSocket to the user
-    // XXX: The user could be signed out at this point
-    users.get(nick).connect(configureWs(ws, nick));
+    if (!peer) {
+      // XXX This could happen in the case of the user disconnecting
+      // just as we call them. We may want to send something back to the
+      // caller to indicate the issue.
+      logger.warn("Could not forward offer to unknown peer");
+      return res.send(200, JSON.stringify({}));
+    }
 
-    presentUsers.forEach(function(user) {
-      user.send({userJoined: nick}, function(error) {});
-    });
+    data.peer = nick;
+    peer.send({'call_accepted': data});
+    logger.info({type: "call:accepted"});
+  },
+
+  callHangup: function(req, res) {
+    var nick = req.body.nick;
+    var data = req.body.data;
+    var peer = users.get(data.peer);
+
+    if (!peer) {
+      // XXX This could happen in the case of the user disconnecting
+      // just as we call them. We may want to send something back to the
+      // caller to indicate the issue.
+      logger.warn("Could not forward offer to unknown peer");
+      return res.send(200, JSON.stringify({}));
+    }
+
+    data.peer = nick;
+    peer.send({'call_hangup': data});
+    logger.info({type: "call:hangup"});
+  },
+
+  presenceRequest: function(req, res) {
+    var user = users.get(req.body.nick);
+    var presentUsers = users.toJSON(users.present());
+    user.send({users: presentUsers});
   }
 };
 
 app.post('/signin', api.signin);
 app.post('/signout', api.signout);
+app.post('/stream', api.stream);
+app.post('/calloffer', api.callOffer);
+app.post('/callaccepted', api.callAccepted);
+app.post('/callhangup', api.callHangup);
+app.post('/presenceRequest', api.presenceRequest);
 
-httpServer.on('upgrade', api.upgrade);
-wss.on('error', function(err) {
-  logger.error({type: "websocket", err: err});
-});
-wss.on('close', function(ws) {});
-
-
-module.exports.configureWs = configureWs;
 module.exports.api = api;
 module.exports._users = users;
-module.exports._wss = wss;

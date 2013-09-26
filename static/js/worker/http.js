@@ -12,6 +12,7 @@ var HTTP = (function() {
    */
   HTTP.prototype.request = function(method, url, data, callback) {
     var xhr = new XMLHttpRequest();
+    callback = callback || function() {};
 
     xhr.onload = function(event) {
       // sinon.js can call us with a null event a second time, so just

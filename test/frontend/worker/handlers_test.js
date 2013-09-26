@@ -233,6 +233,22 @@ describe('handlers', function() {
           expect(_currentUserData.userName).to.equal('jb');
         });
     });
+
+    it("should post a fail message if the server rejected login",
+      function() {
+        handlers.postEvent = sinon.spy();
+        handlers['talkilla.login']({
+          topic: "talkilla.login",
+          data: {assertion: "fake assertion"}
+        });
+        expect(requests.length).to.equal(1);
+
+        requests[0].respond(401, {'Content-Type': 'text/plain'},
+                            JSON.stringify({error: "some error"}));
+
+        sinon.assert.calledTwice(handlers.postEvent);
+        sinon.assert.calledWith(handlers.postEvent, "talkilla.login-failure");
+      });
   });
 
   describe("talkilla.logout", function() {
@@ -430,12 +446,26 @@ describe('handlers', function() {
         sinon.assert.calledWith(handlers.postEvent, "talkilla.users");
       });
 
+    it("should request for the initial presence state " +
+       "if there is no current users", function() {
+        currentUsers = {};
+        sandbox.stub(server, "presenceRequest");
+        handlers['talkilla.presence-request']({
+          topic: "talkilla.presence-request",
+          data: {}
+        });
+
+        sinon.assert.calledOnce(server.presenceRequest);
+      });
+
   });
 
   describe("talkilla.call-offer", function() {
-    it("should send a websocket message when receiving talkilla.call-offer",
+
+    it("should post an offer when receiving a talkilla.call-offer event",
       function() {
-        sandbox.stub(server, "send");
+        _currentUserData = {userName: "tom"};
+        sandbox.stub(server, "callOffer");
         var data = {
           peer: "tom",
           offer: { sdp: "sdp", type: "type" }
@@ -446,15 +476,16 @@ describe('handlers', function() {
           data: data
         });
 
-        sinon.assert.calledOnce(server.send);
-        sinon.assert.calledWithExactly(server.send, {'call_offer': data });
+        sinon.assert.calledOnce(server.callOffer);
+        sinon.assert.calledWithExactly(server.callOffer, data, "tom");
       });
   });
 
   describe("talkilla.call-answer", function() {
     it("should send a websocket message when receiving talkilla.call-answer",
       function() {
-        sandbox.stub(server, "send");
+        _currentUserData = {userName: "fred"};
+        sandbox.stub(server, "callAccepted");
         var data = {
           peer: "fred",
           offer: { sdp: "sdp", type: "type" }
@@ -465,8 +496,8 @@ describe('handlers', function() {
           data: data
         });
 
-        sinon.assert.calledOnce(server.send);
-        sinon.assert.calledWithExactly(server.send, { 'call_accepted': data });
+        sinon.assert.calledOnce(server.callAccepted);
+        sinon.assert.calledWithExactly(server.callAccepted, data, "fred");
       });
   });
 
@@ -477,7 +508,8 @@ describe('handlers', function() {
 
     it("should send a websocket message when receiving talkilla.call-hangup",
       function() {
-        sandbox.stub(server, "send");
+        _currentUserData = {userName: "florian"};
+        sandbox.stub(server, "callHangup");
         var data = {
           peer: "florian"
         };
@@ -487,8 +519,8 @@ describe('handlers', function() {
           data: data
         });
 
-        sinon.assert.calledOnce(server.send);
-        sinon.assert.calledWithExactly(server.send, { 'call_hangup': data });
+        sinon.assert.calledOnce(server.callHangup);
+        sinon.assert.calledWithExactly(server.callHangup, data, "florian");
       });
   });
 
