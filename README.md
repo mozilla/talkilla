@@ -6,7 +6,7 @@ Video call exploration
 Local Development
 -----------------
 
-1. Talkilla currently requires Firefox >= 24.
+1. Talkilla currently requires Firefox >= 25.
 
 2. Make sure you have [node installed](http://nodejs.org/).
 
