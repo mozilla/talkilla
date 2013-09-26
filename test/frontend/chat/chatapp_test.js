@@ -29,7 +29,6 @@ describe("ChatApp", function() {
     AppPortStub = _.extend({postEvent: sinon.spy()}, Backbone.Events);
     sandbox = sinon.sandbox.create();
     sandbox.stub(window, "AppPort").returns(AppPortStub);
-    sandbox.stub(window, "addEventListener");
     sandbox.stub(window, "Audio").returns({
       play: sandbox.stub(),
       pause: sandbox.stub()
@@ -153,15 +152,15 @@ describe("ChatApp", function() {
         "talkilla.chat-window-ready", {});
     });
 
-  it("should attach _onWindowClose to unload on window", function(done) {
-    window.addEventListener.restore();
-    sandbox.stub(ChatApp.prototype._onWindowClose, "bind")
-      .returns(ChatApp.prototype._onWindowClose);
-    sandbox.stub(window, "addEventListener", function(event, handler) {
-      expect(handler).to.equal(ChatApp.prototype._onWindowClose);
-      done();
-    });
+  it("should attach _onWindowClose to unload on window", function() {
+    sandbox.stub(ChatApp.prototype, "_onWindowClose");
     chatApp = new ChatApp();
+    var unloadEvent = document.createEvent("Event");
+    unloadEvent.initEvent("unload", false, false);
+
+    window.dispatchEvent(unloadEvent);
+
+    sinon.assert.calledOnce(chatApp._onWindowClose);
   });
 
   it("should initialize the callEstablishView property", function() {
