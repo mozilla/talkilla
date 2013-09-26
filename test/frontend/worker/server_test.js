@@ -1,12 +1,14 @@
 /* global Server */
-/* global describe, beforeEach, afterEach, sinon, it, expect, server */
+/* global describe, beforeEach, afterEach, sinon, it, expect */
 
 describe("Server", function() {
-  var sandbox;
+  var sandbox, server;
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
     sandbox.stub(window, "WebSocket").returns({send: sinon.spy()});
+    // sandbox.stub(server, "_longPolling");
+    server = new Server();
   });
 
   afterEach(function() {
@@ -15,7 +17,7 @@ describe("Server", function() {
 
   describe("#signin", function() {
     it("should send a signin request to the server", function() {
-      var server = new Server(), callback = function() {};
+      var callback = function() {};
       sandbox.stub(server.http, "post");
 
       server.signin("fake assertion", callback);
@@ -30,7 +32,7 @@ describe("Server", function() {
   describe("#signout", function() {
 
     it("should send a signout request to the server", function() {
-      var server = new Server(), callback = function() {};
+      var callback = function() {};
       sandbox.stub(server.http, "post");
 
       server.signout("foo", callback);
@@ -45,8 +47,11 @@ describe("Server", function() {
 
   describe("#connect", function() {
 
+    beforeEach(function() {
+      sandbox.stub(server, "_longPolling");
+    });
+
     it("should request a stream", function() {
-      var server = new Server();
       sandbox.stub(server.http, "post");
       server.connect("foo");
 
@@ -55,9 +60,7 @@ describe("Server", function() {
     });
 
     it("should trigger a connected event", function(done) {
-      var server = new Server();
       sandbox.stub(server.http, "post", function(method, nick, callback) {
-        sandbox.stub(server, "_longPolling");
         callback(null, "[]");
       });
       server.on("connected", function() {
@@ -68,7 +71,6 @@ describe("Server", function() {
     });
 
     it("should trigger an error event if the request failed", function(done) {
-      var server = new Server();
       sandbox.stub(server.http, "post", function(method, nick, callback) {
         callback("error", "fake response");
       });
@@ -80,8 +82,6 @@ describe("Server", function() {
     });
 
     it("should call #_longPolling", function(done) {
-      var server = new Server();
-      sandbox.stub(server, "_longPolling");
       sandbox.stub(server.http, "post", function(method, nick, callback) {
         callback(null, "[]");
         sinon.assert.calledOnce(server._longPolling);
@@ -96,8 +96,11 @@ describe("Server", function() {
 
   describe("#autoconnect", function() {
 
+    beforeEach(function() {
+      sandbox.stub(server, "_longPolling");
+    });
+
     it("should request a stream", function() {
-      var server = new Server();
       sandbox.stub(server.http, "post");
       server.autoconnect("foo");
 
@@ -106,9 +109,7 @@ describe("Server", function() {
     });
 
     it("should trigger a connected event", function(done) {
-      var server = new Server();
       sandbox.stub(server.http, "post", function(method, nick, callback) {
-        sandbox.stub(server, "_longPolling");
         callback(null, "[]");
       });
       server.on("connected", function() {
@@ -119,7 +120,6 @@ describe("Server", function() {
     });
 
     it("should trigger an error event if the request failed", function(done) {
-      var server = new Server();
       sandbox.stub(server.http, "post", function(method, nick, callback) {
         callback("error", "fake response");
       });
@@ -131,8 +131,6 @@ describe("Server", function() {
     });
 
     it("should call #_longPolling", function(done) {
-      var server = new Server();
-      sandbox.stub(server, "_longPolling");
       sandbox.stub(server.http, "post", function(method, nick, callback) {
         callback(null, "[]");
         sinon.assert.calledOnce(server._longPolling);
@@ -148,7 +146,6 @@ describe("Server", function() {
   describe("#_longPolling", function() {
 
     it("should request a stream", function() {
-      var server = new Server();
       sandbox.stub(server.http, "post");
       server._longPolling("foo", []);
 
@@ -158,7 +155,6 @@ describe("Server", function() {
 
     it("should trigger a disconnected event if the request failed",
       function(done) {
-        var server = new Server();
         sandbox.stub(server.http, "post", function(method, data, callback) {
           callback("error", "some error");
         });
@@ -171,7 +167,6 @@ describe("Server", function() {
 
     it("should trigger a message event for each event", function(done) {
       var nbCall = 1;
-      var server = new Server();
       var events = [
         {first:  "event 1"},
         {second: "event 2"},
@@ -202,7 +197,6 @@ describe("Server", function() {
     });
 
     it("should trigger a custom message event", function(done) {
-      var server = new Server();
       var events = [{"sometype":  "event"}];
 
       sandbox.stub(server.http, "post");
@@ -215,7 +209,6 @@ describe("Server", function() {
     });
 
     it("should call #_longPolling again", function(done) {
-      var server = new Server();
 
       sandbox.stub(server.http, "post", function(method, data, callback) {
         sandbox.stub(server, "_longPolling");
@@ -302,7 +295,6 @@ describe("Server", function() {
   describe.skip("websocket's events", function() {
 
     it("should trigger a 'connected' event when it opens", function() {
-      var server = new Server();
       var callback = sinon.spy();
 
       server.on("connected", callback);
@@ -313,7 +305,6 @@ describe("Server", function() {
     });
 
     it("should trigger a message event when it receives one", function() {
-      var server = new Server();
       var callback = sinon.spy();
       var event = {data: JSON.stringify({thisis: {an: "event"}})};
 
@@ -326,7 +317,6 @@ describe("Server", function() {
     });
 
     it("should trigger a custom event when it receives a message", function() {
-      var server = new Server();
       var callback = sinon.spy();
       var event = {data: JSON.stringify({custom: {an: "event"}})};
 
@@ -339,7 +329,6 @@ describe("Server", function() {
     });
 
     it("should trigger an error event when having an error", function() {
-      var server = new Server();
       var callback = sinon.spy();
 
       server.on("error", callback);
@@ -351,7 +340,6 @@ describe("Server", function() {
     });
 
     it("should trigger a disconnected event when it closes", function() {
-      var server = new Server();
       var callback = sinon.spy();
 
       server.on("disconnected", callback);
@@ -364,8 +352,6 @@ describe("Server", function() {
 
   describe.skip("#send", function() {
     it("should send serialized data throught the websocket", function() {
-      var server = new Server();
-
       server.connect("foo");
       server.send({some: "data"});
 
