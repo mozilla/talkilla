@@ -66,8 +66,8 @@ var Server = (function() {
     this.http.post("/callhangup", {data: data, nick: nick}, callback);
   };
 
-  Server.prototype.presenceRequest = function(nick) {
-    this.http.post("/presencerequest", {nick: nick});
+  Server.prototype.presenceRequest = function(nick, callback) {
+    this.http.post("/presencerequest", {nick: nick}, callback);
   };
 
   return Server;
