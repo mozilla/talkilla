@@ -309,7 +309,7 @@ function _setupServer(server) {
   server.on("connected", function() {
     _autologinPending = false;
     _currentUserData.connected = true;
-    // XXX: we should differenciate login and presence
+    // XXX: we should differentiate login and presence
     ports.broadcastEvent('talkilla.login-success', {
       username: _currentUserData.userName
     });

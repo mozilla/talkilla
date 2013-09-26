@@ -188,7 +188,7 @@ describe("presence", function() {
         api.stream(req, res);
       });
 
-      it("should return a list of events", function(done) {
+      it("should send a list of events", function(done) {
         var user = users.add("foo").get("foo");
         var event = {some: "data"};
         var req = {body: {nick: "foo"}};
