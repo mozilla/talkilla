@@ -16,6 +16,7 @@ var https = require("https");
 require("../../server/server");
 var presence = require("../../server/presence");
 var logger = require("../../server/logger");
+var config = require('../../server/config').config;
 
 describe("presence", function() {
 
@@ -174,6 +175,15 @@ describe("presence", function() {
     });
 
     describe("#stream", function() {
+      var clock;
+
+      beforeEach(function() {
+        clock = sinon.useFakeTimers();
+      });
+
+      afterEach(function() {
+        clock.restore();
+      });
 
       it("should send to all the present users an new one joined", function() {
         var foo = users.add("foo").get("foo");
@@ -208,6 +218,7 @@ describe("presence", function() {
         sandbox.stub(user, "present").returns(true);
 
         api.stream(req, res);
+        clock.tick(config.LONG_POLLING_TIMEOUT * 3);
       });
 
       it("should send a list of events", function(done) {
