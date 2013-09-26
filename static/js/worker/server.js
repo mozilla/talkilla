@@ -10,34 +10,6 @@ var Server = (function() {
 
   BackboneEvents.mixin(Server.prototype);
 
-  Server.prototype._setupWebSocket = function(ws) {
-    ws.onopen    = this.trigger.bind(this, "connected");
-    ws.onmessage = this._onWebSocketMessage.bind(this);
-    ws.onerror   = this.trigger.bind(this, "error");
-    ws.onclose   = this.trigger.bind(this, "disconnected");
-    return ws;
-  };
-
-  Server.prototype._tryWebSocket = function(ws) {
-    ws.onopen = function(event) {
-      this._setupWebSocket(ws);
-      this.trigger("connected", event);
-    }.bind(this);
-    ws.onerror = function(event) {
-      this.trigger("disconnected");
-    }.bind(this);
-
-    return ws;
-  };
-
-  Server.prototype._onWebSocketMessage = function(event) {
-    var data = JSON.parse(event.data);
-    for (var eventType in data) {
-      this.trigger("message", eventType, data[eventType]);
-      this.trigger("message:" + eventType, data[eventType]);
-    }
-  };
-
   Server.prototype.signin = function(assertion, callback) {
     this.http.post("/signin", {assertion: assertion}, callback);
   };
