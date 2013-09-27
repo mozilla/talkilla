@@ -57,32 +57,20 @@ describe("CollectedContacts", function() {
 
   describe("#add", function() {
     it("should add a record to the database", function(done) {
-      contactsDb.load(function(err) {
+      contactsDb.add("florian", function(err, username) {
         expect(err).to.be.a("null");
-        this.add("florian", function(err, username) {
-          expect(err).to.be.a("null");
-          expect(username).eql("florian");
-          done();
-        });
+        expect(username).eql("florian");
+        done();
       });
-    });
-
-    it("should prevent adding records if the db is not loaded", function() {
-      expect(function() {
-        contactsDb.add("niko", function() {});
-      }).to.Throw(Error);
     });
 
     it("shouldn't raise an error in case of a duplicate contact",
       function(done) {
-        contactsDb.load(function(err) {
+        contactsDb.add("niko", function(err) {
           expect(err).to.be.a("null");
           this.add("niko", function(err) {
             expect(err).to.be.a("null");
-            this.add("niko", function(err) {
-              expect(err).to.be.a("null");
-              done();
-            });
+            done();
           });
         });
       });
@@ -90,29 +78,21 @@ describe("CollectedContacts", function() {
 
   describe("#all", function() {
     it("should retrieve no record when db is empty", function(done) {
-      contactsDb.load(function(err) {
-        expect(err).to.be.a("null");
-        this.all(function(err, contacts) {
-          expect(contacts).to.have.length.of(0);
-          done();
-        });
+      contactsDb.all(function(err, contacts) {
+        expect(contacts).to.have.length.of(0);
+        done();
       });
     });
 
     it("should retrieve all contacts", function(done) {
-      contactsDb.load(function(err) {
-        expect(err).to.be.a("null");
-        this.add("niko", function(err) {
-          expect(err).to.be.a("null");
-          this.add("jb", function(err) {
+      contactsDb.add("niko", function() {
+        this.add("jb", function() {
+          this.all(function(err, contacts) {
             expect(err).to.be.a("null");
-            this.all(function(err, contacts) {
-              expect(err).to.be.a("null");
-              expect(contacts).to.have.length.of(2);
-              expect(contacts).to.contain("niko");
-              expect(contacts).to.contain("jb");
-              done();
-            });
+            expect(contacts).to.have.length.of(2);
+            expect(contacts).to.contain("niko");
+            expect(contacts).to.contain("jb");
+            done();
           });
         });
       });
@@ -128,16 +108,12 @@ describe("CollectedContacts", function() {
 
   describe("#drop", function() {
     it("should drop the database", function(done) {
-      contactsDb.load(function() {
-        this.add("niko", function() {
-          this.drop(function(err) {
-            expect(err).to.be.a("null");
-            this.load(function() {
-              this.all(function(err, contacts) {
-                expect(contacts).to.have.length.of(0);
-                done();
-              });
-            });
+      contactsDb.add("niko", function() {
+        this.drop(function(err) {
+          expect(err).to.be.a("null");
+          this.all(function(err, contacts) {
+            expect(contacts).to.have.length.of(0);
+            done();
           });
         });
       });

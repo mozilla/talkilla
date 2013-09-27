@@ -30,7 +30,7 @@ var CollectedContacts = (function() {
 
   CollectedContacts.prototype.add = function(username, cb) {
     if (!this.db)
-      throw new Error("Database is not loaded");
+      return this.load(this.add.bind(this, username, cb));
     var request = this._getStore("readwrite").add({username: username});
     request.onsuccess = function() {
       cb.call(this, null, username);
@@ -45,6 +45,8 @@ var CollectedContacts = (function() {
   };
 
   CollectedContacts.prototype.all = function(cb) {
+    if (!this.db)
+      return this.load(this.all.bind(this, cb));
     var cursor = this._getStore("readonly").openCursor(),
         records = [];
     cursor.onerror = function(event) {
