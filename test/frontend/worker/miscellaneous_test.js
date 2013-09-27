@@ -5,13 +5,12 @@ var expect = chai.expect;
 
 describe('Miscellaneous', function() {
   "use strict";
-  var sandbox, contactsDbName, i = 0;
+  var sandbox;
 
   beforeEach(function () {
     sandbox = sinon.sandbox.create();
     browserPort = {postEvent: sandbox.spy()};
-    contactsDbName = "TalkillaContactsTest" + i++;
-    contactsDb.options.dbname = contactsDbName;
+    contactsDb.options.dbname = "TalkillaContactsTest";
   });
 
   afterEach(function (done) {
@@ -56,11 +55,8 @@ describe('Miscellaneous', function() {
   describe("#loadContacts", function() {
     beforeEach(function(done) {
       // Store a contact for the tests
-      contactsDb.load(function() {
-        this.add("foo", function() {
-          this.close();
-          done();
-        });
+      contactsDb.add("foo", function() {
+        done();
       });
     });
 

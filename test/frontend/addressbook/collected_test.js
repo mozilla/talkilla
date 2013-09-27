@@ -4,14 +4,13 @@
 var expect = chai.expect;
 
 describe("CollectedContacts", function() {
-  var contactsDb, dbname, i = 0;
+  var contactsDb;
 
   beforeEach(function() {
     // For some reason, indexedDB doesn't like creating two
     // databases with the same name in one run.
-    dbname =  "TalkillaContactsTest" + i++;
     contactsDb = new CollectedContacts({
-      dbname: dbname,
+      dbname: "TalkillaContactsTest",
       storename: "contacts",
       version: 1
     });

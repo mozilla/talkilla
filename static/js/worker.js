@@ -595,23 +595,22 @@ server = new Server(gConfig);
 _setupServer(server);
 
 function loadContacts(cb) {
-  contactsDb.load(function(err) {
+  contactsDb.all(function(err, records) {
     if (err)
       return ports.broadcastError(err);
-    contactsDb.all(function(err, records) {
-      contacts = records;
-      contacts.forEach(function(userId) {
-        if (!Object.prototype.hasOwnProperty.call(currentUsers, userId))
-          currentUsers[userId] = {presence: "disconnected"};
-      });
-      // We need to broadcast the list in case we've been slow loading
-      // the database and the initial presence list has already been
-      // broadcast.
-      ports.broadcastEvent('talkilla.users', getCurrentUsersArray());
-      // callback is mostly useful for tests
-      if (typeof cb === "function")
-        cb();
+
+    contacts = records;
+    contacts.forEach(function(userId) {
+      if (!Object.prototype.hasOwnProperty.call(currentUsers, userId))
+        currentUsers[userId] = {presence: "disconnected"};
     });
+    // We need to broadcast the list in case we've been slow loading
+    // the database and the initial presence list has already been
+    // broadcast.
+    ports.broadcastEvent('talkilla.users', getCurrentUsersArray());
+    // callback is mostly useful for tests
+    if (typeof cb === "function")
+      cb();
   });
 }
 

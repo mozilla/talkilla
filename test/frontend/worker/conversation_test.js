@@ -6,22 +6,23 @@
 var expect = chai.expect;
 
 describe("Conversation", function() {
-  var sandbox, contactsDbName, i = 0;
+  var sandbox;
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
     browserPort = {
       postEvent: sandbox.spy()
     };
-    contactsDbName = "TalkillaContactsTest" + i++;
-    contactsDb.options.dbname = contactsDbName;
+    contactsDb.options.dbname = "TalkillaContactsTest";
   });
 
-  afterEach(function() {
+  afterEach(function(done) {
     browserPort = undefined;
     currentConversation = undefined;
-    indexedDB.deleteDatabase(contactsDbName);
     sandbox.restore();
+    contactsDb.drop(function() {
+      done();
+    });
   });
 
   describe("initialize", function() {
