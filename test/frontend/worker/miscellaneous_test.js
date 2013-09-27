@@ -1,7 +1,7 @@
-/*global chai, sinon, _config:true, loadconfig, _signinCallback,
+/*global chai, sinon, _signinCallback,
    _currentUserData:true, UserData, getContactsDatabase, browserPort: true,
    storeContact, contacts:true, contactsDb:true, indexedDB,
-   currentUsers, _, server, ports */
+   currentUsers, server, ports */
 var expect = chai.expect;
 
 describe('Miscellaneous', function() {
@@ -18,46 +18,12 @@ describe('Miscellaneous', function() {
     sandbox.restore();
   });
 
-  describe("#loadconfig", function() {
-    var oldConfig, xhr, requests;
-
-    beforeEach(function() {
-      oldConfig = _.clone(_config);
-      // XXX For some reason, sandbox.useFakeXMLHttpRequest doesn't want to work
-      // nicely so we have to manually xhr.restore for now.
-      xhr = sinon.useFakeXMLHttpRequest();
-      _config = {};
-      requests = [];
-      xhr.onCreate = function (req) { requests.push(req); };
-    });
-
-    afterEach(function() {
-      _config = oldConfig;
-      xhr.restore();
-    });
-
-    it("should populate the _config object from using AJAX load",
-      function(done) {
-        expect(_config).to.deep.equal({});
-        loadconfig(function(err, config) {
-          expect(requests).to.have.length.of(1);
-          expect(requests[0].url).to.equal('/config.json');
-          expect(config).to.deep.equal({WSURL: 'ws://fake', DEBUG: true});
-          done();
-        });
-        requests[0].respond(200, {
-          'Content-Type': 'application/json'
-        }, '{"WSURL": "ws://fake", "DEBUG": true}');
-      });
-  });
-
   describe("#_signinCallback", function() {
-    var socketStub, wsurl = 'ws://fake', testableCallback;
+    var socketStub, testableCallback;
 
     beforeEach(function() {
       sandbox.stub(window, "WebSocket");
       socketStub = sinon.stub(server, "connect");
-      _config.WSURL = wsurl;
       _currentUserData = new UserData({});
       sandbox.stub(_currentUserData, "send");
       testableCallback = _signinCallback.bind({postEvent: function(){}});

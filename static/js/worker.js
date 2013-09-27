@@ -1,11 +1,12 @@
-/* global indexedDB, importScripts, Server, HTTP */
+/* global indexedDB, importScripts, Server, HTTP, loadConfig */
 /* jshint unused:false */
 
 importScripts('../vendor/backbone-events-standalone-0.1.5.js',
+              '/config.js',    // exposes loadConfig
               'worker/http.js',    // exposes HTTP
               'worker/server.js'); // exposes Server
 
-var _config = {DEBUG: false};
+var gConfig = loadConfig();
 var _currentUserData;
 var _loginPending = false;
 var _autologinPending = false;
@@ -390,19 +391,6 @@ function _setupServer(server) {
   });
 }
 
-function loadconfig(cb) {
-  var http = new HTTP();
-  http.get('/config.json', {}, function(err, data) {
-    var config;
-    try {
-      config = JSON.parse(data);
-    } catch (err) {
-      return cb(err);
-    }
-    cb(null, config);
-  });
-}
-
 function _signinCallback(err, responseText) {
   _loginPending = false;
   var data = JSON.parse(responseText);
@@ -440,6 +428,10 @@ var handlers = {
   'social.initialize': function() {
     // Save the browserPort
     browserPort = this;
+
+    // Now we're connected request any cookies that we've got saved.
+    browserPort.postEvent('social.cookies-get');
+
     // Don't have it in the main list of ports, as we don't need
     // to broadcast all our talkilla.* messages to the social api.
     ports.remove(this);
@@ -633,7 +625,7 @@ PortCollection.prototype = {
    * Broadcast debug informations to all ports.
    */
   broadcastDebug: function(label, data) {
-    if (!_config.DEBUG)
+    if (!gConfig.DEBUG)
       return;
     for (var id in this.ports)
       this.ports[id].postEvent("talkilla.debug", {label: label, data: data});
@@ -649,23 +641,18 @@ PortCollection.prototype = {
   }
 };
 
+// Worker Initialisations
+
 ports = new PortCollection();
 
 function onconnect(event) {
   ports.add(new Port(event.ports[0]));
 }
 
-loadconfig(function(err, config) {
-  if (err)
-    return ports.broadcastError(err);
-  _config = config;
-  _currentUserData = new UserData({}, config);
-  server = new Server(config);
+_currentUserData = new UserData({}, gConfig);
+server = new Server(gConfig);
 
-  _setupServer(server);
-
-  browserPort.postEvent('social.cookies-get');
-});
+_setupServer(server);
 
 // This currently doesn't rely on anything else, so just schedule
 // the load as soon as we've finished setting up the worker.
