@@ -594,6 +594,18 @@ function onconnect(event) {
   ports.add(new Port(event.ports[0]));
 }
 
+loadconfig(function(err, config) {
+  if (err)
+    return ports.broadcastError(err);
+  _config = config;
+  _currentUserData = new UserData({}, config);
+  server = new Server(config);
+
+  _setupServer(server);
+
+  browserPort.postEvent('social.cookies-get');
+});
+
 function loadContacts(cb) {
   contactsDb.load(function(err) {
     if (err)
@@ -615,17 +627,6 @@ function loadContacts(cb) {
   });
 }
 
-loadconfig(function(err, config) {
-  if (err)
-    return ports.broadcastError(err);
-  _config = config;
-  _currentUserData = new UserData({}, config);
-
-  loadContacts(function() {
-    server = new Server(config);
-
-    _setupServer(server);
-
-    browserPort.postEvent('social.cookies-get');
-  });
-});
+// This currently doesn't rely on anything else, so just schedule
+// the load as soon as we've finished setting up the worker.
+loadContacts();
