@@ -1,4 +1,4 @@
-/* global SPAPort, Server, TalkillaSPA */
+/* global importScripts, SPAPort, Server, TalkillaSPA */
 /* jshint unused:false */
 
 var DummyWorker = (function(globalScope) {
