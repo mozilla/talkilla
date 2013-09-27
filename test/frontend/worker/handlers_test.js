@@ -426,6 +426,7 @@ describe('handlers', function() {
     beforeEach(function() {
       _currentUserData = new UserData();
       sandbox.stub(_currentUserData, "send");
+      sandbox.stub(server, "presenceRequest");
     });
 
     afterEach(function() {
@@ -449,7 +450,6 @@ describe('handlers', function() {
     it("should request for the initial presence state " +
        "if there is no current users", function() {
         currentUsers = {};
-        sandbox.stub(server, "presenceRequest");
         handlers['talkilla.presence-request']({
           topic: "talkilla.presence-request",
           data: {}
