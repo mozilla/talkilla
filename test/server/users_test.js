@@ -69,6 +69,8 @@ describe("User", function() {
     var clock;
 
     beforeEach(function() {
+      // Use fake timers here to keep the tests running fast and
+      // avoid waiting for the second long timeouts to occur.
       clock = sinon.useFakeTimers();
     });
 
