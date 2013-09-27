@@ -1,11 +1,13 @@
 /* jshint unused:false */
 var CollectedContacts = (function() {
   function CollectedContacts(options) {
-    this.options = options || {
-      dbname: "TalkillaContactsTest",
-      storename: "contacts",
-      version: 1
-    };
+    this.options = options || {};
+    if (!this.options.dbname)
+      this.options.dbname = "TalkillaContacts";
+    if (!this.options.storename)
+      this.options.storename = "contacts";
+    if (!this.options.version)
+      this.options.version = 1;
     this.db = undefined;
   }
 
