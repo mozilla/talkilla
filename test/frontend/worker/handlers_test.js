@@ -1,7 +1,7 @@
 /*global chai, sinon, ports:true, Port, PortCollection, handlers,
   _currentUserData:true, currentConversation:true, UserData,
   _presenceSocket:true, browserPort:true, currentUsers:true,
-  Conversation, _config:true, _loginPending:true, _autologinPending: true,
+  Conversation, _loginPending:true, _autologinPending: true,
   _cookieNickname:true, Server, server:true, _signinCallback */
 /* jshint expr:true */
 
@@ -52,15 +52,11 @@ describe('handlers', function() {
   });
 
   describe("social.cookies-get-response", function() {
-    var oldConfig;
-
     beforeEach(function() {
-      oldConfig = _config;
       _cookieNickname = undefined;
     });
 
     afterEach(function() {
-      _config = oldConfig;
       _cookieNickname = undefined;
     });
 
