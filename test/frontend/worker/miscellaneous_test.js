@@ -1,4 +1,4 @@
-/*global chai, sinon, _signinCallback, CollectedContact,
+/*global chai, sinon, _signinCallback,
    _currentUserData:true, UserData, browserPort:true, contactsDb:true,
    loadContacts, currentUsers, server, ports */
 var expect = chai.expect;
