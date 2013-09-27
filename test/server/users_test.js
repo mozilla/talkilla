@@ -66,6 +66,17 @@ describe("User", function() {
   });
 
   describe("#waitForEvents", function() {
+    var clock;
+
+    beforeEach(function() {
+      // Use fake timers here to keep the tests running fast and
+      // avoid waiting for the second long timeouts to occur.
+      clock = sinon.useFakeTimers();
+    });
+
+    afterEach(function() {
+      clock.restore();
+    });
 
     it("should execute the given callback if there is events",
       function() {
@@ -86,6 +97,7 @@ describe("User", function() {
           .to.equal(true);
         done();
       });
+      clock.tick(config.LONG_POLLING_TIMEOUT * 3);
     });
 
     it("should stop the timeout and execute the callback " +
@@ -105,6 +117,7 @@ describe("User", function() {
         setTimeout(function() {
           user.send({some: "data"});
         }, 10);
+        clock.tick(config.LONG_POLLING_TIMEOUT * 3);
       });
 
   });

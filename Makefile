@@ -39,7 +39,7 @@ runserver_dev:
 
 .PHONY: cover_server
 cover_server:
-	@env NODE_ENV=development $(NODE_LOCAL_BIN)/istanbul cover \
+	@env NODE_ENV=test $(NODE_LOCAL_BIN)/istanbul cover \
 		$(NODE_LOCAL_BIN)/_mocha -- test/server
 	@echo aim your browser at coverage/lcov-report/index.html for details
 

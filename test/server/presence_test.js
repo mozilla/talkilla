@@ -16,6 +16,7 @@ var https = require("https");
 require("../../server/server");
 var presence = require("../../server/presence");
 var logger = require("../../server/logger");
+var config = require('../../server/config').config;
 
 describe("presence", function() {
 
@@ -174,6 +175,17 @@ describe("presence", function() {
     });
 
     describe("#stream", function() {
+      var clock;
+
+      beforeEach(function() {
+        // Use fake timers here to keep the tests running fast and
+        // avoid waiting for the second long timeouts to occur.
+        clock = sinon.useFakeTimers();
+      });
+
+      afterEach(function() {
+        clock.restore();
+      });
 
       it("should send to all the present users an new one joined", function() {
         users.add("foo");
@@ -208,6 +220,7 @@ describe("presence", function() {
         sandbox.stub(user, "present").returns(true);
 
         api.stream(req, res);
+        clock.tick(config.LONG_POLLING_TIMEOUT * 3);
       });
 
       it("should send a list of events", function(done) {
