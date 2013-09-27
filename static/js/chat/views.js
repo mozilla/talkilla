@@ -397,6 +397,7 @@
 
       this.call.on('change:state', this.render, this);
 
+      window.addEventListener("resize", this._onWindowResize);
       this.render();
     },
 
@@ -442,6 +443,29 @@
         this.$el.show();
       else
         this.$el.hide();
+    },
+
+    _localVideoGutterWidth: 5, // XXX change chat.css prop in sync with this
+    _onWindowResize: function(event) {
+
+      // (re)positions localVideo to be stapled inside right of remote-video
+
+      var localVideo = this.$('#local-video').get(0);
+      var remoteVideo = this.$('#remote-video').get(0);
+
+      var streamHeight = remoteVideo.videoHeight;
+      var streamWidth = remoteVideo.videoWidth;
+
+      if (!streamHeight || !streamWidth) {
+        return;
+      }
+
+      var pillarboxWidth = app.utils.getPillarboxWidth(
+        [remoteVideo.width, remoteVideo.height],
+        [streamWidth, streamHeight]);
+
+      localVideo.style.right =
+        this._localVideoGutterWidth + pillarboxWidth + "px";
     }
   });
 
