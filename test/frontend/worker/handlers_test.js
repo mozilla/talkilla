@@ -188,13 +188,15 @@ describe('handlers', function() {
 
             callback("error", "{}");
             sinon.assert.calledOnce(handlers.postEvent);
-            sinon.assert.calledWith(handlers.postEvent, "talkilla.login-failure");
+            sinon.assert.calledWith(
+              handlers.postEvent, "talkilla.login-failure");
           });
 
           handlers['talkilla.login']({
             topic: "talkilla.login",
             data: {assertion: "fake assertion"}
           });
+        });
     });
 
     describe("Accepted Login", function() {
@@ -470,7 +472,7 @@ describe('handlers', function() {
     beforeEach(function() {
       _currentUserData = new UserData();
       sandbox.stub(_currentUserData, "send");
-      sandbox.stub(server, "presenceRequest");
+      sandbox.stub(spa, "presenceRequest");
     });
 
     afterEach(function() {
@@ -499,7 +501,7 @@ describe('handlers', function() {
           data: {}
         });
 
-        sinon.assert.calledOnce(server.presenceRequest);
+        sinon.assert.calledOnce(spa.presenceRequest);
       });
 
   });

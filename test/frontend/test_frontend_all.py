@@ -68,7 +68,7 @@ class FrontEndSuite(unittest.TestCase):
         self.check_page(SERVER_PREFIX + "worker/index.html")
 
     def test_spa_index_html(self):
-        self.check_page_for_zero_failures(SERVER_PREFIX + "spa/index.html")
+        self.check_page(SERVER_PREFIX + "spa/index.html")
 
 
 if __name__ == "__main__":
