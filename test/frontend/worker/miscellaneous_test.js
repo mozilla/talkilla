@@ -1,4 +1,4 @@
-/*global chai, sinon, _signinCallback,
+/*global chai, sinon, _signinCallback, CollectedContact,
    _currentUserData:true, UserData, browserPort:true, contactsDb:true,
    loadContacts, currentUsers, server, ports */
 var expect = chai.expect;
@@ -78,6 +78,19 @@ describe('Miscellaneous', function() {
         ]);
         done();
       });
+    });
+
+    it("should broadcast an error message on failure", function() {
+      var err = new Error("ko");
+      sandbox.stub(ports, "broadcastError");
+      sandbox.stub(contactsDb, "all", function(cb) {
+        cb(err);
+      });
+
+      loadContacts();
+
+      sinon.assert.calledOnce(ports.broadcastError);
+      sinon.assert.calledWithExactly(ports.broadcastError, err);
     });
   });
 });
