@@ -44,12 +44,12 @@ describe("CollectedContacts", function() {
       });
     });
 
-    it("should throw if the database is already loaded", function(done) {
-      contactsDb.load(function() {
-        expect(function() {
-          contactsDb.load(function() {});
-        }).to.Throw(Error);
-        done();
+    it("shouldn't throw if the database is already loaded", function(done) {
+      contactsDb.load(function(db1) {
+        contactsDb.load(function(db2) {
+          expect(db1).eql(db2);
+          done();
+        });
       });
     });
   });
