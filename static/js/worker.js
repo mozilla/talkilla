@@ -2,12 +2,8 @@
 /* jshint unused:false */
 
 importScripts('../vendor/backbone-events-standalone-0.1.5.js');
-importScripts('worker/http.js',    // exposes HTTP
-              'worker/spa.js',
-              'spa/port.js',
-              'spa/server.js',
-              'spa/talkilla_spa.js',
-              'spa/dummy_worker.js'); // exposes Server
+importScripts('worker/http.js', 'worker/spa.js', 'spa/dummy_worker.js');
+
 
 var _config = {DEBUG: false};
 var _currentUserData;
