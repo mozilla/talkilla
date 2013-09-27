@@ -118,6 +118,21 @@ describe("Server", function() {
                                        JSON.stringify(config.config));
       });
 
+      it("should return the config in a js file", function() {
+        var req = {};
+        var res = {header: sinon.spy(), send: sinon.spy()};
+        api.jsConfig(req, res);
+
+        sinon.assert.calledOnce(res.header);
+        sinon.assert.calledWithExactly(
+          res.header, "Content-Type", "application/javascript");
+        sinon.assert.calledOnce(res.send);
+        sinon.assert.calledWithExactly(res.send, 200,
+                                       'function loadConfig() { return ' +
+                                       JSON.stringify(config.config) +
+                                       '; }');
+      });
+
     });
 
   });
