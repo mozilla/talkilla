@@ -186,7 +186,7 @@ describe("presence", function() {
       });
 
       it("should send to all the present users an new one joined", function() {
-        var foo = users.add("foo").get("foo");
+        users.add("foo");
         var bar = users.add("bar").get("bar");
         var xoo = users.add("xoo").get("xoo");
         var oof = users.add("oof").get("oof");
