@@ -57,7 +57,10 @@ describe("CollectedContacts", function() {
       contactsDb.add("florian", function(err, username) {
         expect(err).to.be.a("null");
         expect(username).eql("florian");
-        done();
+        this.all(function(err, contacts) {
+          expect(contacts).eql(["florian"]);
+          done();
+        });
       });
     });
 
@@ -89,6 +92,17 @@ describe("CollectedContacts", function() {
             expect(contacts).to.have.length.of(2);
             expect(contacts).to.contain("niko");
             expect(contacts).to.contain("jb");
+            done();
+          });
+        });
+      });
+    });
+
+    it("should preserve the order of insertion", function(done) {
+      contactsDb.add("niko", function() {
+        this.add("jb", function() {
+          this.all(function(err, contacts) {
+            expect(contacts).eql(["niko", "jb"]);
             done();
           });
         });

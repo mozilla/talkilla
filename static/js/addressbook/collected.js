@@ -58,7 +58,9 @@ var CollectedContacts = (function() {
       var cursor = event.target.result;
       if (!cursor)
         return cb.call(this, null, records);
+      records.reverse();
       records.push(cursor.value.username);
+      records.reverse();
       /* jshint -W024 */
       return cursor.continue();
     }.bind(this);
