@@ -1,13 +1,12 @@
 /* jshint unused:false */
 var CollectedContacts = (function() {
   function CollectedContacts(options) {
-    this.options = options || {};
-    if (!this.options.dbname)
-      this.options.dbname = "TalkillaContacts";
-    if (!this.options.storename)
-      this.options.storename = "contacts";
-    if (!this.options.version)
-      this.options.version = 1;
+    options = options || {};
+    this.options = {
+      dbname: options.dbname || "TalkillaContacts",
+      storename: options.storename || "contacts",
+      version: options.version || 1
+    };
     this.db = undefined;
   }
 

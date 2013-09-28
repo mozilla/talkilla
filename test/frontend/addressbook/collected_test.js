@@ -8,9 +8,7 @@ describe("CollectedContacts", function() {
 
   beforeEach(function() {
     contactsDb = new CollectedContacts({
-      dbname: "TalkillaContactsTest",
-      storename: "contacts",
-      version: 1
+      dbname: "TalkillaContactsTest"
     });
   });
 
@@ -28,6 +26,8 @@ describe("CollectedContacts", function() {
     it("should set default options", function() {
       expect(contactsDb.options).to.include.keys(
         "dbname", "storename", "version");
+      expect(contactsDb.options.storename).eql("contacts");
+      expect(contactsDb.options.version).eql(1);
     });
   });
 
