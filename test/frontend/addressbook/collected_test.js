@@ -7,8 +7,6 @@ describe("CollectedContacts", function() {
   var contactsDb;
 
   beforeEach(function() {
-    // For some reason, indexedDB doesn't like creating two
-    // databases with the same name in one run.
     contactsDb = new CollectedContacts({
       dbname: "TalkillaContactsTest",
       storename: "contacts",

@@ -72,13 +72,20 @@ var CollectedContacts = (function() {
   };
 
   CollectedContacts.prototype.drop = function(cb) {
+    var retried = false;
     this.close();
     var request = indexedDB.deleteDatabase(this.options.dbname);
     request.onsuccess = function() {
-      cb.call(this, null);
+      if (!retried)
+        cb.call(this, null);
     }.bind(this);
     request.onerror = function(event) {
-      cb.call(this, event.target.error);
+      cb.call(this, event.target.errorCode);
+    }.bind(this);
+    request.onblocked = function(event) {
+      // if blocked, reschedule another attempt for next tick
+      setTimeout(this.drop.bind(this, cb), 0);
+      retried = true;
     }.bind(this);
   };
 
