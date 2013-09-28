@@ -1,18 +1,20 @@
-/*global chai, CollectedContacts, IDBDatabase */
+/*global sinon, chai, CollectedContacts, IDBDatabase, IDBObjectStore */
 /* jshint expr:true */
 
 var expect = chai.expect;
 
 describe("CollectedContacts", function() {
-  var contactsDb;
+  var sandbox, contactsDb;
 
   beforeEach(function() {
+    sandbox = sinon.sandbox.create();
     contactsDb = new CollectedContacts({
       dbname: "TalkillaContactsTest"
     });
   });
 
   afterEach(function(done) {
+    sandbox.restore();
     contactsDb.drop(function() {
       done();
     });
@@ -50,6 +52,20 @@ describe("CollectedContacts", function() {
         });
       });
     });
+
+    it("should pass back any encountered error", function(done) {
+      sandbox.stub(indexedDB, "open", function() {
+        var request = {};
+        setTimeout(function() {
+          request.onerror({target: {errorCode: "load error"}});
+        });
+        return request;
+      });
+      contactsDb.load(function(err) {
+        expect(err).eql("load error");
+        done();
+      });
+    });
   });
 
   describe("#add", function() {
@@ -74,6 +90,21 @@ describe("CollectedContacts", function() {
           });
         });
       });
+
+    it("should pass back any encountered error", function(done) {
+      sandbox.stub(IDBObjectStore.prototype, "add", function() {
+        var request = {};
+        setTimeout(function() {
+          request.onerror({target: {error: {name: "InvalidStateError",
+                                            message: "add error"}}});
+        });
+        return request;
+      });
+      contactsDb.add("foo", function(err) {
+        expect(err.message).eql("add error");
+        done();
+      });
+    });
   });
 
   describe("#all", function() {
@@ -108,6 +139,20 @@ describe("CollectedContacts", function() {
         });
       });
     });
+
+    it("should pass back any encountered error", function(done) {
+      sandbox.stub(IDBObjectStore.prototype, "openCursor", function() {
+        var cursor = {};
+        setTimeout(function() {
+          cursor.onerror({target: {errorCode: "all error"}});
+        });
+        return cursor;
+      });
+      contactsDb.all(function(err) {
+        expect(err).eql("all error");
+        done();
+      });
+    });
   });
 
   describe("#close", function() {
@@ -127,6 +172,20 @@ describe("CollectedContacts", function() {
             done();
           });
         });
+      });
+    });
+
+    it("should pass back any encountered error", function(done) {
+      sandbox.stub(indexedDB, "deleteDatabase", function() {
+        var request = {};
+        setTimeout(function() {
+          request.onerror({target: {errorCode: "drop error"}});
+        });
+        return request;
+      });
+      contactsDb.drop(function(err) {
+        expect(err).eql("drop error");
+        done();
       });
     });
   });
