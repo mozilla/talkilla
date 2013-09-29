@@ -301,5 +301,36 @@ describe('Utils', function() {
      */
     it("should have defined behavior when sizes are non-integer multiples");
     it("should have defined behavior on zero-box-size elements");
-  });   
+  });
+
+  describe("#getPillarboxWidth", function () {
+
+    // We're stubbing out computeDisplayedVideoSize even though it's
+    // in module because testing this API only would be very hard to
+    // ensure we got sufficient coverage.  I.e. this is a "humble function",
+    // analogous to the "humble object" pattern.
+
+    it("should return half the difference between the box width and" +
+      " the displayed video width",
+      function() {
+        var boxWidth=400;
+        var fakeDisplayedWidth = 271;
+        var fakeDimension = 1;
+        sandbox.stub(app.utils, "computeDisplayedVideoSize").
+          returns([fakeDisplayedWidth, fakeDimension]);
+
+        var pbWidth = app.utils.getPillarboxWidth([boxWidth, fakeDimension],
+          [fakeDimension, fakeDimension]);
+
+        expect(pbWidth).to.equal((boxWidth - fakeDisplayedWidth) / 2);
+      });
+
+
+    // XXX need to write test to define behavior when returned value would
+    // not be an integer, make the test pass, and remove the similar
+    // comment in the impl code
+    it("should behave in a defined way when the return value would not" +
+      " be an int");
+
+  });
 });
