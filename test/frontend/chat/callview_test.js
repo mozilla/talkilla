@@ -54,15 +54,15 @@ describe("CallView", function() {
       expect(shouldExplode).to.Throw(Error, /missing parameter: el/);
     });
 
-    it("should attach the #_onWindowResize handler to the window", function() {
+    it("should attach a resize handler to the window", function() {
 
       sandbox.stub(window, "addEventListener");
 
-      var callView = new app.views.CallView({el: el, call: call});
+      new app.views.CallView({el: el, call: call});
 
       sinon.assert.calledOnce(window.addEventListener);
-      sinon.assert.calledWithExactly(window.addEventListener, "resize",
-        callView._onWindowResize);
+      sinon.assert.calledWith(window.addEventListener, "resize",
+        sinon.match.func);
     });
 
     describe("Change events", function() {
@@ -220,6 +220,7 @@ describe("CallView", function() {
     var el, callView, localElement, fakeEvent, remoteElement,
       fakePillarboxWidth;
 
+    // XXX adjust tests and code to use remote*.client*
     beforeEach(function() {
       el = $(['<div>',
         '  <div id="local-video" width="20" height="20"></div>',
@@ -243,6 +244,10 @@ describe("CallView", function() {
       $("#fixtures").empty();
     });
 
+    // XXX
+    it("should not fire when the view is not small");
+
+    // XXX adjust test to also check that the view is small
     it("should get the pillarbox width of the remoteVideo element",
       function() {
         callView._onWindowResize(fakeEvent);

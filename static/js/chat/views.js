@@ -397,7 +397,7 @@
 
       this.call.on('change:state', this.render, this);
 
-      window.addEventListener("resize", this._onWindowResize);
+      window.addEventListener("resize", this._onWindowResize.bind(this));
       this.render();
     },
 
@@ -445,7 +445,10 @@
         this.$el.hide();
     },
 
-    _localVideoGutterWidth: 5, // XXX change chat.css prop in sync with this
+    // be sure to change the localVideo.right property in chat.css when
+    // changing this!
+    _localVideoGutterWidth: 5,
+
     _onWindowResize: function(event) {
 
       // (re)positions localVideo to be stapled inside right of remote-video
