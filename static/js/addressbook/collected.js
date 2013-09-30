@@ -45,6 +45,8 @@ var CollectedContacts = (function() {
       cb.call(this, event.target.errorCode);
     }.bind(this);
     request.onupgradeneeded = function(event) {
+      // the callback will be called by the onsuccess event handler when the
+      // whole operation is performed
       this._createStore(event.target.result);
     }.bind(this);
     request.onsuccess = function(event) {
