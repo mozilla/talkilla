@@ -2,7 +2,7 @@
 /* jshint unused:false */
 
 var SPA = (function() {
-  function SPA(options) {
+  function SPA() {
     this.worker = new DummyWorker(); // XXX: A real Worker needs an URL
     this.worker.onmessage = this._onMessage.bind(this);
   }
