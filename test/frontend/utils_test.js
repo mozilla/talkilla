@@ -214,4 +214,92 @@ describe('Utils', function() {
 
   });
 
+  describe("#computeDisplayedVideoSize", function(){
+
+    it("should throw an exception if the given stream width or height is 0",
+      function() {
+        function caller() {
+          app.utils.computeDisplayedVideoSize([1,1], [0,0]);
+        }
+
+        expect(caller).to.throw(Error);
+      });
+
+    it("should return either size when stream and box sizes are identical",
+      function() {
+        var displaySize = app.utils.computeDisplayedVideoSize([640,400],
+          [640,400]);
+        expect(displaySize).to.deep.equal([640,400]);
+      });
+
+    it("should give the stream size when boxHeight==streamHeight and" +
+      " boxWidth>streamWidth",
+      function() {
+        var displaySize = app.utils.computeDisplayedVideoSize([1280,400],
+          [640,400]);
+        expect(displaySize).to.deep.equal([640,400]);
+      });
+
+    it("should scale down correctly when boxHeight==streamHeight and" +
+      "boxWidth<streamWidth",
+      function() {
+        var displaySize = app.utils.computeDisplayedVideoSize([640,200],
+          [640,400]);
+        expect(displaySize).to.deep.equal([320,200]);
+      });
+
+    it("should scale down correctly when boxHeight<streamHeight and" +
+      " boxWidth==streamWidth",
+      function() {
+        var displaySize = app.utils.computeDisplayedVideoSize([320,200],
+          [640,400]);
+        expect(displaySize).to.deep.equal([320,200]);
+      });
+
+    it("should give the stream size when boxHeight>streamHeight and" +
+      " boxWidth==streamWidth",
+      function(){
+        var displaySize = app.utils.computeDisplayedVideoSize([640,800],
+          [640,400]);
+        expect(displaySize).to.deep.equal([640,400]);
+      });
+
+    it("should scale up correctly when boxHeight>streamHeight and" +
+      " boxWidth>streamWidth",
+      function(){
+        var displaySize = app.utils.computeDisplayedVideoSize([1280,800],
+          [640,400]);
+        expect(displaySize).to.deep.equal([1280,800]);
+      });
+
+    it("should scale down correctly when boxHeight<streamHeight and" +
+      " boxWidth<streamWidth",
+      function(){
+        var displaySize = app.utils.computeDisplayedVideoSize([640,400],
+          [1280,800]);
+        expect(displaySize).to.deep.equal([640,400]);
+      });
+
+    it("should scale down correctly when boxHeight<streamHeight and" +
+      " boxWidth>streamWidth",
+      function(){
+        var displaySize = app.utils.computeDisplayedVideoSize([640,400],
+          [1280,200]);
+        expect(displaySize).to.deep.equal([640,100]);
+      });
+
+    it("should scale down correctly when boxHeight>streamHeight and" +
+      " boxWidth<streamWidth",
+      function(){
+        var displaySize = app.utils.computeDisplayedVideoSize([1280,200],
+          [640,400]);
+        expect(displaySize).to.deep.equal([320,200]);
+      });
+
+    /* XXX these two tests should be filled in and made to pass
+     * once it's clearer what the desired API is.
+     */
+    it("should have defined behavior when sizes are non-integer multiples");
+    it("should have defined behavior on zero-box-size elements");
+  });   
 });
