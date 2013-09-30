@@ -1,5 +1,19 @@
 /* jshint unused:false */
+
+/**
+ * Local contacts database powered by indexedDB.
+ */
 var CollectedContacts = (function() {
+  /**
+   * Constructor.
+   *
+   * Available options:
+   * - {String} dbname: indexedDB database name (default: "TalkillaContacts")
+   * - {String} storename: indexedDB database store name (default: "contacts")
+   * - {Number} version: indexedDB database version number (default: 1)
+   *
+   * @param {Object} options Options
+   */
   function CollectedContacts(options) {
     options = options || {};
     this.options = {
@@ -10,6 +24,14 @@ var CollectedContacts = (function() {
     this.db = undefined;
   }
 
+  /**
+   * Loads the database.
+   * @param  {Function} cb Callback
+   *
+   * Callback parameters:
+   * - {Error|null} err: Encountered error, if any
+   * - {IDBDatabase} db: indexedDB database object
+   */
   CollectedContacts.prototype.load = function(cb) {
     if (this.db)
       return cb.call(this, null, this.db);
@@ -29,6 +51,15 @@ var CollectedContacts = (function() {
     }.bind(this);
   };
 
+  /**
+   * Adds a new contact to the database.
+   * @param {String}   username Contact information
+   * @param {Function} cb       Callback
+   *
+   * Callback parameters:
+   * - {Error|null} err:      Encountered error, if any
+   * - {String}     username: Inserted contact username
+   */
   CollectedContacts.prototype.add = function(username, cb) {
     if (!this.db)
       return this.load(this.add.bind(this, username, cb));
@@ -38,6 +69,7 @@ var CollectedContacts = (function() {
     }.bind(this);
     request.onerror = function(event) {
       var err = event.target.error;
+      // ignore constraint error when a contact already exists in the db
       if (err.name !== "ConstraintError")
         return cb.call(this, err);
       event.preventDefault();
@@ -45,6 +77,14 @@ var CollectedContacts = (function() {
     }.bind(this);
   };
 
+  /**
+   * Retrieves all contacts from the database.
+   * @param  {Function} cb Callback
+   *
+   * Callback parameters:
+   * - {Error|null} err:      Encountered error, if any
+   * - {Array}      contacts: Contacts list
+   */
   CollectedContacts.prototype.all = function(cb) {
     if (!this.db)
       return this.load(this.all.bind(this, cb));
@@ -65,6 +105,9 @@ var CollectedContacts = (function() {
     }.bind(this);
   };
 
+  /**
+   * Closes the indexedDB database.
+   */
   CollectedContacts.prototype.close = function() {
     if (!this.db)
       return;
@@ -72,6 +115,13 @@ var CollectedContacts = (function() {
     delete this.db;
   };
 
+  /**
+   * Drops the indexedDB database.
+   * @param  {Function} cb Callback
+   *
+   * Callback parameters:
+   * - {Error|null} err:  Encountered error, if any
+   */
   CollectedContacts.prototype.drop = function(cb) {
     var retried = false;
     this.close();
@@ -90,6 +140,11 @@ var CollectedContacts = (function() {
     }.bind(this);
   };
 
+  /**
+   * Creates the object store for contacts.
+   * @param  {IDBDatabase}    db indexedDB database
+   * @return {IDBObjectStore}
+   */
   CollectedContacts.prototype._createStore = function(db) {
     var store = db.createObjectStore(this.options.storename, {
       keyPath: "username"
@@ -98,6 +153,11 @@ var CollectedContacts = (function() {
     return store;
   };
 
+  /**
+   * Retrieve current contact object store.
+   * @param  {String} mode Access mode - "readwrite" or "readonly")
+   * @return {IDBObjectStore}
+   */
   CollectedContacts.prototype._getStore = function(mode) {
     return this.db.transaction(this.options.storename, mode)
                   .objectStore(this.options.storename);
