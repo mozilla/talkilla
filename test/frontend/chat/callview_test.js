@@ -220,7 +220,6 @@ describe("CallView", function() {
     var el, callView, localElement, fakeEvent, remoteElement,
       fakePillarboxWidth;
 
-    // XXX adjust tests and code to use remote*.client*
     beforeEach(function() {
 
       // note that we specify width and height here, even though they don't
