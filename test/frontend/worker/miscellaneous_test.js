@@ -1,7 +1,6 @@
 /*global chai, sinon, _signinCallback,
-   _currentUserData:true, UserData, getContactsDatabase, browserPort: true,
-   storeContact, contacts:true, contactsDb:true, indexedDB,
-   currentUsers, server, ports */
+   _currentUserData:true, UserData, browserPort:true, contactsDb:true,
+   loadContacts, currentUsers, server, ports */
 var expect = chai.expect;
 
 describe('Miscellaneous', function() {
@@ -11,11 +10,14 @@ describe('Miscellaneous', function() {
   beforeEach(function () {
     sandbox = sinon.sandbox.create();
     browserPort = {postEvent: sandbox.spy()};
+    contactsDb.options.dbname = "TalkillaContactsTest";
   });
 
-  afterEach(function () {
-    browserPort = undefined;
+  afterEach(function (done) {
     sandbox.restore();
+    contactsDb.drop(function() {
+      done();
+    });
   });
 
   describe("#_signinCallback", function() {
@@ -50,72 +52,45 @@ describe('Miscellaneous', function() {
       });
   });
 
-  describe("storeContact", function() {
-    var contactDBName, i = 0;
-
+  describe("#loadContacts", function() {
     beforeEach(function(done) {
-      // For some reason, indexedDB doesn't like creating two
-      // databases with the same name in one run.
-      contactDBName = "TalkillaContactsUnitTest" + i++;
-      getContactsDatabase(function() {
-        // Check that we start with an empty contact list.
-        expect(contacts).to.eql([]);
+      // Store a contact for the tests
+      contactsDb.add("foo", function() {
         done();
-      }, contactDBName);
-    });
-
-    afterEach(function() {
-      contactsDb.close();
-      contactsDb = undefined;
-      contacts = undefined;
-      indexedDB.deleteDatabase(contactDBName);
-    });
-
-    it("should store contacts", function(done) {
-      storeContact("foo", function() {
-        // Check that the contact has been added to the cached list.
-        expect(contacts).to.eql(["foo"]);
-        // Drop all references to the contact list
-        contacts = undefined;
-        contactsDb = undefined;
-        getContactsDatabase(function() {
-          expect(contacts).to.eql(["foo"]);
-          done();
-        }, contactDBName);
       });
     });
 
-    describe("load contacts", function () {
-      beforeEach(function(done) {
-        // Store a contact for the tests
-        storeContact("foo", function() {
-          contacts = undefined;
-          contactsDb = undefined;
-          done();
-        }, contactDBName);
+    it("should add contacts to the currentUsers list", function(done) {
+      loadContacts(function() {
+        expect(currentUsers).eql({
+          foo: {presence: "disconnected"}
+        });
+        done();
+      });
+    });
+
+    it("should broadcast a talkilla.users event", function(done) {
+      sandbox.stub(ports, "broadcastEvent");
+      loadContacts(function() {
+        sinon.assert.calledOnce(ports.broadcastEvent);
+        sinon.assert.calledWith(ports.broadcastEvent, "talkilla.users", [
+          {nick: "foo", presence: "disconnected"}
+        ]);
+        done();
+      });
+    });
+
+    it("should broadcast an error message on failure", function() {
+      var err = new Error("ko");
+      sandbox.stub(ports, "broadcastError");
+      sandbox.stub(contactsDb, "all", function(cb) {
+        cb(err);
       });
 
-      it("should add contacts to the currentUsers list", function(done) {
-        // Drop all references to the contact list
-        getContactsDatabase(function() {
-          expect(currentUsers).to.eql({
-            foo: {presence: "disconnected"}
-          });
-          done();
-        }, contactDBName);
-      });
+      loadContacts();
 
-      it("should broadcast a talkilla.users event", function(done) {
-        sandbox.stub(ports, "broadcastEvent");
-        // Drop all references to the contact list
-        getContactsDatabase(function() {
-          sinon.assert.calledOnce(ports.broadcastEvent);
-          sinon.assert.calledWith(ports.broadcastEvent, "talkilla.users", [
-            {nick: "foo", presence: "disconnected"}
-          ]);
-          done();
-        }, contactDBName);
-      });
+      sinon.assert.calledOnce(ports.broadcastError);
+      sinon.assert.calledWithExactly(ports.broadcastError, err);
     });
   });
 });
