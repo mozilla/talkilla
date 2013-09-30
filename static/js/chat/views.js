@@ -464,7 +464,7 @@
       }
 
       var pillarboxWidth = app.utils.getPillarboxWidth(
-        [remoteVideo.width, remoteVideo.height],
+        [remoteVideo.clientWidth, remoteVideo.clientHeight],
         [streamWidth, streamHeight]);
 
       localVideo.style.right =

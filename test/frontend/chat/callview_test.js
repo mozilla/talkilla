@@ -222,6 +222,13 @@ describe("CallView", function() {
 
     // XXX adjust tests and code to use remote*.client*
     beforeEach(function() {
+
+      // note that we specify width and height here, even though they don't
+      // get laid out, and will therefore be _different_ than clientWidth
+      // and clientWidth (which happens for different reasons with <video>
+      // in the production code).  This is intentional so that our tests later
+      // can ensure the implementation will compute the correct results by
+      // using client* for its math.
       el = $(['<div>',
         '  <div id="local-video" width="20" height="20"></div>',
         '  <div id="remote-video" width="320" height="200"></div>',
@@ -252,9 +259,12 @@ describe("CallView", function() {
       function() {
         callView._onWindowResize(fakeEvent);
 
+        // Note that we are testing against clientWidth and clientHeight,
+        // because using width & height will not work in production.
         sinon.assert.calledOnce(app.utils.getPillarboxWidth);
-        sinon.assert.calledWith(app.utils.getPillarboxWidth, sinon.match.array,
-          sinon.match.array);
+        sinon.assert.calledWith(app.utils.getPillarboxWidth,
+          [remoteElement.clientWidth, remoteElement.clientHeight],
+          [remoteElement.videoWidth, remoteElement.videoHeight]);
       });
 
     it("should set the CSS |right| property on the localVideo element to" +
