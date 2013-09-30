@@ -3,9 +3,9 @@
 /* jshint expr:true */
 var expect = chai.expect;
 
-var _app = app;
-
 describe("ChatApp", function() {
+  "use strict";
+
   var sandbox, chatApp, AppPortStub;
   var callData = {peer: "bob", peerPresence: "connected"};
   var incomingCallData = {
@@ -26,10 +26,6 @@ describe("ChatApp", function() {
   var fakeOffer = {type: "offer", sdp: fakeSDP("\nm=video aaa\nm=audio bbb")};
   var fakeAnswer = {type: "answer", sdp: fakeSDP("\nm=video ccc\nm=audio ddd")};
   var fakeDataChannel = {fakeDataChannel: true};
-
-  before(function() {
-    app = _app;
-  });
 
   beforeEach(function() {
     AppPortStub = _.extend({postEvent: sinon.spy()}, Backbone.Events);
@@ -74,7 +70,6 @@ describe("ChatApp", function() {
   });
 
   function assertEventTriggersHandler(event, handler, data) {
-    "use strict";
 
     // need to stub the prototype so that the stub happens before
     // the constructor bind()s the method
@@ -89,7 +84,6 @@ describe("ChatApp", function() {
 
   it("should attach _onConversationOpen to talkilla.conversation-open",
     function() {
-      "use strict";
       assertEventTriggersHandler("talkilla.conversation-open",
         "_onConversationOpen", callData);
     });
@@ -122,8 +116,6 @@ describe("ChatApp", function() {
   });
 
   function assertModelEventTriggersHandler(event, handler) {
-    "use strict";
-
     // need to stub the prototype so that the stub happens before
     // the constructor bind()s the method
     sandbox.stub(ChatApp.prototype, handler);
@@ -159,7 +151,6 @@ describe("ChatApp", function() {
     });
 
   it("should initialize the callEstablishView property", function() {
-    "use strict";
     sandbox.stub(app.views, "CallEstablishView");
     chatApp = new ChatApp();
     expect(chatApp.callEstablishView).
@@ -186,8 +177,6 @@ describe("ChatApp", function() {
     var callFixture;
 
     beforeEach(function() {
-      "use strict";
-
       callFixture = $('<div id="call"></div>');
       $("#fixtures").append(callFixture);
 
@@ -205,7 +194,6 @@ describe("ChatApp", function() {
     });
 
     afterEach(function() {
-      "use strict";
       $("#fixtures").empty();
     });
 

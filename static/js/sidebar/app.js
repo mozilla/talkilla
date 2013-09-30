@@ -1,31 +1,10 @@
-/*global AppPort*/
+/*global app, AppPort*/
 /* jshint unused: false */
 /**
  * Sidebar application.
  */
-var SidebarApp = (function($, Backbone, _) {
+var SidebarApp = (function(app, $) {
   "use strict";
-
-  /**
-   * Application object
-   * @type {Object}
-   */
-  var app = window.app = {
-    // default options
-    options: {},
-
-    // app modules
-    models: {},
-    views: {},
-    utils: {},
-
-    start: function(options) {
-      _.extend(this.options, options || {});
-    }
-  };
-
-  // Add event support to the app
-  _.extend(app, Backbone.Events);
 
   function SidebarApp(options) {
     options = options || {};
@@ -160,4 +139,4 @@ var SidebarApp = (function($, Backbone, _) {
   };
 
   return SidebarApp;
-})(jQuery, Backbone, _);
+})(app, jQuery);
