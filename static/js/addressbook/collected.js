@@ -9,12 +9,12 @@ var CollectedContacts = (function() {
   /**
    * Constructor.
    *
+   * @param {Object} options Options
+   *
    * Available options:
    * - {String} dbname: indexedDB database name (default: "TalkillaContacts")
    * - {String} storename: indexedDB database store name (default: "contacts")
    * - {Number} version: indexedDB database version number (default: 1)
-   *
-   * @param {Object} options Options
    */
   function CollectedContacts(options) {
     options = options || {};
@@ -28,6 +28,7 @@ var CollectedContacts = (function() {
 
   /**
    * Loads the database.
+   *
    * @param  {Function} cb Callback
    *
    * Callback parameters:
@@ -56,7 +57,9 @@ var CollectedContacts = (function() {
   };
 
   /**
-   * Adds a new contact to the database.
+   * Adds a new contact to the database. Automatically opens the database
+   * connexion if needed.
+   *
    * @param {String}   username Contact information
    * @param {Function} cb       Callback
    *
@@ -65,24 +68,28 @@ var CollectedContacts = (function() {
    * - {String}     username: Inserted contact username
    */
   CollectedContacts.prototype.add = function(username, cb) {
-    if (!this.db)
-      return this.load(this.add.bind(this, username, cb));
-    var request = this._getStore("readwrite").add({username: username});
-    request.onsuccess = function() {
-      cb.call(this, null, username);
-    }.bind(this);
-    request.onerror = function(event) {
-      var err = event.target.error;
-      // ignore constraint error when a contact already exists in the db
-      if (err.name !== "ConstraintError")
+    this.load(function(err) {
+      if (err)
         return cb.call(this, err);
-      event.preventDefault();
-      cb.call(this, null, username);
-    }.bind(this);
+      var request = this._getStore("readwrite").add({username: username});
+      request.onsuccess = function() {
+        cb.call(this, null, username);
+      }.bind(this);
+      request.onerror = function(event) {
+        var err = event.target.error;
+        // ignore constraint error when a contact already exists in the db
+        if (err.name !== "ConstraintError")
+          return cb.call(this, err);
+        event.preventDefault();
+        cb.call(this, null, username);
+      }.bind(this);
+    });
   };
 
   /**
-   * Retrieves all contacts from the database.
+   * Retrieves all contacts from the database. Automatically opens the database
+   * connexion if needed.
+   *
    * @param  {Function} cb Callback
    *
    * Callback parameters:
@@ -90,21 +97,23 @@ var CollectedContacts = (function() {
    * - {Array}      contacts: Contacts list
    */
   CollectedContacts.prototype.all = function(cb) {
-    if (!this.db)
-      return this.load(this.all.bind(this, cb));
-    var cursor = this._getStore("readonly").openCursor(),
-        records = [];
-    cursor.onerror = function(event) {
-      cb.call(this, event.target.errorCode);
-    }.bind(this);
-    cursor.onsuccess = function(event) {
-      var cursor = event.target.result;
-      if (!cursor)
-        return cb.call(this, null, records);
-      records.unshift(cursor.value.username);
-      /* jshint -W024 */
-      return cursor.continue();
-    }.bind(this);
+    this.load(function(err) {
+      if (err)
+        return cb.call(this, err);
+      var cursor = this._getStore("readonly").openCursor(),
+          records = [];
+      cursor.onerror = function(event) {
+        cb.call(this, event.target.errorCode);
+      }.bind(this);
+      cursor.onsuccess = function(event) {
+        var cursor = event.target.result;
+        if (!cursor)
+          return cb.call(this, null, records);
+        records.unshift(cursor.value.username);
+        /* jshint -W024 */
+        return cursor.continue();
+      }.bind(this);
+    });
   };
 
   /**
@@ -119,6 +128,7 @@ var CollectedContacts = (function() {
 
   /**
    * Drops the indexedDB database.
+   *
    * @param  {Function} cb Callback
    *
    * Callback parameters:
@@ -147,6 +157,7 @@ var CollectedContacts = (function() {
 
   /**
    * Creates the object store for contacts.
+   *
    * @param  {IDBDatabase}    db indexedDB database
    * @return {IDBObjectStore}
    */
@@ -160,6 +171,7 @@ var CollectedContacts = (function() {
 
   /**
    * Retrieve current contact object store.
+   *
    * @param  {String} mode Access mode - "readwrite" or "readonly")
    * @return {IDBObjectStore}
    */
