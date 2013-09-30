@@ -168,9 +168,8 @@
    */
   app.utils.computeDisplayedVideoSize = function(boxSize, streamSize) {
 
-    if ( !streamSize[0] || !streamSize[1] ) {
+    if (!streamSize[0] || !streamSize[1])
       throw new Error("streamSize width and height cannot be 0");
-    }
 
     var widthRatio = boxSize[0] / streamSize[0];
     var heightRatio = boxSize[1] / streamSize[1];

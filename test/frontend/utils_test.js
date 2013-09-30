@@ -215,8 +215,6 @@ describe('Utils', function() {
   });
 
   describe("#computeDisplayedVideoSize", function(){
-    beforeEach(function() {
-    });
 
     it("should throw an exception if the given stream width or height is 0",
       function() {
