@@ -52,6 +52,9 @@ class FrontEndSuite(unittest.TestCase):
     def test_index_html(self):
         self.check_page(SERVER_PREFIX + "index.html")
 
+    def test_addressbook_index_html(self):
+        self.check_page(SERVER_PREFIX + "addressbook/index.html")
+
     def test_chat_index_html(self):
         self.check_page(SERVER_PREFIX + "chat/index.html")
 
