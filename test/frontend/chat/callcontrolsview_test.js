@@ -1,12 +1,15 @@
-/*global app, chai, sinon */
+/*global app:true, chai, sinon */
 
 var expect = chai.expect;
+
+var _app = app;
 
 describe("Call Controls View", function() {
   "use strict";
   var sandbox, call, media, el;
 
   before(function() {
+    app = _app;
     el = $('<ul>' +
            '<li class="btn-video"><a href="#"></a></li>' +
            '<li class="btn-audio"><a href="#"></a></li>' +
@@ -17,6 +20,10 @@ describe("Call Controls View", function() {
     // Just to hide it from the screen.
     $(el).hide();
     $('#fixtures').append(el);
+  });
+
+  after(function() {
+    _app = app;
   });
 
   beforeEach(function() {

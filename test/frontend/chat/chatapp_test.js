@@ -1,7 +1,9 @@
-/*global app, chai, ChatApp, sinon, WebRTC */
+/*global app:true, chai, ChatApp, sinon, WebRTC */
 
 /* jshint expr:true */
 var expect = chai.expect;
+
+var _app = app;
 
 describe("ChatApp", function() {
   var sandbox, chatApp, AppPortStub;
@@ -24,6 +26,10 @@ describe("ChatApp", function() {
   var fakeOffer = {type: "offer", sdp: fakeSDP("\nm=video aaa\nm=audio bbb")};
   var fakeAnswer = {type: "answer", sdp: fakeSDP("\nm=video ccc\nm=audio ddd")};
   var fakeDataChannel = {fakeDataChannel: true};
+
+  before(function() {
+    app = _app;
+  });
 
   beforeEach(function() {
     AppPortStub = _.extend({postEvent: sinon.spy()}, Backbone.Events);
