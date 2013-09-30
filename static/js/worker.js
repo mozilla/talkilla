@@ -1,4 +1,4 @@
-/* global indexedDB, importScripts, SPA, HTTP, SPA */
+/* global indexedDB, importScripts, SPA, HTTP */
 /* jshint unused:false */
 
 importScripts('../vendor/backbone-events-standalone-0.1.5.js');
