@@ -4,6 +4,8 @@
  * Local contacts database powered by indexedDB.
  */
 var CollectedContacts = (function() {
+  var ON_BLOCKED_MAX_RETRIES = 10;
+
   /**
    * Constructor.
    *
@@ -123,20 +125,23 @@ var CollectedContacts = (function() {
    * - {Error|null} err:  Encountered error, if any
    */
   CollectedContacts.prototype.drop = function(cb) {
-    var retried = false;
+    var attempt = 0;
     this.close();
     var request = indexedDB.deleteDatabase(this.options.dbname);
     request.onsuccess = function() {
-      if (!retried)
-        cb.call(this, null);
+      cb.call(this, null);
     }.bind(this);
     request.onerror = function(event) {
       cb.call(this, event.target.errorCode);
     }.bind(this);
     request.onblocked = function(event) {
-      // if blocked, reschedule another attempt for next tick
+      // trigger an error if max number of attempts has been reached
+      if (attempt >= ON_BLOCKED_MAX_RETRIES)
+        return cb.call(this, new Error("Unable to drop a blocked database " +
+                                       "after " + attempt + "attempts"));
+      // reschedule another attempt for next tick
       setTimeout(this.drop.bind(this, cb), 0);
-      retried = true;
+      attempt++;
     }.bind(this);
   };
 
