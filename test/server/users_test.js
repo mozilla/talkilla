@@ -4,9 +4,10 @@ var chai = require("chai");
 var expect = chai.expect;
 var sinon = require("sinon");
 
+var config = require('../../server/config').config;
+var logger = require('../../server/logger');
 var Users = require("../../server/users").Users;
 var User = require("../../server/users").User;
-var logger = require("../../server/logger");
 
 describe("User", function() {
 
@@ -15,6 +16,7 @@ describe("User", function() {
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
     user = new User("foo");
+    user.ondisconnect = sinon.spy();
   });
 
   afterEach(function() {
@@ -29,52 +31,138 @@ describe("User", function() {
 
   });
 
+  describe("#send", function() {
+
+    it("should queue the data if no pending timeout is available", function() {
+      var data = {message: "some message"};
+      sandbox.stub(user, "present").returns(true);
+
+      user.send(data);
+
+      expect(user.events).to.deep.equal([data]);
+    });
+
+    it("should stop to wait for events if one is available",
+      function(done) {
+        var data = {message: "some message"};
+        user.waitForEvents(function(events) {
+          expect(events).to.deep.equal([data]);
+          done();
+        });
+
+        user.send(data);
+      });
+
+    it("should log a warning if the user is not present", function() {
+      var data = {message: "some message"};
+      sandbox.stub(user, "present").returns(false);
+      sandbox.stub(logger, "warn");
+
+      user.send(data);
+
+      expect(user.events).to.deep.equal([]);
+      sinon.assert.calledOnce(logger.warn);
+    });
+  });
+
+  describe("#waitForEvents", function() {
+    var clock;
+
+    beforeEach(function() {
+      // Use fake timers here to keep the tests running fast and
+      // avoid waiting for the second long timeouts to occur.
+      clock = sinon.useFakeTimers();
+    });
+
+    afterEach(function() {
+      clock.restore();
+    });
+
+    it("should execute the given callback if there is events",
+      function() {
+        user.events = [1, 2, 3];
+        user.waitForEvents(function(events) {
+          expect(events).to.deep.equal([1, 2, 3]);
+        });
+        expect(user.events).to.deep.equal([]);
+      });
+
+    it("should timeout if no events are sent in the meantime", function(done) {
+      var beforeTimeout = new Date().getTime();
+      user.waitForEvents(function(events) {
+        var afterTimeout = new Date().getTime();
+
+        expect(events).to.deep.equal([]);
+        expect((afterTimeout - beforeTimeout) >= config.LONG_POLLING_TIMEOUT)
+          .to.equal(true);
+        done();
+      });
+      clock.tick(config.LONG_POLLING_TIMEOUT * 3);
+    });
+
+    it("should stop the timeout and execute the callback " +
+       "if events are sent in the meantime",
+      function(done) {
+        var beforeTimeout = new Date().getTime();
+
+        user.waitForEvents(function(events) {
+          var afterTimeout = new Date().getTime();
+
+          expect(events).to.deep.equal([{some: "data"}]);
+          expect((afterTimeout - beforeTimeout) < config.LONG_POLLING_TIMEOUT)
+            .to.equal(true);
+          done();
+        });
+
+        setTimeout(function() {
+          user.send({some: "data"});
+        }, 10);
+        clock.tick(config.LONG_POLLING_TIMEOUT * 3);
+      });
+
+  });
+
   describe("#connect", function() {
 
-    it("should attach the given websocket to the user", function() {
-      user.connect("fake ws");
-      expect(user.ws).to.equal("fake ws");
+    it("should start the disconnect timeout", function() {
+      user.connect();
+      expect(user.timeout).to.not.equal(undefined);
+    });
+
+  });
+
+  describe("#touch", function() {
+
+    it("should reset the current timeout", function() {
+      var oldTimeout, newTimeout;
+
+      user.connect();
+      oldTimeout = user.timeout;
+      user.touch();
+      newTimeout = user.timeout;
+
+      expect(oldTimeout).to.not.equal(newTimeout);
+    });
+
+    it("should return the user itself", function() {
+      expect(user.touch()).to.equal(user);
     });
 
   });
 
   describe("#disconnect", function() {
-
-    it("should close the WebSocket of a user and remove it", function() {
-      var fakeWS = {close: sinon.spy()};
-      user.connect(fakeWS).disconnect();
-
-      sinon.assert.calledOnce(fakeWS.close);
-      expect(user.ws).to.equal(undefined);
+    beforeEach(function() {
+      user.connect();
     });
 
-  });
-
-  describe("#send", function() {
-
-    it("should send data throught the attached websocket", function() {
-      var fakeWS = {send: sinon.spy()};
-      var data = {message: "some message"};
-      var errback = function() {};
-      user.connect(fakeWS);
-
-      user.send(data, errback);
-
-      sinon.assert.calledOnce(fakeWS.send);
-      sinon.assert.calledWithExactly(
-        fakeWS.send, JSON.stringify(data), errback);
+    it("should trigger the ondisconnect callback", function() {
+      user.disconnect();
+      sinon.assert.calledOnce(user.ondisconnect);
     });
 
-    it("should log an error if the websocket does not exist", function() {
-      var data = {message: "some message"};
-      var errback = function() {};
-      sandbox.stub(logger, "error");
-
-      user.send(data, errback);
-
-      sinon.assert.calledOnce(logger.error);
-      sinon.assert.calledWithExactly(
-        logger.error, {type: "websocket", err: new Error()});
+    it("should turn the timeout into an undefined object", function() {
+      user.disconnect();
+      expect(user.timeout).to.equal(undefined);
     });
 
   });

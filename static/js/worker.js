@@ -1,11 +1,14 @@
-/* global indexedDB, importScripts, Server, HTTP */
+/* global indexedDB, importScripts, Server, HTTP, CollectedContacts,
+   loadConfig  */
 /* jshint unused:false */
 
 importScripts('../vendor/backbone-events-standalone-0.1.5.js',
-              'worker/http.js',    // exposes HTTP
-              'worker/server.js'); // exposes Server
+              '/config.js',               // exposes loadConfig
+              'addressbook/collected.js', // exposes CollectedContacts
+              'worker/http.js',           // exposes HTTP
+              'worker/server.js');        // exposes Server
 
-var _config = {DEBUG: false};
+var gConfig = loadConfig();
 var _currentUserData;
 var _loginPending = false;
 var _autologinPending = false;
@@ -13,10 +16,13 @@ var ports;
 var browserPort;
 var currentConversation;
 var currentUsers = {};
-var contacts = [];
-var contactsDb;
-var kContactDBName = "contacts";
 var server;
+var contacts = [];
+var contactsDb = new CollectedContacts({
+  dbname: "TalkillaContacts",
+  storename: "contacts",
+  version: 1
+});
 
 // XXX we use this to map to what the sidebar wants, really
 // the sidebar should change so that we can just send the object.
@@ -27,74 +33,6 @@ function getCurrentUsersArray() {
   return Object.keys(currentUsers).map(function(userId) {
     return {nick: userId, presence: currentUsers[userId].presence};
   });
-}
-
-function getContactsDatabase(doneCallback, contactDBName) {
-  var kDBVersion = 1;
-  contactDBName = contactDBName || "TalkillaContacts";
-  var request = indexedDB.open(contactDBName, kDBVersion);
-
-  request.onerror = function() {
-    contacts = []; // Use an empty contact list if we fail to access the db.
-    if (doneCallback)
-      doneCallback();
-  };
-
-  request.onsuccess = function() {
-    contactsDb = request.result;
-    var objectStore = contactsDb.transaction(kContactDBName)
-                                .objectStore(kContactDBName);
-    contacts = [];
-    objectStore.openCursor().onsuccess = function(event) {
-      var cursor = event.target.result;
-      if (cursor) {
-        /* -W024 tells jshint to not yell at the 'continue' keyword,
-         * as it's part of the indexedDB API: */
-        /* jshint -W024 */
-        contacts.push(cursor.value.username);
-        cursor.continue();
-      }
-      else {
-        // cursor navigation is complete, now add the found contacts to
-        // the current users list.
-        contacts.forEach(function (userId) {
-          if (!Object.prototype.hasOwnProperty.call(currentUsers, userId))
-            currentUsers[userId] = {presence: "disconnected"};
-        });
-        // We need to broadcast the list in case we've been slow loading
-        // the database and the initial presence list has already been
-        // broadcast.
-        ports.broadcastEvent('talkilla.users', getCurrentUsersArray());
-
-        if (doneCallback)
-          doneCallback();
-      }
-    };
-  };
-
-  request.onupgradeneeded = function(event) {
-    var db = event.target.result;
-    var objectStore = db.createObjectStore(kContactDBName,
-                                           {keyPath: "username"});
-    objectStore.createIndex("username", "username", {unique: true});
-  };
-}
-
-function storeContact(username, doneCallback) {
-  var transaction = contactsDb.transaction([kContactDBName], "readwrite");
-  var request = transaction.objectStore(kContactDBName)
-                           .add({username: username});
-  request.onsuccess = function() {
-    contacts.push(username);
-    if (doneCallback)
-      doneCallback();
-  };
-  request.onerror = function(event) {
-    // happily ignore errors, as adding a contact twice will purposefully fail.
-    event.preventDefault();
-    if (doneCallback)
-      doneCallback();
-  };
 }
 
 /**
@@ -167,7 +105,10 @@ Conversation.prototype = {
    * Sends call information to the conversation window.
    */
   _sendCall: function() {
-    storeContact(this.data.peer);
+    contactsDb.add(this.data.peer, function(err) {
+      if (err)
+        ports.broadcastError(err);
+    });
 
     // retrieve peer presence information
     // There's a small chance we've not received the currentUsers
@@ -309,12 +250,10 @@ function _setupServer(server) {
   server.on("connected", function() {
     _autologinPending = false;
     _currentUserData.connected = true;
+    // XXX: we should differentiate login and presence
     ports.broadcastEvent('talkilla.login-success', {
       username: _currentUserData.userName
     });
-
-    // We're logged in so send the presence request now
-    server.send({'presence_request': null});
   });
 
   server.on("message", function(label, data) {
@@ -392,19 +331,6 @@ function _setupServer(server) {
   });
 }
 
-function loadconfig(cb) {
-  var http = new HTTP();
-  http.get('/config.json', {}, function(err, data) {
-    var config;
-    try {
-      config = JSON.parse(data);
-    } catch (err) {
-      return cb(err);
-    }
-    cb(null, config);
-  });
-}
-
 function _signinCallback(err, responseText) {
   _loginPending = false;
   var data = JSON.parse(responseText);
@@ -442,6 +368,10 @@ var handlers = {
   'social.initialize': function() {
     // Save the browserPort
     browserPort = this;
+
+    // Now we're connected request any cookies that we've got saved.
+    browserPort.postEvent('social.cookies-get');
+
     // Don't have it in the main list of ports, as we don't need
     // to broadcast all our talkilla.* messages to the social api.
     ports.remove(this);
@@ -511,7 +441,9 @@ var handlers = {
    * Called when the sidebar request the initial presence state.
    */
   'talkilla.presence-request': function(event) {
-    this.postEvent('talkilla.users', getCurrentUsersArray());
+    var users = getCurrentUsersArray();
+    server.presenceRequest(_currentUserData.userName);
+    this.postEvent('talkilla.users', users);
   },
 
   /**
@@ -522,7 +454,7 @@ var handlers = {
    * - offer:    an RTCSessionDescription containing the sdp data for the call.
    */
   'talkilla.call-offer': function(event) {
-    server.send({'call_offer': event.data});
+    server.callOffer(event.data, _currentUserData.userName);
   },
 
   /**
@@ -533,7 +465,7 @@ var handlers = {
    * - offer:    an RTCSessionDescription containing the sdp data for the call.
    */
   'talkilla.call-answer': function(event) {
-    server.send({'call_accepted': event.data});
+    server.callAccepted(event.data, _currentUserData.userName);
   },
 
   /**
@@ -542,7 +474,7 @@ var handlers = {
    * - peer: the person you are talking to.
    */
   'talkilla.call-hangup': function (event) {
-    server.send({'call_hangup': event.data});
+    server.callHangup(event.data, _currentUserData.userName);
   }
 };
 
@@ -633,7 +565,7 @@ PortCollection.prototype = {
    * Broadcast debug informations to all ports.
    */
   broadcastDebug: function(label, data) {
-    if (!_config.DEBUG)
+    if (!gConfig.DEBUG)
       return;
     for (var id in this.ports)
       this.ports[id].postEvent("talkilla.debug", {label: label, data: data});
@@ -649,24 +581,44 @@ PortCollection.prototype = {
   }
 };
 
+// Worker Initialisations
+
 ports = new PortCollection();
 
 function onconnect(event) {
   ports.add(new Port(event.ports[0]));
 }
 
-loadconfig(function(err, config) {
-  if (err)
-    return ports.broadcastError(err);
-  _config = config;
-  _currentUserData = new UserData({}, config);
-  server = new Server(config);
+_currentUserData = new UserData({}, gConfig);
+server = new Server(gConfig);
 
-  _setupServer(server);
+_setupServer(server);
 
-  browserPort.postEvent('social.cookies-get');
-});
+function loadContacts(cb) {
+  contactsDb.all(function(err, records) {
+    if (err) {
+      contacts = [];
+      ports.broadcastError(err);
+    } else {
+      contacts = records;
+    }
+
+    contacts.forEach(function(userId) {
+      if (!Object.prototype.hasOwnProperty.call(currentUsers, userId))
+        currentUsers[userId] = {presence: "disconnected"};
+    });
+
+    // We need to broadcast the list in case we've been slow loading
+    // the database and the initial presence list has already been
+    // broadcast.
+    ports.broadcastEvent('talkilla.users', getCurrentUsersArray());
+
+    // callback is mostly useful for tests
+    if (typeof cb === "function")
+      cb();
+  });
+}
 
 // This currently doesn't rely on anything else, so just schedule
 // the load as soon as we've finished setting up the worker.
-getContactsDatabase();
+loadContacts();

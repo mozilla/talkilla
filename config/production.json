@@ -3,5 +3,6 @@
   "PENDING_CALL_TIMEOUT": 30000,
   "FAKE_MEDIA_STREAMS": false,
   "PERSONA_INCLUDE_URL": "https://login.persona.org/include.js",
-  "LOG_LEVEL": "info"
+  "LOG_LEVEL": "info",
+  "LONG_POLLING_TIMEOUT": 20000
 }

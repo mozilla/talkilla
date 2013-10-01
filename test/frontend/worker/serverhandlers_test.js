@@ -16,7 +16,6 @@ describe("serverHandlers", function() {
     _currentUserData = new UserData();
     server = new Server();
     _setupServer(server);
-    sandbox.stub(server, "send");
     sandbox.stub(_currentUserData, "send");
   });
 
@@ -43,14 +42,6 @@ describe("serverHandlers", function() {
       sinon.assert.calledWithExactly(
         ports.broadcastEvent, "talkilla.login-success", {username: "harvey"}
       );
-    });
-
-    it("should request for the initial presence state", function() {
-      server.trigger("connected");
-
-      sinon.assert.calledOnce(server.send);
-      sinon.assert.calledWithExactly(server.send,
-                                     {"presence_request": null});
     });
 
   });

@@ -11,19 +11,18 @@ var EventEmitter = require( "events" ).EventEmitter;
 var chai = require("chai");
 var expect = chai.expect;
 var sinon = require("sinon");
-var http = require("http");
 var https = require("https");
 
 require("../../server/server");
 var presence = require("../../server/presence");
 var logger = require("../../server/logger");
+var config = require('../../server/config').config;
 
 describe("presence", function() {
 
   var sandbox;
   var api = presence.api;
   var users = presence._users;
-  var wss = presence._wss;
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
@@ -34,77 +33,6 @@ describe("presence", function() {
       users.remove(user.nick);
     });
     sandbox.restore();
-  });
-
-  describe("#configureWs", function() {
-
-    it("should bind #api.ws.onMessage to message events", function() {
-      var fakeWS = {on: sinon.spy()};
-
-      sandbox.stub(api.ws.onMessage, "bind").returns(api.ws.onMessage);
-      presence.configureWs(fakeWS);
-
-      sinon.assert.called(fakeWS.on);
-      sinon.assert.calledWithExactly(fakeWS.on, "message", api.ws.onMessage);
-    });
-
-    it("should bind #api.ws.onClose to close events", function() {
-      var fakeWS = {on: sinon.spy()};
-
-      sandbox.stub(api.ws.onClose, "bind").returns(api.ws.onClose);
-      presence.configureWs(fakeWS);
-
-      sinon.assert.called(fakeWS.on);
-      sinon.assert.calledWithExactly(fakeWS.on, "close", api.ws.onClose);
-    });
-
-    it("should bind #api.ws.onCallOffer to call_offer events", function() {
-      var fakeWS = {on: sinon.spy()};
-
-      presence.configureWs(fakeWS);
-
-      sinon.assert.called(fakeWS.on);
-      sinon.assert.calledWithExactly(
-        fakeWS.on, "call_offer", api.ws.onCallOffer);
-    });
-
-    it("should bind #api.ws.onCallAccepted to call_offer events", function() {
-      var fakeWS = {on: sinon.spy()};
-
-      presence.configureWs(fakeWS);
-
-      sinon.assert.called(fakeWS.on);
-      sinon.assert.calledWithExactly(
-        fakeWS.on, "call_accepted", api.ws.onCallAccepted);
-    });
-
-    it("should bind #api.ws.onCallHangup to call_offer events", function() {
-      var fakeWS = {on: sinon.spy()};
-
-      presence.configureWs(fakeWS);
-
-      sinon.assert.called(fakeWS.on);
-      sinon.assert.calledWithExactly(
-        fakeWS.on, "call_hangup", api.ws.onCallHangup);
-    });
-
-    it("should bind #api.ws.onPresenceRequest to presence_request events",
-      function() {
-        var fakeWS = {on: sinon.spy()};
-
-        presence.configureWs(fakeWS);
-
-        sinon.assert.called(fakeWS.on);
-        sinon.assert.calledWithExactly(
-          fakeWS.on, "presence_request", api.ws.onPresenceRequest);
-      });
-
-    it("should return the WebSocket", function() {
-      var fakeWS = {on: sinon.spy()};
-      var ws = presence.configureWs(fakeWS);
-      expect(ws).to.equal(fakeWS);
-    });
-
   });
 
   describe("api", function() {
@@ -246,212 +174,183 @@ describe("presence", function() {
 
     });
 
-    describe("WebSocket", function() {
+    describe("#stream", function() {
+      var clock;
 
-      describe("#onMessage", function() {
-
-        it("should emit the received JSON event", function() {
-          var message = JSON.stringify({eventType: {data: "some data"}});
-          var fakeWS = {emit: sinon.spy()};
-          var onMessage = api.ws.onMessage.bind(fakeWS);
-
-          onMessage("foo", message);
-
-          sinon.assert.calledOnce(fakeWS.emit);
-          sinon.assert.calledWithExactly(
-            fakeWS.emit, "eventType", {data: "some data"}, "foo");
-        });
+      beforeEach(function() {
+        // Use fake timers here to keep the tests running fast and
+        // avoid waiting for the second long timeouts to occur.
+        clock = sinon.useFakeTimers();
       });
 
-      describe("#onCallOffer", function() {
-
-        it("should forward the event to the peer after swapping the nick",
-          function() {
-            var bar;
-            var event = {peer: "bar"};
-            var forwardedEvent = {peer: "foo"};
-            users.add("foo").add("bar");
-            bar = users.get("bar");
-            sandbox.stub(bar, "send");
-
-            api.ws.onCallOffer(event, "foo");
-
-            sinon.assert.calledOnce(bar.send);
-            sinon.assert.calledWith(
-              bar.send, {"incoming_call": forwardedEvent});
-          });
-
-        it("should warn on handling offers to unknown users", function() {
-          sandbox.stub(logger, "warn");
-
-          var event = { peer: "bar" };
-
-          api.ws.onCallOffer(event, "foo");
-
-          sinon.assert.calledOnce(logger.warn);
-        });
-
+      afterEach(function() {
+        clock.restore();
       });
 
-      describe("#onCallAccepted", function() {
-
-        it("should forward the event to the peer after swapping the nick",
-          function() {
-            var bar;
-            var event = {peer: "bar"};
-            var forwardedEvent = {peer: "foo"};
-            users.add("foo").add("bar");
-            bar = users.get("bar");
-            sandbox.stub(bar, "send");
-
-            api.ws.onCallAccepted(event, "foo");
-
-            sinon.assert.calledOnce(bar.send);
-            sinon.assert.calledWith(
-              bar.send, {"call_accepted": forwardedEvent});
-          });
-
-        it("should warn on handling answers to unknown users", function() {
-          sandbox.stub(logger, "warn");
-
-          var event = { peer: "bar" };
-
-          api.ws.onCallAccepted(event, "foo");
-
-          sinon.assert.calledOnce(logger.warn);
-        });
-      });
-
-      describe("#onCallHangup", function() {
-
-        it("should forward the event to the peer after swapping the nick",
-          function() {
-            var bar;
-            var event = {peer: "bar"};
-            var forwardedEvent = {peer: "foo"};
-            users.add("foo").add("bar");
-            bar = users.get("bar");
-            sandbox.stub(bar, "send");
-
-            api.ws.onCallHangup(event, "foo");
-
-            sinon.assert.calledOnce(bar.send);
-            sinon.assert.calledWith(bar.send, {"call_hangup": forwardedEvent});
-          });
-
-        it("should warn on handling hangups to unknown users", function() {
-          sandbox.stub(logger, "warn");
-
-          var event = { peer: "bar" };
-
-          api.ws.onCallHangup(event, "foo");
-
-          sinon.assert.calledOnce(logger.warn);
-        });
-      });
-
-      describe("#onPresenceRequest", function() {
-
-        it("should send the list of present users",
-          function() {
-            var fakeWS = {send: sinon.spy()};
-            var foo = users.add("foo").get("foo").connect(fakeWS);
-            users.add("bar").get("bar").connect(fakeWS);
-            var presentUsers = users.toJSON(users.present());
-            var event = {presenceRequest: null};
-            sandbox.stub(foo, "send");
-
-            api.ws.onPresenceRequest(event, "foo");
-
-            sinon.assert.calledOnce(foo.send);
-            sinon.assert.calledWith(foo.send, {"users": presentUsers});
-          });
-
-      });
-
-      describe("#onClose", function() {
-
-        it("should disconnect the user", function() {
-          var foo = users.add("foo").get("foo");
-          sandbox.stub(foo, "disconnect");
-
-          api.ws.onClose("foo");
-          sinon.assert.calledOnce(foo.disconnect);
-        });
-
-        it("should notify all the _present_ users a user left", function() {
-          var foo = users.add("foo").get("foo");
-          var bar = users.add("bar").get("bar").connect("fake ws");
-          var goo = users.add("goo").get("goo");
-
-          sandbox.stub(foo, "disconnect");
-          sandbox.stub(bar, "send");
-          sandbox.stub(goo, "send");
-
-          api.ws.onClose("foo");
-
-          sinon.assert.calledOnce(bar.send);
-          sinon.assert.calledWith(bar.send, {userLeft: "foo"});
-          sinon.assert.notCalled(goo.send);
-        });
-      });
-
-    });
-
-    describe("#upgrade", function() {
-      it("should manually upgrade the connection to WebSockets", function() {
-        var fakeReq = {url: "/?nick=foo"};
+      it("should send to all the present users an new one joined", function() {
         users.add("foo");
-        sandbox.stub(http, "ServerResponse");
-        sandbox.stub(wss, "handleUpgrade");
-        sandbox.stub(api.onWebSocket, "bind").returns(api.onWebSocket);
+        var bar = users.add("bar").get("bar");
+        var xoo = users.add("xoo").get("xoo");
+        var oof = users.add("oof").get("oof");
+        var req = {body: {nick: "foo"}};
+        var res = {send: function() {}};
+        sandbox.stub(bar, "present").returns(true);
+        sandbox.stub(xoo, "present").returns(true);
+        sandbox.stub(bar, "send").returns(true);
+        sandbox.stub(xoo, "send").returns(true);
+        sandbox.stub(oof, "send").returns(true);
 
-        api.upgrade(fakeReq, "fake socket", "fake head upgrade");
-
-        sinon.assert.calledOnce(wss.handleUpgrade);
-        sinon.assert.calledWith(wss.handleUpgrade,
-                                fakeReq, "fake socket", "fake head upgrade",
-                                api.onWebSocket);
-      });
-
-      it("should fail if no nick is provided", function() {
-        var fakeReq = {url: "/?nick=foo"};
-        var fakeRes = {assignSocket: function() {}, end: function() {}};
-        sandbox.stub(http, "ServerResponse").returns(fakeRes);
-        sandbox.stub(wss, "handleUpgrade");
-
-        api.upgrade(fakeReq, "fake socket", "fake head upgrade");
-
-        expect(fakeRes.statusCode).to.equal(400);
-      });
-    });
-
-    describe("#onWebSocket", function() {
-
-      it("should attach a configured websocket to the user", function() {
-        var fakeWS = {on: function() {}};
-        var foo = users.add("foo").get("foo");
-        sandbox.stub(presence, "configureWs");
-        sandbox.stub(foo, "send");
-
-        api.onWebSocket("foo", fakeWS);
-
-        expect(users.get("foo").ws).to.deep.equal(fakeWS);
-      });
-
-      it("should notify the _present_ users a user joined", function() {
-        var fakeWS = {on: function() {}};
-        var foo = users.add("foo").get("foo");
-        var bar = users.add("bar").get("bar").connect(fakeWS);
-        sandbox.stub(presence, "configureWs");
-        sandbox.stub(foo, "send");
-        sandbox.stub(bar, "send");
-
-        api.onWebSocket("foo", fakeWS);
+        api.stream(req, res);
 
         sinon.assert.calledOnce(bar.send);
         sinon.assert.calledWith(bar.send, {userJoined: "foo"});
+        sinon.assert.calledOnce(xoo.send);
+        sinon.assert.calledWith(xoo.send, {userJoined: "foo"});
+        sinon.assert.notCalled(oof.send);
       });
+
+      it("should send an empty list of events", function(done) {
+        var user = users.add("foo").get("foo");
+        var req = {body: {nick: "foo"}};
+        var res = {send: function(code, data) {
+          expect(code).to.equal(200);
+          expect(data).to.equal(JSON.stringify([]));
+          done();
+        }};
+        sandbox.stub(user, "present").returns(true);
+
+        api.stream(req, res);
+        clock.tick(config.LONG_POLLING_TIMEOUT * 3);
+      });
+
+      it("should send a list of events", function(done) {
+        var user = users.add("foo").get("foo");
+        var event = {some: "data"};
+        var req = {body: {nick: "foo"}};
+        var res = {send: function(code, data) {
+          expect(code).to.equal(200);
+          expect(data).to.equal(JSON.stringify([event]));
+          done();
+        }};
+        sandbox.stub(user, "present").returns(true);
+
+        api.stream(req, res);
+        user.send(event);
+      });
+
+      it("should fail if no nick is provided", function() {
+        var req = {body: {}};
+        var res = {send: sinon.spy()};
+
+        api.stream(req, res);
+
+        sinon.assert.calledOnce(res.send);
+        sinon.assert.calledWithExactly(res.send, 400, JSON.stringify({}));
+      });
+
+    });
+
+    describe("#callOffer", function() {
+
+      it("should forward the event to the peer after swapping the nick",
+        function() {
+          var req = {body: {data: {peer: "bar"}, nick: "foo"}};
+          var res = {send: function() {}};
+          var forwardedEvent = {peer: "foo"};
+          var bar = users.add("foo").add("bar").get("bar");
+          sandbox.stub(bar, "send");
+
+          api.callOffer(req, res);
+
+          sinon.assert.calledOnce(bar.send);
+          sinon.assert.calledWith(
+            bar.send, {"incoming_call": forwardedEvent});
+        });
+
+      it("should warn on handling offers to unknown users", function() {
+        sandbox.stub(logger, "warn");
+        var req = {body: {data: {peer: "bar"}}};
+        var res = {send: function() {}};
+
+        api.callOffer(req, res);
+
+        sinon.assert.calledOnce(logger.warn);
+      });
+
+    });
+
+    describe("#callAccepted", function() {
+
+      it("should forward the event to the peer after swapping the nick",
+        function() {
+          var req = {body: {data: {peer: "bar"}, nick: "foo"}};
+          var res = {send: function() {}};
+          var forwardedEvent = {peer: "foo"};
+          var bar = users.add("foo").add("bar").get("bar");
+          sandbox.stub(bar, "send");
+
+          api.callAccepted(req, res);
+
+          sinon.assert.calledOnce(bar.send);
+          sinon.assert.calledWith(
+            bar.send, {"call_accepted": forwardedEvent});
+        });
+
+      it("should warn on handling answers to unknown users", function() {
+        sandbox.stub(logger, "warn");
+        var req = {body: {data: {peer: "bar"}}};
+        var res = {send: function() {}};
+
+        api.callAccepted(req, res);
+
+        sinon.assert.calledOnce(logger.warn);
+      });
+    });
+
+    describe("#callHangup", function() {
+
+      it("should forward the event to the peer after swapping the nick",
+        function() {
+          var req = {body: {data: {peer: "bar"}, nick: "foo"}};
+          var res = {send: function() {}};
+          var forwardedEvent = {peer: "foo"};
+          var bar = users.add("foo").add("bar").get("bar");
+          sandbox.stub(bar, "send");
+
+          api.callHangup(req, res);
+
+          sinon.assert.calledOnce(bar.send);
+          sinon.assert.calledWith(
+            bar.send, {"call_hangup": forwardedEvent});
+        });
+
+      it("should warn on handling hangups to unknown users", function() {
+        sandbox.stub(logger, "warn");
+        var req = {body: {data: {peer: "bar"}}};
+        var res = {send: function() {}};
+
+        api.callHangup(req, res);
+
+        sinon.assert.calledOnce(logger.warn);
+      });
+    });
+
+    describe("#presenceRequest", function() {
+
+      it("should send the list of present users to the given user",
+        function() {
+          var req = {body: {nick: "foo"}};
+          var res = {send: sinon.spy()};
+          var foo = users.add("foo").get("foo");
+          var bar = users.add("bar").get("bar");
+          sandbox.stub(users, "present").returns([bar]);
+          sandbox.stub(foo, "send");
+
+          api.presenceRequest(req, res);
+
+          sinon.assert.calledOnce(foo.send);
+          sinon.assert.calledWithExactly(foo.send, {users: [bar.toJSON()]});
+        });
 
     });
   });

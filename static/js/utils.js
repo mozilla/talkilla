@@ -152,4 +152,35 @@
       return word;
     }).join(" ");
   };
+
+  /**
+   * Computes the displayed size of a video inside the <video> element
+   * excluding any letterboxing or pillarboxing inserted in order to
+   * preserve aspect ratio.
+   *
+   * XXX need to define behavior for elements with 0 in boxSize
+   * XXX need to define how non-integer returns are handled
+   *
+   * @param {Array} boxSize -- size of entire <video> element: [width, height]
+   * @param {Array} streamSize -- size of the media stream: [width, height]
+   *
+   * @return {Array} size of the displayed video: [width, height]
+   */
+  app.utils.computeDisplayedVideoSize = function(boxSize, streamSize) {
+
+    if (!streamSize[0] || !streamSize[1])
+      throw new Error("streamSize width and height cannot be 0");
+
+    var widthRatio = boxSize[0] / streamSize[0];
+    var heightRatio = boxSize[1] / streamSize[1];
+
+    var scaleFactor;
+    if (widthRatio < heightRatio)
+      scaleFactor = widthRatio;
+    else
+      scaleFactor = heightRatio;
+
+    return [scaleFactor * streamSize[0], scaleFactor * streamSize[1]];
+  };
+
 })(app, _);
