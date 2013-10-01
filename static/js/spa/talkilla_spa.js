@@ -58,7 +58,8 @@ var TalkillaSPA = (function() {
 
     _onCallAccepted: function(data) {
       this.server.callAccepted(data.data, data.nick, function(err, response) {
-        this.port.post("call:accepted-callback", {err: err, response: response});
+        this.port.post("call:accepted-callback",
+                       {err: err, response: response});
       }.bind(this));
     },
 
