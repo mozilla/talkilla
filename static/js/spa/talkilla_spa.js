@@ -21,54 +21,56 @@ var TalkillaSPA = (function() {
     this.server.on("message", this._onServerMessage.bind(this));
   }
 
-  TalkillaSPA.prototype._onServerEvent = function(type, event) {
-    this.port.post(type, event);
-  };
+  TalkillaSPA.prototype = {
+    _onServerEvent: function(type, event) {
+      this.port.post(type, event);
+    },
 
-  TalkillaSPA.prototype._onServerMessage = function(type, event) {
-    this.port.post("message", [type, event]);
-  };
+    _onServerMessage: function(type, event) {
+      this.port.post("message", [type, event]);
+    },
 
-  TalkillaSPA.prototype._onConnect = function(data) {
-    this.server.connect(data.nick);
-  };
+    _onConnect: function(data) {
+      this.server.connect(data.nick);
+    },
 
-  TalkillaSPA.prototype._onAutoconnect = function(data) {
-    this.server.autoconnect(data.nick);
-  };
+    _onAutoconnect: function(data) {
+      this.server.autoconnect(data.nick);
+    },
 
-  TalkillaSPA.prototype._onSignin = function(data) {
-    this.server.signin(data.assertion, function(err, response) {
-      this.port.post("signin-callback", {err: err, response: response});
-    }.bind(this));
-  };
+    _onSignin: function(data) {
+      this.server.signin(data.assertion, function(err, response) {
+        this.port.post("signin-callback", {err: err, response: response});
+      }.bind(this));
+    },
 
-  TalkillaSPA.prototype._onSignout = function(data) {
-    this.server.signout(data.nick, function(err, response) {
-      this.port.post("signout-callback", {err: err, response: response});
-    }.bind(this));
-  };
+    _onSignout: function(data) {
+      this.server.signout(data.nick, function(err, response) {
+        this.port.post("signout-callback", {err: err, response: response});
+      }.bind(this));
+    },
 
-  TalkillaSPA.prototype._onCallOffer = function(data) {
-    this.server.callOffer(data.data, data.nick, function(err, response) {
-      this.port.post("call:offer-callback", {err: err, response: response});
-    }.bind(this));
-  };
+    _onCallOffer: function(data) {
+      this.server.callOffer(data.data, data.nick, function(err, response) {
+        this.port.post("call:offer-callback", {err: err, response: response});
+      }.bind(this));
+    },
 
-  TalkillaSPA.prototype._onCallAccepted = function(data) {
-    this.server.callAccepted(data.data, data.nick, function(err, response) {
-      this.port.post("call:accepted-callback", {err: err, response: response});
-    }.bind(this));
-  };
+    _onCallAccepted: function(data) {
+      this.server.callAccepted(data.data, data.nick, function(err, response) {
+        this.port.post("call:accepted-callback", {err: err, response: response});
+      }.bind(this));
+    },
 
-  TalkillaSPA.prototype._onCallHangup = function(data) {
-    this.server.callHangup(data.data, data.nick, function(err, response) {
-      this.port.post("call:hangup-callback", {err: err, response: response});
-    }.bind(this));
-  };
+    _onCallHangup: function(data) {
+      this.server.callHangup(data.data, data.nick, function(err, response) {
+        this.port.post("call:hangup-callback", {err: err, response: response});
+      }.bind(this));
+    },
 
-  TalkillaSPA.prototype._onPresenceRequest = function(data) {
-    this.server.presenceRequest(data.nick);
+    _onPresenceRequest: function(data) {
+      this.server.presenceRequest(data.nick);
+    }
   };
 
   return TalkillaSPA;
