@@ -1,4 +1,4 @@
-/*global app:true, chai, sinon */
+/*global app, chai, sinon */
 
 var expect = chai.expect;
 
