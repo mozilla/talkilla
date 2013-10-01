@@ -11,6 +11,12 @@
   border-bottom: 1px solid #ccc;
 }
 
+.sidebar a {
+  line-height: 30px;
+  text-decoration: underline; /* override bootstrap's default */
+  color: #818A8F; /* match the header */
+}
+
 .sidebar .title {
   margin-top: 0;
   font-size: 20px;
