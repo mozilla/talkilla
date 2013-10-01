@@ -1,17 +1,11 @@
-/*global app:true, chai, sinon, AppPort, SidebarApp */
+/* global app, chai, sinon, AppPort, SidebarApp */
 /* jshint expr:true */
 var expect = chai.expect;
-
-var _app = app;
 
 describe("SidebarApp", function() {
   "use strict";
 
   var sandbox;
-
-  before(function() {
-    app = _app;
-  });
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
