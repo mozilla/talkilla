@@ -2,8 +2,11 @@
 /* jshint unused:false */
 
 var SPA = (function() {
-  function SPA() {
-    this.worker = new DummyWorker(); // XXX: A real Worker needs an URL
+  function SPA(options) {
+    if (!options || !options.src)
+      throw new Error("missing parameter: src");
+
+    this.worker = new DummyWorker(options.src);
     this.worker.onmessage = this._onMessage.bind(this);
   }
 

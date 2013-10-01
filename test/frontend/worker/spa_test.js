@@ -8,11 +8,25 @@ describe("SPA", function() {
     worker = {postMessage: sinon.spy()};
     sandbox = sinon.sandbox.create();
     sandbox.stub(window, "DummyWorker").returns(worker);
-    spa = new SPA("https://example.com");
+    spa = new SPA({src: "example.com"});
   });
 
   afterEach(function() {
     sandbox.restore();
+  });
+
+  describe("constructor", function() {
+
+    it("should instantiate a worker with the src option", function() {
+      sinon.assert.calledOnce(window.DummyWorker);
+      sinon.assert.calledWithExactly(window.DummyWorker, "example.com");
+    });
+
+    it("should throw an error if the src option is missing", function() {
+      function shouldExplode() { new SPA(); };
+      expect(shouldExplode).to.Throw(Error, /missing parameter: src/);
+    });
+
   });
 
   describe("#on", function(done) {

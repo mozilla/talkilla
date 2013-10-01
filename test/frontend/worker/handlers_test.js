@@ -15,7 +15,7 @@ describe('handlers', function() {
     sandbox.stub(window, "SPAPort");
     sandbox.stub(window, "Server");
     sandbox.stub(window, "DummyWorker").returns({postMessage: sinon.spy()});
-    spa = new SPA();
+    spa = new SPA({src: "example.com"});
   });
 
   afterEach(function() {

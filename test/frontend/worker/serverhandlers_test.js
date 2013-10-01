@@ -14,7 +14,7 @@ describe("serverHandlers", function() {
 
     currentUsers = [];
     _currentUserData = new UserData();
-    spa = new SPA();
+    spa = new SPA({src: "example.com"});
     _setupSPA(spa);
     sandbox.stub(_currentUserData, "send");
   });
