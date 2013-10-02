@@ -660,7 +660,8 @@ loadconfig(function(err, config) {
     return ports.broadcastError(err);
   _config = config;
   _currentUserData = new UserData({}, config);
-  spa = new SPA(config);
+  // XXX: remplace the src by a valid JS file url
+  spa = new SPA({src: "example.com"});
 
   _setupSPA(spa);
 
