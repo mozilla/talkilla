@@ -1,4 +1,4 @@
-/* global importScripts, DummyWorker, BackboneEvents */
+/* global importScripts, BackboneEvents */
 /* jshint unused:false */
 
 var SPA = (function() {

@@ -1,4 +1,4 @@
-/* global DummyWorker, BackboneEvents */
+/* global BackboneEvents */
 /* jshint unused:false */
 
 var SPAPort = (function(globalScope) {
