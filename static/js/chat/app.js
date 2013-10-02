@@ -1,31 +1,10 @@
-/*global AppPort, WebRTC*/
+/*global app, AppPort, WebRTC*/
 /* jshint unused: false */
 /**
  * Talkilla application.
  */
-var ChatApp = (function($, Backbone, _) {
+var ChatApp = (function(app, $, Backbone, _) {
   "use strict";
-
-  /**
-   * Application object
-   * @type {Object}
-   */
-  var app = window.app = {
-    // default options
-    options: {},
-
-    // app modules
-    data: {},
-    models: {},
-    port: {},
-    media: {},
-    views: {},
-    utils: {},
-
-    start: function(options) {
-      _.extend(this.options, options || {});
-    }
-  };
 
   function ChatApp() {
     this.port = new AppPort();
@@ -235,4 +214,4 @@ var ChatApp = (function($, Backbone, _) {
   };
 
   return ChatApp;
-})(jQuery, Backbone, _);
+})(app, jQuery, Backbone, _);
