@@ -652,7 +652,7 @@ function onconnect(event) {
 }
 
 _currentUserData = new UserData({}, gConfig);
-spa = new SPA({src: "spa/talkilla_worker.js"});
+spa = new SPA({src: "/js/spa/talkilla_worker.js"});
 _setupSPA(spa);
 
 tkWorker = new TkWorker({
