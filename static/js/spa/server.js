@@ -3,9 +3,8 @@
 
 var Server = (function() {
   function Server(options) {
-    this.options = options || {WSURL: ""};
+    this.options = options;
     this.http = new HTTP();
-    this._ws = undefined;
   }
 
   Server.prototype = {
