@@ -23,7 +23,7 @@ describe("SPA", function() {
     });
 
     it("should throw an error if the src option is missing", function() {
-      function shouldExplode() { new SPA(); };
+      function shouldExplode() { new SPA(); }
       expect(shouldExplode).to.Throw(Error, /missing parameter: src/);
     });
 

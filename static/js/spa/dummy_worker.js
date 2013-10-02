@@ -2,7 +2,8 @@
 /* jshint unused:false */
 
 var DummyWorker = (function(globalScope) {
-  // TODO: when switch to a real worker, do not forget to include Backbones.events
+  // TODO: when switch to a real worker, do not forget to include
+  // Backbones.events
   importScripts('spa/port.js', 'spa/server.js', 'spa/talkilla_spa.js');
 
   var port = new SPAPort();
