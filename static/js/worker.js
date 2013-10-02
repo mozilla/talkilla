@@ -2,11 +2,11 @@
    loadConfig  */
 /* jshint unused:false */
 
-importScripts('../vendor/backbone-events-standalone-0.1.5.js',
-              '/config.js',               // exposes loadConfig
-              'addressbook/collected.js', // exposes CollectedContacts
-              'worker/http.js',           // exposes HTTP
-              'worker/spa.js');           // exposes SPA
+// XXX: Try to import Backbone only in files that need it (and check
+// if multiple imports cause problems).
+importScripts('../vendor/backbone-events-standalone-0.1.5.js');
+importScripts('/config.js', 'addressbook/collected.js');
+importScripts('worker/http.js', 'worker/spa.js');
 
 var gConfig = loadConfig();
 var _currentUserData;
@@ -652,9 +652,7 @@ function onconnect(event) {
 }
 
 _currentUserData = new UserData({}, gConfig);
-// XXX: remplace the src by a valid JS file url
-spa = new SPA({src: "example.com"});
-
+spa = new SPA({src: "spa/talkilla_worker.js"});
 _setupSPA(spa);
 
 tkWorker = new TkWorker({
