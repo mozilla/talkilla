@@ -6,15 +6,17 @@ var SPAPort = (function(globalScope) {
     globalScope.onmessage = this._onMessage.bind(this);
   }
 
+  Port.prototype = {
+    post: function(topic, data) {
+      globalScope.postMessage({topic: topic, data: data});
+    },
+
+    _onMessage: function(event) {
+      this.trigger(event.topic, event.data);
+    }
+  };
+
   BackboneEvents.mixin(Port.prototype);
-
-  Port.prototype.post = function(topic, data) {
-    globalScope.postMessage({topic: topic, data: data});
-  };
-
-  Port.prototype._onMessage = function(event) {
-    this.trigger(event.topic, event.data);
-  };
 
   return Port;
 }(this));
