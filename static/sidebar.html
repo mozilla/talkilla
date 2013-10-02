@@ -24,8 +24,10 @@
       </p>
     </form>
 
-    <a href="mailto:talkilla@mozilla.org?subject=Talkilla%20feedback">Send
-      feedback</a>
+    <a id="feedback-link"
+       href="https://docs.google.com/a/mozilla.com/forms/d/18hE8fjbkktm2E8Q40nJ1heRESVX9McoY2RMmGCjc-TQ/viewform"
+       onclick="event.preventDefault();
+       window.open($(event.currentTarget).attr('href'));">Send feedback</a>
 
   </header>
   <!-- /Login view -->
