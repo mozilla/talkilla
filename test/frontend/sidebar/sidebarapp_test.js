@@ -1,4 +1,4 @@
-/*global app, chai, sinon, AppPort, SidebarApp */
+/* global app, chai, sinon, AppPort, SidebarApp */
 /* jshint expr:true */
 var expect = chai.expect;
 

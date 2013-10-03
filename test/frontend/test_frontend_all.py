@@ -34,10 +34,16 @@ class FrontEndSuite(unittest.TestCase):
     def check_page(self, url):
         self.drvr.get(url)
         self.drvr.find_element_by_id('complete')
+        self.check_coverage()
         failNode = self.drvr.find_element_by_css_selector('.failures > em')
         if failNode.text == "0":
             return
         raise AssertionError(self.get_failure_details())
+
+    def check_coverage(self):
+        coverage = self.drvr.find_element_by_css_selector(
+            '.grand-total .bl-cl.rs').text
+        print("\n  Code coverage: %s" % coverage)
 
     def get_failure_details(self):
         fail_nodes = self.drvr.find_elements_by_css_selector('.test.fail')
@@ -51,6 +57,9 @@ class FrontEndSuite(unittest.TestCase):
 
     def test_index_html(self):
         self.check_page(SERVER_PREFIX + "index.html")
+
+    def test_addressbook_index_html(self):
+        self.check_page(SERVER_PREFIX + "addressbook/index.html")
 
     def test_chat_index_html(self):
         self.check_page(SERVER_PREFIX + "chat/index.html")

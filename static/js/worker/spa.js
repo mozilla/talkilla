@@ -1,7 +1,9 @@
-/* global DummyWorker, BackboneEvents */
+/* global importScripts, DummyWorker, BackboneEvents */
 /* jshint unused:false */
 
 var SPA = (function() {
+  importScripts('spa/dummy_worker.js'); // exposes DummyWorker
+
   function SPA(options) {
     if (!options || !options.src)
       throw new Error("missing parameter: src");
