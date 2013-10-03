@@ -11,16 +11,21 @@
   </div>
   <div id="messages"></div>
   <div id="fixtures"></div>
+  <!-- test dependencies -->
   <script src="../vendor/mocha.js"></script>
   <script src="../vendor/chai.js"></script>
   <script src="../vendor/sinon-1.7.1.js"></script>
+  <script src="../vendor/blanket.js" data-cover-adapter="../vendor/mocha-blanket.js"></script>
   <script>mocha.setup('bdd')</script>
+  <!-- app external dependencies -->
   <script src="../../../vendor/jquery-1.9.1.js"></script>
   <script src="../../../vendor/underscore-1.4.4.js"></script>
   <script src="../../../vendor/backbone-1.0.0.js"></script>
   <script src="../../../vendor/state-machine-2.2.0.js"></script>
   <script src="../../../vendor/tnetbin-0.2.1.js"></script>
-  <script src="../../../js/webrtc.js"></script>
+  <!-- app modules -->
+  <script src="../../../js/webrtc.js" data-cover></script>
+  <!-- tests -->
   <script src="webrtc_test.js"></script>
  <script>
     mocha.run(function () { $('body').append("<p id='complete'>complete</p>"); });

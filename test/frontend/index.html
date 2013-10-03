@@ -11,21 +11,27 @@
   </div>
   <div id="messages"></div>
   <div id="fixtures"></div>
+  <!-- test dependencies -->
   <script src="vendor/mocha.js"></script>
   <script src="vendor/chai.js"></script>
   <script src="vendor/sinon-1.7.1.js"></script>
+  <script src="vendor/blanket.js" data-cover-adapter="vendor/mocha-blanket.js"></script>
   <script>mocha.setup('bdd')</script>
+  <!-- app external dependencies -->
   <script src="../../vendor/jquery-1.9.1.js"></script>
   <script src="../../vendor/underscore-1.4.4.js"></script>
   <script src="../../vendor/backbone-1.0.0.js"></script>
   <script src="../../vendor/state-machine-2.2.0.js"></script>
+  <!-- app modules -->
+  <script src="../../js/app.js"></script>
   <script src="../../js/sidebar/app.js"></script>
   <script src="../../js/sidebar/models.js"></script>
   <script src="../../js/port.js"></script>
-  <script src="../../js/models.js"></script>
-  <script src="../../js/utils.js"></script>
+  <script src="../../js/models.js" data-cover></script>
+  <script src="../../js/utils.js" data-cover></script>
   <script src="../../js/sidebar/views.js"></script>
   <script src="../../js/browserDetection.js"></script>
+  <!-- tests -->
   <script src="utils_test.js"></script>
   <script src="usermodels_test.js"></script>
   <script>
