@@ -1,9 +1,7 @@
-/*global chai, sinon, _currentUserData:true, currentConversation:true,
+/*global expect, sinon, _currentUserData:true, currentConversation:true,
   UserData, browserPort:true, contactsDb, Conversation,
   currentUsers:true */
 /* jshint expr:true */
-
-var expect = chai.expect;
 
 describe("Conversation", function() {
   var sandbox;
