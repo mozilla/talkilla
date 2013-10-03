@@ -7,7 +7,6 @@ describe("Server", function() {
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
     sandbox.stub(window, "WebSocket").returns({send: sinon.spy()});
-    // sandbox.stub(server, "_longPolling");
     server = new Server();
   });
 

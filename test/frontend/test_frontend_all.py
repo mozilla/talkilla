@@ -76,6 +76,9 @@ class FrontEndSuite(unittest.TestCase):
     def test_worker_index_html(self):
         self.check_page(SERVER_PREFIX + "worker/index.html")
 
+    def test_spa_index_html(self):
+        self.check_page(SERVER_PREFIX + "spa/index.html")
+
 
 if __name__ == "__main__":
     unittest.main(catchbreak=True)

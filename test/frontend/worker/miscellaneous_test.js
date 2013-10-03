@@ -1,6 +1,7 @@
 /*global chai, sinon, _signinCallback,
    _currentUserData:true, UserData, browserPort:true, contactsDb:true,
-   loadContacts, currentUsers, server, ports */
+   loadContacts, currentUsers, spa, ports */
+
 var expect = chai.expect;
 
 describe('Miscellaneous', function() {
@@ -25,7 +26,7 @@ describe('Miscellaneous', function() {
 
     beforeEach(function() {
       sandbox.stub(window, "WebSocket");
-      socketStub = sinon.stub(server, "connect");
+      socketStub = sinon.stub(spa, "connect");
       _currentUserData = new UserData({});
       sandbox.stub(_currentUserData, "send");
       testableCallback = _signinCallback.bind({postEvent: function(){}});
