@@ -26,7 +26,6 @@ describe("serverHandlers", function() {
   });
 
   describe("`connected` event", function() {
-
     it("should set the user data as connected", function() {
       spa.trigger("connected");
 
@@ -43,6 +42,12 @@ describe("serverHandlers", function() {
       sinon.assert.calledWithExactly(
         ports.broadcastEvent, "talkilla.login-success", {username: "harvey"}
       );
+    });
+
+    it("should load the contacts database", function() {
+      spa.trigger("connected");
+
+      sinon.assert.calledOnce(tkWorker.loadContacts);
     });
 
   });
@@ -235,7 +240,6 @@ describe("serverHandlers", function() {
   });
 
   describe("`disconnected` event", function() {
-
     it("should set the user data as disconnected", function() {
       spa.trigger("disconnected", {code: 1006});
 
@@ -266,6 +270,13 @@ describe("serverHandlers", function() {
       );
     });
 
+    it("should drop the contacts database", function() {
+      sandbox.stub(contactsDb, "drop");
+
+      spa.trigger("disconnected", {code: 1000});
+
+      sinon.assert.calledOnce(contactsDb.drop);
+    });
   });
 
 });

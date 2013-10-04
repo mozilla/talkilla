@@ -294,7 +294,10 @@ function _setupSPA(spa) {
     ports.broadcastEvent('talkilla.login-success', {
       username: _currentUserData.userName
     });
-    // Now we're logged in, load the contacts database.
+
+    // XXX Now we're connected, load the contacts database.
+    // Really we should do this after successful sign-in or re-connect
+    // but we don't have enough info for the worker for that yet
     tkWorker.loadContacts();
   });
 
@@ -370,6 +373,10 @@ function _setupSPA(spa) {
     ports.broadcastEvent('talkilla.presence-unavailable', event.code);
     ports.broadcastEvent("talkilla.logout-success", {});
     currentUsers = {};
+    // XXX: really these should be reset on signout, not disconnect.
+    // Unload the database
+    contactsDb.drop();
+    contacts = [];
   });
 }
 
@@ -395,8 +402,6 @@ function _signoutCallback(err, responseText) {
   _currentUserData.reset();
   currentUsers = {};
   ports.broadcastEvent('talkilla.logout-success');
-
-  // XXX unload the database?
 }
 
 var handlers = {
