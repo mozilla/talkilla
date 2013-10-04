@@ -36,6 +36,57 @@ function getCurrentUsersArray() {
 }
 
 /**
+ * The main worker, which controls all the parts of the app.
+ *
+ * This keeps track of whether or not we're initialised, as it may be
+ * that the sidebar or other panels are ready before the worker, and need
+ * to know that the worker is actually ready to receive messages.
+ */
+function TkWorker() {
+  this.initialized = false;
+
+  // This currently doesn't rely on anything else, so just schedule
+  // the load as soon as we've finished setting up the worker.
+  this.loadContacts(this._finishInitialization.bind(this));
+}
+
+TkWorker.prototype = {
+  // Although this could be done in the constructor, we split it out for
+  // test purposes.
+
+  _finishInitialization: function() {
+    this.initialized = true;
+  },
+
+  loadContacts: function(cb) {
+    contactsDb.all(function(err, records) {
+      if (err) {
+        contacts = [];
+        ports.broadcastError(err);
+      } else {
+        contacts = records;
+      }
+
+      contacts.forEach(function(userId) {
+        if (!Object.prototype.hasOwnProperty.call(currentUsers, userId))
+          currentUsers[userId] = {presence: "disconnected"};
+      });
+
+      // We need to broadcast the list in case we've been slow loading
+      // the database and the initial presence list has already been
+      // broadcast.
+      ports.broadcastEvent('talkilla.users', getCurrentUsersArray());
+
+      // callback is mostly useful for tests
+      if (typeof cb === "function")
+        cb();
+    });
+  }
+};
+
+var tkWorker = new TkWorker();
+
+/**
  * Conversation data storage.
  *
  * This is designed to contain information about open conversation
@@ -581,7 +632,7 @@ PortCollection.prototype = {
   }
 };
 
-// Worker Initialisations
+// Main Initialisations
 
 ports = new PortCollection();
 
@@ -594,32 +645,3 @@ _currentUserData = new UserData({}, gConfig);
 spa = new SPA({src: "example.com"});
 
 _setupSPA(spa);
-
-function loadContacts(cb) {
-  contactsDb.all(function(err, records) {
-    if (err) {
-      contacts = [];
-      ports.broadcastError(err);
-    } else {
-      contacts = records;
-    }
-
-    contacts.forEach(function(userId) {
-      if (!Object.prototype.hasOwnProperty.call(currentUsers, userId))
-        currentUsers[userId] = {presence: "disconnected"};
-    });
-
-    // We need to broadcast the list in case we've been slow loading
-    // the database and the initial presence list has already been
-    // broadcast.
-    ports.broadcastEvent('talkilla.users', getCurrentUsersArray());
-
-    // callback is mostly useful for tests
-    if (typeof cb === "function")
-      cb();
-  });
-}
-
-// This currently doesn't rely on anything else, so just schedule
-// the load as soon as we've finished setting up the worker.
-loadContacts();
