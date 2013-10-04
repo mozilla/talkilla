@@ -11,16 +11,12 @@ describe("Conversation", function() {
     browserPort = {
       postEvent: sandbox.spy()
     };
-    contactsDb.options.dbname = "TalkillaContactsTest";
   });
 
-  afterEach(function(done) {
+  afterEach(function() {
     browserPort = undefined;
     currentConversation = undefined;
     sandbox.restore();
-    contactsDb.drop(function() {
-      done();
-    });
   });
 
   describe("initialize", function() {

@@ -1,5 +1,5 @@
 /*global chai, sinon, browserPort:true, currentConversation:true,
-  SPA, Conversation, currentUsers:true, ports,
+  SPA, Conversation, currentUsers:true, ports, tkWorker,
   _setupSPA, _currentUserData:true, UserData */
 
 /* Needed due to the use of non-camelcase in the websocket topics */
@@ -17,6 +17,7 @@ describe("serverHandlers", function() {
     spa = new SPA({src: "example.com"});
     _setupSPA(spa);
     sandbox.stub(_currentUserData, "send");
+    sandbox.stub(tkWorker, "loadContacts");
   });
 
   afterEach(function() {

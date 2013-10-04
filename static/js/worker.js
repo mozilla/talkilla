@@ -43,21 +43,10 @@ function getCurrentUsersArray() {
  * to know that the worker is actually ready to receive messages.
  */
 function TkWorker() {
-  this.initialized = false;
-
-  // This currently doesn't rely on anything else, so just schedule
-  // the load as soon as we've finished setting up the worker.
-  this.loadContacts(this._finishInitialization.bind(this));
+  this.initialized = true;
 }
 
 TkWorker.prototype = {
-  // Although this could be done in the constructor, we split it out for
-  // test purposes.
-
-  _finishInitialization: function() {
-    this.initialized = true;
-  },
-
   loadContacts: function(cb) {
     contactsDb.all(function(err, records) {
       if (err) {
@@ -305,6 +294,8 @@ function _setupSPA(spa) {
     ports.broadcastEvent('talkilla.login-success', {
       username: _currentUserData.userName
     });
+    // Now we're logged in, load the contacts database.
+    tkWorker.loadContacts();
   });
 
   spa.on("message", function(label, data) {
@@ -404,6 +395,8 @@ function _signoutCallback(err, responseText) {
   _currentUserData.reset();
   currentUsers = {};
   ports.broadcastEvent('talkilla.logout-success');
+
+  // XXX unload the database?
 }
 
 var handlers = {
