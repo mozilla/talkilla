@@ -16,7 +16,6 @@ var ports;
 var browserPort;
 var currentConversation;
 var currentUsers = {};
-var contacts = [];
 var contactsDb = new CollectedContacts({
   dbname: "TalkillaContacts",
   storename: "contacts",
@@ -50,13 +49,11 @@ TkWorker.prototype = {
   loadContacts: function(cb) {
     contactsDb.all(function(err, records) {
       if (err) {
-        contacts = [];
         ports.broadcastError(err);
-      } else {
-        contacts = records;
+        return;
       }
 
-      contacts.forEach(function(userId) {
+      records.forEach(function(userId) {
         if (!Object.prototype.hasOwnProperty.call(currentUsers, userId))
           currentUsers[userId] = {presence: "disconnected"};
       });
@@ -376,7 +373,6 @@ function _setupSPA(spa) {
     // XXX: really these should be reset on signout, not disconnect.
     // Unload the database
     contactsDb.drop();
-    contacts = [];
   });
 }
 

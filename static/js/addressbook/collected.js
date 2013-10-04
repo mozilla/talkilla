@@ -139,10 +139,12 @@ var CollectedContacts = (function() {
     this.close();
     var request = indexedDB.deleteDatabase(this.options.dbname);
     request.onsuccess = function() {
-      cb.call(this, null);
+      if (cb)
+        cb.call(this, null);
     }.bind(this);
     request.onerror = function(event) {
-      cb.call(this, event.target.errorCode);
+      if (cb)
+        cb.call(this, event.target.errorCode);
     }.bind(this);
     request.onblocked = function(event) {
       // trigger an error if max number of attempts has been reached
