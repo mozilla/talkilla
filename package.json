@@ -12,7 +12,7 @@
     "bunyan": "0.21.x"
   },
   "devDependencies": {
-    "awsbox": "0.4.x",
+    "awsbox": "0.6.x",
     "mocha": "1.8.x",
     "chai": "1.5.x",
     "request": "2.16.x",
