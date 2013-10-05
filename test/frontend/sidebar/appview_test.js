@@ -18,15 +18,21 @@ describe("AppView", function() {
     });
 
     describe("required parameters", function() {
+      it("should require an app parameter", function() {
+        expect(function() {
+          new app.views.AppView({users: [], user: []});
+        }).to.Throw(Error);
+      });
+
       it("should require a user parameter", function() {
         expect(function() {
-          new app.views.AppView({users: []});
+          new app.views.AppView({users: [], app: []});
         }).to.Throw(Error);
       });
 
       it("should require a users parameter", function() {
         expect(function() {
-          new app.views.AppView({user: {}});
+          new app.views.AppView({user: {}, users: []});
         }).to.Throw(Error);
       });
     });
@@ -35,7 +41,7 @@ describe("AppView", function() {
       var appView;
 
       beforeEach(function() {
-        appView = new app.views.AppView({user: {}, users: []});
+        appView = new app.views.AppView({user: {}, users: [], app: []});
       });
 
       it("should add initialize a notifications property", function() {

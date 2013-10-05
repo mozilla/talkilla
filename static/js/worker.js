@@ -439,6 +439,7 @@ var handlers = {
    * - nick: an optional previous nickname
    */
   'talkilla.sidebar-ready': function(event) {
+    this.postEvent('talkilla.worker-ready');
     if (_currentUserData.userName) {
       // If there's currently a logged in user,
       this.postEvent('talkilla.login-success', {
@@ -603,8 +604,6 @@ function TkWorker(options) {
   this.contactsDb = options.contactsDb;
   this.currentUsers = options.currentUsers;
   this.ports = options.ports;
-
-  this.initialized = true;
 }
 
 TkWorker.prototype = {

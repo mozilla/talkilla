@@ -5,6 +5,10 @@
 (function(app, Backbone) {
   "use strict";
 
+  app.models.Initialization = Backbone.Model.extend({
+    defaults: {workerInitialized: false}
+  });
+
   app.models.Notification = Backbone.Model.extend({
     defaults: {type:    "default",
                message: "empty message"}

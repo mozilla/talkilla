@@ -17,12 +17,15 @@
         throw new Error("missing parameter: user");
       if (!options.users)
         throw new Error("missing parameter: users");
+      if (!options.app)
+        throw new Error("missing parameter: app");
 
       this.notifications = new app.views.NotificationsView({
         user: options.user
       });
 
       this.login = new app.views.LoginView({
+        app: options.app,
         user: options.user
       });
 
@@ -233,19 +236,20 @@
       options = options || {};
       if (!options.user)
         throw new Error("missing parameter: user");
+      if (!options.app)
+        throw new Error("missing parameter: app");
       this.user = options.user;
+      this.app = options.app;
 
       this.user.on('change', this.render, this);
-
-      // Display the correct buttons now we've loaded.
-      // XXX We should probably delay this until after
-      // navigator.id.watch completes, but we need to work
-      // out full mechanisms and flows for what happens there.
-      this.render();
+      this.app.on('change:workerInitialized', this.render, this);
     },
 
     render: function() {
-      if (!this.user.get("nick")) {
+      if (!this.app.get('workerInitialized')) {
+        this.$('#signin').hide();
+        this.$('#signout').hide();
+      } else if (!this.user.get("nick")) {
         this.$('#signin').show();
         this.$('#signout').hide().find('.nick').text('');
       } else {
