@@ -9,7 +9,11 @@ describe("tkWorker", function() {
   beforeEach(function () {
     sandbox = sinon.sandbox.create();
     contactsDb.options.dbname = "TalkillaContactsTest";
-    worker = new TkWorker();
+    worker = new TkWorker({
+      ports: ports,
+      contactsDb: contactsDb,
+      currentUsers: currentUsers
+    });
   });
 
   afterEach(function (done) {

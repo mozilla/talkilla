@@ -270,12 +270,12 @@ describe("serverHandlers", function() {
       );
     });
 
-    it("should drop the contacts database", function() {
-      sandbox.stub(contactsDb, "drop");
+    it("should close the contacts database", function() {
+      sandbox.stub(contactsDb, "close");
 
       spa.trigger("disconnected", {code: 1000});
 
-      sinon.assert.calledOnce(contactsDb.drop);
+      sinon.assert.calledOnce(contactsDb.close);
     });
   });
 

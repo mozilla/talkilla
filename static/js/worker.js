@@ -22,6 +22,9 @@ var contactsDb = new CollectedContacts({
   version: 1
 });
 var spa;
+// XXX Initialised at end of file whilst we move everything
+// into it.
+var tkWorker;
 
 // XXX we use this to map to what the sidebar wants, really
 // the sidebar should change so that we can just send the object.
@@ -33,44 +36,6 @@ function getCurrentUsersArray() {
     return {nick: userId, presence: currentUsers[userId].presence};
   });
 }
-
-/**
- * The main worker, which controls all the parts of the app.
- *
- * This keeps track of whether or not we're initialised, as it may be
- * that the sidebar or other panels are ready before the worker, and need
- * to know that the worker is actually ready to receive messages.
- */
-function TkWorker() {
-  this.initialized = true;
-}
-
-TkWorker.prototype = {
-  loadContacts: function(cb) {
-    contactsDb.all(function(err, records) {
-      if (err) {
-        ports.broadcastError(err);
-        return;
-      }
-
-      records.forEach(function(userId) {
-        if (!Object.prototype.hasOwnProperty.call(currentUsers, userId))
-          currentUsers[userId] = {presence: "disconnected"};
-      });
-
-      // We need to broadcast the list in case we've been slow loading
-      // the database and the initial presence list has already been
-      // broadcast.
-      ports.broadcastEvent('talkilla.users', getCurrentUsersArray());
-
-      // callback is mostly useful for tests
-      if (typeof cb === "function")
-        cb();
-    });
-  }
-};
-
-var tkWorker = new TkWorker();
 
 /**
  * Conversation data storage.
@@ -372,7 +337,7 @@ function _setupSPA(spa) {
     currentUsers = {};
     // XXX: really these should be reset on signout, not disconnect.
     // Unload the database
-    contactsDb.drop();
+    contactsDb.close();
   });
 }
 
@@ -626,6 +591,47 @@ PortCollection.prototype = {
   }
 };
 
+/**
+ * The main worker, which controls all the parts of the app.
+ *
+ * This keeps track of whether or not we're initialised, as it may be
+ * that the sidebar or other panels are ready before the worker, and need
+ * to know that the worker is actually ready to receive messages.
+ */
+function TkWorker(options) {
+  // XXX Move all globals into this constructor and create them here.
+  this.contactsDb = options.contactsDb;
+  this.currentUsers = options.currentUsers;
+  this.ports = options.ports;
+
+  this.initialized = true;
+}
+
+TkWorker.prototype = {
+  loadContacts: function(cb) {
+    this.contactsDb.all(function(err, records) {
+      if (err) {
+        this.ports.broadcastError(err);
+        return;
+      }
+
+      records.forEach(function(userId) {
+        if (!Object.prototype.hasOwnProperty.call(this.currentUsers, userId))
+          this.currentUsers[userId] = {presence: "disconnected"};
+      });
+
+      // We need to broadcast the list in case we've been slow loading
+      // the database and the initial presence list has already been
+      // broadcast.
+      this.ports.broadcastEvent('talkilla.users', getCurrentUsersArray());
+
+      // callback is mostly useful for tests
+      if (typeof cb === "function")
+        cb();
+    }.bind(this));
+  }
+};
+
 // Main Initialisations
 
 ports = new PortCollection();
@@ -639,3 +645,9 @@ _currentUserData = new UserData({}, gConfig);
 spa = new SPA({src: "example.com"});
 
 _setupSPA(spa);
+
+tkWorker = new TkWorker({
+  ports: ports,
+  contactsDb: contactsDb,
+  currentUsers: currentUsers
+});
