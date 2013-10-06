@@ -17,15 +17,15 @@
         throw new Error("missing parameter: user");
       if (!options.users)
         throw new Error("missing parameter: users");
-      if (!options.app)
-        throw new Error("missing parameter: app");
+      if (!options.appStatus)
+        throw new Error("missing parameter: appStatus");
 
       this.notifications = new app.views.NotificationsView({
         user: options.user
       });
 
       this.login = new app.views.LoginView({
-        app: options.app,
+        appStatus: options.appStatus,
         user: options.user
       });
 
@@ -236,17 +236,17 @@
       options = options || {};
       if (!options.user)
         throw new Error("missing parameter: user");
-      if (!options.app)
-        throw new Error("missing parameter: app");
+      if (!options.appStatus)
+        throw new Error("missing parameter: appStatus");
       this.user = options.user;
-      this.app = options.app;
+      this.appStatus = options.appStatus;
 
       this.user.on('change', this.render, this);
-      this.app.on('change:workerInitialized', this.render, this);
+      this.appStatus.on('change:workerInitialized', this.render, this);
     },
 
     render: function() {
-      if (!this.app.get('workerInitialized')) {
+      if (!this.appStatus.get('workerInitialized')) {
         this.$('#signin').hide();
         this.$('#signout').hide();
       } else if (!this.user.get("nick")) {

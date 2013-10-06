@@ -32,7 +32,7 @@ describe("LoginView", function() {
       sandbox.stub(app.views.LoginView.prototype, "render");
     });
 
-    it("should require an app parameter", function() {
+    it("should require an appStatus parameter", function() {
       expect(function() {
         new app.views.LoginView({user: []});
       }).to.Throw(Error);
@@ -40,14 +40,14 @@ describe("LoginView", function() {
 
     it("should require a user parameter", function() {
       expect(function() {
-        new app.views.LoginView({app: []});
+        new app.views.LoginView({appStatus: []});
       }).to.Throw(Error);
     });
 
     it("should render the view when the user change", function() {
       var loginView = new app.views.LoginView({
         user: new app.models.User(),
-        app: new app.models.Initialization()
+        appStatus: new app.models.AppStatus()
       });
 
       loginView.render.reset();
@@ -60,7 +60,7 @@ describe("LoginView", function() {
     it("should render the view when the user is cleared", function() {
       var loginView = new app.views.LoginView({
         user: new app.models.User(),
-        app: new app.models.Initialization()
+        appStatus: new app.models.AppStatus()
       });
 
       loginView.render.reset();
@@ -73,24 +73,24 @@ describe("LoginView", function() {
     it("should render the view when the worker is initialized", function() {
       var loginView = new app.views.LoginView({
         user: new app.models.User(),
-        app: new app.models.Initialization()
+        appStatus: new app.models.AppStatus()
       });
 
       loginView.render.reset();
 
-      loginView.app.set("workerInitialized", true);
+      loginView.appStatus.set("workerInitialized", true);
 
       sinon.assert.calledOnce(loginView.render);
     });
   });
 
   describe("#render", function() {
-    var loginView, user, init;
+    var loginView, user, appStatus;
 
     beforeEach(function() {
-      init = new app.models.Initialization();
+      appStatus = new app.models.AppStatus();
       user = new app.models.User();
-      loginView = new app.views.LoginView({user: user, app: init});
+      loginView = new app.views.LoginView({user: user, appStatus: appStatus});
     });
 
     it("should hide signin and signout where the worker is not initialized",
@@ -103,7 +103,7 @@ describe("LoginView", function() {
 
     it("should display signin and hide signout when there is not a nick",
       function() {
-        init.set("workerInitialized", true);
+        appStatus.set("workerInitialized", true);
         loginView.render();
 
         expect(loginView.$('#signin').is(':visible')).to.equal(true);
@@ -112,7 +112,7 @@ describe("LoginView", function() {
 
     it("should hide signin and display signout when there is not a nick",
       function() {
-        init.set("workerInitialized", true);
+        appStatus.set("workerInitialized", true);
         user.set("nick", "james");
         loginView.render();
 
@@ -132,7 +132,7 @@ describe("LoginView", function() {
       };
       loginView = new app.views.LoginView({
         user: new app.models.User(),
-        app: new app.models.Initialization()
+        appStatus: new app.models.AppStatus()
       });
     });
 

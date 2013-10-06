@@ -9,7 +9,7 @@ var SidebarApp = (function(app, $) {
   function SidebarApp(options) {
     options = options || {};
 
-    this.app = new app.models.Initialization();
+    this.appStatus = new app.models.AppStatus();
 
     this.port = new AppPort();
 
@@ -18,7 +18,7 @@ var SidebarApp = (function(app, $) {
     this.users = new app.models.UserSet();
 
     this.view = new app.views.AppView({
-      app: this.app,
+      appStatus: this.appStatus,
       user: this.user,
       users: this.users
     });
@@ -51,7 +51,7 @@ var SidebarApp = (function(app, $) {
   }
 
   SidebarApp.prototype._onWorkerReady = function() {
-    this.app.set("workerInitialized", true);
+    this.appStatus.set("workerInitialized", true);
   };
 
   SidebarApp.prototype._login = function(assertion) {

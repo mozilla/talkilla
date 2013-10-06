@@ -5,7 +5,7 @@
 (function(app, Backbone) {
   "use strict";
 
-  app.models.Initialization = Backbone.Model.extend({
+  app.models.AppStatus = Backbone.Model.extend({
     defaults: {workerInitialized: false}
   });
 
