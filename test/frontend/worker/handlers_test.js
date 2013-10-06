@@ -229,71 +229,6 @@ describe('handlers', function() {
           expect(_currentUserData.userName).to.equal('jb');
         });
     });
-
-    it("should notify new sidebars of the logged in user",
-      function() {
-        _currentUserData.userName = "jb";
-        handlers.postEvent = sinon.spy();
-        handlers['talkilla.sidebar-ready']({
-          topic: "talkilla.sidebar-ready",
-          data: {}
-        });
-
-        sinon.assert.calledOnce(handlers.postEvent);
-        sinon.assert.calledWith(handlers.postEvent, "talkilla.login-success");
-      });
-
-    it("should notify new sidebars of current users",
-      function() {
-        _currentUserData.userName = "jb";
-        _presenceSocket = {send: sinon.spy()};
-        currentUsers = {};
-        handlers.postEvent = sinon.spy();
-        handlers['talkilla.presence-request']({
-          topic: "talkilla.presence-request",
-          data: {}
-        });
-
-        sinon.assert.calledWith(handlers.postEvent, "talkilla.users");
-      });
-
-    it("should request for the initial presence state" +
-       "if there is no current users", function() {
-        currentUsers = {};
-        sandbox.stub(spa, "presenceRequest");
-        handlers['talkilla.presence-request']({
-          topic: "talkilla.presence-request",
-          data: {}
-        });
-
-        sinon.assert.calledOnce(spa.presenceRequest);
-      });
-
-    it("should notify new sidebars only if there's a logged in user",
-      function() {
-        handlers.postEvent = sinon.spy();
-        handlers['talkilla.sidebar-ready']({
-          topic: "talkilla.sidebar-ready",
-          data: {}
-        });
-
-        sinon.assert.notCalled(handlers.postEvent);
-      });
-
-    it("should post a fail message if the login failed",
-      function() {
-        handlers.postEvent = sinon.spy();
-        sandbox.stub(spa, "signin", function(nick, callback) {
-          callback("some error", "{}");
-        });
-
-        handlers['talkilla.login']({
-          topic: "talkilla.login",
-          data: {assertion: "fake assertion"}
-        });
-        sinon.assert.calledTwice(handlers.postEvent);
-        sinon.assert.calledWith(handlers.postEvent, "talkilla.login-failure");
-      });
   });
 
   describe("talkilla.logout", function() {
@@ -446,7 +381,7 @@ describe('handlers', function() {
           data: {}
         });
 
-        sinon.assert.calledOnce(handlers.postEvent);
+        sinon.assert.called(handlers.postEvent);
         sinon.assert.calledWith(handlers.postEvent, "talkilla.login-success");
       });
 
@@ -461,6 +396,18 @@ describe('handlers', function() {
 
         sinon.assert.notCalled(spa.autoconnect);
       });
+    it("should notify new sidebars only if there's a logged in user",
+      function() {
+        handlers.postEvent = sinon.spy();
+        handlers['talkilla.sidebar-ready']({
+          topic: "talkilla.sidebar-ready",
+          data: {}
+        });
+
+        sinon.assert.calledOnce(handlers.postEvent);
+        sinon.assert.calledWith(handlers.postEvent, "talkilla.worker-ready");
+      });
+
 
   });
 
