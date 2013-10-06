@@ -35,13 +35,13 @@ describe("LoginView", function() {
     it("should require an appStatus parameter", function() {
       expect(function() {
         new app.views.LoginView({user: []});
-      }).to.Throw(Error);
+      }).to.Throw(/appStatus/);
     });
 
     it("should require a user parameter", function() {
       expect(function() {
         new app.views.LoginView({appStatus: []});
-      }).to.Throw(Error);
+      }).to.Throw(/user/);
     });
 
     it("should render the view when the user change", function() {

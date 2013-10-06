@@ -21,19 +21,19 @@ describe("AppView", function() {
       it("should require an appStatus parameter", function() {
         expect(function() {
           new app.views.AppView({users: [], user: []});
-        }).to.Throw(Error);
+        }).to.Throw(/appStatus/);
       });
 
       it("should require a user parameter", function() {
         expect(function() {
           new app.views.AppView({users: [], appStatus: []});
-        }).to.Throw(Error);
+        }).to.Throw(/user/);
       });
 
       it("should require a users parameter", function() {
         expect(function() {
           new app.views.AppView({user: {}, appStatus: []});
-        }).to.Throw(Error);
+        }).to.Throw(/users/);
       });
     });
 

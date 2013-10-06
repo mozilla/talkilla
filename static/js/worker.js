@@ -598,15 +598,27 @@ PortCollection.prototype = {
  * This keeps track of whether or not we're initialised, as it may be
  * that the sidebar or other panels are ready before the worker, and need
  * to know that the worker is actually ready to receive messages.
+ *
+ * options can contain:
+ *   contactsDb - the CollectedContacts to use
+ *   currentUsers - the object containing the currentUsers
+ *   ports - the object of the PortCollection
  */
 function TkWorker(options) {
   // XXX Move all globals into this constructor and create them here.
-  this.contactsDb = options.contactsDb;
-  this.currentUsers = options.currentUsers;
-  this.ports = options.ports;
+  this.contactsDb = options && options.contactsDb;
+  this.currentUsers = options && options.currentUsers;
+  this.ports = options && options.ports;
 }
 
 TkWorker.prototype = {
+  /**
+   * Loads the contacts database and adds the contacts to the
+   * current users list.
+   *
+   * Callback parameters:
+   *   none
+   */
   loadContacts: function(cb) {
     this.contactsDb.all(function(err, records) {
       if (err) {
