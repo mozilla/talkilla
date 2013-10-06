@@ -7,7 +7,7 @@ describe("SPA", function() {
   beforeEach(function() {
     worker = {postMessage: sinon.spy()};
     sandbox = sinon.sandbox.create();
-    sandbox.stub(window, "DummyWorker").returns(worker);
+    sandbox.stub(window, "Worker").returns(worker);
     spa = new SPA({src: "example.com"});
   });
 
@@ -18,8 +18,8 @@ describe("SPA", function() {
   describe("constructor", function() {
 
     it("should instantiate a worker with the src option", function() {
-      sinon.assert.calledOnce(window.DummyWorker);
-      sinon.assert.calledWithExactly(window.DummyWorker, "example.com");
+      sinon.assert.calledOnce(window.Worker);
+      sinon.assert.calledWithExactly(window.Worker, "example.com");
     });
 
     it("should throw an error if the src option is missing", function() {
@@ -37,8 +37,9 @@ describe("SPA", function() {
         done();
       });
 
-      worker.onmessage({topic: "foo", data: "bar"});
+      worker.onmessage({data: {topic: "foo", data: "bar"}});
     });
+
   });
 
   describe("#signin", function() {
@@ -63,7 +64,7 @@ describe("SPA", function() {
       var data = {err: "foo", response: "bar"};
 
       spa.signin("fake assertion", callback);
-      spa.worker.onmessage({topic: "signin-callback", data: data});
+      spa.worker.onmessage({data: {topic: "signin-callback", data: data}});
     });
 
   });
@@ -90,7 +91,7 @@ describe("SPA", function() {
       var data = {err: "foo", response: "bar"};
 
       spa.signout("foo", callback);
-      spa.worker.onmessage({topic: "signout-callback", data: data});
+      spa.worker.onmessage({data: {topic: "signout-callback", data: data}});
     });
 
   });
@@ -143,10 +144,10 @@ describe("SPA", function() {
         expect(response).to.equal("bar");
         done();
       };
-      var event = {
+      var event = {data: {
         topic: "call:offer-callback",
         data: {err: "foo", response: "bar"}
-      };
+      }};
 
       spa.callOffer("some data", "foo", callback);
       spa.worker.onmessage(event);
@@ -173,10 +174,10 @@ describe("SPA", function() {
         expect(response).to.equal("bar");
         done();
       };
-      var event = {
+      var event = {data: {
         topic: "call:accepted-callback",
         data: {err: "foo", response: "bar"}
-      };
+      }};
 
       spa.callAccepted("some data", "foo", callback);
       spa.worker.onmessage(event);
@@ -203,10 +204,10 @@ describe("SPA", function() {
         expect(response).to.equal("bar");
         done();
       };
-      var event = {
+      var event = {data: {
         topic: "call:hangup-callback",
         data: {err: "foo", response: "bar"}
-      };
+      }};
 
       spa.callHangup("some data", "foo", callback);
       spa.worker.onmessage(event);

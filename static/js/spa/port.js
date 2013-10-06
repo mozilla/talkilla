@@ -1,4 +1,4 @@
-/* global DummyWorker, BackboneEvents */
+/* global BackboneEvents */
 /* jshint unused:false */
 
 var SPAPort = (function(globalScope) {
@@ -12,7 +12,7 @@ var SPAPort = (function(globalScope) {
     },
 
     _onMessage: function(event) {
-      this.trigger(event.topic, event.data);
+      this.trigger(event.data.topic, event.data.data);
     }
   };
 
