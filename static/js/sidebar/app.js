@@ -9,6 +9,8 @@ var SidebarApp = (function(app, $) {
   function SidebarApp(options) {
     options = options || {};
 
+    this.appStatus = new app.models.AppStatus();
+
     this.port = new AppPort();
 
     this.user = new app.models.User();
@@ -16,6 +18,7 @@ var SidebarApp = (function(app, $) {
     this.users = new app.models.UserSet();
 
     this.view = new app.views.AppView({
+      appStatus: this.appStatus,
       user: this.user,
       users: this.users
     });
@@ -40,11 +43,16 @@ var SidebarApp = (function(app, $) {
                  this._onPresenceUnavailable, this);
     this.port.on("talkilla.chat-window-ready",
                  this._onChatWindowReady, this);
+    this.port.on("talkilla.worker-ready", this._onWorkerReady, this);
 
     this.port.postEvent("talkilla.sidebar-ready");
 
     this._setupDebugLogging();
   }
+
+  SidebarApp.prototype._onWorkerReady = function() {
+    this.appStatus.set("workerInitialized", true);
+  };
 
   SidebarApp.prototype._login = function(assertion) {
     if (!this.user.isLoggedIn())
