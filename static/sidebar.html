@@ -47,6 +47,7 @@
   <script src="vendor/backbone-1.0.0.js"></script>
   <script src="vendor/bootstrap-2.1.1/js/bootstrap.js"></script>
   <script src="vendor/state-machine-2.2.0.js"></script>
+  <script src="/config.js"></script>
   <script src="js/app.js"></script>
   <script src="js/sidebar/app.js"></script>
   <script src="js/port.js"></script>
@@ -56,12 +57,11 @@
   <script src="js/sidebar/views.js"></script>
   <script>
     $(function() {
-      $.getJSON('/config.json', function(config) {
-        $.getScript(config.PERSONA_INCLUDE_URL).done(function() {
-          app.start(config);
-          window.sidebarApp = new SidebarApp();
-        });
-      });
+      var config = loadConfig();
+      $.getScript(config.PERSONA_INCLUDE_URL).done(function() {
+        app.start(config);
+        window.sidebarApp = new SidebarApp();
+     });
     });
   </script>
 </body>
