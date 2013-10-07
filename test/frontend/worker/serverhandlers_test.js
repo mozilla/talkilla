@@ -11,11 +11,12 @@ describe("serverHandlers", function() {
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
+    sandbox.stub(window, "Worker");
+    spa = new SPA({src: "example.com"});
+    _setupSPA(spa);
 
     currentUsers = [];
     _currentUserData = new UserData();
-    spa = new SPA({src: "example.com"});
-    _setupSPA(spa);
     sandbox.stub(_currentUserData, "send");
     sandbox.stub(tkWorker, "loadContacts");
   });
