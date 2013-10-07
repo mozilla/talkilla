@@ -18,7 +18,7 @@ Local Development
 
 4. Start the server:
 
-        $ env PORT=5000 node app.js
+        $ env NODE_ENV=production PORT=5000 node app.js
         # or alternatively:
         $ make runserver
 
