@@ -1,6 +1,5 @@
 /*global expect, sinon, _currentUserData:true, currentConversation:true,
-  UserData, browserPort:true, contactsDb, Conversation,
-  currentUsers:true */
+  UserData, browserPort:true, contactsDb, Conversation, tkWorker */
 /* jshint expr:true */
 
 describe("Conversation", function() {
@@ -46,7 +45,7 @@ describe("Conversation", function() {
       // Avoid touching the contacts db which we haven't initialized.
       sandbox.stub(contactsDb, "add");
       _currentUserData = new UserData({_userName: "romain"});
-      currentUsers = {
+      tkWorker.currentUsers = {
         florian: { presence: "connected" }
       };
       port = {
@@ -59,7 +58,7 @@ describe("Conversation", function() {
 
     afterEach(function() {
       _currentUserData = undefined;
-      currentUsers = {};
+      tkWorker.currentUsers = {};
       port = undefined;
     });
 
@@ -142,7 +141,7 @@ describe("Conversation", function() {
         peer: "florian"
       };
 
-      currentUsers = {
+      tkWorker.currentUsers = {
         florian: { presence: "connected" }
       };
 
