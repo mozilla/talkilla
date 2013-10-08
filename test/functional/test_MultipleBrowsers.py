@@ -151,6 +151,18 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
         self.larry.signout()
         self.assertPresenceIconDisconnected(self.bob)
 
+    def test_aaa_local_video_visible_to_upgrade_receiver(self):
+        self.bob.signin()
+        self.larry.signin()
+
+        self.bob.openConversationWith("larry").sendChatMessage("let's chat!")
+
+        self.larry.switchToChatWindow().startCall(True)
+
+        self.bob.acceptCall()
+
+        self.assertElementVisible(self.larry, "#local-video")
+
 
 if __name__ == "__main__":
     unittest.main(catchbreak=True)
