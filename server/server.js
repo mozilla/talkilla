@@ -33,11 +33,6 @@ app.use(uncaughtError);
 
 var api = {
   config: function(req, res) {
-    res.header('Content-Type', 'application/json');
-    res.send(200, JSON.stringify(config));
-  },
-
-  jsConfig: function(req, res) {
     res.header('Content-Type', 'application/javascript');
     // This generates a function because importScripts in the worker doesn't
     // allow access to global variables.
@@ -46,8 +41,7 @@ var api = {
   }
 };
 
-app.get('/config.json', api.config);
-app.get('/config.js', api.jsConfig);
+app.get('/config.js', api.config);
 
 app.start = function(serverPort, callback) {
   app.set('users', {});

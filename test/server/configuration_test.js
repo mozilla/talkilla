@@ -105,23 +105,10 @@ describe("Server", function() {
 
     describe("#config", function() {
 
-      it("should return the config as a JSON", function() {
-        var req = {};
-        var res = {header: sinon.spy(), send: sinon.spy()};
-        api.config(req, res);
-
-        sinon.assert.calledOnce(res.header);
-        sinon.assert.calledWithExactly(
-          res.header, "Content-Type", "application/json");
-        sinon.assert.calledOnce(res.send);
-        sinon.assert.calledWithExactly(res.send, 200,
-                                       JSON.stringify(config.config));
-      });
-
       it("should return the config in a js file", function() {
         var req = {};
         var res = {header: sinon.spy(), send: sinon.spy()};
-        api.jsConfig(req, res);
+        api.config(req, res);
 
         sinon.assert.calledOnce(res.header);
         sinon.assert.calledWithExactly(

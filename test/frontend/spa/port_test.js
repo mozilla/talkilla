@@ -28,7 +28,7 @@ describe("SPAPort", function() {
   describe("#on", function() {
 
     it("should trigger the callback when receiving an event", function(done) {
-      var event = {topic: "foo", data: "bar"};
+      var event = {data: {topic: "foo", data: "bar"}};
       port.on("foo", function(data) {
         expect(data).to.equal("bar");
         done();

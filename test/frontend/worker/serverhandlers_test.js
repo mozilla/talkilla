@@ -1,6 +1,6 @@
 /*global chai, sinon, browserPort:true, currentConversation:true,
-  SPA, Conversation, currentUsers:true, ports,
-  _setupSPA, _currentUserData:true, UserData */
+  SPA, Conversation, currentUsers:true, ports, tkWorker,
+  _setupSPA, _currentUserData:true, UserData, contactsDb */
 
 /* Needed due to the use of non-camelcase in the websocket topics */
 /* jshint camelcase:false */
@@ -11,12 +11,14 @@ describe("serverHandlers", function() {
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
+    sandbox.stub(window, "Worker");
+    spa = new SPA({src: "example.com"});
+    _setupSPA(spa);
 
     currentUsers = [];
     _currentUserData = new UserData();
-    spa = new SPA({src: "example.com"});
-    _setupSPA(spa);
     sandbox.stub(_currentUserData, "send");
+    sandbox.stub(tkWorker, "loadContacts");
   });
 
   afterEach(function() {
@@ -25,7 +27,6 @@ describe("serverHandlers", function() {
   });
 
   describe("`connected` event", function() {
-
     it("should set the user data as connected", function() {
       spa.trigger("connected");
 
@@ -42,6 +43,12 @@ describe("serverHandlers", function() {
       sinon.assert.calledWithExactly(
         ports.broadcastEvent, "talkilla.login-success", {username: "harvey"}
       );
+    });
+
+    it("should load the contacts database", function() {
+      spa.trigger("connected");
+
+      sinon.assert.calledOnce(tkWorker.loadContacts);
     });
 
   });
@@ -234,7 +241,6 @@ describe("serverHandlers", function() {
   });
 
   describe("`disconnected` event", function() {
-
     it("should set the user data as disconnected", function() {
       spa.trigger("disconnected", {code: 1006});
 
@@ -265,6 +271,13 @@ describe("serverHandlers", function() {
       );
     });
 
+    it("should close the contacts database", function() {
+      sandbox.stub(contactsDb, "close");
+
+      spa.trigger("disconnected", {code: 1000});
+
+      sinon.assert.calledOnce(contactsDb.close);
+    });
   });
 
 });
