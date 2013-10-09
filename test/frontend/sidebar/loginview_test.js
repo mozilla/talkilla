@@ -131,7 +131,7 @@ describe("LoginView", function() {
         logout: sandbox.spy()
       };
       loginView = new app.views.LoginView({
-        user: new app.models.User(),
+        user: new app.models.CurrentUser(),
         appStatus: new app.models.AppStatus()
       });
     });
@@ -142,22 +142,24 @@ describe("LoginView", function() {
 
     describe("#signin", function() {
 
-      it("should call navigator.id.request", function() {
-        sandbox.stub(app.utils, "notifyUI");
+      it("should call sign in on the user model", function() {
+        sandbox.stub(loginView.user, "signin");
 
         loginView.signin(clickEvent);
 
-        sinon.assert.calledOnce(window.navigator.id.request);
+        sinon.assert.calledOnce(loginView.user.signin);
       });
 
     });
 
     describe("#signout", function() {
 
-      it("should call SidebarApp#logout", function() {
+      it("should call sign out on the user model", function() {
+        sandbox.stub(loginView.user, "signout");
+
         loginView.signout(clickEvent);
 
-        sinon.assert.calledOnce(window.navigator.id.logout);
+        sinon.assert.calledOnce(loginView.user.signout);
       });
 
     });
