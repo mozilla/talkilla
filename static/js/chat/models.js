@@ -80,10 +80,10 @@
      * - audio: set to true to enable audio
      */
     start: function(constraints) {
+      this.set('currentConstraints', constraints);
+
       if (this.media.state.current === 'ongoing')
         return this.upgrade(constraints);
-
-      this.set('currentConstraints', constraints);
 
       this._startCall(this.get('currentConstraints'));
     },

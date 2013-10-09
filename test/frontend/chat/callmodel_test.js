@@ -4,6 +4,7 @@
 var expect = chai.expect;
 
 describe("Call Model", function() {
+  "use strict";
 
   var sandbox, call, media, peer;
 
@@ -79,12 +80,26 @@ describe("Call Model", function() {
     it("should silently upgrade a call if currently ongoing", function() {
       sandbox.stub(call, "upgrade");
       call.media.state.current = "ongoing";
+      var fakeConstraints = {fakeConstraint: true};
 
-      call.start({video: true});
+      call.start(fakeConstraints);
 
       sinon.assert.calledOnce(call.upgrade);
-      sinon.assert.calledWithExactly(call.upgrade, {video: true});
+      sinon.assert.calledWithExactly(call.upgrade, fakeConstraints);
     });
+
+    it("should cause a requiresVideo() call to give an updated answer",
+      function() {
+        sandbox.stub(call, "upgrade");
+        call.media.state.current = "ongoing";
+        var constraints = {video: true};
+        expect(call.requiresVideo()).to.equal(false);
+
+        call.start(constraints);
+
+        expect(call.requiresVideo()).to.equal(true);
+      });
+
 
     describe("send-offer", function() {
       var fakeOffer = {peer: "larry", offer: {fake: true}};
