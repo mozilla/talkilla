@@ -88,15 +88,16 @@ describe("Call Model", function() {
       sinon.assert.calledWithExactly(call.upgrade, fakeConstraints);
     });
 
-    it("should set the constraints on the call object when silently upgrading",
+    it("should cause a requiresVideo() call to give an updated answer",
       function() {
         sandbox.stub(call, "upgrade");
         call.media.state.current = "ongoing";
-        var fakeConstraints = {fakeConstraint: true};
+        var constraints = {video: true};
+        expect(call.requiresVideo()).to.equal(false);
 
-        call.start(fakeConstraints);
+        call.start(constraints);
 
-        expect(call.get('currentConstraints')).to.deep.equal(fakeConstraints);
+        expect(call.requiresVideo()).to.equal(true);
       });
 
 
