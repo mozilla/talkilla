@@ -6,18 +6,20 @@
 var GoogleContacts = (function() {
   var AUTH_COOKIE_NAME = "google.auth.token";
   var AUTH_COOKIE_TTL = 365 * 10; // in days
+  var MAX_RESULTS = 9999; // max number of contacts to fetch
   var config = {
     // XXX: more official mozilla-owned google app id?
     "client_id": "583962873515.apps.googleusercontent.com",
     "scope":     "https://www.google.com/m8/feeds"
   };
-  var baseUrl = [
-    "https://www.google.com/m8/feeds/contacts/default/full",
-    "?v=3.0",
-    // "&max-results=9999", // uncomment to retrieve all contacts
-    "&alt=json",
-    "&access_token="
-  ].join('');
+  var baseUrl = config.scope + "/contacts/default/full?v=3.0&alt=json";
+
+  function buildUrl(params) {
+    return [baseUrl, Object.keys(params || {}).map(function(name) {
+      var value = params[name];
+      return name + (value !== undefined ? "=" + value : "");
+    }).join("&")].join("&");
+  }
 
   /**
    * Constructor.
@@ -32,6 +34,7 @@ var GoogleContacts = (function() {
     this.port = options.port;
     this.authCookieName = options.authCookieName || AUTH_COOKIE_NAME;
     this.authCookieTTL = options.authCookieTTL || AUTH_COOKIE_TTL;
+    this.maxResults = options.maxResults || MAX_RESULTS;
     this.token = options.token || this._getToken();
   }
 
@@ -112,7 +115,10 @@ var GoogleContacts = (function() {
       request.onerror = function(event) {
         cb.call(this, new Error("HTTP " + event.target.status + " error"));
       }.bind(this);
-      request.open("GET", baseUrl + encodeURIComponent(this.token), true);
+      request.open("GET", buildUrl({
+        "max-results": this.maxResults,
+        "access_token": encodeURIComponent(this.token)
+      }), true);
       request.send();
     },
 

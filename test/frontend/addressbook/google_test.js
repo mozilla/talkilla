@@ -68,6 +68,10 @@ describe("GoogleContacts", function() {
       expect(new GoogleContacts({token: "plop"}).token).eql("plop");
     });
 
+    it("should accept a maxResults option", function() {
+      expect(new GoogleContacts({maxResults: 1337}).maxResults).eql(1337);
+    });
+
     it("should accept a authCookieName option", function() {
       expect(new GoogleContacts({
         authCookieName: "plop"
@@ -165,6 +169,36 @@ describe("GoogleContacts", function() {
         done();
       });
     });
+
+    it("should request the endpoint url using current token value",
+      function(done) {
+        new GoogleContacts({token: "fake"}).all(function() {
+          expect(request.url).to.match(/access_token=fake/);
+          done();
+        });
+
+        request.respond(200, {"Content-Type": "application/json"}, "{}");
+      });
+
+    it("should request the endpoint url using default maxResults value",
+      function(done) {
+        new GoogleContacts({token: "fake"}).all(function() {
+          expect(request.url).to.match(/max-results=9999/);
+          done();
+        });
+
+        request.respond(200, {"Content-Type": "application/json"}, "{}");
+      });
+
+    it("should request the endpoint url using a custom maxResults option value",
+      function(done) {
+        new GoogleContacts({token: "fake", maxResults: 42}).all(function() {
+          expect(request.url).to.match(/max-results=42/);
+          done();
+        });
+
+        request.respond(200, {"Content-Type": "application/json"}, "{}");
+      });
 
     it("should load, parse and normalize google contacts", function() {
       var callback = sinon.spy();
