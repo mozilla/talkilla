@@ -10,10 +10,6 @@ describe("GoogleContacts", function() {
     cb();
   }
 
-  fakePort = {
-    postEvent: sinon.spy()
-  };
-
   fakeGApi = {
     auth: {
       init: caller,
@@ -49,6 +45,9 @@ describe("GoogleContacts", function() {
   beforeEach(function() {
     $.removeCookie("tktest");
     sandbox = sinon.sandbox.create();
+    fakePort = {
+      postEvent: sandbox.spy()
+    };
   });
 
   afterEach(function() {
