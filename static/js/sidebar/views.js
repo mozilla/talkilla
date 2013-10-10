@@ -1,5 +1,4 @@
 /*global app, sidebarApp */
-/* jshint camelcase:false */
 /**
  * Talkilla Backbone views.
  */
