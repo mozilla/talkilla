@@ -5,6 +5,7 @@
  */
 var GoogleContacts = (function() {
   var AUTH_COOKIE_NAME = "google.auth.token";
+  var AUTH_COOKIE_TTL = 365 * 10; // in days
   var config = {
     // XXX: more official mozilla-owned google app id?
     "client_id": "583962873515.apps.googleusercontent.com",
@@ -30,6 +31,7 @@ var GoogleContacts = (function() {
     options = options || {};
     this.port = options.port;
     this.authCookieName = options.authCookieName || AUTH_COOKIE_NAME;
+    this.authCookieTTL = options.authCookieTTL || AUTH_COOKIE_TTL;
     this.token = options.token || this._getToken();
   }
 
@@ -150,7 +152,7 @@ var GoogleContacts = (function() {
       if (!token)
         throw new Error("Can't store a missing auth token.");
       this.token = token;
-      $.cookie(this.authCookieName, token, {expires: 365 * 10});
+      $.cookie(this.authCookieName, token, {expires: this.authCookieTTL});
     }
   };
 

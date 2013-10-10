@@ -75,6 +75,12 @@ describe("GoogleContacts", function() {
       }).authCookieName).eql("plop");
     });
 
+    it("should accept a authCookieTTL option", function() {
+      expect(new GoogleContacts({
+        authCookieTTL: 42
+      }).authCookieTTL).eql(42);
+    });
+
     it("should retrieve existing token from cookie by default", function() {
       sandbox.stub($, "cookie", function() {
         return "ok";
@@ -114,9 +120,14 @@ describe("GoogleContacts", function() {
       function(done) {
         window.gapi = fakeGApi;
         sandbox.stub($, "cookie");
-        new GoogleContacts({authCookieName: "tktest"}).authorize(function() {
-          sinon.assert.called($.cookie);
-          sinon.assert.calledWith($.cookie, "tktest", "token");
+        new GoogleContacts({
+          authCookieName: "tktest",
+          authCookieTTL: 42
+        }).authorize(function() {
+          sinon.assert.calledTwice($.cookie); // first call for reading cookie
+          sinon.assert.calledWithExactly($.cookie, "tktest", "token", {
+            expires: 42
+          });
           done();
         });
       });
