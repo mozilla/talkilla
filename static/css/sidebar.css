@@ -17,6 +17,11 @@
   color: #818A8F; /* match the header */
 }
 
+.sidebar #signin img {
+  width: 185px;
+  height: 25px;
+}
+
 .sidebar .title {
   margin-top: 0;
   font-size: 20px;
@@ -77,4 +82,14 @@
 
 .sidebar .status-disconnected {
   display: none;
+}
+
+.sidebar footer {
+  width: 100%;
+  position: fixed;
+  bottom: 0;
+  background: #F5F1E8;
+  text-align: center;
+  padding-top: 10px;
+  border-top: 1px solid #ccc;
 }
