@@ -5,6 +5,8 @@ var Server = (function() {
   function Server(options) {
     this.options = options;
     this.http = new HTTP();
+    // XXX: Temporary attribute. We need proper sessions.
+    this.nick = undefined;
   }
 
   Server.prototype = {
@@ -21,6 +23,7 @@ var Server = (function() {
         if (err)
           return this.trigger("error", response);
 
+        this.nick = nick;
         this.trigger("connected");
         this._longPolling(nick, JSON.parse(response));
       }.bind(this));
@@ -31,6 +34,7 @@ var Server = (function() {
         if (err)
           return this.trigger("disconnected", response);
 
+        this.nick = nick;
         this.trigger("connected");
         this._longPolling(nick, JSON.parse(response));
       }.bind(this));
@@ -52,16 +56,16 @@ var Server = (function() {
       }.bind(this));
     },
 
-    callOffer: function(data, nick, callback) {
-      this.http.post("/calloffer", {data: data, nick: nick}, callback);
+    callOffer: function(data, callback) {
+      this.http.post("/calloffer", {data: data, nick: this.nick}, callback);
     },
 
-    callAccepted: function(data, nick, callback) {
-      this.http.post("/callaccepted", {data: data, nick: nick}, callback);
+    callAccepted: function(data, callback) {
+      this.http.post("/callaccepted", {data: data, nick: this.nick}, callback);
     },
 
-    callHangup: function(data, nick, callback) {
-      this.http.post("/callhangup", {data: data, nick: nick}, callback);
+    callHangup: function(data, callback) {
+      this.http.post("/callhangup", {data: data, nick: this.nick}, callback);
     },
 
     presenceRequest: function(nick, callback) {
