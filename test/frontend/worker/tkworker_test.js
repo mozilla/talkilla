@@ -75,23 +75,20 @@ describe("tkWorker", function() {
   });
 
   describe("#updateContactList", function() {
-    var contacts;
-
-    beforeEach(function() {
-      worker.currentUsers.foo = {presence: "connected"};
-      contacts = [{username: "foo"}, {username: "bar"}];
-    });
+    var contacts = [{username: "foo"}, {username: "bar"}];
 
     it("should add contacts to the currentUsers list", function() {
       worker.updateContactList(contacts);
 
       expect(worker.currentUsers).eql({
-        foo: {presence: "connected"},
+        foo: {presence: "disconnected"},
         bar: {presence: "disconnected"}
       });
     });
 
     it("shouldn't duplicate contacts", function() {
+      worker.currentUsers.foo = {presence: "connected"};
+
       worker.updateContactList(contacts);
 
       expect(worker.currentUsers).eql({
@@ -107,7 +104,7 @@ describe("tkWorker", function() {
 
       sinon.assert.calledOnce(ports.broadcastEvent);
       sinon.assert.calledWith(ports.broadcastEvent, "talkilla.users", [
-        {nick: "foo", presence: "connected"},
+        {nick: "foo", presence: "disconnected"},
         {nick: "bar", presence: "disconnected"}
       ]);
     });
