@@ -118,15 +118,15 @@ var GoogleContacts = (function() {
      * Loads contacts from the Google Contacts API and notify current opened
      * port through the `talkilla.contacts` event.
      *
-     * Emits `talkilla.contacts.error` on any encountered error.
+     * Emits `talkilla.contacts-error` on any encountered error.
      */
     loadContacts: function() {
       this.authorize(function(err) {
         if (err)
-          return this.port.postEvent("talkilla.contacts.error", err);
+          return this.port.postEvent("talkilla.contacts-error", err);
         this.all(function(err, contacts) {
           if (err)
-            return this.port.postEvent("talkilla.contacts.error", err);
+            return this.port.postEvent("talkilla.contacts-error", err);
           this.port.postEvent("talkilla.contacts", {contacts: contacts});
         }.bind(this));
       }.bind(this));

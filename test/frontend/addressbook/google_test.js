@@ -222,7 +222,7 @@ describe("GoogleContacts", function() {
       new GoogleContacts({port: fakePort}).loadContacts();
 
       sinon.assert.calledWithExactly(fakePort.postEvent,
-                                     "talkilla.contacts.error",
+                                     "talkilla.contacts-error",
                                      error);
     });
   });
