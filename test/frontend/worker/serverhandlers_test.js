@@ -165,28 +165,23 @@ describe("serverHandlers", function() {
 
     it("should create a new conversation object with the call data",
        function() {
-      var data = {
-        peer: "alice",
-        offer: {type: "fake", sdp: "sdp" }
-      };
+      var offer = {type: "fake", sdp: "sdp" };
+      var from = "alice";
 
-      spa.trigger("message:incoming_call", data);
+      spa.trigger("offer", offer, from);
 
       expect(currentConversation).to.be.an.instanceOf(Conversation);
-      expect(currentConversation.data).to.deep.equal(data);
     });
 
     it("should try to re-use an existing conversation object",
       function() {
         currentConversation = new Conversation({peer: "florian"});
-
         sandbox.stub(currentConversation, "handleIncomingCall");
 
-        var data = {
-          peer: "alice",
-          offer: {type: "fake", sdp: "sdp" }
-        };
-        spa.trigger("message:incoming_call", data);
+        var offer = {type: "fake", sdp: "sdp" };
+        var from = "alice";
+        var data = {offer: offer, peer: from};
+        spa.trigger("offer", offer, from);
 
         sinon.assert.calledOnce(currentConversation.handleIncomingCall);
         sinon.assert.calledWith(currentConversation.handleIncomingCall,
@@ -197,46 +192,37 @@ describe("serverHandlers", function() {
   describe("`message:call_accepted` event", function() {
 
     it("should call callAccepted on the conversation", function () {
-      var data = {
-        peer: "alice",
-        answer: { type: "fake", sdp: "sdp" }
-      };
+      var from = "alice";
+      var answer = {type: "fake", sdp: "sdp"};
+      var data = {peer: from, answer: answer};
 
       currentConversation = {
         callAccepted: sandbox.spy()
       };
 
-      spa.trigger("message:call_accepted", data);
+      spa.trigger("answer", answer, from);
 
       sinon.assert.calledOnce(currentConversation.callAccepted);
-      sinon.assert.calledWithExactly(currentConversation.callAccepted,
-        data);
+      sinon.assert.calledWithExactly(
+        currentConversation.callAccepted, answer, from, undefined);
     });
 
   });
 
   describe("`message:call_hangup` event", function() {
-    var callData, callHangupStub;
-
     beforeEach(function() {
       currentConversation = {
         callHangup: function() {}
       };
-
-      // We save this as a stub, because currentConversation gets
-      // cleared in the call_hangup function.
-      callHangupStub = sandbox.stub(currentConversation, "callHangup");
-
-      callData = {
-        peer: "bob"
-      };
     });
 
     it("should call callHangup on the conversation", function() {
-      spa.trigger("message:call_hangup", callData);
+      sandbox.stub(currentConversation, "callHangup");
 
-      sinon.assert.calledOnce(callHangupStub);
-      sinon.assert.calledWithExactly(callHangupStub, callData);
+      spa.trigger("hangup", "bob");
+
+      sinon.assert.calledOnce(currentConversation.callHangup);
+      sinon.assert.calledWithExactly(currentConversation.callHangup, "bob");
     });
   });
 
