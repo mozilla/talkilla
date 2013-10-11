@@ -33,6 +33,7 @@ describe("CurrentUser Model", function() {
 
         sinon.assert.notCalled(currentUser.trigger);
       });
+
     it("should post a signin-requested event when the user logs in",
       function() {
         browserIdHandlers.onlogin("fake assertion");
