@@ -13,7 +13,7 @@ var SidebarApp = (function(app, $) {
 
     this.port = new AppPort();
 
-    this.user = new app.models.User();
+    this.user = new app.models.CurrentUser();
 
     this.users = new app.models.UserSet();
 
@@ -30,14 +30,10 @@ var SidebarApp = (function(app, $) {
       services: this.services
     });
 
-    navigator.id.watch({
-      loggedInUser: null,
-      onlogin: this._login.bind(this),
-      onlogout: this._logout.bind(this)
-    });
-
     // user events
     this.user.on("signout", this._onUserSignout, this);
+    this.user.on("signin-requested", this._onUserSigninRequested, this);
+    this.user.on("signout-requested", this._onUserSignoutRequested, this);
 
     // port events
     this.port.on('talkilla.users', this._onUserListReceived, this);
@@ -61,12 +57,11 @@ var SidebarApp = (function(app, $) {
     this.appStatus.set("workerInitialized", true);
   };
 
-  SidebarApp.prototype._login = function(assertion) {
-    if (!this.user.isLoggedIn())
-      this.port.postEvent('talkilla.login', {assertion: assertion});
+  SidebarApp.prototype._onUserSigninRequested = function(assertion) {
+    this.port.postEvent('talkilla.login', {assertion: assertion});
   };
 
-  SidebarApp.prototype._logout = function() {
+  SidebarApp.prototype._onUserSignoutRequested = function() {
     this.port.postEvent('talkilla.logout');
   };
 

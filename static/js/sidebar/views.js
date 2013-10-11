@@ -273,7 +273,7 @@
      */
     signin: function(event) {
       event.preventDefault();
-      navigator.id.request();
+      this.user.signin();
     },
 
     /**
@@ -283,7 +283,7 @@
      */
     signout: function(event) {
       event.preventDefault();
-      navigator.id.logout();
+      this.user.signout();
     }
   });
 
