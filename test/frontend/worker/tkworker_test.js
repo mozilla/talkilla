@@ -81,18 +81,18 @@ describe("tkWorker", function() {
     it("should add contacts to the currentUsers list", function() {
       worker.updateContactList(contacts);
 
-      expect(worker.currentUsers).eql({
+      expect(worker.currentUsers.all()).eql({
         foo: {presence: "disconnected"},
         bar: {presence: "disconnected"}
       });
     });
 
     it("shouldn't duplicate contacts", function() {
-      worker.currentUsers.foo = {presence: "connected"};
+      worker.currentUsers.set('foo', {presence: "connected"});
 
       worker.updateContactList(contacts);
 
-      expect(worker.currentUsers).eql({
+      expect(worker.currentUsers.all()).eql({
         foo: {presence: "connected"},
         bar: {presence: "disconnected"}
       });

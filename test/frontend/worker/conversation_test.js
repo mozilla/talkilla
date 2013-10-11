@@ -45,9 +45,7 @@ describe("Conversation", function() {
       // Avoid touching the contacts db which we haven't initialized.
       sandbox.stub(tkWorker.contactsDb, "add");
       _currentUserData = new UserData({_userName: "romain"});
-      tkWorker.currentUsers = {
-        florian: { presence: "connected" }
-      };
+      tkWorker.currentUsers.set("florian", { presence: "connected" });
       port = {
         postEvent: sandbox.spy()
       };
@@ -58,7 +56,7 @@ describe("Conversation", function() {
 
     afterEach(function() {
       _currentUserData = undefined;
-      tkWorker.currentUsers = {};
+      tkWorker.currentUsers.reset();
       port = undefined;
     });
 
@@ -141,9 +139,7 @@ describe("Conversation", function() {
         peer: "florian"
       };
 
-      tkWorker.currentUsers = {
-        florian: { presence: "connected" }
-      };
+      tkWorker.currentUsers.set("florian", { presence: "connected" });
 
       currentConversation = new Conversation(initData);
       currentConversation.windowOpened(port);
