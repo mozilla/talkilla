@@ -284,7 +284,11 @@ function _setupSPA(spa) {
     ports.broadcastEvent("talkilla.user-left", userId);
   });
 
-  spa.on("message:incoming_call", function(data) {
+  spa.on("offer", function(offer, from, textChat) {
+    var data = {offer: offer, peer: from};
+    if (textChat)
+      data.textChat = textChat;
+
     // If we're in a conversation, and it is not with the peer,
     // then ignore it
     if (currentConversation) {
@@ -301,11 +305,15 @@ function _setupSPA(spa) {
     currentConversation = new Conversation(data);
   });
 
-  spa.on("message:call_accepted", function(data) {
+  spa.on("answer", function(answer, from, textChat) {
+    var data = {answer: answer, peer: from};
+    if (textChat)
+      data.textChat = textChat;
     currentConversation.callAccepted(data);
   });
 
-  spa.on("message:call_hangup", function(data) {
+  spa.on("hangup", function(from) {
+    var data = {peer: from};
     if (currentConversation)
       currentConversation.callHangup(data);
   });
@@ -458,7 +466,7 @@ var handlers = {
    * - offer:    an RTCSessionDescription containing the sdp data for the call.
    */
   'talkilla.call-offer': function(event) {
-    spa.callOffer(event.data, _currentUserData.userName);
+    spa.callOffer(event.data.offer, event.data.peer, event.data.textChat);
   },
 
   /**
@@ -466,10 +474,10 @@ var handlers = {
    *
    * - peer:     the person who is calling you
    * - textChat: is this a text chat offer?
-   * - offer:    an RTCSessionDescription containing the sdp data for the call.
+   * - answer:   an RTCSessionDescription containing the sdp data for the call.
    */
   'talkilla.call-answer': function(event) {
-    spa.callAccepted(event.data, _currentUserData.userName);
+    spa.callAnswer(event.data.answer, event.data.peer, event.data.textChat);
   },
 
   /**
@@ -478,7 +486,7 @@ var handlers = {
    * - peer: the person you are talking to.
    */
   'talkilla.call-hangup': function (event) {
-    spa.callHangup(event.data, _currentUserData.userName);
+    spa.callHangup(event.data.peer);
   }
 };
 

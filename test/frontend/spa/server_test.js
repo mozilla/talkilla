@@ -224,11 +224,15 @@ describe("Server", function() {
 
   describe("#callOffer", function() {
 
+    beforeEach(function() {
+      server.nick = "foo";
+    });
+
     it("should send an offer to a peer", function() {
       var offerData = "fake offer payload";
       var callback = function() {};
       sandbox.stub(server.http, "post");
-      server.callOffer(offerData, "foo", callback);
+      server.callOffer(offerData, callback);
 
       sinon.assert.calledOnce(server.http.post);
       sinon.assert.calledWithExactly(
@@ -242,11 +246,15 @@ describe("Server", function() {
 
   describe("#callAnswer", function() {
 
+    beforeEach(function() {
+      server.nick = "bar";
+    });
+
     it("should accept a call from peer", function() {
       var answerData = "fake answer payload";
       var callback = function() {};
       sandbox.stub(server.http, "post");
-      server.callAccepted(answerData, "bar", callback);
+      server.callAccepted(answerData, callback);
 
       sinon.assert.calledOnce(server.http.post);
       sinon.assert.calledWithExactly(
@@ -260,11 +268,15 @@ describe("Server", function() {
 
   describe("#callHangup", function() {
 
+    beforeEach(function() {
+      server.nick = "xoo";
+    });
+
     it("should hangup the call", function() {
       var hangupData = "fake hangup payload";
       var callback = function() {};
       sandbox.stub(server.http, "post");
-      server.callHangup(hangupData, "xoo", callback);
+      server.callHangup(hangupData, callback);
 
       sinon.assert.calledOnce(server.http.post);
       sinon.assert.calledWithExactly(

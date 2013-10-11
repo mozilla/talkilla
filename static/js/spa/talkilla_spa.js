@@ -10,9 +10,9 @@ var TalkillaSPA = (function() {
 
     this.port.on("signin", this._onSignin.bind(this));
     this.port.on("signout", this._onSignout.bind(this));
-    this.port.on("call:offer", this._onCallOffer.bind(this));
-    this.port.on("call:accepted", this._onCallAccepted.bind(this));
-    this.port.on("call:hangup", this._onCallHangup.bind(this));
+    this.port.on("offer", this._onCallOffer.bind(this));
+    this.port.on("answer", this._onCallAnswer.bind(this));
+    this.port.on("hangup", this._onCallHangup.bind(this));
     this.port.on("presence:request", this._onPresenceRequest.bind(this));
 
     this.server.on("connected", this._onServerEvent.bind(this, "connected"));
@@ -27,7 +27,19 @@ var TalkillaSPA = (function() {
     },
 
     _onServerMessage: function(type, event) {
-      this.port.post("message", [type, event]);
+      // XXX: For now we just translate the server messages to the
+      // documented SPA interface. We have to update the server to
+      // reflect these events.
+      var mapping = {
+        "incoming_call": "offer",
+        "call_accepted": "answer",
+        "call_hangup": "hangup"
+      };
+
+      if (type in mapping)
+        this.port.post(mapping[type], event);
+      else
+        this.port.post("message", [type, event]);
     },
 
     _onConnect: function(data) {
@@ -51,22 +63,18 @@ var TalkillaSPA = (function() {
     },
 
     _onCallOffer: function(data) {
-      this.server.callOffer(data.data, data.nick, function(err, response) {
-        this.port.post("call:offer-callback", {err: err, response: response});
-      }.bind(this));
+      data = {peer: data.to, offer: data.offer, textChat: data.textChat};
+      this.server.callOffer(data);
     },
 
-    _onCallAccepted: function(data) {
-      this.server.callAccepted(data.data, data.nick, function(err, response) {
-        this.port.post("call:accepted-callback",
-                       {err: err, response: response});
-      }.bind(this));
+    _onCallAnswer: function(data) {
+      data = {peer: data.to, answer: data.answer, textChat: data.textChat};
+      this.server.callAccepted(data);
     },
 
     _onCallHangup: function(data) {
-      this.server.callHangup(data.data, data.nick, function(err, response) {
-        this.port.post("call:hangup-callback", {err: err, response: response});
-      }.bind(this));
+      data = {peer: data.to};
+      this.server.callHangup(data);
     },
 
     _onPresenceRequest: function(data) {

@@ -21,6 +21,12 @@ var SPA = (function() {
         data = data.shift();
         this.trigger("message", type, data);
         this.trigger("message:" + type, data);
+      } else if (topic === "offer") {
+        this.trigger(topic, data.offer, data.peer, data.textChat);
+      } else if (topic === "answer") {
+        this.trigger(topic, data.answer, data.peer, data.textChat);
+      } else if (topic === "hangup") {
+        this.trigger(topic, data.peer);
       } else {
         this.trigger(topic, data);
       }
@@ -52,25 +58,16 @@ var SPA = (function() {
       this._send("autoconnect", {nick: nick});
     },
 
-    callOffer: function(data, nick, callback) {
-      this.once("call:offer-callback", function(data) {
-        callback(data.err, data.response);
-      });
-      this._send("call:offer", {data: data, nick: nick});
+    callOffer: function(offer, to, textChat) {
+      this._send("offer", {offer: offer, to: to, textChat: textChat});
     },
 
-    callAccepted: function(data, nick, callback) {
-      this.once("call:accepted-callback", function(data) {
-        callback(data.err, data.response);
-      });
-      this._send("call:accepted", {data: data, nick: nick});
+    callAnswer: function(answer, to, textChat) {
+      this._send("answer", {answer: answer, to: to, textChat: textChat});
     },
 
-    callHangup: function(data, nick, callback) {
-      this.once("call:hangup-callback", function(data) {
-        callback(data.err, data.response);
-      });
-      this._send("call:hangup", {data: data, nick: nick});
+    callHangup: function(to) {
+      this._send("hangup", {to: to});
     },
 
     presenceRequest: function(nick) {
