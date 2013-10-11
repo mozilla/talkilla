@@ -161,7 +161,7 @@ describe("SPA", function() {
   describe("#callHangup", function() {
 
     it("should send a call:hangup event to the worker", function() {
-      var to = "foo"
+      var to = "foo";
       spa.callHangup(to);
 
       sinon.assert.calledOnce(spa.worker.postMessage);
