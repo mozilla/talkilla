@@ -1,26 +1,28 @@
-/* global importScripts, DummyWorker, BackboneEvents */
+/* global importScripts, BackboneEvents */
 /* jshint unused:false */
 
 var SPA = (function() {
-  importScripts('spa/dummy_worker.js'); // exposes DummyWorker
-
   function SPA(options) {
     if (!options || !options.src)
       throw new Error("missing parameter: src");
 
-    this.worker = new DummyWorker(options.src);
+    this.worker = new Worker(options.src);
     this.worker.onmessage = this._onMessage.bind(this);
   }
 
   SPA.prototype = {
     _onMessage: function(event) {
-      if (event.topic === "message") {
-        var type = event.data.shift();
-        var data = event.data.shift();
+      var type;
+      var topic = event.data.topic;
+      var data = event.data.data;
+
+      if (topic === "message") {
+        type = data.shift();
+        data = data.shift();
         this.trigger("message", type, data);
         this.trigger("message:" + type, data);
       } else {
-        this.trigger(event.topic, event.data);
+        this.trigger(topic, data);
       }
     },
 

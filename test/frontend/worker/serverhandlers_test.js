@@ -1,5 +1,5 @@
 /*global chai, sinon, browserPort:true, currentConversation:true,
-  SPA, Conversation, currentUsers:true, ports, tkWorker,
+  SPA, Conversation, ports, tkWorker,
   _setupSPA, _currentUserData:true, UserData, contactsDb */
 
 /* Needed due to the use of non-camelcase in the websocket topics */
@@ -11,11 +11,12 @@ describe("serverHandlers", function() {
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
-
-    currentUsers = [];
-    _currentUserData = new UserData();
+    sandbox.stub(window, "Worker");
     spa = new SPA({src: "example.com"});
     _setupSPA(spa);
+
+    tkWorker.currentUsers = [];
+    _currentUserData = new UserData();
     sandbox.stub(_currentUserData, "send");
     sandbox.stub(tkWorker, "loadContacts");
   });
@@ -58,18 +59,18 @@ describe("serverHandlers", function() {
     });
 
     afterEach(function() {
-      currentUsers = {};
+      tkWorker.currentUsers = {};
     });
 
     it("should update the current list of users", function() {
-      currentUsers = {jb: {presence: "disconnected"}};
+      tkWorker.currentUsers = {jb: {presence: "disconnected"}};
 
       spa.trigger("message:users", [
         {nick: "james"},
         {nick: "harvey"}
       ]);
 
-      expect(currentUsers).to.deep.equal({
+      expect(tkWorker.currentUsers).to.deep.equal({
         jb: {presence: "disconnected"},
         james: {presence: "connected"},
         harvey: {presence: "connected"}
@@ -92,7 +93,7 @@ describe("serverHandlers", function() {
   describe("`message:userJoined` event", function() {
 
     it("should broadcast a `talkilla.users` event", function() {
-      currentUsers = [];
+      tkWorker.currentUsers = [];
       sandbox.stub(ports, "broadcastEvent");
 
       spa.trigger("message:userJoined", "foo");
@@ -104,7 +105,7 @@ describe("serverHandlers", function() {
     });
 
     it("should broadcast a `talkilla.user-joined` event", function() {
-      currentUsers = [];
+      tkWorker.currentUsers = [];
       sandbox.stub(ports, "broadcastEvent");
 
       spa.trigger("message:userJoined", "foo");
@@ -130,7 +131,7 @@ describe("serverHandlers", function() {
     });
 
     it("should broadcast a `talkilla.users` event", function() {
-      currentUsers = {foo: {presence: "connected"}};
+      tkWorker.currentUsers = {foo: {presence: "connected"}};
 
       spa.trigger("message:userLeft", "foo");
 
@@ -141,7 +142,7 @@ describe("serverHandlers", function() {
     });
 
     it("should broadcast a `talkilla.user-left` event", function() {
-      currentUsers = {foo: {presence: "connected"}};
+      tkWorker.currentUsers = {foo: {presence: "connected"}};
 
       spa.trigger("message:userLeft", "foo");
 

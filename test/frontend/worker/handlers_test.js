@@ -1,7 +1,7 @@
 /*global chai, sinon, ports:true, Port, PortCollection, handlers,
   _currentUserData:true, currentConversation:true, UserData,
-  _presenceSocket:true, browserPort:true, currentUsers:true,
-  Conversation, _loginPending:true, _autologinPending: true,
+  _presenceSocket:true, browserPort:true, tkWorker,
+  Conversation, _loginPending:true, _autologinPending:true,
   _cookieNickname:true, SPA, spa:true, _signinCallback */
 /* jshint expr:true */
 
@@ -14,7 +14,7 @@ describe('handlers', function() {
     sandbox = sinon.sandbox.create();
     sandbox.stub(window, "SPAPort");
     sandbox.stub(window, "Server");
-    sandbox.stub(window, "DummyWorker").returns({postMessage: sinon.spy()});
+    sandbox.stub(window, "Worker").returns({postMessage: sinon.spy()});
     spa = new SPA({src: "example.com"});
   });
 
@@ -89,6 +89,21 @@ describe('handlers', function() {
         sinon.assert.notCalled(spa.autoconnect);
       });
 
+  });
+
+  describe("talkilla.contacts", function() {
+    it("should update current users list with provided contacts", function() {
+      sandbox.stub(tkWorker, "updateContactList");
+      var contacts = [{username: "foo"}, {username: "bar"}];
+
+      handlers['talkilla.contacts']({
+        topic: "talkilla.contacts",
+        data: {contacts: contacts}
+      });
+
+      sinon.assert.calledOnce(tkWorker.updateContactList);
+      sinon.assert.calledWithExactly(tkWorker.updateContactList, contacts);
+    });
   });
 
   describe("talkilla.login", function() {
@@ -426,7 +441,7 @@ describe('handlers', function() {
       function() {
         _currentUserData.userName = "jb";
         _presenceSocket = {send: sinon.spy()};
-        currentUsers = {};
+        tkWorker.currentUsers = {};
         handlers.postEvent = sinon.spy();
         handlers['talkilla.presence-request']({
           topic: "talkilla.presence-request",
@@ -438,7 +453,7 @@ describe('handlers', function() {
 
     it("should request for the initial presence state " +
        "if there is no current users", function() {
-        currentUsers = {};
+        tkWorker.currentUsers = {};
         handlers['talkilla.presence-request']({
           topic: "talkilla.presence-request",
           data: {}

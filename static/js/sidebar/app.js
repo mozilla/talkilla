@@ -1,4 +1,4 @@
-/*global app, AppPort*/
+/*global app, AppPort, GoogleContacts */
 /* jshint unused: false */
 /**
  * Sidebar application.
@@ -17,10 +17,17 @@ var SidebarApp = (function(app, $) {
 
     this.users = new app.models.UserSet();
 
+    this.services = {
+      google: new GoogleContacts({
+        port: this.port
+      })
+    };
+
     this.view = new app.views.AppView({
       appStatus: this.appStatus,
       user: this.user,
-      users: this.users
+      users: this.users,
+      services: this.services
     });
 
     // user events
