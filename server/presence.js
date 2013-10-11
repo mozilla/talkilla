@@ -173,6 +173,7 @@ api = {
     var user = users.get(req.body.nick);
     var presentUsers = users.toJSON(users.present());
     user.send({users: presentUsers});
+    return res.send(200, JSON.stringify({}));
   }
 };
 

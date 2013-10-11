@@ -336,22 +336,32 @@ describe("presence", function() {
     });
 
     describe("#presenceRequest", function() {
+      var req, res, foo, bar;
+
+      beforeEach(function() {
+        req = {body: {nick: "foo"}};
+        res = {send: sinon.spy()};
+        foo = users.add("foo").get("foo");
+        bar = users.add("bar").get("bar");
+
+        sandbox.stub(users, "present").returns([bar]);
+        sandbox.stub(foo, "send");
+      });
 
       it("should send the list of present users to the given user",
         function() {
-          var req = {body: {nick: "foo"}};
-          var res = {send: sinon.spy()};
-          var foo = users.add("foo").get("foo");
-          var bar = users.add("bar").get("bar");
-          sandbox.stub(users, "present").returns([bar]);
-          sandbox.stub(foo, "send");
-
           api.presenceRequest(req, res);
 
           sinon.assert.calledOnce(foo.send);
           sinon.assert.calledWithExactly(foo.send, {users: [bar.toJSON()]});
         });
 
+      it("should return success", function() {
+        api.presenceRequest(req, res);
+
+        sinon.assert.calledOnce(res.send);
+        sinon.assert.calledWithExactly(res.send, 200, JSON.stringify({}));
+      });
     });
   });
 });

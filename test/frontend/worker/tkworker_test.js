@@ -1,4 +1,4 @@
-/*global chai, sinon, contactsDb, TkWorker, currentUsers, ports */
+/*global chai, sinon, contactsDb, TkWorker, ports */
 
 var expect = chai.expect;
 
@@ -11,8 +11,7 @@ describe("tkWorker", function() {
     contactsDb.options.dbname = "TalkillaContactsTest";
     worker = new TkWorker({
       ports: ports,
-      contactsDb: contactsDb,
-      currentUsers: currentUsers
+      contactsDb: contactsDb
     });
   });
 
@@ -31,22 +30,32 @@ describe("tkWorker", function() {
       });
     });
 
-    it("should add contacts to the currentUsers list", function(done) {
-      worker.loadContacts(function() {
-        expect(currentUsers).eql({
-          foo: {presence: "disconnected"}
-        });
-        done();
-      });
+    it("should load contacts from the database", function() {
+      sandbox.stub(contactsDb, "all");
+
+      worker.loadContacts();
+
+      sinon.assert.calledOnce(contactsDb.all);
     });
 
-    it("should broadcast a talkilla.users event", function(done) {
-      sandbox.stub(ports, "broadcastEvent");
-      worker.loadContacts(function() {
-        sinon.assert.calledOnce(ports.broadcastEvent);
-        sinon.assert.calledWith(ports.broadcastEvent, "talkilla.users", [
-          {nick: "foo", presence: "disconnected"}
-        ]);
+    it("should update users list with retrieved contacts",
+      function(done) {
+        sandbox.stub(worker, "updateContactList");
+
+        worker.loadContacts(function(err, contacts) {
+          sinon.assert.calledOnce(worker.updateContactList);
+          sinon.assert.calledWithExactly(worker.updateContactList, contacts);
+          done();
+        });
+      });
+
+    it("should pass the callback any db error", function(done) {
+      sandbox.stub(contactsDb, "all", function(cb) {
+        cb("contacts error");
+      });
+
+      worker.loadContacts(function(err) {
+        expect(err).eql("contacts error");
         done();
       });
     });
@@ -62,6 +71,42 @@ describe("tkWorker", function() {
 
       sinon.assert.calledOnce(ports.broadcastError);
       sinon.assert.calledWithExactly(ports.broadcastError, err);
+    });
+  });
+
+  describe("#updateContactList", function() {
+    var contacts = [{username: "foo"}, {username: "bar"}];
+
+    it("should add contacts to the currentUsers list", function() {
+      worker.updateContactList(contacts);
+
+      expect(worker.currentUsers).eql({
+        foo: {presence: "disconnected"},
+        bar: {presence: "disconnected"}
+      });
+    });
+
+    it("shouldn't duplicate contacts", function() {
+      worker.currentUsers.foo = {presence: "connected"};
+
+      worker.updateContactList(contacts);
+
+      expect(worker.currentUsers).eql({
+        foo: {presence: "connected"},
+        bar: {presence: "disconnected"}
+      });
+    });
+
+    it("should broadcast a talkilla.users event", function() {
+      sandbox.stub(ports, "broadcastEvent");
+
+      worker.updateContactList(contacts);
+
+      sinon.assert.calledOnce(ports.broadcastEvent);
+      sinon.assert.calledWith(ports.broadcastEvent, "talkilla.users", [
+        {nick: "foo", presence: "disconnected"},
+        {nick: "bar", presence: "disconnected"}
+      ]);
     });
   });
 });

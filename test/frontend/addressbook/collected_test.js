@@ -70,11 +70,12 @@ describe("CollectedContacts", function() {
 
   describe("#add", function() {
     it("should add a record to the database", function(done) {
-      contactsDb.add("florian", function(err, username) {
+      var contact = {username: "florian"};
+      contactsDb.add(contact, function(err, username) {
         expect(err).to.be.a("null");
-        expect(username).eql("florian");
+        expect(username).eql(contact);
         this.all(function(err, contacts) {
-          expect(contacts).eql(["florian"]);
+          expect(contacts).eql([contact]);
           done();
         });
       });
@@ -82,16 +83,27 @@ describe("CollectedContacts", function() {
 
     it("shouldn't raise an error in case of a duplicate contact",
       function(done) {
-        contactsDb.add("niko", function(err) {
+        var contact = {username: "niko"};
+        contactsDb.add(contact, function(err) {
           expect(err).to.be.a("null");
-          this.add("niko", function(err) {
+          this.add(contact, function(err) {
             expect(err).to.be.a("null");
             done();
           });
         });
       });
 
-    it("should pass back any encountered error", function(done) {
+    it("should pass back any add error", function(done) {
+      sandbox.stub(IDBObjectStore.prototype, "add", function() {
+        throw new Error("add error");
+      });
+      contactsDb.add({username: "foo"}, function(err) {
+        expect(err).eql("add error");
+        done();
+      });
+    });
+
+    it("should pass back any transaction error", function(done) {
       sandbox.stub(IDBObjectStore.prototype, "add", function() {
         var request = {};
         setTimeout(function() {
@@ -100,7 +112,7 @@ describe("CollectedContacts", function() {
         });
         return request;
       });
-      contactsDb.add("foo", function(err) {
+      contactsDb.add({username: "foo"}, function(err) {
         expect(err.message).eql("add error");
         done();
       });
@@ -116,13 +128,15 @@ describe("CollectedContacts", function() {
     });
 
     it("should retrieve all contacts", function(done) {
-      contactsDb.add("niko", function() {
-        this.add("jb", function() {
+      var niko = {username: "niko"}, jb = {username: "jb"};
+      contactsDb.add(niko, function() {
+        this.add(jb, function() {
           this.all(function(err, contacts) {
             expect(err).to.be.a("null");
             expect(contacts).to.have.length.of(2);
-            expect(contacts).to.contain("niko");
-            expect(contacts).to.contain("jb");
+            expect(contacts.map(function(record) {
+              return record.username;
+            })).eql([niko.username, jb.username]);
             done();
           });
         });
@@ -130,10 +144,11 @@ describe("CollectedContacts", function() {
     });
 
     it("should preserve the order of insertion", function(done) {
-      contactsDb.add("niko", function() {
-        this.add("jb", function() {
+      var niko = {username: "niko"}, jb = {username: "jb"};
+      contactsDb.add(niko, function() {
+        this.add(jb, function() {
           this.all(function(err, contacts) {
-            expect(contacts).eql(["niko", "jb"]);
+            expect(contacts).eql([niko, jb]);
             done();
           });
         });
@@ -164,7 +179,7 @@ describe("CollectedContacts", function() {
 
   describe("#drop", function() {
     it("should drop the database", function(done) {
-      contactsDb.add("niko", function() {
+      contactsDb.add({username: "niko"}, function() {
         this.drop(function(err) {
           expect(err).to.be.a("null");
           this.all(function(err, contacts) {
