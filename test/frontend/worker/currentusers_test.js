@@ -59,5 +59,29 @@ describe("CurrentUsers", function() {
           expect(currentUsers.getPresence("bill")).to.be.a("undefined");
         });
     });
+
+    describe("#updateContacts", function() {
+      var contacts = [{username: "foo"}];
+
+      it("should add contacts to the users list", function() {
+        currentUsers.updateContacts(contacts);
+
+        expect(currentUsers.all()).eql({
+          jb: {presence: "disconnected"},
+          foo: {presence: "disconnected"}
+        });
+      });
+
+      it("shouldn't duplicate contacts", function() {
+        currentUsers.set('foo', {presence: "connected"});
+
+        currentUsers.updateContacts(contacts);
+
+        expect(currentUsers.all()).eql({
+          jb: {presence: "disconnected"},
+          foo: {presence: "connected"}
+        });
+      });
+    });
   });
 });

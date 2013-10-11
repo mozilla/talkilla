@@ -632,15 +632,7 @@ TkWorker.prototype = {
    * @param  {Array} contacts Contacts; format: [{username: "address"}]
    */
   updateContactList: function(contacts) {
-    contacts
-      .map(function(contact) {
-        return contact.username;
-      })
-      .forEach(function(userId) {
-        if (!this.currentUsers.has(userId))
-          this.currentUsers.set(userId, {presence: "disconnected"});
-      }, this);
-
+    this.currentUsers.updateContacts(contacts);
     this.ports.broadcastEvent("talkilla.users", this.currentUsers.toArray());
   }
 };

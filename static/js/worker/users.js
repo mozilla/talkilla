@@ -28,6 +28,17 @@ var CurrentUsers = (function() {
         return this.get(userId).presence;
     },
 
+    updateContacts: function(contacts) {
+      (contacts || [])
+        .map(function(contact) {
+          return contact.username;
+        })
+        .forEach(function(userId) {
+          if (!this.has(userId))
+            this.set(userId, {presence: "disconnected"});
+        }, this);
+    },
+
     reset: function() {
       this.users = {};
     },
