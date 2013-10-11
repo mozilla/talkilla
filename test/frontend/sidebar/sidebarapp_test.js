@@ -61,15 +61,6 @@ describe("SidebarApp", function() {
       expect(sidebarApp.users).to.be.an.instanceOf(app.models.UserSet);
     });
 
-    it("should listen to the user model for signout", function() {
-      sandbox.stub(AppPort.prototype, "on");
-
-      var sidebarApp = new SidebarApp();
-
-      sinon.assert.called(sidebarApp.user.on);
-      sinon.assert.calledWith(sidebarApp.user.on, "signout");
-    });
-
     it("should ask for the presence state on login success", function() {
       var sidebarApp = new SidebarApp();
       var data = {username: "foo"};
@@ -146,51 +137,6 @@ describe("SidebarApp", function() {
       });
   });
 
-  describe("Browser Id bindings", function() {
-
-    var browserIdHandlers;
-
-    beforeEach(function() {
-      window.navigator.id = {
-        watch: function(callbacks) {
-          browserIdHandlers = callbacks;
-        }
-      };
-    });
-
-    it("should post a talkilla.login event when the user logs in",
-      function() {
-        var sidebarApp = new SidebarApp();
-
-        browserIdHandlers.onlogin("fake assertion");
-
-        sinon.assert.called(sidebarApp.port.postEvent, "talkilla.login");
-        sinon.assert.calledWithExactly(sidebarApp.port.postEvent,
-                                       "talkilla.login",
-                                       {assertion: "fake assertion"});
-      });
-
-    it("should not post a talkilla.login event if already logged in",
-      function() {
-        var sidebarApp = new SidebarApp();
-        sidebarApp.user.set("nick", "foo").set("presence", "connected");
-
-        sidebarApp.port.postEvent.reset();
-        browserIdHandlers.onlogin("fake assertion");
-
-        sinon.assert.notCalled(sidebarApp.port.postEvent);
-      });
-
-    it("should post a talkilla.logout event when the user logs out",
-      function() {
-        var sidebarApp = new SidebarApp();
-
-        browserIdHandlers.onlogout();
-
-        sinon.assert.called(sidebarApp.port.postEvent, "talkilla.logout");
-      });
-  });
-
   describe("#openConversation", function() {
     it("should post the talkilla.conversation-open event", function() {
       var sidebarApp = new SidebarApp();
@@ -237,6 +183,45 @@ describe("SidebarApp", function() {
           sinon.match.string, 'error');
       });
 
+    });
+
+    describe("signin-requested", function() {
+      it("should send talkilla.login", function() {
+        sidebarApp.user.trigger("signin-requested", "fake assertion");
+
+        sinon.assert.called(sidebarApp.port.postEvent);
+        sinon.assert.calledWithExactly(sidebarApp.port.postEvent,
+                                       "talkilla.login",
+                                       {assertion: "fake assertion"});
+      });
+    });
+
+    describe("signout-requested", function() {
+      it("should send talkilla.logout", function() {
+        sidebarApp.user.trigger("signout-requested");
+
+        sinon.assert.called(sidebarApp.port.postEvent);
+        sinon.assert.calledWithExactly(sidebarApp.port.postEvent,
+                                       "talkilla.logout");
+      });
+    });
+
+    describe("signout (from user model)", function() {
+      it("should clear the user model on signout", function() {
+        sandbox.stub(sidebarApp.user, "clear");
+
+        sidebarApp.user.trigger("signout");
+
+        sinon.assert.called(sidebarApp.user.clear);
+      });
+
+      it("should reset the users model on signout", function() {
+        sandbox.stub(sidebarApp.users, "reset");
+
+        sidebarApp.user.trigger("signout");
+
+        sinon.assert.called(sidebarApp.users.reset);
+      });
     });
 
   });

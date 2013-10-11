@@ -33,11 +33,17 @@
         user: options.user,
         collection: options && options.users
       });
+
+      this.importButton = new app.views.ImportContactsView({
+        user: options.user,
+        service: options.services && options.services.google
+      });
     },
 
     render: function() {
       this.login.render();
       this.users.render();
+      this.importButton.render();
       return this;
     }
   });
@@ -210,7 +216,8 @@
         if (!this.activeNotification)
           this.activeNotification =
             app.utils.notifyUI('You are the only person logged in, ' +
-                                'invite your friends.', 'info');
+                                'invite your friends or load your existing ' +
+                                'contacts (see below).', 'info');
       }
       else {
         if (this.activeNotification)
@@ -266,7 +273,7 @@
      */
     signin: function(event) {
       event.preventDefault();
-      navigator.id.request();
+      this.user.signin();
     },
 
     /**
@@ -276,7 +283,38 @@
      */
     signout: function(event) {
       event.preventDefault();
-      navigator.id.logout();
+      this.user.signout();
+    }
+  });
+
+  app.views.ImportContactsView = Backbone.View.extend({
+    el: "#import-contacts",
+
+    events: {
+      "click button": 'loadGoogleContacts'
+    },
+
+    initialize: function(options) {
+      options = options || {};
+      if (!options.user)
+        throw new Error("missing parameter: user");
+      if (!options.service)
+        throw new Error("missing parameter: service");
+      this.user = options.user;
+      this.service = options.service;
+      this.user.on('signin signout', this.render, this);
+    },
+
+    loadGoogleContacts: function() {
+      this.service.loadContacts();
+    },
+
+    render: function() {
+      if (this.user.isLoggedIn())
+        this.$el.show();
+      else
+        this.$el.hide();
+      return this;
     }
   });
 })(app, Backbone, _);

@@ -60,20 +60,25 @@ var CollectedContacts = (function() {
    * Adds a new contact to the database. Automatically opens the database
    * connexion if needed.
    *
-   * @param {String}   username Contact information
-   * @param {Function} cb       Callback
+   * @param {String}   record Contact record
+   * @param {Function} cb     Callback
    *
    * Callback parameters:
-   * - {Error|null} err:      Encountered error, if any
-   * - {String}     username: Inserted contact username
+   * - {Error|null} err:    Encountered error, if any
+   * - {String}     record: Inserted contact record
    */
-  CollectedContacts.prototype.add = function(username, cb) {
+  CollectedContacts.prototype.add = function(record, cb) {
     this.load(function(err) {
       if (err)
         return cb.call(this, err);
-      var request = this._getStore("readwrite").add({username: username});
+      var request;
+      try {
+        request = this._getStore("readwrite").add(record);
+      } catch (err) {
+        return cb.call(this, err && err.message || "Unable to collect contact");
+      }
       request.onsuccess = function() {
-        cb.call(this, null, username);
+        cb.call(this, null, record);
       }.bind(this);
       request.onerror = function(event) {
         var err = event.target.error;
@@ -81,7 +86,7 @@ var CollectedContacts = (function() {
         if (err.name !== "ConstraintError")
           return cb.call(this, err);
         event.preventDefault();
-        cb.call(this, null, username);
+        cb.call(this, null, record);
       }.bind(this);
     });
   };
@@ -109,7 +114,7 @@ var CollectedContacts = (function() {
         var cursor = event.target.result;
         if (!cursor)
           return cb.call(this, null, records);
-        records.unshift(cursor.value.username);
+        records.unshift(cursor.value);
         /* jshint -W024 */
         return cursor.continue();
       }.bind(this);

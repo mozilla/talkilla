@@ -11,6 +11,7 @@ describe("AppView", function() {
       sandbox.stub(app.views, "NotificationsView");
       sandbox.stub(app.views, "LoginView");
       sandbox.stub(app.views, "UsersView");
+      sandbox.stub(app.views, "ImportContactsView");
     });
 
     afterEach(function() {
