@@ -1,6 +1,6 @@
 /*global chai, sinon, browserPort:true, currentConversation:true,
   SPA, Conversation, ports, tkWorker,
-  _setupSPA, _currentUserData:true, UserData, contactsDb */
+  _setupSPA, _currentUserData:true, UserData */
 
 /* Needed due to the use of non-camelcase in the websocket topics */
 /* jshint camelcase:false */
@@ -259,11 +259,11 @@ describe("SPA events", function() {
     });
 
     it("should close the contacts database", function() {
-      sandbox.stub(contactsDb, "close");
+      sandbox.stub(tkWorker.contactsDb, "close");
 
       spa.trigger("disconnected", {code: 1000});
 
-      sinon.assert.calledOnce(contactsDb.close);
+      sinon.assert.calledOnce(tkWorker.contactsDb.close);
     });
   });
 
