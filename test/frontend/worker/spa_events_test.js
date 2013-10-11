@@ -6,7 +6,7 @@
 /* jshint camelcase:false */
 var expect = chai.expect;
 
-describe("serverHandlers", function() {
+describe("SPA events", function() {
   var sandbox, spa;
 
   beforeEach(function() {
@@ -153,7 +153,7 @@ describe("serverHandlers", function() {
 
   });
 
-  describe("`message:incoming_call` event", function() {
+  describe("`offer` event", function() {
     beforeEach(function() {
       browserPort = {postEvent: sandbox.spy()};
     });
@@ -189,7 +189,7 @@ describe("serverHandlers", function() {
       });
   });
 
-  describe("`message:call_accepted` event", function() {
+  describe("`answer` event", function() {
 
     it("should call callAccepted on the conversation", function () {
       var from = "alice";
@@ -204,12 +204,12 @@ describe("serverHandlers", function() {
 
       sinon.assert.calledOnce(currentConversation.callAccepted);
       sinon.assert.calledWithExactly(
-        currentConversation.callAccepted, answer, from, undefined);
+        currentConversation.callAccepted, data);
     });
 
   });
 
-  describe("`message:call_hangup` event", function() {
+  describe("`hangup` event", function() {
     beforeEach(function() {
       currentConversation = {
         callHangup: function() {}
@@ -222,7 +222,8 @@ describe("serverHandlers", function() {
       spa.trigger("hangup", "bob");
 
       sinon.assert.calledOnce(currentConversation.callHangup);
-      sinon.assert.calledWithExactly(currentConversation.callHangup, "bob");
+      sinon.assert.calledWithExactly(
+        currentConversation.callHangup, {peer: "bob"});
     });
   });
 
