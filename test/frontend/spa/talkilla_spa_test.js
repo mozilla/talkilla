@@ -120,55 +120,37 @@ describe("TalkillaSPA", function() {
 
   describe("#_onCallOffer", function() {
 
-    it("should send an offer to the server and post back the result",
+    it("should send an offer to the server",
       function(done) {
-        sandbox.stub(spa.server, "callOffer", function(data, nick, callback) {
-          expect(data).to.equal("fake offer data");
-          expect(nick).to.equal("foo");
-          callback("err", "response");
-
-          sinon.assert.calledOnce(spa.port.post);
-          sinon.assert.calledWithExactly(
-            spa.port.post,
-            "call:offer-callback", {
-              err: "err",
-              response: "response"
-            });
+        sandbox.stub(spa.server, "callOffer", function(data) {
+          expect(data.offer).to.equal("fake offer data");
+          expect(data.peer).to.equal("foo");
 
           done();
         });
         sandbox.stub(spa.port, "post");
 
-        spa.port.trigger("call:offer", {data: "fake offer data", nick: "foo"});
+        spa.port.trigger("offer", {offer: "fake offer data", to: "foo"});
       });
 
   });
 
   describe("#_onCallAccepted", function() {
 
-    it("should send an answer to the server and post back the result",
+    it("should send an answer to the server",
       function(done) {
         sandbox.stub(spa.server, "callAccepted",
           function(data, nick, callback) {
-            expect(data).to.equal("fake answer data");
-            expect(nick).to.equal("foo");
-            callback("err", "response");
-
-            sinon.assert.calledOnce(spa.port.post);
-            sinon.assert.calledWithExactly(
-              spa.port.post,
-              "call:accepted-callback", {
-                err: "err",
-                response: "response"
-              });
+            expect(data.answer).to.equal("fake answer data");
+            expect(data.peer).to.equal("foo");
 
             done();
           });
         sandbox.stub(spa.port, "post");
 
-        spa.port.trigger("call:accepted", {
-          data: "fake answer data",
-          nick: "foo"
+        spa.port.trigger("answer", {
+          answer: "fake answer data",
+          to: "foo"
         });
       });
 
@@ -176,30 +158,15 @@ describe("TalkillaSPA", function() {
 
   describe("#_onCallHangup", function() {
 
-    it("should send a hangup to the server and post back the result",
+    it("should send a hangup to the server",
       function(done) {
-        sandbox.stub(spa.server, "callHangup",
-          function(data, nick, callback) {
-            expect(data).to.equal("fake hangup data");
-            expect(nick).to.equal("foo");
-            callback("err", "response");
-
-            sinon.assert.calledOnce(spa.port.post);
-            sinon.assert.calledWithExactly(
-              spa.port.post,
-              "call:hangup-callback", {
-                err: "err",
-                response: "response"
-              });
-
-            done();
-          });
+        sandbox.stub(spa.server, "callHangup", function(data) {
+          expect(data.peer).to.equal("foo");
+          done();
+        });
         sandbox.stub(spa.port, "post");
 
-        spa.port.trigger("call:hangup", {
-          data: "fake hangup data",
-          nick: "foo"
-        });
+        spa.port.trigger("hangup", {to: "foo"});
       });
 
   });

@@ -127,60 +127,33 @@ describe("SPA", function() {
   describe("#callOffer", function() {
 
     it("should send a call:offer event to the worker", function() {
-      var callback = function() {};
-      var data = {some: "data"};
-      spa.callOffer(data, "foo");
+      var offer = "fake offer";
+      var to = "lucy";
+
+      spa.callOffer(offer, to);
 
       sinon.assert.calledOnce(spa.worker.postMessage);
       sinon.assert.calledWithExactly(spa.worker.postMessage, {
-        topic: "call:offer",
-        data: {data: data, nick: "foo"}
+        topic: "offer",
+        data: {offer: offer, to: to, textChat: undefined}
       });
-    });
-
-    it("should wait for a call:offer-callback event", function(done) {
-      var callback = function(err, response) {
-        expect(err).to.equal("foo");
-        expect(response).to.equal("bar");
-        done();
-      };
-      var event = {data: {
-        topic: "call:offer-callback",
-        data: {err: "foo", response: "bar"}
-      }};
-
-      spa.callOffer("some data", "foo", callback);
-      spa.worker.onmessage(event);
     });
 
   });
 
-  describe("#callAccepted", function() {
+  describe("#callAnswer", function() {
 
-    it("should send a call:accepted event to the worker", function() {
-      var data = {some: "data"};
-      spa.callAccepted(data, "foo");
+    it("should send a answer event to the worker", function() {
+      var answer = "fake answer";
+      var to = "cedric";
+
+      spa.callAnswer(answer, to);
 
       sinon.assert.calledOnce(spa.worker.postMessage);
       sinon.assert.calledWithExactly(spa.worker.postMessage, {
-        topic: "call:accepted",
-        data: {data: data, nick: "foo"}
+        topic: "answer",
+        data: {answer: answer, to: to, textChat: undefined}
       });
-    });
-
-    it("should wait for a call:accepted-callback event", function(done) {
-      var callback = function(err, response) {
-        expect(err).to.equal("foo");
-        expect(response).to.equal("bar");
-        done();
-      };
-      var event = {data: {
-        topic: "call:accepted-callback",
-        data: {err: "foo", response: "bar"}
-      }};
-
-      spa.callAccepted("some data", "foo", callback);
-      spa.worker.onmessage(event);
     });
 
   });
@@ -188,29 +161,14 @@ describe("SPA", function() {
   describe("#callHangup", function() {
 
     it("should send a call:hangup event to the worker", function() {
-      var data = {some: "data"};
-      spa.callHangup(data, "foo");
+      var to = "foo";
+      spa.callHangup(to);
 
       sinon.assert.calledOnce(spa.worker.postMessage);
       sinon.assert.calledWithExactly(spa.worker.postMessage, {
-        topic: "call:hangup",
-        data: {data: data, nick: "foo"}
+        topic: "hangup",
+        data: {to: to}
       });
-    });
-
-    it("should wait for a call:hangup-callback event", function(done) {
-      var callback = function(err, response) {
-        expect(err).to.equal("foo");
-        expect(response).to.equal("bar");
-        done();
-      };
-      var event = {data: {
-        topic: "call:hangup-callback",
-        data: {err: "foo", response: "bar"}
-      }};
-
-      spa.callHangup("some data", "foo", callback);
-      spa.worker.onmessage(event);
     });
 
   });
