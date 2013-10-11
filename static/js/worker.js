@@ -15,11 +15,6 @@ var _autologinPending = false;
 var ports;
 var browserPort;
 var currentConversation;
-var contactsDb = new CollectedContacts({
-  dbname: "TalkillaContacts",
-  storename: "contacts",
-  version: 1
-});
 var spa;
 // XXX Initialised at end of file whilst we move everything
 // into it.
@@ -95,7 +90,7 @@ Conversation.prototype = {
    * Sends call information to the conversation window.
    */
   _sendCall: function() {
-    contactsDb.add({username: this.data.peer}, function(err) {
+    tkWorker.contactsDb.add({username: this.data.peer}, function(err) {
       if (err)
         ports.broadcastError(err);
     });
@@ -333,7 +328,7 @@ function _setupSPA(spa) {
     tkWorker.currentUsers = {};
     // XXX: really these should be reset on signout, not disconnect.
     // Unload the database
-    contactsDb.close();
+    tkWorker.contactsDb.close();
   });
 }
 
@@ -686,5 +681,9 @@ _setupSPA(spa);
 
 tkWorker = new TkWorker({
   ports: ports,
-  contactsDb: contactsDb
+  contactsDb: new CollectedContacts({
+    dbname: "TalkillaContacts",
+    storename: "contacts",
+    version: 1
+  })
 });
