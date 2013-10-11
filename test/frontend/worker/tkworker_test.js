@@ -1,4 +1,4 @@
-/*global chai, sinon, contactsDb, TkWorker, ports */
+/*global chai, sinon, TkWorker, CollectedContacts, ports */
 
 var expect = chai.expect;
 
@@ -8,16 +8,17 @@ describe("tkWorker", function() {
 
   beforeEach(function () {
     sandbox = sinon.sandbox.create();
-    contactsDb.options.dbname = "TalkillaContactsTest";
     worker = new TkWorker({
       ports: ports,
-      contactsDb: contactsDb
+      contactsDb: new CollectedContacts({
+        dbname: "TalkillaContactsTest"
+      })
     });
   });
 
   afterEach(function (done) {
     sandbox.restore();
-    contactsDb.drop(function() {
+    worker.contactsDb.drop(function() {
       done();
     });
   });
@@ -25,17 +26,17 @@ describe("tkWorker", function() {
   describe("#loadContacts", function() {
     beforeEach(function(done) {
       // Store a contact for the tests
-      contactsDb.add("foo", function() {
+      worker.contactsDb.add("foo", function() {
         done();
       });
     });
 
     it("should load contacts from the database", function() {
-      sandbox.stub(contactsDb, "all");
+      sandbox.stub(worker.contactsDb, "all");
 
       worker.loadContacts();
 
-      sinon.assert.calledOnce(contactsDb.all);
+      sinon.assert.calledOnce(worker.contactsDb.all);
     });
 
     it("should update users list with retrieved contacts",
@@ -50,7 +51,7 @@ describe("tkWorker", function() {
       });
 
     it("should pass the callback any db error", function(done) {
-      sandbox.stub(contactsDb, "all", function(cb) {
+      sandbox.stub(worker.contactsDb, "all", function(cb) {
         cb("contacts error");
       });
 
@@ -63,7 +64,7 @@ describe("tkWorker", function() {
     it("should broadcast an error message on failure", function() {
       var err = new Error("ko");
       sandbox.stub(ports, "broadcastError");
-      sandbox.stub(contactsDb, "all", function(cb) {
+      sandbox.stub(worker.contactsDb, "all", function(cb) {
         cb(err);
       });
 
