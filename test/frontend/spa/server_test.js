@@ -14,36 +14,6 @@ describe("Server", function() {
     sandbox.restore();
   });
 
-  describe("#signin", function() {
-    it("should send a signin request to the server", function() {
-      var callback = function() {};
-      sandbox.stub(server.http, "post");
-
-      server.signin("fake assertion", callback);
-
-      sinon.assert.calledOnce(server.http.post);
-      sinon.assert.calledWithExactly(server.http.post, "/signin",
-                                     {assertion: "fake assertion"},
-                                     callback);
-    });
-  });
-
-  describe("#signout", function() {
-
-    it("should send a signout request to the server", function() {
-      var callback = function() {};
-      sandbox.stub(server.http, "post");
-
-      server.signout("foo", callback);
-
-      sinon.assert.calledOnce(server.http.post);
-      sinon.assert.calledWithExactly(server.http.post, "/signout",
-                                     {nick: "foo"},
-                                     callback);
-    });
-
-  });
-
   describe("#connect", function() {
 
     beforeEach(function() {
