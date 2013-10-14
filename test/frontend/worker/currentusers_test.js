@@ -10,7 +10,7 @@ describe("CurrentUsers", function() {
     });
   });
 
-  describe("contructed", function() {
+  describe("constructed", function() {
     var currentUsers;
 
     beforeEach(function() {
@@ -54,9 +54,10 @@ describe("CurrentUsers", function() {
         expect(currentUsers.getPresence("jb")).eql("disconnected");
       });
 
-      it("shouldn't retrieve presence information for a nonexistent user",
+      it("should return a disconnected presence information for a " +
+         "nonexistent user",
         function() {
-          expect(currentUsers.getPresence("bill")).to.be.a("undefined");
+          expect(currentUsers.getPresence("bill")).eql("disconnected");
         });
     });
 
