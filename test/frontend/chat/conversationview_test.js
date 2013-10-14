@@ -3,51 +3,51 @@ var expect = chai.expect;
 
 describe("ConversationView", function() {
   "use strict";
-  var sandbox;
+  var sandbox, call, textChat, oldtitle, user, peer;
+
+  beforeEach(function() {
+    $('#fixtures').append([
+      '<link rel="icon"/>',
+      '<div id="textchat">',
+      '  <ul></ul>',
+      '  <form><input name="message"></form>',
+      '</div>'
+    ].join(''));
+
+    sandbox = sinon.sandbox.create();
+    sandbox.stub(window, "close");
+    oldtitle = document.title;
+
+    // XXX This should probably be a mock, but sinon mocks don't seem to want
+    // to work with Backbone.
+    var media = {
+      answer: sandbox.spy(),
+      establish: sandbox.spy(),
+      initiate: sandbox.spy(),
+      terminate: sandbox.spy(),
+      on: sandbox.stub()
+    };
+    call = new app.models.Call({}, {media: media});
+    user = new app.models.User();
+    peer = new app.models.User();
+    sandbox.stub(peer, "on");
+    textChat = new app.models.TextChat(null, {
+      media: media,
+      user: user,
+      peer: peer
+    });
+
+    sandbox.stub(call, "on");
+  });
+
+  afterEach(function() {
+    document.title = oldtitle;
+    sandbox.restore();
+    $('#fixtures').empty();
+  });
 
   describe("#initialize", function() {
-    var call, textChat, oldtitle, user, peer;
 
-    beforeEach(function() {
-      $('#fixtures').append([
-        '<link rel="icon"/>',
-        '<div id="textchat">',
-        '  <ul></ul>',
-        '  <form><input name="message"></form>',
-        '</div>'
-      ].join(''));
-
-      sandbox = sinon.sandbox.create();
-      sandbox.stub(window, "close");
-      oldtitle = document.title;
-
-      // XXX This should probably be a mock, but sinon mocks don't seem to want
-      // to work with Backbone.
-      var media = {
-        answer: sandbox.spy(),
-        establish: sandbox.spy(),
-        initiate: sandbox.spy(),
-        terminate: sandbox.spy(),
-        on: sandbox.stub()
-      };
-      call = new app.models.Call({}, {media: media});
-      user = new app.models.User();
-      peer = new app.models.User();
-      sandbox.stub(peer, "on");
-      textChat = new app.models.TextChat(null, {
-        media: media,
-        user: user,
-        peer: peer
-      });
-
-      sandbox.stub(call, "on");
-    });
-
-    afterEach(function() {
-      document.title = oldtitle;
-      sandbox.restore();
-      $('#fixtures').empty();
-    });
 
     it("should attach a given call model", function() {
       var view = new app.views.ConversationView({
