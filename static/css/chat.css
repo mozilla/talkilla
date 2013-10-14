@@ -6,6 +6,7 @@ html, body {
   height: 100%; /* necessary to use display: table* on children */
   margin: 0;
   padding: 0;
+  overflow: hidden; *//* workaround for what appears to be a bug in gecko */
 }
 
 body {
@@ -67,12 +68,12 @@ body {
   display: table-row;
   background-color: #FAFAFA;
   width: 100%;
-  height: 24px;
+  height: 25px;
   margin: 0;
   padding: 0;
   list-style-type: none;
   z-index: 99;
-  border-bottom: 1px solid #D6D6D6 !important;
+  border-bottom: 1px solid #D6D6D6;
 }
 
 #call-controls .controls {
@@ -176,7 +177,7 @@ body {
 #textchat ul {
   width: 100%;
   /* height: viewport height - controls height - form height */
-  height: calc(100vh - 24px - 22px);
+  height: calc(100vh - 25px - 22px);
   overflow: auto;
   margin: 0;
   padding: 0;
@@ -195,7 +196,7 @@ body {
 
 .has-video #textchat ul {
   /* height: viewport height - video height - controls height - form height */
-  height: calc((100vh - 100vw / 1.33333) - 24px - 22px);
+  height: calc((100vh - 100vw / 1.33333) - 25px - 22px);
 }
 
 #textchat form {
@@ -290,7 +291,7 @@ body {
 
   .has-video #textchat ul {
     /* height: viewport height - video height - controls height - form height */
-    height: calc(100vh - 60vh - 24px - 22px);
+    height: calc(100vh - 60vh - 25px - 22px);
   }
 }
 
@@ -300,9 +301,9 @@ body {
 @media screen and (min-width: 720px) {
   #call {
     background: #000;
-    height: calc(60vh - 24px - 22px);
-    text-align: center; /* cause entire media-display-area to be centered relative to
-                         * to window */
+    height: calc(60vh - 25px - 22px);
+    text-align: center; /* cause entire media-display-area to be centered
+                         * relative to window */
   }
 
   #call .media-display-area {
@@ -337,6 +338,6 @@ body {
 
   .has-video #textchat ul {
     /* height: viewport height - video height - controls height - form height */
-    height: calc(100vh - 60vh - 24px - 22px - 5px);
+    height: calc(100vh - 60vh - 25px - 22px - 5px);
   }
 }
