@@ -15,7 +15,7 @@ describe("SPA events", function() {
     spa = new SPA({src: "example.com"});
     _setupSPA(spa);
 
-    tkWorker.currentUsers = [];
+    tkWorker.currentUsers.reset();
     _currentUserData = new UserData();
     sandbox.stub(_currentUserData, "send");
     sandbox.stub(tkWorker, "loadContacts");
@@ -59,18 +59,18 @@ describe("SPA events", function() {
     });
 
     afterEach(function() {
-      tkWorker.currentUsers = {};
+      tkWorker.currentUsers.reset();
     });
 
     it("should update the current list of users", function() {
-      tkWorker.currentUsers = {jb: {presence: "disconnected"}};
+      tkWorker.currentUsers.set("jb", {presence: "disconnected"});
 
       spa.trigger("message:users", [
         {nick: "james"},
         {nick: "harvey"}
       ]);
 
-      expect(tkWorker.currentUsers).to.deep.equal({
+      expect(tkWorker.currentUsers.all()).to.deep.equal({
         jb: {presence: "disconnected"},
         james: {presence: "connected"},
         harvey: {presence: "connected"}
@@ -93,7 +93,7 @@ describe("SPA events", function() {
   describe("`message:userJoined` event", function() {
 
     it("should broadcast a `talkilla.users` event", function() {
-      tkWorker.currentUsers = [];
+      tkWorker.currentUsers.reset();
       sandbox.stub(ports, "broadcastEvent");
 
       spa.trigger("message:userJoined", "foo");
@@ -105,7 +105,7 @@ describe("SPA events", function() {
     });
 
     it("should broadcast a `talkilla.user-joined` event", function() {
-      tkWorker.currentUsers = [];
+      tkWorker.currentUsers.reset();
       sandbox.stub(ports, "broadcastEvent");
 
       spa.trigger("message:userJoined", "foo");
@@ -131,7 +131,7 @@ describe("SPA events", function() {
     });
 
     it("should broadcast a `talkilla.users` event", function() {
-      tkWorker.currentUsers = {foo: {presence: "connected"}};
+      tkWorker.currentUsers.set("foo", {presence: "connected"});
 
       spa.trigger("message:userLeft", "foo");
 
@@ -142,7 +142,7 @@ describe("SPA events", function() {
     });
 
     it("should broadcast a `talkilla.user-left` event", function() {
-      tkWorker.currentUsers = {foo: {presence: "connected"}};
+      tkWorker.currentUsers.set("foo", {presence: "connected"});
 
       spa.trigger("message:userLeft", "foo");
 

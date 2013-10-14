@@ -441,7 +441,7 @@ describe('handlers', function() {
       function() {
         _currentUserData.userName = "jb";
         _presenceSocket = {send: sinon.spy()};
-        tkWorker.currentUsers = {};
+        tkWorker.currentUsers.reset();
         handlers.postEvent = sinon.spy();
         handlers['talkilla.presence-request']({
           topic: "talkilla.presence-request",
@@ -453,7 +453,7 @@ describe('handlers', function() {
 
     it("should request for the initial presence state " +
        "if there is no current users", function() {
-        tkWorker.currentUsers = {};
+        tkWorker.currentUsers.reset();
         handlers['talkilla.presence-request']({
           topic: "talkilla.presence-request",
           data: {}

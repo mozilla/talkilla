@@ -1,4 +1,4 @@
-/* global indexedDB, importScripts, SPA, HTTP, CollectedContacts,
+/* global indexedDB, importScripts, SPA, HTTP, CollectedContacts, CurrentUsers,
    loadConfig  */
 /* jshint unused:false */
 
@@ -6,7 +6,7 @@
 // if multiple imports cause problems).
 importScripts('../vendor/backbone-events-standalone-0.1.5.js');
 importScripts('/config.js', 'addressbook/collected.js');
-importScripts('worker/http.js', 'worker/spa.js');
+importScripts('worker/http.js', 'worker/users.js', 'worker/spa.js');
 
 var gConfig = loadConfig();
 var _currentUserData;
@@ -96,10 +96,7 @@ Conversation.prototype = {
     });
 
     // retrieve peer presence information
-    // There's a small chance we've not received the currentUsers
-    // information yet, so check that we have data for this user.
-    if (this.data.peer in tkWorker.currentUsers)
-      this.data.peerPresence = tkWorker.currentUsers[this.data.peer].presence;
+    this.data.peerPresence = tkWorker.currentUsers.getPresence(this.data.peer);
 
     var topic = this.data.offer ?
       "talkilla.conversation-incoming" :
@@ -252,30 +249,26 @@ function _setupSPA(spa) {
 
   spa.on("message:users", function(data) {
     data.forEach(function(user) {
-      tkWorker.currentUsers[user.nick] = {presence: "connected"};
+      tkWorker.currentUsers.set(user.nick, {presence: "connected"});
     });
 
-    ports.broadcastEvent("talkilla.users", tkWorker.getCurrentUsersArray());
+    ports.broadcastEvent("talkilla.users", tkWorker.currentUsers.toArray());
   });
 
   spa.on("message:userJoined", function(userId) {
-    if (Object.prototype.hasOwnProperty.call(tkWorker.currentUsers, userId))
-      tkWorker.currentUsers[userId].presence = "connected";
-    else
-      tkWorker.currentUsers[userId] = {presence: "connected"};
+    tkWorker.currentUsers.set(userId, {presence: "connected"});
 
-    ports.broadcastEvent("talkilla.users", tkWorker.getCurrentUsersArray());
+    ports.broadcastEvent("talkilla.users", tkWorker.currentUsers.toArray());
     ports.broadcastEvent("talkilla.user-joined", userId);
   });
 
   spa.on("message:userLeft", function(userId) {
-    // Show the user as disconnected
-    if (!Object.prototype.hasOwnProperty.call(tkWorker.currentUsers, userId))
+    if (!tkWorker.currentUsers.has(userId))
       return;
 
-    tkWorker.currentUsers[userId].presence = "disconnected";
+    tkWorker.currentUsers.set(userId, {presence: "disconnected"});
 
-    ports.broadcastEvent("talkilla.users", tkWorker.getCurrentUsersArray());
+    ports.broadcastEvent("talkilla.users", tkWorker.currentUsers.toArray());
     ports.broadcastEvent("talkilla.user-left", userId);
   });
 
@@ -325,7 +318,7 @@ function _setupSPA(spa) {
     // XXX: this will need future work to handle retrying presence connections
     ports.broadcastEvent('talkilla.presence-unavailable', event.code);
     ports.broadcastEvent("talkilla.logout-success", {});
-    tkWorker.currentUsers = {};
+    tkWorker.currentUsers.reset();
     // XXX: really these should be reset on signout, not disconnect.
     // Unload the database
     tkWorker.contactsDb.close();
@@ -352,7 +345,7 @@ function _signoutCallback(err, responseText) {
     return this.postEvent('talkilla.error', 'Bad signout:' + err);
 
   _currentUserData.reset();
-  tkWorker.currentUsers = {};
+  tkWorker.currentUsers.reset();
   ports.broadcastEvent('talkilla.logout-success');
 }
 
@@ -448,7 +441,7 @@ var handlers = {
    * Called when the sidebar request the initial presence state.
    */
   'talkilla.presence-request': function(event) {
-    var users = tkWorker.getCurrentUsersArray();
+    var users = tkWorker.currentUsers.toArray();
     spa.presenceRequest(_currentUserData.userName);
     this.postEvent('talkilla.users', users);
   },
@@ -595,16 +588,19 @@ PortCollection.prototype = {
  * that the sidebar or other panels are ready before the worker, and need
  * to know that the worker is actually ready to receive messages.
  *
- * options can contain:
- *   contactsDb - the CollectedContacts to use
- *   currentUsers - the object containing the currentUsers (default: {})
- *   ports - the object of the PortCollection
+ * @param {Object} options Options object
+ *
+ * Available options:
+ * - {CollectedContacts} contactsDb   The collected contacts database
+ * - {CurrentUsers}      currentUsers The object containing current users
+ * - {PortCollection}    ports        The port collection object
  */
 function TkWorker(options) {
   // XXX Move all globals into this constructor and create them here.
-  this.contactsDb = options && options.contactsDb;
-  this.currentUsers = options && options.currentUsers || {};
-  this.ports = options && options.ports;
+  options = options || {};
+  this.contactsDb = options.contactsDb;
+  this.currentUsers = options.currentUsers || new CurrentUsers();
+  this.ports = options.ports;
 }
 
 TkWorker.prototype = {
@@ -636,34 +632,8 @@ TkWorker.prototype = {
    * @param  {Array} contacts Contacts; format: [{username: "address"}]
    */
   updateContactList: function(contacts) {
-    contacts
-      .map(function(contact) {
-        return contact.username;
-      })
-      .forEach(function(userId) {
-        if (!Object.prototype.hasOwnProperty.call(this.currentUsers, userId))
-          this.currentUsers[userId] = {presence: "disconnected"};
-      }, this);
-
-    this.ports.broadcastEvent("talkilla.users", this.getCurrentUsersArray());
-  },
-
-  /**
-   * Returns currentUsers object mapped as an array.
-   *
-   * XXX: - we use this to map to what the sidebar wants, really the sidebar
-   *        should change so that we can just send the object.
-   *      - users related logic should be moved to a dedicated object.
-   *
-   * @return {Array}
-   */
-  getCurrentUsersArray: function() {
-    if (Object.keys(this.currentUsers).length === 0)
-      return [];
-
-    return Object.keys(this.currentUsers).map(function(userId) {
-      return {nick: userId, presence: this.currentUsers[userId].presence};
-    }, this);
+    this.currentUsers.updateContacts(contacts);
+    this.ports.broadcastEvent("talkilla.users", this.currentUsers.toArray());
   }
 };
 
@@ -685,5 +655,6 @@ tkWorker = new TkWorker({
     dbname: "TalkillaContacts",
     storename: "contacts",
     version: 1
-  })
+  }),
+  currentUsers: new CurrentUsers()
 });
