@@ -38,7 +38,12 @@
       this.peer.on('change:presence', this._onPeerPresenceChanged, this);
 
       this.call.media.on('local-stream:ready remote-stream:ready', function() {
-        this.$el.addClass('has-video');
+        if (this.call.requiresVideo())
+          this.$el.addClass('has-video');
+        else
+          this.$el.removeClass('has-video');
+
+        return;
       }, this);
     },
 
