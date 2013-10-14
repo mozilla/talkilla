@@ -49,8 +49,7 @@ var CurrentUsers = (function() {
     getPresence: function(userId) {
       if (this.has(userId))
         return this.get(userId).presence;
-      else
-        return "disconnected";
+      return "disconnected";
     },
 
     /**
