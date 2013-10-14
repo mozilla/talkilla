@@ -1,4 +1,4 @@
-/* global importScripts, BackboneEvents */
+/* global importScripts, BackboneEvents, HTTP */
 /* jshint unused:false */
 
 var SPA = (function() {
@@ -8,6 +8,7 @@ var SPA = (function() {
 
     this.worker = new Worker(options.src);
     this.worker.onmessage = this._onMessage.bind(this);
+    this.http = new HTTP();
   }
 
   SPA.prototype = {
@@ -37,17 +38,11 @@ var SPA = (function() {
     },
 
     signin: function(assertion, callback) {
-      this.once("signin-callback", function(data) {
-        callback(data.err, data.response);
-      });
-      this._send("signin", {assertion: assertion});
+      this.http.post("/signin", {assertion: assertion}, callback);
     },
 
     signout: function(nick, callback) {
-      this.once("signout-callback", function(data) {
-        callback(data.err, data.response);
-      });
-      this._send("signout", {nick: nick});
+      this.http.post("/signout", {nick: nick}, callback);
     },
 
     connect: function(nick) {

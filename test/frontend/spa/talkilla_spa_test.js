@@ -79,45 +79,6 @@ describe("TalkillaSPA", function() {
 
   });
 
-  describe("#_onSignin", function() {
-
-    it("should signin to the server and post back the result", function(done) {
-      sandbox.stub(spa.server, "signin", function(assertion, callback) {
-        expect(assertion).to.equal("fake assertion");
-        callback("foo", "bar");
-
-        sinon.assert.calledOnce(spa.port.post);
-        sinon.assert.calledWithExactly(
-          spa.port.post, "signin-callback", {err: "foo", response: "bar"});
-        done();
-      });
-      sandbox.stub(spa.port, "post");
-
-      spa.port.trigger("signin", {assertion: "fake assertion"});
-    });
-
-  });
-
-  describe("#_onSignout", function() {
-
-    it("should signout to the server and post back the result",
-      function(done) {
-        sandbox.stub(spa.server, "signout", function(nick, callback) {
-          expect(nick).to.equal("foo");
-          callback("foo", "bar");
-
-          sinon.assert.calledOnce(spa.port.post);
-          sinon.assert.calledWithExactly(
-            spa.port.post, "signout-callback", {err: "foo", response: "bar"});
-          done();
-        });
-        sandbox.stub(spa.port, "post");
-
-        spa.port.trigger("signout", {nick: "foo"});
-      });
-
-  });
-
   describe("#_onCallOffer", function() {
 
     it("should send an offer to the server",

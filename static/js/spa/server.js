@@ -10,14 +10,6 @@ var Server = (function() {
   }
 
   Server.prototype = {
-    signin: function(assertion, callback) {
-      this.http.post("/signin", {assertion: assertion}, callback);
-    },
-
-    signout: function(nick, callback) {
-      this.http.post("/signout", {nick: nick}, callback);
-    },
-
     connect: function(nick) {
       this.http.post("/stream", {nick: nick}, function(err, response) {
         if (err)

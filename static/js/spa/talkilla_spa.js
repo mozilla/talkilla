@@ -8,8 +8,6 @@ var TalkillaSPA = (function() {
     this.port.on("connect", this._onConnect.bind(this));
     this.port.on("autoconnect", this._onAutoconnect.bind(this));
 
-    this.port.on("signin", this._onSignin.bind(this));
-    this.port.on("signout", this._onSignout.bind(this));
     this.port.on("offer", this._onCallOffer.bind(this));
     this.port.on("answer", this._onCallAnswer.bind(this));
     this.port.on("hangup", this._onCallHangup.bind(this));
@@ -48,18 +46,6 @@ var TalkillaSPA = (function() {
 
     _onAutoconnect: function(data) {
       this.server.autoconnect(data.nick);
-    },
-
-    _onSignin: function(data) {
-      this.server.signin(data.assertion, function(err, response) {
-        this.port.post("signin-callback", {err: err, response: response});
-      }.bind(this));
-    },
-
-    _onSignout: function(data) {
-      this.server.signout(data.nick, function(err, response) {
-        this.port.post("signout-callback", {err: err, response: response});
-      }.bind(this));
     },
 
     _onCallOffer: function(data) {
