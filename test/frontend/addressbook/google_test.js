@@ -83,13 +83,6 @@ describe("GoogleContacts", function() {
         authCookieTTL: 42
       }).authCookieTTL).eql(42);
     });
-
-    it("should retrieve existing token from cookie by default", function() {
-      sandbox.stub($, "cookie", function() {
-        return "ok";
-      });
-      expect(new GoogleContacts().token).eql("ok");
-    });
   });
 
   describe("#authorize", function() {
@@ -127,7 +120,7 @@ describe("GoogleContacts", function() {
           authCookieName: "tktest",
           authCookieTTL: 42
         }).authorize(function() {
-          sinon.assert.calledTwice($.cookie); // first call for reading cookie
+          sinon.assert.calledOnce($.cookie);
           sinon.assert.calledWithExactly($.cookie, "tktest", "token", {
             expires: 42
           });

@@ -35,7 +35,7 @@ var GoogleContacts = (function() {
     this.authCookieName = options.authCookieName || AUTH_COOKIE_NAME;
     this.authCookieTTL = options.authCookieTTL || AUTH_COOKIE_TTL;
     this.maxResults = options.maxResults || MAX_RESULTS;
-    this.token = options.token || this._getToken();
+    this.token = options.token;
   }
 
   /**
@@ -138,15 +138,6 @@ var GoogleContacts = (function() {
           this.port.postEvent("talkilla.contacts", {contacts: contacts});
         }.bind(this));
       }.bind(this));
-    },
-
-    /**
-     * Retrieves stored Google API authentication token if it exists.
-     *
-     * @return {String|undefined}
-     */
-    _getToken: function() {
-      return $.cookie(this.authCookieName);
     },
 
     /**

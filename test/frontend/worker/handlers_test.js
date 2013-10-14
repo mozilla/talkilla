@@ -89,6 +89,18 @@ describe('handlers', function() {
         sinon.assert.notCalled(spa.autoconnect);
       });
 
+    it("should load Google contacts if auth cookie is found", function() {
+      sandbox.stub(tkWorker, "loadGoogleContacts");
+      var event = {
+        data: [ {name: "google.auth.token", value: "x"} ]
+      };
+
+      handlers['social.cookies-get-response'](event);
+
+      sinon.assert.calledOnce(tkWorker.loadGoogleContacts);
+      sinon.assert.calledWithExactly(tkWorker.loadGoogleContacts, {token: "x"});
+    });
+
   });
 
   describe("talkilla.contacts", function() {
@@ -214,6 +226,7 @@ describe('handlers', function() {
       var port;
 
       beforeEach(function() {
+        browserPort = {postEvent: sandbox.spy()};
         port = {id: "tests", postEvent: sandbox.spy()};
         ports.add(port);
         sandbox.stub(spa, "signin", function(nick, callback) {

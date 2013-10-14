@@ -44,5 +44,17 @@ describe('Miscellaneous', function() {
         testableCallback(null, JSON.stringify({nick: nickname}));
         sinon.assert.notCalled(socketStub);
       });
+
+    it("should request for cookies if signin succeded", function() {
+      testableCallback(null, JSON.stringify({nick: "jb"}));
+      sinon.assert.calledOnce(browserPort.postEvent);
+      sinon.assert.calledWithExactly(browserPort.postEvent,
+                                     "social.cookies-get");
+    });
+
+    it("should not request for cookies if signin failed", function() {
+      testableCallback(null, JSON.stringify({nick: undefined}));
+      sinon.assert.notCalled(browserPort.postEvent);
+    });
   });
 });

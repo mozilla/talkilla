@@ -1,11 +1,12 @@
 /* global indexedDB, importScripts, SPA, HTTP, CollectedContacts, CurrentUsers,
-   loadConfig  */
+   loadConfig, GoogleContacts  */
 /* jshint unused:false */
 
 // XXX: Try to import Backbone only in files that need it (and check
 // if multiple imports cause problems).
 importScripts('../vendor/backbone-events-standalone-0.1.5.js');
-importScripts('/config.js', 'addressbook/collected.js');
+importScripts('/config.js');
+importScripts('addressbook/collected.js', 'addressbook/google.js');
 importScripts('worker/http.js', 'worker/users.js', 'worker/spa.js');
 
 var gConfig = loadConfig();
@@ -336,6 +337,7 @@ function _signinCallback(err, responseText) {
 
     spa.connect(username);
     ports.broadcastEvent("talkilla.presence-pending", {});
+    browserPort.postEvent("social.cookies-get");
   }
 }
 
@@ -380,6 +382,9 @@ var handlers = {
         // If we've received the configuration info, then go
         // ahead and log in.
         spa.autoconnect(cookie.value);
+      } else if (cookie.name === "google.auth.token") {
+        // load google contacts
+        tkWorker.loadGoogleContacts({token: cookie.value});
       }
     });
   },
@@ -623,6 +628,25 @@ TkWorker.prototype = {
       // callback is mostly useful for tests
       if (typeof cb === "function")
         cb.call(this, null, contacts);
+    }.bind(this));
+  },
+
+  /**
+   * Load Google Contacts.
+   *
+   * @param  {Object} options Options
+   *
+   * Options:
+   * - {String} token  Auth token
+   */
+  loadGoogleContacts: function(options) {
+    options = options || {};
+    if (!options.token)
+      return;
+    new GoogleContacts({token: options.token}).all(function(err, contacts) {
+      if (err)
+        return this.ports.broadcastError(err);
+      this.updateContactList(contacts);
     }.bind(this));
   },
 
