@@ -6,7 +6,7 @@ html, body {
   height: 100%; /* necessary to use display: table* on children */
   margin: 0;
   padding: 0;
-  overflow: hidden; *//* workaround for what appears to be a bug in gecko */
+  overflow: hidden; /* workaround for what appears to be a bug in gecko */
 }
 
 body {
