@@ -90,7 +90,15 @@ class BrowserTest(unittest.TestCase):
                 css_selector))
 
     def assertElementsCount(self, driver, css_selector, length):
-        elements = driver.find_elements_by_css_selector(css_selector)
+        # If there's more than one element wait for it to be displayed
+        # XXX Waiting for no elements is currently not possible, we'd need
+        # to write a special wait routing for elements that never get
+        # displayed (e.g. link elements).
+        if length == 0:
+            elements = driver.find_elements_by_css_selector(css_selector)
+        else:
+            elements = driver.waitForElements(css_selector)
+
         if len(elements) != length:
             raise AssertionError(u"%s does not contain %d elements" % (
                 css_selector, length))
@@ -106,15 +114,11 @@ class BrowserTest(unittest.TestCase):
     def assertPendingOutgoingCall(self, driver):
         self.assertElementVisible(driver, ".btn-abort")
 
-    def assertPresenceIconConnected(self, driver):
+    def assertConversationPresenceIconShows(self, driver, state):
         self.assertElementsCount(
             driver,
-            'head > link[rel="icon"][href="img/presence/connected.png"]', 1)
-
-    def assertPresenceIconDisconnected(self, driver):
-        self.assertElementsCount(
-            driver,
-            'head > link[rel="icon"][href="img/presence/disconnected.png"]', 1)
+            'head > link[rel="icon"][href="img/presence/' + state + '.png"]',
+            1)
 
     def assertCallTimedOut(self, driver):
         self.assertElementVisible(driver, ".btn-call-again")
