@@ -27,6 +27,8 @@ describe("ConversationView", function() {
       terminate: sandbox.spy(),
       on: sandbox.stub()
     };
+    _.extend(media, Backbone.Events);
+
     call = new app.models.Call({}, {media: media});
     user = new app.models.User();
     peer = new app.models.User();
@@ -320,4 +322,64 @@ describe("ConversationView", function() {
       });
     });
   });
+
+  describe("*-stream:ready events", function() {
+    var view, fakeStream = "fakeStream";
+
+    beforeEach(function() {
+      view = new app.views.ConversationView({
+        call: call,
+        peer: peer,
+        user: user,
+        textChat: textChat,
+        el: '#fixtures'
+      });
+    });
+
+    afterEach(function() {
+      view = null;
+    });
+
+    it("should enable the has-video class for video calls when the local " +
+      "stream is ready",
+      function() {
+        sandbox.stub(view.call, "requiresVideo").returns(true);
+
+        view.call.media.trigger("local-stream:ready", fakeStream);
+
+        expect($("#fixtures").hasClass("has-video")).to.equal(true);
+      });
+
+    it("should disable the has-video class for audio calls when the local " +
+      "stream is ready", function() {
+      sandbox.stub(view.call, "requiresVideo").returns(false);
+
+      view.call.media.trigger("local-stream:ready", fakeStream);
+
+      expect($("#fixtures").hasClass("has-video")).to.equal(false);
+    });
+
+    it("should enable the has-video class for video calls when the remote " +
+      "stream is ready",
+      function() {
+        sandbox.stub(view.call, "requiresVideo").returns(true);
+
+        view.call.media.trigger("remote-stream:ready", fakeStream);
+
+        expect($("#fixtures").hasClass("has-video")).to.equal(true);
+      });
+
+    it("should disable the has-video class for audio calls when the remote " +
+      "stream is ready", function() {
+      sandbox.stub(view.call, "requiresVideo").returns(false);
+
+      view.call.media.trigger("remote-stream:ready", fakeStream);
+
+      expect($("#fixtures").hasClass("has-video")).to.equal(false);
+    });
+
+    it("should remove the has-video class for video calls once the last" +
+      " stream has terminated");
+  });
+
 });
