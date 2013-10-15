@@ -117,7 +117,7 @@ class BrowserTest(unittest.TestCase):
     def assertConversationPresenceIconShows(self, driver, state):
         self.assertElementsCount(
             driver,
-            'head > link[rel="icon"][href="img/presence/' + state + '.png"]',
+            'head > link[rel="icon"][href="img/presence/%s.png"]' % state,
             1)
 
     def assertCallTimedOut(self, driver):
