@@ -341,7 +341,8 @@ function _signinCallback(err, responseText) {
   if (username) {
     _currentUserData.userName = username;
 
-    spa.connect(username);
+    spa.setCredentials({nick: username});
+    spa.connect();
     ports.broadcastEvent("talkilla.presence-pending", {});
   }
 }
@@ -386,7 +387,8 @@ var handlers = {
         _currentUserData.userName = cookie.value;
         // If we've received the configuration info, then go
         // ahead and log in.
-        spa.autoconnect(cookie.value);
+        spa.setCredentials({nick: cookie.value});
+        spa.autoconnect();
       }
     });
   },

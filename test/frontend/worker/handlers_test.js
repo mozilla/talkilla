@@ -74,7 +74,7 @@ describe('handlers', function() {
         handlers['social.cookies-get-response'](event);
 
         sinon.assert.calledOnce(spa.autoconnect);
-        sinon.assert.calledWithExactly(spa.autoconnect, "Boriss");
+        sinon.assert.calledWithExactly(spa.autoconnect);
       });
 
     it("should NOT try to connect if there is no nick provided",
@@ -216,7 +216,7 @@ describe('handlers', function() {
       beforeEach(function() {
         port = {id: "tests", postEvent: sandbox.spy()};
         ports.add(port);
-        sandbox.stub(spa, "signin", function(nick, callback) {
+        sandbox.stub(spa, "signin", function(assertion, callback) {
           callback(null, '{"nick":"jb"}');
         });
 

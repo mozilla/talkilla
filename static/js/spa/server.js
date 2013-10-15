@@ -10,25 +10,25 @@ var Server = (function() {
   }
 
   Server.prototype = {
-    connect: function(nick) {
-      this.http.post("/stream", {nick: nick}, function(err, response) {
+    connect: function(credentials) {
+      this.http.post("/stream", credentials, function(err, response) {
         if (err)
           return this.trigger("error", response);
 
-        this.nick = nick;
+        this.nick = credentials.nick;
         this.trigger("connected");
-        this._longPolling(nick, JSON.parse(response));
+        this._longPolling(credentials.nick, JSON.parse(response));
       }.bind(this));
     },
 
-    autoconnect: function(nick) {
-      this.http.post("/stream", {nick: nick}, function(err, response) {
+    autoconnect: function(credentials) {
+      this.http.post("/stream", credentials, function(err, response) {
         if (err)
           return this.trigger("disconnected", response);
 
-        this.nick = nick;
+        this.nick = credentials.nick;
         this.trigger("connected");
-        this._longPolling(nick, JSON.parse(response));
+        this._longPolling(credentials.nick, JSON.parse(response));
       }.bind(this));
     },
 

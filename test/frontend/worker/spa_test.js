@@ -71,15 +71,31 @@ describe("SPA", function() {
 
   });
 
+  describe("#setCredentials", function() {
+
+    it("should send the credentials to the worker", function() {
+      spa.setCredentials("some credentials");
+
+      sinon.assert.calledOnce(spa.worker.postMessage);
+      sinon.assert.calledWithExactly(spa.worker.postMessage, {
+        topic: "credentials",
+        data: "some credentials"
+      });
+    });
+
+  });
+
   describe("#connect", function() {
 
     it("should send a connect event to the worker", function() {
-      spa.connect("foo");
+      spa.setCredentials({nick: "foo"});
+      spa.worker.postMessage.reset();
+      spa.connect();
 
       sinon.assert.calledOnce(spa.worker.postMessage);
       sinon.assert.calledWithExactly(spa.worker.postMessage, {
         topic: "connect",
-        data: {nick: "foo"}
+        data: undefined
       });
     });
 
@@ -88,12 +104,14 @@ describe("SPA", function() {
   describe("#autoconnect", function() {
 
     it("should send an autoconnect event to the worker", function() {
-      spa.autoconnect("foo");
+      spa.setCredentials({nick: "foo"});
+      spa.worker.postMessage.reset();
+      spa.autoconnect();
 
       sinon.assert.calledOnce(spa.worker.postMessage);
       sinon.assert.calledWithExactly(spa.worker.postMessage, {
         topic: "autoconnect",
-        data: {nick: "foo"}
+        data: undefined
       });
     });
 

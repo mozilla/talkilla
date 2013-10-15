@@ -22,7 +22,7 @@ describe("Server", function() {
 
     it("should request a stream", function() {
       sandbox.stub(server.http, "post");
-      server.connect("foo");
+      server.connect({nick: "foo"});
 
       sinon.assert.calledOnce(server.http.post);
       sinon.assert.calledWith(server.http.post, "/stream", {nick: "foo"});
@@ -36,7 +36,7 @@ describe("Server", function() {
         done();
       });
 
-      server.connect("foo");
+      server.connect({nick: "foo"});
     });
 
     it("should trigger an error event if the request failed", function(done) {
@@ -47,7 +47,7 @@ describe("Server", function() {
         done();
       });
 
-      server.connect("foo");
+      server.connect({nick: "foo"});
     });
 
     it("should call #_longPolling", function(done) {
@@ -58,7 +58,7 @@ describe("Server", function() {
         done();
       });
 
-      server.connect("foo");
+      server.connect({nick: "foo"});
     });
 
   });
@@ -71,7 +71,8 @@ describe("Server", function() {
 
     it("should request a stream", function() {
       sandbox.stub(server.http, "post");
-      server.autoconnect("foo");
+
+      server.autoconnect({nick: "foo"});
 
       sinon.assert.calledOnce(server.http.post);
       sinon.assert.calledWith(server.http.post, "/stream", {nick: "foo"});
@@ -85,7 +86,7 @@ describe("Server", function() {
         done();
       });
 
-      server.autoconnect("foo");
+      server.autoconnect({nick: "foo"});
     });
 
     it("should trigger an error event if the request failed", function(done) {
@@ -96,7 +97,7 @@ describe("Server", function() {
         done();
       });
 
-      server.autoconnect("foo");
+      server.autoconnect({nick: "foo"});
     });
 
     it("should call #_longPolling", function(done) {
@@ -107,7 +108,7 @@ describe("Server", function() {
         done();
       });
 
-      server.autoconnect("foo");
+      server.autoconnect({nick: "foo"});
     });
 
   });
@@ -279,7 +280,7 @@ describe("Server", function() {
       var callback = sinon.spy();
 
       server.on("connected", callback);
-      server.connect("foo");
+      server.connect({nick: "foo"});
       server._ws.onopen();
 
       sinon.assert.calledOnce(callback);
@@ -290,7 +291,7 @@ describe("Server", function() {
       var event = {data: JSON.stringify({thisis: {an: "event"}})};
 
       server.on("message", callback);
-      server.connect("foo");
+      server.connect({nick: "foo"});
       server._ws.onmessage(event);
 
       sinon.assert.calledOnce(callback);
@@ -302,7 +303,7 @@ describe("Server", function() {
       var event = {data: JSON.stringify({custom: {an: "event"}})};
 
       server.on("message:custom", callback);
-      server.connect("foo");
+      server.connect({nick: "foo"});
       server._ws.onmessage(event);
 
       sinon.assert.calledOnce(callback);
@@ -313,7 +314,7 @@ describe("Server", function() {
       var callback = sinon.spy();
 
       server.on("error", callback);
-      server.connect("foo");
+      server.connect({nick: "foo"});
       server._ws.onerror("an error");
 
       sinon.assert.calledOnce(callback);
@@ -324,7 +325,7 @@ describe("Server", function() {
       var callback = sinon.spy();
 
       server.on("disconnected", callback);
-      server.connect("foo");
+      server.connect({nick: "foo"});
       server._ws.onclose();
 
       sinon.assert.calledOnce(callback);
@@ -333,7 +334,7 @@ describe("Server", function() {
 
   describe.skip("#send", function() {
     it("should send serialized data throught the websocket", function() {
-      server.connect("foo");
+      server.connect({nick: "foo"});
       server.send({some: "data"});
 
       sinon.assert.calledOnce(server._ws.send);
