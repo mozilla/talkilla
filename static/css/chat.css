@@ -6,10 +6,16 @@ html, body {
   height: 100%; /* necessary to use display: table* on children */
   margin: 0;
   padding: 0;
+  overflow: hidden; /* workaround for what appears to be a bug in gecko */
 }
 
 body {
   display: table;
+
+  /* make it possible to apply border style rules to children with
+     display:table-row; */
+  border-collapse: collapse;
+
   width: 100%;      /* display: table seems to make this required */
   min-width: 260px; /* Social API chat window default width */
 }
@@ -62,11 +68,12 @@ body {
   display: table-row;
   background-color: #FAFAFA;
   width: 100%;
-  height: 24px;
+  height: 25px;
   margin: 0;
   padding: 0;
   list-style-type: none;
   z-index: 99;
+  border-bottom: 1px solid #D6D6D6;
 }
 
 #call-controls .controls {
@@ -170,7 +177,7 @@ body {
 #textchat ul {
   width: 100%;
   /* height: viewport height - controls height - form height */
-  height: calc(100vh - 24px - 22px);
+  height: calc(100vh - 25px - 22px);
   overflow: auto;
   margin: 0;
   padding: 0;
@@ -189,7 +196,7 @@ body {
 
 .has-video #textchat ul {
   /* height: viewport height - video height - controls height - form height */
-  height: calc((100vh - 100vw / 1.33333) - 24px - 22px);
+  height: calc((100vh - 100vw / 1.33333) - 25px - 22px);
 }
 
 #textchat form {
@@ -284,7 +291,7 @@ body {
 
   .has-video #textchat ul {
     /* height: viewport height - video height - controls height - form height */
-    height: calc(100vh - 60vh - 24px - 22px);
+    height: calc(100vh - 60vh - 25px - 22px);
   }
 }
 
@@ -294,7 +301,7 @@ body {
 @media screen and (min-width: 720px) {
   #call {
     background: #000;
-    height: calc(60vh - 24px - 22px);
+    height: calc(60vh - 25px - 22px);
     text-align: center; /* cause entire video-area to be centered relative to
                          * to window */
   }
@@ -331,6 +338,6 @@ body {
 
   .has-video #textchat ul {
     /* height: viewport height - video height - controls height - form height */
-    height: calc(100vh - 60vh - 24px - 22px - 5px);
+    height: calc(100vh - 60vh - 25px - 22px - 5px);
   }
 }
