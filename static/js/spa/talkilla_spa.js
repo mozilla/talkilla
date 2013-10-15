@@ -4,7 +4,9 @@ var TalkillaSPA = (function() {
   function TalkillaSPA(port, server) {
     this.port = port;
     this.server = server;
+    this.credentials = undefined;
 
+    this.port.on("credentials", this._onCredentials.bind(this));
     this.port.on("connect", this._onConnect.bind(this));
     this.port.on("autoconnect", this._onAutoconnect.bind(this));
 
@@ -40,12 +42,16 @@ var TalkillaSPA = (function() {
         this.port.post("message", [type, event]);
     },
 
-    _onConnect: function(data) {
-      this.server.connect(data.nick);
+    _onCredentials: function(data) {
+      this.credentials = data;
     },
 
-    _onAutoconnect: function(data) {
-      this.server.autoconnect(data.nick);
+    _onConnect: function() {
+      this.server.connect(this.credentials);
+    },
+
+    _onAutoconnect: function() {
+      this.server.autoconnect(this.credentials);
     },
 
     _onCallOffer: function(data) {

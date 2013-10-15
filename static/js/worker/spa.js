@@ -45,12 +45,16 @@ var SPA = (function() {
       this.http.post("/signout", {nick: nick}, callback);
     },
 
-    connect: function(nick) {
-      this._send("connect", {nick: nick});
+    setCredentials: function(credentials) {
+      this._send("credentials", credentials);
     },
 
-    autoconnect: function(nick) {
-      this._send("autoconnect", {nick: nick});
+    connect: function() {
+      this._send("connect");
+    },
+
+    autoconnect: function() {
+      this._send("autoconnect");
     },
 
     callOffer: function(offer, to, textChat) {

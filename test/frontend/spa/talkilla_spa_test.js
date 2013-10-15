@@ -51,16 +51,25 @@ describe("TalkillaSPA", function() {
 
   });
 
+  describe("#_onCredentials", function() {
+
+    it("should set the credential attribute", function() {
+      spa.port.trigger("credentials", {some: "credentials"});
+      expect(spa.credentials).to.deep.equal({some: "credentials"});
+    });
+
+  });
+
   describe("#_onConnect", function() {
 
     it("should connect to the server", function() {
-      var event = {nick: "foo"};
+      spa.credentials = {nick: "foo"};
       sandbox.stub(spa.server, "connect");
 
-      spa.port.trigger("connect", event);
+      spa.port.trigger("connect");
 
       sinon.assert.calledOnce(spa.server.connect);
-      sinon.assert.calledWithExactly(spa.server.connect, "foo");
+      sinon.assert.calledWithExactly(spa.server.connect, {nick: "foo"});
     });
 
   });
@@ -68,13 +77,13 @@ describe("TalkillaSPA", function() {
   describe("#_onAutoconnect", function() {
 
     it("should autoconnect to the server", function() {
-      var event = {nick: "foo"};
+      spa.credentials = {nick: "foo"};
       sandbox.stub(spa.server, "autoconnect");
 
-      spa.port.trigger("autoconnect", event);
+      spa.port.trigger("autoconnect");
 
       sinon.assert.calledOnce(spa.server.autoconnect);
-      sinon.assert.calledWithExactly(spa.server.autoconnect, "foo");
+      sinon.assert.calledWithExactly(spa.server.autoconnect, {nick: "foo"});
     });
 
   });
