@@ -11,6 +11,7 @@ describe('handlers', function() {
   var sandbox;
 
   beforeEach(function() {
+    _autologinPending = false;
     sandbox = sinon.sandbox.create();
     sandbox.stub(window, "SPAPort");
     sandbox.stub(window, "Server");
@@ -84,6 +85,19 @@ describe('handlers', function() {
         handlers['social.cookies-get-response']({
           topic: "social.cookies-get-response",
           data: []
+        });
+
+        sinon.assert.notCalled(spa.autoconnect);
+      });
+
+    it("should NOT try to connect if autoloading is ongoing",
+      function () {
+        _autologinPending = true;
+        sandbox.stub(spa, "autoconnect");
+
+        handlers['social.cookies-get-response']({
+          topic: "social.cookies-get-response",
+          data: [ {name: "nick", value: "Boriss"} ]
         });
 
         sinon.assert.notCalled(spa.autoconnect);

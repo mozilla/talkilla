@@ -376,7 +376,7 @@ var handlers = {
   'social.cookies-get-response': function(event) {
     var cookies = event.data;
     cookies.forEach(function(cookie) {
-      if (cookie.name === "nick") {
+      if (cookie.name === "nick" && !_autologinPending) {
         _autologinPending = true;
         _currentUserData.userName = cookie.value;
         // If we've received the configuration info, then go
