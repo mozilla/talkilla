@@ -4,5 +4,5 @@
   "FAKE_MEDIA_STREAMS": true,
   "LOG_LEVEL": "error",
   "PERSONA_INCLUDE_URL": "/test/functional/persona.js",
-  "LONG_POLLING_TIMEOUT": 1000
+  "LONG_POLLING_TIMEOUT": 4000
 }
