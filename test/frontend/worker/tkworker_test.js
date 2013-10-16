@@ -23,6 +23,24 @@ describe("tkWorker", function() {
     });
   });
 
+  describe("#closeSession", function() {
+    it("should reset current users list", function() {
+      sandbox.stub(worker.currentUsers, "reset");
+
+      worker.closeSession();
+
+      sinon.assert.called(worker.currentUsers.reset);
+    });
+
+    it("should close contacts database", function() {
+      sandbox.stub(worker.contactsDb, "close");
+
+      worker.closeSession();
+
+      sinon.assert.called(worker.contactsDb.close);
+    });
+  });
+
   describe("#loadContacts", function() {
     beforeEach(function(done) {
       // Store a contact for the tests

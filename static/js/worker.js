@@ -319,10 +319,8 @@ function _setupSPA(spa) {
     // XXX: this will need future work to handle retrying presence connections
     ports.broadcastEvent('talkilla.presence-unavailable', event.code);
     ports.broadcastEvent("talkilla.logout-success", {});
-    tkWorker.currentUsers.reset();
-    // XXX: really these should be reset on signout, not disconnect.
-    // Unload the database
-    tkWorker.contactsDb.close();
+
+    tkWorker.closeSession();
   });
 }
 
@@ -347,7 +345,9 @@ function _signoutCallback(err, responseText) {
     return this.postEvent('talkilla.error', 'Bad signout:' + err);
 
   _currentUserData.reset();
-  tkWorker.currentUsers.reset();
+
+  tkWorker.closeSession();
+
   ports.broadcastEvent('talkilla.logout-success');
 }
 
@@ -610,6 +610,14 @@ function TkWorker(options) {
 }
 
 TkWorker.prototype = {
+  /**
+   * Closes current user session.
+   */
+  closeSession: function() {
+    this.currentUsers.reset();
+    this.contactsDb.close();
+  },
+
   /**
    * Loads the contacts database and adds the contacts to the
    * current users list.
