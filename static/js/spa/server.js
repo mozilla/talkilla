@@ -12,7 +12,9 @@ var Server = (function() {
   Server.prototype = {
     connect: function(credentials) {
       this.http.post("/stream", credentials, function(err, response) {
-        if (err)
+        if (err === 400)
+          return this.trigger("unauthorized", response);
+        if (err !== null)
           return this.trigger("disconnected", response);
 
         this.nick = credentials.nick;
@@ -30,7 +32,9 @@ var Server = (function() {
       }.bind(this));
 
       this.http.post("/stream", {nick: nick}, function(err, response) {
-        if (err)
+        if (err === 400)
+          return this.trigger("unauthorized", response);
+        if (err !== null)
           return this.trigger("disconnected", response);
 
         this._longPolling(nick, JSON.parse(response));
