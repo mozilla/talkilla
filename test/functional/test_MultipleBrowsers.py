@@ -161,7 +161,7 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
 
         self.bob.acceptCall()
 
-        self.assertElementVisible(self.larry, "#local-video")
+        self.assertElementVisible(self.larry, "#local-media")
 
 
 if __name__ == "__main__":

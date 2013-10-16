@@ -78,13 +78,13 @@ describe("CallView", function() {
         call.media = _.extend({}, Backbone.Events);
 
         el = $(['<div>',
-                '  <div id="local-video"></div>',
+                '  <div id="local-media"></div>',
                 '  <div id="remote-video"></div>',
                 '</div>'].join(''));
         $("#fixtures").append(el);
         callView = new app.views.CallView({el: el, call: call});
 
-        $localElement = el.find('#local-video');
+        $localElement = el.find('#local-media');
         localElement = $localElement.get(0);
         localElement.play = sandbox.spy();
 
@@ -93,21 +93,21 @@ describe("CallView", function() {
       });
 
       describe("local-stream:ready", function() {
-        it("should attach the local stream to the local-video element",
+        it("should attach the local stream to the local-media element",
           function() {
             call.media.trigger("local-stream:ready", fakeLocalStream);
 
             expect(localElement.mozSrcObject).to.equal(fakeLocalStream);
           });
 
-        it("should call play on the local-video element",
+        it("should call play on the local-media element",
           function() {
             call.media.trigger("local-stream:ready", fakeLocalStream);
 
             sinon.assert.calledOnce(localElement.play);
           });
 
-        it("should show the local-video element for video calls", function() {
+        it("should show the local-media element for video calls", function() {
           sandbox.stub(jQuery.prototype, "show");
           sandbox.stub(call, "requiresVideo").returns(true);
           localElement.play = function() {
@@ -119,7 +119,7 @@ describe("CallView", function() {
           sinon.assert.calledOnce($localElement.show);
         });
 
-        it("should not show the local-video element for audio calls",
+        it("should not show the local-media element for audio calls",
           function() {
             sandbox.stub(jQuery.prototype, "show");
             sandbox.stub(call, "requiresVideo").returns(false);
@@ -134,7 +134,7 @@ describe("CallView", function() {
       });
 
       describe("local-stream:terminated", function() {
-        it("should detach the local stream from the local-video element",
+        it("should detach the local stream from the local-media element",
           function() {
             localElement.mozSrcObject = fakeLocalStream;
 

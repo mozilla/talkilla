@@ -108,7 +108,7 @@ class BrowserTest(unittest.TestCase):
 
     def assertOngoingCall(self, driver):
         self.assertElementVisible(driver, "#call")
-        self.assertElementVisible(driver, "#local-video")
+        self.assertElementVisible(driver, "#local-media")
         self.assertElementVisible(driver, "#remote-video")
 
     def assertPendingOutgoingCall(self, driver):
