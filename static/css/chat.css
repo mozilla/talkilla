@@ -129,7 +129,7 @@ body {
   height: calc(100vw / 1.33333); /* keep 4:3 video aspect ratio */
 }
 
-#call .video-area {
+#call .media-display-area {
   position: relative;
   overflow: hidden;
   margin-bottom: -5px;
@@ -302,11 +302,11 @@ body {
   #call {
     background: #000;
     height: calc(60vh - 25px - 22px);
-    text-align: center; /* cause entire video-area to be centered relative to
-                         * to window */
+    text-align: center; /* cause entire media-display-area to be centered
+                         * relative to window */
   }
 
-  #call .video-area {
+  #call .media-display-area {
     display: inline-block; /* table-cell would insert unwanted extra padding */
     height: 60vh;
     margin-bottom: 0;
