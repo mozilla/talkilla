@@ -1,4 +1,4 @@
-/*global chai, sinon, TkWorker, CollectedContacts, ports */
+/*global chai, sinon, TkWorker, CollectedContacts, GoogleContacts, ports */
 
 var expect = chai.expect;
 
@@ -20,6 +20,24 @@ describe("tkWorker", function() {
     sandbox.restore();
     worker.contactsDb.drop(function() {
       done();
+    });
+  });
+
+  describe("#closeSession", function() {
+    it("should reset current users list", function() {
+      sandbox.stub(worker.currentUsers, "reset");
+
+      worker.closeSession();
+
+      sinon.assert.called(worker.currentUsers.reset);
+    });
+
+    it("should close contacts database", function() {
+      sandbox.stub(worker.contactsDb, "close");
+
+      worker.closeSession();
+
+      sinon.assert.called(worker.contactsDb.close);
     });
   });
 
@@ -72,6 +90,48 @@ describe("tkWorker", function() {
 
       sinon.assert.calledOnce(ports.broadcastError);
       sinon.assert.calledWithExactly(ports.broadcastError, err);
+    });
+  });
+
+  describe("#loadGoogleContacts", function() {
+    it("should load Google contacts if a token is passed", function() {
+      sandbox.stub(GoogleContacts.prototype, "all");
+
+      worker.loadGoogleContacts({token: "foobar"});
+
+      sinon.assert.calledOnce(GoogleContacts.prototype.all);
+    });
+
+    it("should not load Google contacts if no token is passed", function() {
+      sandbox.stub(GoogleContacts.prototype, "all");
+
+      worker.loadGoogleContacts({token: undefined});
+
+      sinon.assert.notCalled(GoogleContacts.prototype.all);
+    });
+
+    it("should broadcast any encountered error", function() {
+      sandbox.stub(ports, "broadcastError");
+      sandbox.stub(GoogleContacts.prototype, "all", function(cb) {
+        cb("all error");
+      });
+
+      worker.loadGoogleContacts({token: "foobar"});
+
+      sinon.assert.calledOnce(ports.broadcastError);
+      sinon.assert.calledWithExactly(ports.broadcastError, "all error");
+    });
+
+    it("should update users list with loaded contacts", function() {
+      sandbox.stub(worker, "updateContactList");
+      sandbox.stub(GoogleContacts.prototype, "all", function(cb) {
+        cb(null, ["foo", "bar"]);
+      });
+
+      worker.loadGoogleContacts({token: "foobar"});
+
+      sinon.assert.calledOnce(worker.updateContactList);
+      sinon.assert.calledWithExactly(worker.updateContactList, ["foo", "bar"]);
     });
   });
 

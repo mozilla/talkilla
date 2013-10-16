@@ -35,7 +35,7 @@ var GoogleContacts = (function() {
     this.authCookieName = options.authCookieName || AUTH_COOKIE_NAME;
     this.authCookieTTL = options.authCookieTTL || AUTH_COOKIE_TTL;
     this.maxResults = options.maxResults || MAX_RESULTS;
-    this.token = options.token || this._getToken();
+    this.token = options.token;
   }
 
   /**
@@ -99,21 +99,17 @@ var GoogleContacts = (function() {
       // XXX: we should reuse worker http.js here - need to adapt it though
       var request = new XMLHttpRequest();
       request.onload = function(event) {
-        var request = event && event.target, contacts;
-        // sinon might pass us an empty event here
-        if (!request || request.readyState !== 4)
+        if (!event) // sinon first calls onload with a null for some reason
           return;
-        if (request.status !== 200)
-          return cb.call(this, new Error(request.statusText));
         try {
-          var feed = JSON.parse(request.responseText);
+          var feed = JSON.parse(event.target.responseText);
           cb.call(this, null, new GoogleContacts.Importer(feed).normalize());
         } catch (err) {
-          cb.call(this, err);
+          cb.call(this, new Error("Error parsing contacts feed: " + err));
         }
       }.bind(this);
       request.onerror = function(event) {
-        cb.call(this, new Error("HTTP " + event.target.status + " error"));
+        cb.call(this, new Error("Unable to retrieve Google contacts"));
       }.bind(this);
       request.open("GET", buildUrl({
         "max-results": this.maxResults,
@@ -138,15 +134,6 @@ var GoogleContacts = (function() {
           this.port.postEvent("talkilla.contacts", {contacts: contacts});
         }.bind(this));
       }.bind(this));
-    },
-
-    /**
-     * Retrieves stored Google API authentication token if it exists.
-     *
-     * @return {String|undefined}
-     */
-    _getToken: function() {
-      return $.cookie(this.authCookieName);
     },
 
     /**

@@ -1,11 +1,12 @@
 /* global indexedDB, importScripts, SPA, HTTP, CollectedContacts, CurrentUsers,
-   loadConfig  */
+   loadConfig, GoogleContacts  */
 /* jshint unused:false */
 
 // XXX: Try to import Backbone only in files that need it (and check
 // if multiple imports cause problems).
 importScripts('../vendor/backbone-events-standalone-0.1.5.js');
-importScripts('/config.js', 'addressbook/collected.js');
+importScripts('/config.js');
+importScripts('addressbook/collected.js', 'addressbook/google.js');
 importScripts('worker/http.js', 'worker/users.js', 'worker/spa.js');
 
 var gConfig = loadConfig();
@@ -318,10 +319,8 @@ function _setupSPA(spa) {
     // XXX: this will need future work to handle retrying presence connections
     ports.broadcastEvent('talkilla.presence-unavailable', event.code);
     ports.broadcastEvent("talkilla.logout-success", {});
-    tkWorker.currentUsers.reset();
-    // XXX: really these should be reset on signout, not disconnect.
-    // Unload the database
-    tkWorker.contactsDb.close();
+
+    tkWorker.closeSession();
   });
 }
 
@@ -336,6 +335,7 @@ function _signinCallback(err, responseText) {
 
     spa.connect(username);
     ports.broadcastEvent("talkilla.presence-pending", {});
+    browserPort.postEvent("social.cookies-get");
   }
 }
 
@@ -345,7 +345,9 @@ function _signoutCallback(err, responseText) {
     return this.postEvent('talkilla.error', 'Bad signout:' + err);
 
   _currentUserData.reset();
-  tkWorker.currentUsers.reset();
+
+  tkWorker.closeSession();
+
   ports.broadcastEvent('talkilla.logout-success');
 }
 
@@ -374,12 +376,15 @@ var handlers = {
   'social.cookies-get-response': function(event) {
     var cookies = event.data;
     cookies.forEach(function(cookie) {
-      if (cookie.name === "nick") {
+      if (cookie.name === "nick" && !_autologinPending) {
         _autologinPending = true;
         _currentUserData.userName = cookie.value;
         // If we've received the configuration info, then go
         // ahead and log in.
         spa.autoconnect(cookie.value);
+      } else if (cookie.name === "google.auth.token") {
+        // load google contacts
+        tkWorker.loadGoogleContacts({token: cookie.value});
       }
     });
   },
@@ -573,9 +578,10 @@ PortCollection.prototype = {
 
   /**
    * Broadcasts an error message to all ports.
-   * @param  {String} message
+   * @param  {Error|String} error
    */
-  broadcastError: function(message) {
+  broadcastError: function(error) {
+    var message = error instanceof Error ? error.message : error;
     for (var id in this.ports)
       this.ports[id].error(message);
   }
@@ -605,6 +611,14 @@ function TkWorker(options) {
 
 TkWorker.prototype = {
   /**
+   * Closes current user session.
+   */
+  closeSession: function() {
+    this.currentUsers.reset();
+    this.contactsDb.close();
+  },
+
+  /**
    * Loads the contacts database and adds the contacts to the
    * current users list.
    *
@@ -623,6 +637,25 @@ TkWorker.prototype = {
       // callback is mostly useful for tests
       if (typeof cb === "function")
         cb.call(this, null, contacts);
+    }.bind(this));
+  },
+
+  /**
+   * Load Google Contacts.
+   *
+   * @param  {Object} options Options
+   *
+   * Options:
+   * - {String} token  Auth token
+   */
+  loadGoogleContacts: function(options) {
+    options = options || {};
+    if (!options.token)
+      return;
+    new GoogleContacts({token: options.token}).all(function(err, contacts) {
+      if (err)
+        return this.ports.broadcastError(err);
+      this.updateContactList(contacts);
     }.bind(this));
   },
 

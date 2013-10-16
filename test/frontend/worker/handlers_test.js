@@ -11,6 +11,7 @@ describe('handlers', function() {
   var sandbox;
 
   beforeEach(function() {
+    _autologinPending = false;
     sandbox = sinon.sandbox.create();
     sandbox.stub(window, "SPAPort");
     sandbox.stub(window, "Server");
@@ -88,6 +89,31 @@ describe('handlers', function() {
 
         sinon.assert.notCalled(spa.autoconnect);
       });
+
+    it("should NOT try to connect if autoloading is ongoing",
+      function () {
+        _autologinPending = true;
+        sandbox.stub(spa, "autoconnect");
+
+        handlers['social.cookies-get-response']({
+          topic: "social.cookies-get-response",
+          data: [ {name: "nick", value: "Boriss"} ]
+        });
+
+        sinon.assert.notCalled(spa.autoconnect);
+      });
+
+    it("should load Google contacts if auth cookie is found", function() {
+      sandbox.stub(tkWorker, "loadGoogleContacts");
+      var event = {
+        data: [ {name: "google.auth.token", value: "x"} ]
+      };
+
+      handlers['social.cookies-get-response'](event);
+
+      sinon.assert.calledOnce(tkWorker.loadGoogleContacts);
+      sinon.assert.calledWithExactly(tkWorker.loadGoogleContacts, {token: "x"});
+    });
 
   });
 
@@ -214,6 +240,7 @@ describe('handlers', function() {
       var port;
 
       beforeEach(function() {
+        browserPort = {postEvent: sandbox.spy()};
         port = {id: "tests", postEvent: sandbox.spy()};
         ports.add(port);
         sandbox.stub(spa, "signin", function(nick, callback) {
@@ -286,6 +313,7 @@ describe('handlers', function() {
           callback(null, "OK");
         });
         sandbox.stub(_currentUserData, "reset");
+        sandbox.stub(tkWorker, "closeSession");
 
         handlers['talkilla.logout']({
           topic: 'talkilla.logout'
@@ -305,6 +333,10 @@ describe('handlers', function() {
 
       it("should reset the current user data", function() {
         sinon.assert.calledOnce(_currentUserData.reset);
+      });
+
+      it("should close current worker session", function() {
+        sinon.assert.calledOnce(tkWorker.closeSession);
       });
     });
 
