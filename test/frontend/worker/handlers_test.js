@@ -66,27 +66,27 @@ describe('handlers', function() {
     it("should try to connect the presence socket",
       function() {
         _currentUserData = {};
-        sandbox.stub(spa, "autoconnect");
+        sandbox.stub(spa, "connect");
         var event = {
           data: [ {name: "nick", value: "Boriss"} ]
         };
 
         handlers['social.cookies-get-response'](event);
 
-        sinon.assert.calledOnce(spa.autoconnect);
-        sinon.assert.calledWithExactly(spa.autoconnect);
+        sinon.assert.calledOnce(spa.connect);
+        sinon.assert.calledWithExactly(spa.connect, {nick: "Boriss"});
       });
 
     it("should NOT try to connect if there is no nick provided",
       function () {
-        sandbox.stub(spa, "autoconnect");
+        sandbox.stub(spa, "connect");
 
         handlers['social.cookies-get-response']({
           topic: "social.cookies-get-response",
           data: []
         });
 
-        sinon.assert.notCalled(spa.autoconnect);
+        sinon.assert.notCalled(spa.connect);
       });
 
   });
@@ -402,14 +402,14 @@ describe('handlers', function() {
 
     it("should notify new sidebars only if there's a logged in user",
       function() {
-        sandbox.stub(spa, "autoconnect");
+        sandbox.stub(spa, "connect");
         handlers.postEvent = sinon.spy();
         handlers['talkilla.sidebar-ready']({
           topic: "talkilla.sidebar-ready",
           data: {}
         });
 
-        sinon.assert.notCalled(spa.autoconnect);
+        sinon.assert.notCalled(spa.connect);
       });
     it("should notify new sidebars only if there's a logged in user",
       function() {

@@ -13,17 +13,6 @@ var Server = (function() {
     connect: function(credentials) {
       this.http.post("/stream", credentials, function(err, response) {
         if (err)
-          return this.trigger("error", response);
-
-        this.nick = credentials.nick;
-        this.trigger("connected");
-        this._longPolling(credentials.nick, JSON.parse(response));
-      }.bind(this));
-    },
-
-    autoconnect: function(credentials) {
-      this.http.post("/stream", credentials, function(err, response) {
-        if (err)
           return this.trigger("disconnected", response);
 
         this.nick = credentials.nick;
