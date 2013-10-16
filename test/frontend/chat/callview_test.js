@@ -79,7 +79,7 @@ describe("CallView", function() {
 
         el = $(['<div>',
                 '  <div id="local-media"></div>',
-                '  <div id="remote-video"></div>',
+                '  <div id="remote-media"></div>',
                 '</div>'].join(''));
         $("#fixtures").append(el);
         callView = new app.views.CallView({el: el, call: call});
@@ -88,7 +88,7 @@ describe("CallView", function() {
         localElement = $localElement.get(0);
         localElement.play = sandbox.spy();
 
-        remoteElement = el.find('#remote-video').get(0);
+        remoteElement = el.find('#remote-media').get(0);
         remoteElement.play = sandbox.spy();
       });
 
@@ -145,7 +145,7 @@ describe("CallView", function() {
       });
 
       describe("remote-stream:ready", function() {
-        it("should attach the remote stream to the 'remote-video' element",
+        it("should attach the remote stream to the 'remote-media' element",
           function() {
             call.media.trigger("remote-stream:ready", fakeRemoteStream);
 
@@ -162,7 +162,7 @@ describe("CallView", function() {
       });
 
       describe("remote-stream:terminated", function() {
-        it("should detach the remote stream from the remote-video element",
+        it("should detach the remote stream from the remote-media element",
           function() {
             remoteElement.mozSrcObject = fakeRemoteStream;
 

@@ -421,7 +421,7 @@
     },
 
     _playRemoteMedia: function(stream) {
-      var remoteMedia = this.$('#remote-video').get(0);
+      var remoteMedia = this.$('#remote-media').get(0);
       remoteMedia.mozSrcObject = stream;
       remoteMedia.play();
       return this;
@@ -436,7 +436,7 @@
     },
 
     _terminateRemoteMedia: function() {
-      var remoteMedia = this.$('#remote-video').get(0);
+      var remoteMedia = this.$('#remote-media').get(0);
       if (!remoteMedia || !remoteMedia.mozSrcObject)
         return this;
 
