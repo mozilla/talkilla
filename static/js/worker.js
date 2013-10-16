@@ -578,9 +578,10 @@ PortCollection.prototype = {
 
   /**
    * Broadcasts an error message to all ports.
-   * @param  {String} message
+   * @param  {Error|String} error
    */
-  broadcastError: function(message) {
+  broadcastError: function(error) {
+    var message = error instanceof Error ? error.message : error;
     for (var id in this.ports)
       this.ports[id].error(message);
   }

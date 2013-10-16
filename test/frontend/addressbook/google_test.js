@@ -218,7 +218,8 @@ describe("GoogleContacts", function() {
       }, JSON.stringify({}));
 
       sinon.assert.calledOnce(callback);
-      expect(callback.args[0][0].message).eql("Unauthorized");
+      expect(callback.args[0][0]).to.be.an.instanceOf(Error);
+      expect(callback.args[0][0]).match(/Error parsing/);
     });
 
     it("should pass back a feed data normalization error", function() {
