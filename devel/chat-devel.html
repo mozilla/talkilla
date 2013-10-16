@@ -45,7 +45,7 @@
       local.onplaying = function() {
         local.classList.remove('hide');
       };
-      var remote = doc.querySelector('#remote-video');
+      var remote = doc.querySelector('#remote-media');
       remote.mozSrcObject = stream;
       remote.play();
     }, function(err) {

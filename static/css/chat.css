@@ -128,14 +128,14 @@ body {
   margin-bottom: -5px;
 }
 
-#call .remote-video {
+#call .remote-media {
   width: 100vw;
   min-width: 100vw;
   max-height: 80vh;
   z-index: 1;
 }
 
-/* XXX once we get the local-media stapled to the remote-video,
+/* XXX once we get the local-media stapled to the remote-media,
    much of this stuff may be irrelevant.  Audit this as part
    of that landing. */
 #call .local-media {
@@ -265,7 +265,7 @@ body {
     height: 60vh;
   }
 
-  #call .remote-video {
+  #call .remote-media {
     /**
      * XXX:
      *   - we can't keep both video aspect ratio and display 3 lines of chat
@@ -318,7 +318,7 @@ body {
     border: none;
   }
 
-  #call .remote-video {
+  #call .remote-media {
     position: static;
     display: block;
     float: left;
