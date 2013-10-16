@@ -407,7 +407,7 @@
     },
 
     _playAndMaybeDisplayLocalMedia: function(stream) {
-      var $localMedia = this.$('#local-video'),
+      var $localMedia = this.$('#local-media'),
           localMedia = $localMedia.get(0);
       if (!localMedia)
         return this;
@@ -428,7 +428,7 @@
     },
 
     _terminateLocalMedia: function() {
-      var localMedia = this.$('#local-video').get(0);
+      var localMedia = this.$('#local-media').get(0);
       if (!localMedia || !localMedia.mozSrcObject)
         return this;
 

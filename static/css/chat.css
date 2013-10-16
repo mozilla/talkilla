@@ -135,10 +135,10 @@ body {
   z-index: 1;
 }
 
-/* XXX once we get the local-video stapled to the remote-video,
+/* XXX once we get the local-media stapled to the remote-video,
    much of this stuff may be irrelevant.  Audit this as part
    of that landing. */
-#call .local-video {
+#call .local-media {
   position: absolute;
   bottom: 10px; /* 10px seems to give stablest stapling across most sizes */
   right: 5px;
@@ -278,7 +278,7 @@ body {
     transform: scale(1.35);
   }
 
-  #call .local-video {
+  #call .local-media {
     bottom: 5px; /* the default of 10px looks odd when the window is small */
   }
 
@@ -306,7 +306,7 @@ body {
     vertical-align: middle;
   }
 
-  #call .local-video {
+  #call .local-media {
     position: static;
     background: #000;
     float: left;
