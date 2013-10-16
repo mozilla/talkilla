@@ -90,14 +90,14 @@ describe("SPA", function() {
 
     it("should send a call:offer event to the worker", function() {
       var offer = "fake offer";
-      var to = "lucy";
+      var peer = "lucy";
 
-      spa.callOffer(offer, to);
+      spa.callOffer(offer, peer);
 
       sinon.assert.calledOnce(spa.worker.postMessage);
       sinon.assert.calledWithExactly(spa.worker.postMessage, {
         topic: "offer",
-        data: {offer: offer, to: to, textChat: undefined}
+        data: {offer: offer, peer: peer, textChat: undefined}
       });
     });
 
@@ -107,14 +107,14 @@ describe("SPA", function() {
 
     it("should send a answer event to the worker", function() {
       var answer = "fake answer";
-      var to = "cedric";
+      var peer = "cedric";
 
-      spa.callAnswer(answer, to);
+      spa.callAnswer(answer, peer);
 
       sinon.assert.calledOnce(spa.worker.postMessage);
       sinon.assert.calledWithExactly(spa.worker.postMessage, {
         topic: "answer",
-        data: {answer: answer, to: to, textChat: undefined}
+        data: {answer: answer, peer: peer, textChat: undefined}
       });
     });
 
@@ -123,13 +123,13 @@ describe("SPA", function() {
   describe("#callHangup", function() {
 
     it("should send a call:hangup event to the worker", function() {
-      var to = "foo";
-      spa.callHangup(to);
+      var peer = "foo";
+      spa.callHangup(peer);
 
       sinon.assert.calledOnce(spa.worker.postMessage);
       sinon.assert.calledWithExactly(spa.worker.postMessage, {
         topic: "hangup",
-        data: {to: to}
+        data: {peer: peer}
       });
     });
 

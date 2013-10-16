@@ -49,16 +49,16 @@ var SPA = (function() {
       this._send("connect", credentials);
     },
 
-    callOffer: function(offer, to, textChat) {
-      this._send("offer", {offer: offer, to: to, textChat: textChat});
+    callOffer: function(offer, peer, textChat) {
+      this._send("offer", {offer: offer, peer: peer, textChat: textChat});
     },
 
-    callAnswer: function(answer, to, textChat) {
-      this._send("answer", {answer: answer, to: to, textChat: textChat});
+    callAnswer: function(answer, peer, textChat) {
+      this._send("answer", {answer: answer, peer: peer, textChat: textChat});
     },
 
-    callHangup: function(to) {
-      this._send("hangup", {to: to});
+    callHangup: function(peer) {
+      this._send("hangup", {peer: peer});
     },
 
     presenceRequest: function(nick) {

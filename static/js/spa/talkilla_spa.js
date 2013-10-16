@@ -45,17 +45,17 @@ var TalkillaSPA = (function() {
     },
 
     _onCallOffer: function(data) {
-      data = {peer: data.to, offer: data.offer, textChat: data.textChat};
+      data = {peer: data.peer, offer: data.offer, textChat: data.textChat};
       this.server.callOffer(data);
     },
 
     _onCallAnswer: function(data) {
-      data = {peer: data.to, answer: data.answer, textChat: data.textChat};
+      data = {peer: data.peer, answer: data.answer, textChat: data.textChat};
       this.server.callAccepted(data);
     },
 
     _onCallHangup: function(data) {
-      data = {peer: data.to};
+      data = {peer: data.peer};
       this.server.callHangup(data);
     },
 
