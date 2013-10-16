@@ -392,12 +392,13 @@
         throw new Error("missing parameter: el");
 
       this.call = options.call;
-      this.call.media.on('local-stream:ready', this._displayLocalVideo, this);
-      this.call.media.on('remote-stream:ready', this._displayRemoteVideo, this);
+      this.call.media.on('local-stream:ready', 
+                         this._playAndMaybeDisplayLocalMedia, this);
+      this.call.media.on('remote-stream:ready', this._playRemoteMedia, this);
       this.call.media.on('local-stream:terminated',
-                         this._terminateLocalVideo, this);
+                         this._terminateLocalMedia, this);
       this.call.media.on('remote-stream:terminated',
-                         this._terminateRemoteVideo, this);
+                         this._terminateRemoteMedia, this);
       this.call.media.on('connection-upgraded', this.ongoing, this);
 
       this.call.on('change:state', this.render, this);
@@ -405,41 +406,41 @@
       this.render();
     },
 
-    _displayLocalVideo: function(stream) {
-      var $localVideo = this.$('#local-video'),
-          localVideo = $localVideo.get(0);
-      if (!localVideo)
+    _playAndMaybeDisplayLocalMedia: function(stream) {
+      var $localMedia = this.$('#local-video'),
+          localMedia = $localMedia.get(0);
+      if (!localMedia)
         return this;
-      localVideo.mozSrcObject = stream;
-      localVideo.onplaying = function() {
+      localMedia.mozSrcObject = stream;
+      localMedia.onplaying = function() {
         if (this.call.requiresVideo())
-          $localVideo.show();
+          $localMedia.show();
       }.bind(this);
-      localVideo.play();
+      localMedia.play();
       return this;
     },
 
-    _displayRemoteVideo: function(stream) {
-      var remoteVideo = this.$('#remote-video').get(0);
-      remoteVideo.mozSrcObject = stream;
-      remoteVideo.play();
+    _playRemoteMedia: function(stream) {
+      var remoteMedia = this.$('#remote-video').get(0);
+      remoteMedia.mozSrcObject = stream;
+      remoteMedia.play();
       return this;
     },
 
-    _terminateLocalVideo: function() {
-      var localVideo = this.$('#local-video').get(0);
-      if (!localVideo || !localVideo.mozSrcObject)
+    _terminateLocalMedia: function() {
+      var localMedia = this.$('#local-video').get(0);
+      if (!localMedia || !localMedia.mozSrcObject)
         return this;
 
-      localVideo.mozSrcObject = undefined;
+      localMedia.mozSrcObject = undefined;
     },
 
-    _terminateRemoteVideo: function() {
-      var remoteVideo = this.$('#remote-video').get(0);
-      if (!remoteVideo || !remoteVideo.mozSrcObject)
+    _terminateRemoteMedia: function() {
+      var remoteMedia = this.$('#remote-video').get(0);
+      if (!remoteMedia || !remoteMedia.mozSrcObject)
         return this;
 
-      remoteVideo.mozSrcObject = undefined;
+      remoteMedia.mozSrcObject = undefined;
     },
 
     render: function() {
