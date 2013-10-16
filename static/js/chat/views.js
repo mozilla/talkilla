@@ -444,7 +444,7 @@
     },
 
     render: function() {
-      if (this.call.state.current === "ongoing")
+      if (this.call.state.current === "ongoing" && this.call.requiresVideo())
         this.$el.show();
       else
         this.$el.hide();

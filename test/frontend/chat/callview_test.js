@@ -182,23 +182,42 @@ describe("CallView", function() {
       callView = new app.views.CallView({el: $("#fixtures #call"), call: call});
     });
 
-    it("should show this widget when a call is ongoing", function() {
-      call.state.current = "ongoing";
+    it("should show this widget when a call is ongoing and contains video",
+      function() {
+        sandbox.stub(call, "requiresVideo").returns(true);
+        call.state.current = "ongoing";
 
-      callView.render();
+        callView.render();
 
-      expect(callView.$el.is(':visible')).to.equal(true);
-    });
+        expect(callView.$el.is(':visible')).to.equal(true);
+      });
 
-    it("should hide this widget when a call isn't ongoing", function() {
-      var states = ["pending", "incoming", "terminated", "timeout"];
-      states.forEach(function(state) {
-        call.state.current = state;
+    it("should hide this widget when a call is ongoing and has no video",
+      function() {
+        sandbox.stub(call, "requiresVideo").returns(false);
+        call.state.current = "ongoing";
 
         callView.render();
 
         expect(callView.$el.is(':visible')).to.equal(false);
       });
-    });
+
+    it("should hide this widget when a call isn't ongoing and has video",
+      function() {
+        sandbox.stub(call, "requiresVideo").returns(true);
+
+        var states = ["pending", "incoming", "terminated", "timeout"];
+        states.forEach(function(state) {
+
+          call.state.current = state;
+
+          callView.render();
+
+          expect(callView.$el.is(':visible')).to.equal(false);
+
+        });
+      });
+
+
   });
 });
