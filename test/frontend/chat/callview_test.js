@@ -153,7 +153,7 @@ describe("CallView", function() {
               to.equal(fakeRemoteStream);
           });
 
-        it("should play the remote videoStream",
+        it("should play the remote media stream",
           function() {
             call.media.trigger("remote-stream:ready", fakeRemoteStream);
 
