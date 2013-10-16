@@ -23,7 +23,7 @@ var TalkillaSPA = (function() {
 
   TalkillaSPA.prototype = {
     _onServerEvent: function(type, event) {
-      if (type == "unauthorized")
+      if (type === "unauthorized")
         this.port.post("reauth-needed");
       else
         this.port.post(type, event);
