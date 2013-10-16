@@ -100,8 +100,10 @@ class Driver(WebDriver):
         input_text.send_keys(message)
         input_text.send_keys(Keys.RETURN)
 
+    # We use double the default timeout here as we've seen slow startup times
+    # on Travis but we don't want to extend the timeout for everything.
     def switchToFrame(self, locator, expected_url,
-                      timeout=DEFAULT_WAIT_TIMEOUT):
+                      timeout=DEFAULT_WAIT_TIMEOUT * 2):
         """ Wait for a frame to become available, then switch to it.
 
             Args:
@@ -140,7 +142,7 @@ class Driver(WebDriver):
                 # unnecessary.  yuck.  ideally, Marionette won't have this
                 # problem, and when we switch to it, we'll be able to ditch
                 # this nested wait.  we'll see).
-                wait2 = WebDriverWait(self, timeout)
+                wait2 = WebDriverWait(self, DEFAULT_WAIT_TIMEOUT)
                 wait2.until(EC.frame_to_be_available_and_switch_to_it(locator))
                 return False
 
