@@ -99,7 +99,7 @@ var GoogleContacts = (function() {
       // XXX: we should reuse worker http.js here - need to adapt it though
       var request = new XMLHttpRequest();
       request.onload = function(event) {
-        if (!event) // sinon first call onload with a null for some reason
+        if (!event) // sinon first calls onload with a null for some reason
           return;
         try {
           var feed = JSON.parse(event.target.responseText);
