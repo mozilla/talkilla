@@ -286,6 +286,7 @@ describe('handlers', function() {
           callback(null, "OK");
         });
         sandbox.stub(_currentUserData, "reset");
+        sandbox.stub(tkWorker, "closeSession");
 
         handlers['talkilla.logout']({
           topic: 'talkilla.logout'
@@ -296,15 +297,12 @@ describe('handlers', function() {
         ports.remove(port);
       });
 
-      it("should post a success message",
-        function() {
-          sinon.assert.calledOnce(port.postEvent);
-          sinon.assert.calledWith(port.postEvent, 'talkilla.logout-success');
-          ports.remove(port);
-        });
-
       it("should reset the current user data", function() {
         sinon.assert.calledOnce(_currentUserData.reset);
+      });
+
+      it("should close current worker session", function() {
+        sinon.assert.calledOnce(tkWorker.closeSession);
       });
     });
 

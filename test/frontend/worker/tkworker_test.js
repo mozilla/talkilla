@@ -23,6 +23,32 @@ describe("tkWorker", function() {
     });
   });
 
+  describe("#closeSession", function() {
+    it("should reset current users list", function() {
+      sandbox.stub(worker.currentUsers, "reset");
+
+      worker.closeSession();
+
+      sinon.assert.calledOnce(worker.currentUsers.reset);
+    });
+
+    it("should close contacts database", function() {
+      sandbox.stub(worker.contactsDb, "close");
+
+      worker.closeSession();
+
+      sinon.assert.calledOnce(worker.contactsDb.close);
+    });
+
+    it("should broadcast the talkilla.logout-success event", function() {
+      sandbox.stub(worker.ports, "broadcastEvent");
+
+      worker.closeSession();
+
+      sinon.assert.calledOnce(worker.ports.broadcastEvent);
+    });
+  });
+
   describe("#loadContacts", function() {
     beforeEach(function(done) {
       // Store a contact for the tests
