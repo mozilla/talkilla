@@ -100,6 +100,8 @@ class Driver(WebDriver):
         input_text.send_keys(message)
         input_text.send_keys(Keys.RETURN)
 
+    # We use double the default timeout here as we've seen slow startup times
+    # on Travis but we don't want to extend the timeout for everything.
     def switchToFrame(self, locator, expected_url,
                       timeout=DEFAULT_WAIT_TIMEOUT * 2):
         """ Wait for a frame to become available, then switch to it.
