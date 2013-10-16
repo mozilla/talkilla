@@ -246,6 +246,20 @@ describe("SPA events", function() {
       );
     });
 
+    describe("`reauth-needed event", function() {
+
+      it("should foward the event to all ports", function() {
+        sandbox.stub(ports, "broadcastEvent");
+
+        spa.trigger("reauth-needed");
+
+        sinon.assert.calledOnce(ports.broadcastEvent);
+        sinon.assert.calledWithExactly(
+          ports.broadcastEvent, "talkilla.reauth-needed");
+      });
+
+    });
+
     it("should broadcast a `talkilla.logout-success` event", function() {
       _currentUserData.userName = "harvey";
       sandbox.stub(ports, "broadcastEvent");
