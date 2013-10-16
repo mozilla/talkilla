@@ -393,7 +393,7 @@
 
       this.call = options.call;
       this.call.media.on('local-stream:ready', 
-                         this._playAndMaybeDisplayLocalMedia, this);
+                         this._playLocalMedia, this);
       this.call.media.on('remote-stream:ready', this._playRemoteMedia, this);
       this.call.media.on('local-stream:terminated',
                          this._terminateLocalMedia, this);
@@ -406,16 +406,11 @@
       this.render();
     },
 
-    _playAndMaybeDisplayLocalMedia: function(stream) {
-      var $localMedia = this.$('#local-media'),
-          localMedia = $localMedia.get(0);
+    _playLocalMedia: function(stream) {
+      var localMedia = this.$('#local-media').get(0);
       if (!localMedia)
         return this;
       localMedia.mozSrcObject = stream;
-      localMedia.onplaying = function() {
-        if (this.call.requiresVideo())
-          $localMedia.show();
-      }.bind(this);
       localMedia.play();
       return this;
     },
