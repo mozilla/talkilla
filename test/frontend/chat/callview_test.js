@@ -106,31 +106,6 @@ describe("CallView", function() {
 
             sinon.assert.calledOnce(localElement.play);
           });
-
-        it("should show the local-media element for video calls", function() {
-          sandbox.stub(jQuery.prototype, "show");
-          sandbox.stub(call, "requiresVideo").returns(true);
-          localElement.play = function() {
-            localElement.onplaying();
-          };
-
-          call.media.trigger("local-stream:ready", fakeLocalStream);
-
-          sinon.assert.calledOnce($localElement.show);
-        });
-
-        it("should not show the local-media element for audio calls",
-          function() {
-            sandbox.stub(jQuery.prototype, "show");
-            sandbox.stub(call, "requiresVideo").returns(false);
-            localElement.play = function() {
-              localElement.onplaying();
-            };
-
-            call.media.trigger("local-stream:ready", fakeLocalStream);
-
-            sinon.assert.notCalled($localElement.show);
-          });
       });
 
       describe("local-stream:terminated", function() {
