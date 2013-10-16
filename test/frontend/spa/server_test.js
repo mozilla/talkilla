@@ -43,61 +43,11 @@ describe("Server", function() {
       sandbox.stub(server.http, "post", function(method, nick, callback) {
         callback("error", "fake response");
       });
-      server.on("error", function() {
-        done();
-      });
-
-      server.connect({nick: "foo"});
-    });
-
-    it("should call #_longPolling", function(done) {
-      sandbox.stub(server.http, "post", function(method, nick, callback) {
-        callback(null, "[]");
-        sinon.assert.calledOnce(server._longPolling);
-        sinon.assert.calledWithExactly(server._longPolling, "foo", []);
-        done();
-      });
-
-      server.connect({nick: "foo"});
-    });
-
-  });
-
-  describe("#autoconnect", function() {
-
-    beforeEach(function() {
-      sandbox.stub(server, "_longPolling");
-    });
-
-    it("should request a stream", function() {
-      sandbox.stub(server.http, "post");
-
-      server.autoconnect({nick: "foo"});
-
-      sinon.assert.calledOnce(server.http.post);
-      sinon.assert.calledWith(server.http.post, "/stream", {nick: "foo"});
-    });
-
-    it("should trigger a connected event", function(done) {
-      sandbox.stub(server.http, "post", function(method, nick, callback) {
-        callback(null, "[]");
-      });
-      server.on("connected", function() {
-        done();
-      });
-
-      server.autoconnect({nick: "foo"});
-    });
-
-    it("should trigger an error event if the request failed", function(done) {
-      sandbox.stub(server.http, "post", function(method, nick, callback) {
-        callback("error", "fake response");
-      });
       server.on("disconnected", function() {
         done();
       });
 
-      server.autoconnect({nick: "foo"});
+      server.connect({nick: "foo"});
     });
 
     it("should call #_longPolling", function(done) {
@@ -108,7 +58,7 @@ describe("Server", function() {
         done();
       });
 
-      server.autoconnect({nick: "foo"});
+      server.connect({nick: "foo"});
     });
 
   });
