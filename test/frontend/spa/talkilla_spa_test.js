@@ -130,7 +130,7 @@ describe("TalkillaSPA", function() {
         });
         sandbox.stub(spa.port, "post");
 
-        spa.port.trigger("offer", {offer: "fake offer data", to: "foo"});
+        spa.port.trigger("offer", {offer: "fake offer data", peer: "foo"});
       });
 
   });
@@ -150,7 +150,7 @@ describe("TalkillaSPA", function() {
 
         spa.port.trigger("answer", {
           answer: "fake answer data",
-          to: "foo"
+          peer: "foo"
         });
       });
 
@@ -166,7 +166,7 @@ describe("TalkillaSPA", function() {
         });
         sandbox.stub(spa.port, "post");
 
-        spa.port.trigger("hangup", {to: "foo"});
+        spa.port.trigger("hangup", {peer: "foo"});
       });
 
   });
