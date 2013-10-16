@@ -14,6 +14,8 @@ var TalkillaSPA = (function() {
     this.port.on("presence:request", this._onPresenceRequest.bind(this));
 
     this.server.on("connected", this._onServerEvent.bind(this, "connected"));
+    this.server.on("unauthorized",
+                   this._onServerEvent.bind(this, "unauthorized"));
     this.server.on("disconnected",
                    this._onServerEvent.bind(this, "disconnected"));
     this.server.on("message", this._onServerMessage.bind(this));
@@ -21,7 +23,10 @@ var TalkillaSPA = (function() {
 
   TalkillaSPA.prototype = {
     _onServerEvent: function(type, event) {
-      this.port.post(type, event);
+      if (type == "unauthorized")
+        this.port.post("reauth-needed");
+      else
+        this.port.post(type, event);
     },
 
     _onServerMessage: function(type, event) {

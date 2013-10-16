@@ -323,6 +323,10 @@ function _setupSPA(spa) {
     // Unload the database
     tkWorker.contactsDb.close();
   });
+
+  spa.on("reauth-needed", function(event) {
+    ports.broadcastEvent('talkilla.reauth-needed');
+  });
 }
 
 function _signinCallback(err, responseText) {
