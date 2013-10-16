@@ -34,6 +34,15 @@ describe("TalkillaSPA", function() {
         spa.port.post, "disconnected", "fake event");
     });
 
+    it("should post a reauth-needed event to the port", function() {
+      sandbox.stub(spa.port, "post");
+
+      spa.server.trigger("unauthorized");
+
+      sinon.assert.calledOnce(spa.port.post);
+      sinon.assert.calledWithExactly(spa.port.post, "reauth-needed");
+    });
+
   });
 
   describe("#_onServerMessage", function() {
