@@ -1,4 +1,5 @@
-/*global chai, sinon, TkWorker, CollectedContacts, ports */
+/*global chai, sinon, TkWorker, CollectedContacts, UserData, ports,
+  browserPort:true */
 
 var expect = chai.expect;
 
@@ -8,8 +9,10 @@ describe("tkWorker", function() {
 
   beforeEach(function () {
     sandbox = sinon.sandbox.create();
+    browserPort = {postEvent: sandbox.spy()};
     worker = new TkWorker({
       ports: ports,
+      currentUser: new UserData({}, {}),
       contactsDb: new CollectedContacts({
         dbname: "TalkillaContactsTest"
       })
@@ -18,12 +21,21 @@ describe("tkWorker", function() {
 
   afterEach(function (done) {
     sandbox.restore();
+    browserPort = undefined;
     worker.contactsDb.drop(function() {
       done();
     });
   });
 
   describe("#closeSession", function() {
+    it("should reset current user data", function() {
+      sandbox.stub(worker.currentUser, "reset");
+
+      worker.closeSession();
+
+      sinon.assert.calledOnce(worker.currentUser.reset);
+    });
+
     it("should reset current users list", function() {
       sandbox.stub(worker.currentUsers, "reset");
 

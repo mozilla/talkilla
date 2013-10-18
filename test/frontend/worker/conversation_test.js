@@ -1,5 +1,5 @@
-/*global expect, sinon, _currentUserData:true, currentConversation:true,
-  UserData, browserPort:true, Conversation, tkWorker */
+/*global expect, sinon, currentConversation:true, browserPort:true,
+  Conversation, tkWorker */
 /* jshint expr:true */
 
 describe("Conversation", function() {
@@ -44,7 +44,7 @@ describe("Conversation", function() {
     beforeEach(function() {
       // Avoid touching the contacts db which we haven't initialized.
       sandbox.stub(tkWorker.contactsDb, "add");
-      _currentUserData = new UserData({_userName: "romain"});
+      tkWorker.currentUser.userName = "romain";
       tkWorker.currentUsers.set("florian", { presence: "connected" });
       port = {
         postEvent: sandbox.spy()
@@ -55,7 +55,7 @@ describe("Conversation", function() {
     });
 
     afterEach(function() {
-      _currentUserData = undefined;
+      tkWorker.currentUser.reset();
       tkWorker.currentUsers.reset();
       port = undefined;
     });
@@ -131,7 +131,7 @@ describe("Conversation", function() {
     beforeEach(function() {
       // Avoid touching the contacts db which we haven't initialized.
       sandbox.stub(tkWorker.contactsDb, "add");
-      _currentUserData = new UserData({_userName: "romain"});
+      tkWorker.currentUser._userName = "romain";
       port = {
         postEvent: sandbox.spy()
       };
@@ -147,7 +147,7 @@ describe("Conversation", function() {
 
     afterEach(function() {
       port = undefined;
-      _currentUserData = undefined;
+      tkWorker.currentUser.reset();
       currentConversation = undefined;
     });
 
