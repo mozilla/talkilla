@@ -441,7 +441,7 @@ describe('handlers', function() {
       function() {
         _currentUserData.userName = "jb";
         _presenceSocket = {send: sinon.spy()};
-        tkWorker.currentUsers = {};
+        tkWorker.currentUsers.reset();
         handlers.postEvent = sinon.spy();
         handlers['talkilla.presence-request']({
           topic: "talkilla.presence-request",
@@ -453,7 +453,7 @@ describe('handlers', function() {
 
     it("should request for the initial presence state " +
        "if there is no current users", function() {
-        tkWorker.currentUsers = {};
+        tkWorker.currentUsers.reset();
         handlers['talkilla.presence-request']({
           topic: "talkilla.presence-request",
           data: {}
@@ -481,7 +481,8 @@ describe('handlers', function() {
         });
 
         sinon.assert.calledOnce(spa.callOffer);
-        sinon.assert.calledWithExactly(spa.callOffer, data, "tom");
+        sinon.assert.calledWithExactly(
+          spa.callOffer, data.offer, data.peer, undefined);
       });
   });
 
@@ -489,10 +490,10 @@ describe('handlers', function() {
     it("should send a websocket message when receiving talkilla.call-answer",
       function() {
         _currentUserData = {userName: "fred"};
-        sandbox.stub(spa, "callAccepted");
+        sandbox.stub(spa, "callAnswer");
         var data = {
           peer: "fred",
-          offer: { sdp: "sdp", type: "type" }
+          answer: { sdp: "sdp", type: "type" }
         };
 
         handlers['talkilla.call-answer']({
@@ -500,8 +501,9 @@ describe('handlers', function() {
           data: data
         });
 
-        sinon.assert.calledOnce(spa.callAccepted);
-        sinon.assert.calledWithExactly(spa.callAccepted, data, "fred");
+        sinon.assert.calledOnce(spa.callAnswer);
+        sinon.assert.calledWithExactly(
+          spa.callAnswer, data.answer, data.peer, undefined);
       });
   });
 
@@ -524,7 +526,7 @@ describe('handlers', function() {
         });
 
         sinon.assert.calledOnce(spa.callHangup);
-        sinon.assert.calledWithExactly(spa.callHangup, data, "florian");
+        sinon.assert.calledWithExactly(spa.callHangup, "florian");
       });
   });
 

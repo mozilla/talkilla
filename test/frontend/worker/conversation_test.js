@@ -1,5 +1,5 @@
 /*global expect, sinon, _currentUserData:true, currentConversation:true,
-  UserData, browserPort:true, contactsDb, Conversation, tkWorker */
+  UserData, browserPort:true, Conversation, tkWorker */
 /* jshint expr:true */
 
 describe("Conversation", function() {
@@ -43,11 +43,9 @@ describe("Conversation", function() {
 
     beforeEach(function() {
       // Avoid touching the contacts db which we haven't initialized.
-      sandbox.stub(contactsDb, "add");
+      sandbox.stub(tkWorker.contactsDb, "add");
       _currentUserData = new UserData({_userName: "romain"});
-      tkWorker.currentUsers = {
-        florian: { presence: "connected" }
-      };
+      tkWorker.currentUsers.set("florian", { presence: "connected" });
       port = {
         postEvent: sandbox.spy()
       };
@@ -58,7 +56,7 @@ describe("Conversation", function() {
 
     afterEach(function() {
       _currentUserData = undefined;
-      tkWorker.currentUsers = {};
+      tkWorker.currentUsers.reset();
       port = undefined;
     });
 
@@ -112,7 +110,7 @@ describe("Conversation", function() {
 
         currentConversation.windowOpened(port);
 
-        sinon.assert.calledOnce(contactsDb.add);
+        sinon.assert.calledOnce(tkWorker.contactsDb.add);
       });
 
     it("should send peer presence information", function() {
@@ -132,7 +130,7 @@ describe("Conversation", function() {
 
     beforeEach(function() {
       // Avoid touching the contacts db which we haven't initialized.
-      sandbox.stub(contactsDb, "add");
+      sandbox.stub(tkWorker.contactsDb, "add");
       _currentUserData = new UserData({_userName: "romain"});
       port = {
         postEvent: sandbox.spy()
@@ -141,9 +139,7 @@ describe("Conversation", function() {
         peer: "florian"
       };
 
-      tkWorker.currentUsers = {
-        florian: { presence: "connected" }
-      };
+      tkWorker.currentUsers.set("florian", { presence: "connected" });
 
       currentConversation = new Conversation(initData);
       currentConversation.windowOpened(port);
