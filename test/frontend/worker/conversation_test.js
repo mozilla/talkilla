@@ -44,7 +44,7 @@ describe("Conversation", function() {
     beforeEach(function() {
       // Avoid touching the contacts db which we haven't initialized.
       sandbox.stub(tkWorker.contactsDb, "add");
-      tkWorker.user.userName = "romain";
+      tkWorker.user.name = "romain";
       tkWorker.users.set("florian", { presence: "connected" });
       port = {
         postEvent: sandbox.spy()
@@ -131,7 +131,7 @@ describe("Conversation", function() {
     beforeEach(function() {
       // Avoid touching the contacts db which we haven't initialized.
       sandbox.stub(tkWorker.contactsDb, "add");
-      tkWorker.user._userName = "romain";
+      tkWorker.user._name = "romain";
       port = {
         postEvent: sandbox.spy()
       };
