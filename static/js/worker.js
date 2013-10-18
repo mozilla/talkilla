@@ -9,7 +9,6 @@ importScripts('/config.js', 'addressbook/collected.js');
 importScripts('worker/http.js', 'worker/users.js', 'worker/spa.js');
 
 var gConfig = loadConfig();
-var _currentUserData;
 var _loginPending = false;
 var _autologinPending = false;
 var ports;
@@ -54,12 +53,12 @@ Conversation.prototype = {
   windowOpened: function(port) {
     this.port = port;
 
-    if (_currentUserData.userName) {
+    if (tkWorker.currentUser.userName) {
       // If there's currenty a logged in user,
       port.postEvent('talkilla.login-success', {
-        username: _currentUserData.userName
+        username: tkWorker.currentUser.userName
       });
-      this.data.user = _currentUserData.userName;
+      this.data.user = tkWorker.currentUser.userName;
     }
 
     this._sendCall();
@@ -77,8 +76,8 @@ Conversation.prototype = {
     if (this.data.peer !== data.peer)
       return false;
 
-    if (_currentUserData)
-      data.user = _currentUserData.userName;
+    if (tkWorker.currentUser)
+      data.user = tkWorker.currentUser.userName;
 
     this.data = data;
 
@@ -190,6 +189,7 @@ UserData.prototype = {
 
   /**
    * Resets current properties to default ones.
+   * @param {Boolean} skipSend Skip sending reset notification?
    */
   reset: function(skipSend) {
     for (var key in this.defaults)
@@ -231,10 +231,10 @@ UserData.prototype = {
 function _setupSPA(spa) {
   spa.on("connected", function() {
     _autologinPending = false;
-    _currentUserData.connected = true;
+    tkWorker.currentUser.connected = true;
     // XXX: we should differentiate login and presence
     ports.broadcastEvent('talkilla.login-success', {
-      username: _currentUserData.userName
+      username: tkWorker.currentUser.userName
     });
 
     // XXX Now we're connected, load the contacts database.
@@ -312,8 +312,6 @@ function _setupSPA(spa) {
 
   spa.on("disconnected", function(event) {
     _autologinPending = false;
-    _currentUserData.userName = undefined;
-    _currentUserData.connected = false;
 
     // XXX: this will need future work to handle retrying presence connections
     ports.broadcastEvent('talkilla.presence-unavailable', event.code);
@@ -334,7 +332,7 @@ function _signinCallback(err, responseText) {
     return this.postEvent('talkilla.login-failure', data.error);
   var username = data.nick;
   if (username) {
-    _currentUserData.userName = username;
+    tkWorker.currentUser.userName = username;
 
     spa.connect({nick: username});
     ports.broadcastEvent("talkilla.presence-pending", {});
@@ -345,8 +343,6 @@ function _signoutCallback(err, responseText) {
   _loginPending = false;
   if (err)
     return this.postEvent('talkilla.error', 'Bad signout:' + err);
-
-  _currentUserData.reset();
 
   tkWorker.closeSession();
 }
@@ -378,7 +374,7 @@ var handlers = {
     cookies.forEach(function(cookie) {
       if (cookie.name === "nick") {
         _autologinPending = true;
-        _currentUserData.userName = cookie.value;
+        tkWorker.currentUser.userName = cookie.value;
         spa.connect({nick: cookie.value});
       }
     });
@@ -404,17 +400,16 @@ var handlers = {
   },
 
   'talkilla.logout': function() {
-    if (!_currentUserData.userName)
+    if (!tkWorker.currentUser.userName)
       return;
 
-    spa.signout(_currentUserData.userName, _signoutCallback.bind(this));
+    spa.signout(tkWorker.currentUser.userName, _signoutCallback.bind(this));
   },
 
   'talkilla.conversation-open': function(event) {
     // XXX Temporarily work around to only allow one call at a time.
-    if (!currentConversation) {
+    if (!currentConversation)
       currentConversation = new Conversation(event.data);
-    }
   },
 
   'talkilla.chat-window-ready': function() {
@@ -429,10 +424,10 @@ var handlers = {
    */
   'talkilla.sidebar-ready': function(event) {
     this.postEvent('talkilla.worker-ready');
-    if (_currentUserData.userName && _currentUserData.connected) {
+    if (tkWorker.currentUser.userName && tkWorker.currentUser.connected) {
       // If there's currently a logged in user,
       this.postEvent('talkilla.login-success', {
-        username: _currentUserData.userName
+        username: tkWorker.currentUser.userName
       });
     }
   },
@@ -442,7 +437,7 @@ var handlers = {
    */
   'talkilla.presence-request': function(event) {
     var users = tkWorker.currentUsers.toArray();
-    spa.presenceRequest(_currentUserData.userName);
+    spa.presenceRequest(tkWorker.currentUser.userName);
     this.postEvent('talkilla.users', users);
   },
 
@@ -592,6 +587,7 @@ PortCollection.prototype = {
  *
  * Available options:
  * - {CollectedContacts} contactsDb   The collected contacts database
+ * - {UserData}          currentUser  The current user object
  * - {CurrentUsers}      currentUsers The object containing current users
  * - {PortCollection}    ports        The port collection object
  */
@@ -599,6 +595,7 @@ function TkWorker(options) {
   // XXX Move all globals into this constructor and create them here.
   options = options || {};
   this.contactsDb = options.contactsDb;
+  this.currentUser = options.currentUser;
   this.currentUsers = options.currentUsers || new CurrentUsers();
   this.ports = options.ports;
 }
@@ -608,6 +605,7 @@ TkWorker.prototype = {
    * Closes current user session.
    */
   closeSession: function() {
+    this.currentUser.reset();
     this.currentUsers.reset();
     this.contactsDb.close();
     this.ports.broadcastEvent('talkilla.logout-success', {});
@@ -654,16 +652,16 @@ function onconnect(event) {
   ports.add(new Port(event.ports[0]));
 }
 
-_currentUserData = new UserData({}, gConfig);
 spa = new SPA({src: "/js/spa/talkilla_worker.js"});
 _setupSPA(spa);
 
 tkWorker = new TkWorker({
   ports: ports,
+  currentUser: new UserData({}, gConfig),
+  currentUsers: new CurrentUsers(),
   contactsDb: new CollectedContacts({
     dbname: "TalkillaContacts",
     storename: "contacts",
     version: 1
-  }),
-  currentUsers: new CurrentUsers()
+  })
 });

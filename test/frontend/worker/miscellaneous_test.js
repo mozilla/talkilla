@@ -1,5 +1,4 @@
-/*global sinon, _signinCallback, spa,
-   _currentUserData:true, UserData, browserPort:true */
+/*global sinon, _signinCallback, spa, browserPort:true, tkWorker */
 
 describe('Miscellaneous', function() {
   "use strict";
@@ -20,13 +19,12 @@ describe('Miscellaneous', function() {
     beforeEach(function() {
       sandbox.stub(window, "WebSocket");
       socketStub = sinon.stub(spa, "connect");
-      _currentUserData = new UserData({});
-      sandbox.stub(_currentUserData, "send");
+      sandbox.stub(tkWorker.currentUser, "send");
       testableCallback = _signinCallback.bind({postEvent: function(){}});
     });
 
     afterEach(function() {
-      _currentUserData = undefined;
+      tkWorker.currentUser.reset();
       socketStub.restore();
     });
 
