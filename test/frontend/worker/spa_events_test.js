@@ -1,6 +1,5 @@
 /*global chai, sinon, browserPort:true, currentConversation:true,
-  SPA, Conversation, ports, tkWorker,
-  _setupSPA, _currentUserData:true, UserData */
+  SPA, Conversation, ports, tkWorker, _setupSPA, UserData */
 
 /* Needed due to the use of non-camelcase in the websocket topics */
 /* jshint camelcase:false */
@@ -16,8 +15,7 @@ describe("SPA events", function() {
     _setupSPA(spa);
 
     tkWorker.currentUsers.reset();
-    _currentUserData = new UserData();
-    sandbox.stub(_currentUserData, "send");
+    sandbox.stub(tkWorker.currentUser, "send");
     sandbox.stub(tkWorker, "loadContacts");
   });
 
@@ -30,11 +28,11 @@ describe("SPA events", function() {
     it("should set the user data as connected", function() {
       spa.trigger("connected");
 
-      expect(_currentUserData.connected).to.be.equal(true);
+      expect(tkWorker.currentUser.connected).to.be.equal(true);
     });
 
     it("should broadcast a `talkilla.login-success` event", function() {
-      _currentUserData.userName = "harvey";
+      tkWorker.currentUser.userName = "harvey";
       sandbox.stub(ports, "broadcastEvent");
 
       spa.trigger("connected");
@@ -231,11 +229,11 @@ describe("SPA events", function() {
     it("should set the user data as disconnected", function() {
       spa.trigger("disconnected", {code: 1006});
 
-      expect(_currentUserData.connected).to.be.equal(false);
+      expect(tkWorker.currentUser.connected).to.be.equal(false);
     });
 
     it("should broadcast a `talkilla.presence-unavailable` event", function() {
-      _currentUserData.userName = "harvey";
+      tkWorker.currentUser.userName = "harvey";
       sandbox.stub(ports, "broadcastEvent");
 
       spa.trigger("disconnected", {code: 1006});
@@ -261,7 +259,7 @@ describe("SPA events", function() {
     });
 
     it("should broadcast a `talkilla.logout-success` event", function() {
-      _currentUserData.userName = "harvey";
+      tkWorker.currentUser.userName = "harvey";
       sandbox.stub(ports, "broadcastEvent");
 
       spa.trigger("disconnected", {code: 1006});
