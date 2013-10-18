@@ -99,6 +99,49 @@ class BrowserTest(unittest.TestCase):
             raise AssertionError(u"%s is not visible, it should be"
                                  % css_selector)
 
+    def assertElementVisibleAndInView(self, driver, css_selector):
+
+        # wait for the element to be what WebDriver considers visible,
+        # which is necessary but not sufficient to verify that a human
+        # would be able to see at least part of it
+        self.assertElementVisible(driver, css_selector)
+        found_element = driver.find_element_by_css_selector(css_selector)
+
+        # JS thanks to http://stackoverflow.com/questions/123999/
+        js_checker = """
+        var el = arguments[0];
+
+        var eap,
+        rect     = el.getBoundingClientRect(),
+        docEl    = document.documentElement,
+        vWidth   = window.innerWidth || docEl.clientWidth,
+        vHeight  = window.innerHeight || docEl.clientHeight,
+        efp      = function (x, y) { return document.elementFromPoint(x, y) },
+        contains = "contains" in el ? "contains" : "compareDocumentPosition",
+        has = contains == "contains" ? 1 : 0x10;
+
+        // Return false if it's not in the viewport
+        if (rect.right < 0 || rect.bottom < 0 || rect.left > vWidth ||
+            rect.top > vHeight)
+        return false;
+
+        // Return true if any of its four corners are visible
+        return (
+            (eap = efp(rect.left,  rect.top)) == el
+         || el[contains](eap) == has
+         || (eap = efp(rect.right, rect.top)) == el
+         || el[contains](eap) == has
+         || (eap = efp(rect.right, rect.bottom)) == el
+         || el[contains](eap) == has
+         || (eap = efp(rect.left,  rect.bottom)) == el
+         || el[contains](eap)
+         == has)
+        """
+
+        if not driver.execute_script(js_checker, found_element):
+            raise AssertionError(u"%s is completely out of view" %
+                                 css_selector)
+
     def assertElementNotVisible(self, driver, css_selector):
         if driver.waitForElement(css_selector).is_displayed():
             raise AssertionError(u"%s is visible, it shouldn't be" % (
