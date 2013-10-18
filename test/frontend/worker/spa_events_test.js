@@ -1,5 +1,5 @@
 /*global chai, sinon, browserPort:true, currentConversation:true,
-  SPA, Conversation, ports, tkWorker, _setupSPA */
+  SPA, Conversation, tkWorker, _setupSPA */
 
 /* Needed due to the use of non-camelcase in the websocket topics */
 /* jshint camelcase:false */
@@ -33,14 +33,14 @@ describe("SPA events", function() {
 
     it("should broadcast a `talkilla.login-success` event", function() {
       tkWorker.user.name = "harvey";
-      sandbox.stub(ports, "broadcastEvent");
+      sandbox.stub(tkWorker.ports, "broadcastEvent");
 
       spa.trigger("connected");
 
-      sinon.assert.calledOnce(ports.broadcastEvent);
-      sinon.assert.calledWithExactly(
-        ports.broadcastEvent, "talkilla.login-success", {username: "harvey"}
-      );
+      sinon.assert.calledOnce(tkWorker.ports.broadcastEvent);
+      sinon.assert.calledWithExactly(tkWorker.ports.broadcastEvent,
+                                     "talkilla.login-success",
+                                     {username: "harvey"});
     });
 
     it("should load the contacts database", function() {
@@ -53,7 +53,7 @@ describe("SPA events", function() {
 
   describe("`message:users` event", function() {
     beforeEach(function() {
-      sandbox.stub(ports, "broadcastEvent");
+      sandbox.stub(tkWorker.ports, "broadcastEvent");
     });
 
     afterEach(function() {
@@ -79,9 +79,9 @@ describe("SPA events", function() {
       function() {
         spa.trigger("message:users", [{nick: "jb"}]);
 
-        sinon.assert.calledOnce(ports.broadcastEvent);
+        sinon.assert.calledOnce(tkWorker.ports.broadcastEvent);
         sinon.assert.calledWith(
-          ports.broadcastEvent, "talkilla.users", [
+          tkWorker.ports.broadcastEvent, "talkilla.users", [
             { nick: "jb", presence: "connected" }
           ]);
       });
@@ -92,24 +92,24 @@ describe("SPA events", function() {
 
     it("should broadcast a `talkilla.users` event", function() {
       tkWorker.users.reset();
-      sandbox.stub(ports, "broadcastEvent");
+      sandbox.stub(tkWorker.ports, "broadcastEvent");
 
       spa.trigger("message:userJoined", "foo");
 
-      sinon.assert.called(ports.broadcastEvent);
-      sinon.assert.calledWith(ports.broadcastEvent, "talkilla.users", [
+      sinon.assert.called(tkWorker.ports.broadcastEvent);
+      sinon.assert.calledWith(tkWorker.ports.broadcastEvent, "talkilla.users", [
         {nick: "foo", presence: "connected"}
       ]);
     });
 
     it("should broadcast a `talkilla.user-joined` event", function() {
       tkWorker.users.reset();
-      sandbox.stub(ports, "broadcastEvent");
+      sandbox.stub(tkWorker.ports, "broadcastEvent");
 
       spa.trigger("message:userJoined", "foo");
 
-      sinon.assert.called(ports.broadcastEvent);
-      sinon.assert.calledWith(ports.broadcastEvent,
+      sinon.assert.called(tkWorker.ports.broadcastEvent);
+      sinon.assert.calledWith(tkWorker.ports.broadcastEvent,
                               "talkilla.user-joined", "foo");
     });
 
@@ -117,7 +117,7 @@ describe("SPA events", function() {
 
   describe("`message:userLeft` event", function() {
     beforeEach(function () {
-      sandbox.stub(ports, "broadcastEvent");
+      sandbox.stub(tkWorker.ports, "broadcastEvent");
     });
 
     it("should not broadcast anything if the user is not in the " +
@@ -125,7 +125,7 @@ describe("SPA events", function() {
 
       spa.trigger("message:userLeft", "foo");
 
-      sinon.assert.notCalled(ports.broadcastEvent);
+      sinon.assert.notCalled(tkWorker.ports.broadcastEvent);
     });
 
     it("should broadcast a `talkilla.users` event", function() {
@@ -133,8 +133,8 @@ describe("SPA events", function() {
 
       spa.trigger("message:userLeft", "foo");
 
-      sinon.assert.called(ports.broadcastEvent);
-      sinon.assert.calledWith(ports.broadcastEvent, "talkilla.users", [
+      sinon.assert.called(tkWorker.ports.broadcastEvent);
+      sinon.assert.calledWith(tkWorker.ports.broadcastEvent, "talkilla.users", [
         {nick: "foo", presence: "disconnected"}
       ]);
     });
@@ -144,8 +144,8 @@ describe("SPA events", function() {
 
       spa.trigger("message:userLeft", "foo");
 
-      sinon.assert.called(ports.broadcastEvent);
-      sinon.assert.calledWith(ports.broadcastEvent,
+      sinon.assert.called(tkWorker.ports.broadcastEvent);
+      sinon.assert.calledWith(tkWorker.ports.broadcastEvent,
                               "talkilla.user-left", "foo");
     });
 
@@ -234,26 +234,26 @@ describe("SPA events", function() {
 
     it("should broadcast a `talkilla.presence-unavailable` event", function() {
       tkWorker.user.name = "harvey";
-      sandbox.stub(ports, "broadcastEvent");
+      sandbox.stub(tkWorker.ports, "broadcastEvent");
 
       spa.trigger("disconnected", {code: 1006});
 
-      sinon.assert.calledOnce(ports.broadcastEvent);
+      sinon.assert.calledTwice(tkWorker.ports.broadcastEvent);
       sinon.assert.calledWithExactly(
-        ports.broadcastEvent, "talkilla.presence-unavailable", 1006
+        tkWorker.ports.broadcastEvent, "talkilla.presence-unavailable", 1006
       );
     });
 
     describe("`reauth-needed event", function() {
 
       it("should foward the event to all ports", function() {
-        sandbox.stub(ports, "broadcastEvent");
+        sandbox.stub(tkWorker.ports, "broadcastEvent");
 
         spa.trigger("reauth-needed");
 
-        sinon.assert.calledOnce(ports.broadcastEvent);
+        sinon.assert.calledOnce(tkWorker.ports.broadcastEvent);
         sinon.assert.calledWithExactly(
-          ports.broadcastEvent, "talkilla.reauth-needed");
+          tkWorker.ports.broadcastEvent, "talkilla.reauth-needed");
       });
 
     });
