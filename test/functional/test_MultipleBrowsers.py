@@ -10,6 +10,28 @@ from browser_test import MultipleNodeBrowserTest
 class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
                            MultipleNodeBrowserTest):
 
+    def test_audio_only_call(self):
+        self.bob.signin()
+        self.larry.signin()
+
+        self.bob.openConversationWith("larry").startCall(False)
+        self.assertPendingOutgoingCall(self.bob)
+
+        self.bob.switchToChatWindow()
+        self.larry.switchToChatWindow()
+
+        self.assertIncomingCall(self.larry)
+        self.larry.acceptCall()
+        self.assertElementNotVisible(self.larry, ".incoming-text")
+
+        self.assertCallMediaPlaying(self.bob)
+        self.assertCallMediaPlaying(self.larry)
+
+        self.assertElementVisibleAndInView(self.bob, "#textchat")
+        self.assertElementVisibleAndInView(self.larry, "#textchat")
+
+        self.bob.hangupCall()
+
     def test_callback_after_timeout(self):
         self.larry.signin()
         self.bob.signin()
