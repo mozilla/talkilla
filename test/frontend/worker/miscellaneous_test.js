@@ -19,12 +19,12 @@ describe('Miscellaneous', function() {
     beforeEach(function() {
       sandbox.stub(window, "WebSocket");
       socketStub = sinon.stub(spa, "connect");
-      sandbox.stub(tkWorker.currentUser, "send");
+      sandbox.stub(tkWorker.user, "send");
       testableCallback = _signinCallback.bind({postEvent: function(){}});
     });
 
     afterEach(function() {
-      tkWorker.currentUser.reset();
+      tkWorker.user.reset();
       socketStub.restore();
     });
 
