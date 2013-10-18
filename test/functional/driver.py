@@ -219,6 +219,54 @@ class Driver(WebDriver):
 
         return self.find_elements_by_css_selector(css_selector)
 
+    def waitForElementWithAttrOrPropValue(self, css_selector,
+                                          attr_or_prop_name,
+                                          attr_or_prop_value,
+                                          timeout=DEFAULT_WAIT_TIMEOUT):
+        """ Waits for DOM element matching the provided CSS selector to be
+            available and to have the given attribute or property set to
+            the given value
+
+            Args:
+            - css_selector: CSS selector string
+            - attr_or_prop_name: HTML attribute or DOM Element JS property name
+            - attr_or_prop_value: expected value.  Note that the JS
+            property |true| and |false| literals correspond (confusingly
+            enough) to the Pythonic |True| and |None| literals, thanks to the
+            WebDriver API.
+
+            Kwargs:
+            - timeout: Operation timeout in seconds
+
+            Returns: List of DOM elements
+        """
+
+        def get_element_checker():
+
+            def find_element_by_selector_and_attr_or_prop_value(driver):
+
+                elements = driver.find_elements_by_css_selector(css_selector)
+                first_element = elements[0]
+
+                # excitingly, WebDriver uses the word "attribute" to mean
+                # "attribute or property"!
+                if first_element.get_attribute("property_name") == \
+                        attr_or_prop_value:
+                    return True
+
+                return False
+
+            return find_element_by_selector_and_attr_or_prop_value
+
+        message = u"Couldn't find elem matching %s with property '%s' set " \
+                  u"to '%s')" % (css_selector, attr_or_prop_name,
+                                 attr_or_prop_value)
+
+        WebDriverWait(self, timeout, poll_frequency=.25).until(
+            get_element_checker(), message=message)
+
+        return self.find_elements_by_css_selector(css_selector)[0]
+
     def detectWindowClose(self, javascriptAction):
         """ Detects closing of a window when a javascript action is run.
 
