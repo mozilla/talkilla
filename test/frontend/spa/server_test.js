@@ -39,16 +39,29 @@ describe("Server", function() {
       server.connect({nick: "foo"});
     });
 
-    it("should trigger an error event if the request failed", function(done) {
-      sandbox.stub(server.http, "post", function(method, nick, callback) {
-        callback("error", "fake response");
-      });
-      server.on("disconnected", function() {
-        done();
+    it("should trigger a disconnected evnet if the request has been aborted",
+      function(done) {
+        sandbox.stub(server.http, "post", function(method, nick, callback) {
+          callback(0, "request aborted");
+        });
+        server.on("disconnected", function() {
+          done();
+        });
+
+        server.connect({nick: "foo"});
       });
 
-      server.connect({nick: "foo"});
-    });
+    it("should trigger a unauthorized event if the request returns a 400",
+      function(done) {
+        sandbox.stub(server.http, "post", function(method, nick, callback) {
+          callback(400, "bad request");
+        });
+        server.on("unauthorized", function() {
+          done();
+        });
+
+        server.connect({nick: "foo"});
+      });
 
     it("should call #_longPolling", function(done) {
       sandbox.stub(server.http, "post", function(method, nick, callback) {
@@ -73,13 +86,23 @@ describe("Server", function() {
       sinon.assert.calledWith(server.http.post, "/stream", {nick: "foo"});
     });
 
-    it("should trigger a disconnected event if the request failed",
+    it("should trigger a disconnected event if the request has been aborted",
       function(done) {
         sandbox.stub(server.http, "post", function(method, data, callback) {
-          callback("error", "some error");
+          callback(0, "request aborted");
         });
-        server.on("disconnected", function(error) {
-          expect(error).to.equal("some error");
+        server.on("disconnected", function() {
+          done();
+        });
+        server._longPolling("foo", []);
+      });
+
+    it("should trigger a unauthorized event if the request returns a 400",
+      function(done) {
+        sandbox.stub(server.http, "post", function(method, data, callback) {
+          callback(400, "bad request");
+        });
+        server.on("unauthorized", function() {
           done();
         });
         server._longPolling("foo", []);
