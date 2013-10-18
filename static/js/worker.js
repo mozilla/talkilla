@@ -323,6 +323,11 @@ function _setupSPA(spa) {
     // Unload the database
     tkWorker.contactsDb.close();
   });
+
+  spa.on("reauth-needed", function(event) {
+    _autologinPending = false;
+    ports.broadcastEvent('talkilla.reauth-needed');
+  });
 }
 
 function _signinCallback(err, responseText) {
@@ -334,7 +339,7 @@ function _signinCallback(err, responseText) {
   if (username) {
     _currentUserData.userName = username;
 
-    spa.connect(username);
+    spa.connect({nick: username});
     ports.broadcastEvent("talkilla.presence-pending", {});
   }
 }
@@ -377,9 +382,7 @@ var handlers = {
       if (cookie.name === "nick") {
         _autologinPending = true;
         _currentUserData.userName = cookie.value;
-        // If we've received the configuration info, then go
-        // ahead and log in.
-        spa.autoconnect(cookie.value);
+        spa.connect({nick: cookie.value});
       }
     });
   },
@@ -429,7 +432,7 @@ var handlers = {
    */
   'talkilla.sidebar-ready': function(event) {
     this.postEvent('talkilla.worker-ready');
-    if (_currentUserData.userName) {
+    if (_currentUserData.userName && _currentUserData.connected) {
       // If there's currently a logged in user,
       this.postEvent('talkilla.login-success', {
         username: _currentUserData.userName

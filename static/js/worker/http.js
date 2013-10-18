@@ -21,13 +21,12 @@ var HTTP = (function() {
         return;
       if (xhr.readyState === 4 && xhr.status === 200)
         return callback(null, xhr.responseText);
-      callback(xhr.statusText, xhr.responseText);
+      callback(xhr.status, xhr.responseText);
     };
 
     xhr.onerror = function(event) {
-      var target = event && event.target;
-      if (target)
-        callback(target.status ? target.statusText : "We are offline");
+      var text = (event.target && event.target.statusText) || "We are offline";
+      callback(xhr.status, text);
     };
 
     xhr.open(method || 'GET', url, true);
