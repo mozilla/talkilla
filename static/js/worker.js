@@ -11,7 +11,6 @@ importScripts('worker/http.js', 'worker/users.js', 'worker/spa.js');
 var gConfig = loadConfig();
 var _loginPending = false;
 var _autologinPending = false;
-var ports;
 var browserPort;
 var currentConversation;
 var spa;
@@ -71,7 +70,7 @@ Conversation.prototype = {
    * @param peer The id of the peer to compare with.
    */
   handleIncomingCall: function(data) {
-    ports.broadcastDebug('handle incoming call', data);
+    tkWorker.ports.broadcastDebug('handle incoming call', data);
 
     if (this.data.peer !== data.peer)
       return false;
@@ -91,7 +90,7 @@ Conversation.prototype = {
   _sendCall: function() {
     tkWorker.contactsDb.add({username: this.data.peer}, function(err) {
       if (err)
-        ports.broadcastError(err);
+        tkWorker.ports.broadcastError(err);
     });
 
     // retrieve peer presence information
@@ -114,7 +113,7 @@ Conversation.prototype = {
    * - offer  the sdp offer for the connection
    */
   callAccepted: function(data) {
-    ports.broadcastDebug('conversation accepted', data);
+    tkWorker.ports.broadcastDebug('conversation accepted', data);
     this.port.postEvent('talkilla.call-establishment', data);
   },
 
@@ -127,7 +126,7 @@ Conversation.prototype = {
    * - peer   the id of the other user
    */
   callHangup: function(data) {
-    ports.broadcastDebug('conversation hangup', data);
+    tkWorker.ports.broadcastDebug('conversation hangup', data);
     this.port.postEvent('talkilla.call-hangup', data);
   }
 };
@@ -233,7 +232,7 @@ function _setupSPA(spa) {
     _autologinPending = false;
     tkWorker.user.connected = true;
     // XXX: we should differentiate login and presence
-    ports.broadcastEvent('talkilla.login-success', {
+    tkWorker.ports.broadcastEvent('talkilla.login-success', {
       username: tkWorker.user.name
     });
 
@@ -244,7 +243,7 @@ function _setupSPA(spa) {
   });
 
   spa.on("message", function(label, data) {
-    ports.broadcastDebug("spa event: " + label, data);
+    tkWorker.ports.broadcastDebug("spa event: " + label, data);
   });
 
   spa.on("message:users", function(data) {
@@ -252,14 +251,14 @@ function _setupSPA(spa) {
       tkWorker.users.set(user.nick, {presence: "connected"});
     });
 
-    ports.broadcastEvent("talkilla.users", tkWorker.users.toArray());
+    tkWorker.ports.broadcastEvent("talkilla.users", tkWorker.users.toArray());
   });
 
   spa.on("message:userJoined", function(userId) {
     tkWorker.users.set(userId, {presence: "connected"});
 
-    ports.broadcastEvent("talkilla.users", tkWorker.users.toArray());
-    ports.broadcastEvent("talkilla.user-joined", userId);
+    tkWorker.ports.broadcastEvent("talkilla.users", tkWorker.users.toArray());
+    tkWorker.ports.broadcastEvent("talkilla.user-joined", userId);
   });
 
   spa.on("message:userLeft", function(userId) {
@@ -268,8 +267,8 @@ function _setupSPA(spa) {
 
     tkWorker.users.set(userId, {presence: "disconnected"});
 
-    ports.broadcastEvent("talkilla.users", tkWorker.users.toArray());
-    ports.broadcastEvent("talkilla.user-left", userId);
+    tkWorker.ports.broadcastEvent("talkilla.users", tkWorker.users.toArray());
+    tkWorker.ports.broadcastEvent("talkilla.user-left", userId);
   });
 
   spa.on("offer", function(offer, from, textChat) {
@@ -307,21 +306,21 @@ function _setupSPA(spa) {
   });
 
   spa.on("error", function(event) {
-    ports.broadcastEvent("talkilla.websocket-error", event);
+    tkWorker.ports.broadcastEvent("talkilla.websocket-error", event);
   });
 
   spa.on("disconnected", function(event) {
     _autologinPending = false;
 
     // XXX: this will need future work to handle retrying presence connections
-    ports.broadcastEvent('talkilla.presence-unavailable', event.code);
+    tkWorker.ports.broadcastEvent('talkilla.presence-unavailable', event.code);
 
     tkWorker.closeSession();
   });
 
   spa.on("reauth-needed", function(event) {
     _autologinPending = false;
-    ports.broadcastEvent('talkilla.reauth-needed');
+    tkWorker.ports.broadcastEvent('talkilla.reauth-needed');
   });
 }
 
@@ -335,7 +334,7 @@ function _signinCallback(err, responseText) {
     tkWorker.user.name = username;
 
     spa.connect({nick: username});
-    ports.broadcastEvent("talkilla.presence-pending", {});
+    tkWorker.ports.broadcastEvent("talkilla.presence-pending", {});
   }
 }
 
@@ -350,7 +349,7 @@ function _signoutCallback(err, responseText) {
 var handlers = {
   // SocialAPI events
   'social.port-closing': function() {
-    ports.remove(this);
+    tkWorker.ports.remove(this);
     if (browserPort === this)
       browserPort = undefined;
     if (currentConversation && currentConversation.port === this)
@@ -366,7 +365,7 @@ var handlers = {
 
     // Don't have it in the main list of ports, as we don't need
     // to broadcast all our talkilla.* messages to the social api.
-    ports.remove(this);
+    tkWorker.ports.remove(this);
   },
 
   'social.cookies-get-response': function(event) {
@@ -382,7 +381,7 @@ var handlers = {
 
   // Talkilla events
   'talkilla.contacts': function(event) {
-    ports.broadcastDebug('talkilla.contacts', event.data.contacts);
+    tkWorker.ports.broadcastDebug('talkilla.contacts', event.data.contacts);
     tkWorker.updateContactList(event.data.contacts);
   },
 
@@ -646,17 +645,11 @@ TkWorker.prototype = {
 
 // Main Initialisations
 
-ports = new PortCollection();
-
-function onconnect(event) {
-  ports.add(new Port(event.ports[0]));
-}
-
 spa = new SPA({src: "/js/spa/talkilla_worker.js"});
 _setupSPA(spa);
 
 tkWorker = new TkWorker({
-  ports: ports,
+  ports: new PortCollection(),
   user: new UserData({}, gConfig),
   users: new CurrentUsers(),
   contactsDb: new CollectedContacts({
@@ -665,3 +658,7 @@ tkWorker = new TkWorker({
     version: 1
   })
 });
+
+function onconnect(event) {
+  tkWorker.ports.add(new Port(event.ports[0]));
+}

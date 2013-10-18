@@ -1,8 +1,7 @@
-/*global chai, sinon, ports:true, Port, PortCollection, handlers,
-  currentConversation:true, UserData,
-  _presenceSocket:true, browserPort:true, tkWorker,
-  Conversation, _loginPending:true, _autologinPending:true,
-  _cookieNickname:true, SPA, spa:true, _signinCallback */
+/*global chai, sinon, Port, handlers, currentConversation:true, UserData,
+  _presenceSocket:true, browserPort:true, tkWorker, Conversation,
+  _loginPending:true, _autologinPending:true, _cookieNickname:true, SPA,
+  spa:true, _signinCallback */
 /* jshint expr:true */
 
 var expect = chai.expect;
@@ -28,9 +27,8 @@ describe('handlers', function() {
     var port;
 
     beforeEach(function() {
-      ports = new PortCollection();
       port = new Port({_portid: 42});
-      ports.add(port);
+      tkWorker.ports.add(port);
     });
 
     afterEach(function() {
@@ -40,7 +38,7 @@ describe('handlers', function() {
     it("should remove a closed port on receiving social.port-closing",
       function() {
         handlers['social.port-closing'].bind(port)();
-        expect(Object.keys(ports.ports)).to.have.length.of(0);
+        expect(Object.keys(tkWorker.ports.ports)).to.have.length.of(0);
       });
 
     it("should clear the current conversation on receiving " +
@@ -214,7 +212,7 @@ describe('handlers', function() {
 
       beforeEach(function() {
         port = {id: "tests", postEvent: sandbox.spy()};
-        ports.add(port);
+        tkWorker.ports.add(port);
         sandbox.stub(spa, "signin", function(assertion, callback) {
           callback(null, '{"nick":"jb"}');
         });
@@ -226,7 +224,7 @@ describe('handlers', function() {
       });
 
       afterEach(function() {
-        ports.remove(port);
+        tkWorker.ports.remove(port);
       });
 
       it("should store the name if the server accepted login", function() {
@@ -280,7 +278,7 @@ describe('handlers', function() {
 
       beforeEach(function () {
         port = {id: "tests", postEvent: sandbox.spy()};
-        ports.add(port);
+        tkWorker.ports.add(port);
         sandbox.stub(spa, "signout", function(nick, callback) {
           callback(null, "OK");
         });
@@ -293,7 +291,7 @@ describe('handlers', function() {
       });
 
       afterEach(function() {
-        ports.remove(port);
+        tkWorker.ports.remove(port);
       });
 
       it("should close current worker session", function() {
