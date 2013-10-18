@@ -28,6 +28,8 @@ var SPA = (function() {
         this.trigger(topic, data.answer, data.peer, data.textChat);
       } else if (topic === "hangup") {
         this.trigger(topic, data.peer);
+      } else if (topic === "ice:candidate") {
+        this.trigger(topic, data.peer, data.candidate);
       } else {
         this.trigger(topic, data);
       }
@@ -59,6 +61,10 @@ var SPA = (function() {
 
     callHangup: function(peer) {
       this._send("hangup", {peer: peer});
+    },
+
+    iceCandidate: function(peer, candidate) {
+      this._send("ice:candidate", {peer: peer, candidate: candidate});
     },
 
     presenceRequest: function(nick) {

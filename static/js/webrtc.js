@@ -1,4 +1,4 @@
-/*global StateMachine, tnetbin */
+/*global StateMachine, tnetbin, mozRTCIceCandidate */
 
 (function(exports) {
   "use strict";
@@ -173,6 +173,15 @@
           ._addLocalStream(localStream)
           ._prepareAnswer(offer);
     });
+  };
+
+  /**
+   * Adds an ice candidate to the peer connection.
+   * @param {Object} candidate Object containing the data for a
+   *                           mozRTCIceCandidate.
+   */
+  WebRTC.prototype.addIceCandidate = function(candidate) {
+    this.pc.addIceCandidate(new mozRTCIceCandidate(candidate));
   };
 
   /**
@@ -370,6 +379,20 @@
   };
 
   /**
+   * Executed when an ICE candidate is received.
+   * @param  {mozRTCIceCandidate} candidate
+   * @event  `ice:candidate-ready` {Object}
+   */
+  WebRTC.prototype._onIceCandidate = function(event) {
+    // XXX Manually translate this due to bug 928304
+    this.trigger('ice:candidate-ready', {
+      candidate: event.candidate.candidate,
+      sdpMid: event.candidate.sdpMid,
+      sdpMLineIndex: event.candidate.sdpMLineIndex
+    });
+  };
+
+  /**
    * Executed when a remote media stream is removed from the current peer
    * connection.
    * @param  {Event} event
@@ -454,6 +477,7 @@
 
     this.pc.onaddstream = this._onAddStream.bind(this);
     this.pc.ondatachannel = this._onDataChannel.bind(this);
+    this.pc.onicecandidate = this._onIceCandidate.bind(this);
     this.pc.oniceconnectionstatechange =
       this._onIceConnectionStateChange.bind(this);
     this.pc.onremovestream = this._onRemoveStream.bind(this);

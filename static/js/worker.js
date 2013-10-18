@@ -130,6 +130,13 @@ Conversation.prototype = {
   callHangup: function(data) {
     ports.broadcastDebug('conversation hangup', data);
     this.port.postEvent('talkilla.call-hangup', data);
+  },
+
+  iceCandidate: function(data) {
+    // XXX its possible for the candidate to get here before we've got
+    // the port set up. We need to handle this.
+    ports.broadcastDebug('ice candidate', data);
+    this.port.postEvent('talkilla.ice-candidate', data);
   }
 };
 
@@ -306,6 +313,12 @@ function _setupSPA(spa) {
       currentConversation.callHangup(data);
   });
 
+  spa.on("ice:candidate", function(peer, candidate) {
+    var data = {peer: peer, candidate: candidate};
+    if (currentConversation)
+      currentConversation.iceCandidate(data);
+  });
+
   spa.on("error", function(event) {
     ports.broadcastEvent("talkilla.websocket-error", event);
   });
@@ -478,6 +491,16 @@ var handlers = {
    */
   'talkilla.call-hangup': function (event) {
     spa.callHangup(event.data.peer);
+  },
+
+  /**
+   * Handles an ICE candidate
+   *
+   * - peer: the person you are talking to
+   * - candidate: an mozRTCIceCandidate for the candidate
+   */
+  'talkilla.ice-candidate': function(event) {
+    spa.iceCandidate(event.data.peer, event.data.candidate);
   }
 };
 

@@ -126,4 +126,25 @@ describe("TalkillaSPA", function() {
       });
 
   });
+
+  describe("#_onIceCandidate", function() {
+
+    it("should send an iceCandidate to the server",
+      function(done) {
+        var candidate = {
+          candidate: "dummy"
+        };
+
+        sandbox.stub(spa.server, "iceCandidate", function(data) {
+          expect(data.peer).to.equal("foo");
+          expect(data.candidate).to.equal(candidate);
+          done();
+        });
+        sandbox.stub(spa.port, "post");
+
+        spa.port.trigger("ice:candidate", {peer: "foo", candidate: candidate});
+      });
+
+  });
+
 });

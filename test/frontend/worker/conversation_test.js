@@ -245,4 +245,28 @@ describe("Conversation", function() {
         "talkilla.call-hangup", data);
     });
   });
+
+  describe("#iceCandidate", function() {
+    beforeEach(function() {
+      currentConversation = new Conversation({});
+      currentConversation.port = {
+        postEvent: sandbox.spy()
+      };
+    });
+
+    it("should post talkilla.ice-candidate to the conversation window",
+      function() {
+        var data = {
+          candidate: "dummy"
+        };
+        currentConversation.iceCandidate(data);
+
+        sinon.assert.calledOnce(currentConversation.port.postEvent);
+        sinon.assert.calledWithExactly(currentConversation.port.postEvent,
+          "talkilla.ice-candidate", data);
+      });
+
+    it("should store the ice candidate if the port is not open");
+    it("should send the ice candidate when the port is opened");
+  });
 });
