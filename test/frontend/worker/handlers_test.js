@@ -390,6 +390,7 @@ describe('handlers', function() {
     it("should notify new sidebars of the logged in user",
       function() {
         _currentUserData.userName = "jb";
+        _currentUserData.connected = true;
         handlers.postEvent = sinon.spy();
         handlers['talkilla.sidebar-ready']({
           topic: "talkilla.sidebar-ready",
