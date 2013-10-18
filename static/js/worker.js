@@ -53,12 +53,12 @@ Conversation.prototype = {
   windowOpened: function(port) {
     this.port = port;
 
-    if (tkWorker.user.userName) {
+    if (tkWorker.user.name) {
       // If there's currenty a logged in user,
       port.postEvent('talkilla.login-success', {
-        username: tkWorker.user.userName
+        username: tkWorker.user.name
       });
-      this.data.user = tkWorker.user.userName;
+      this.data.user = tkWorker.user.name;
     }
 
     this._sendCall();
@@ -77,7 +77,7 @@ Conversation.prototype = {
       return false;
 
     if (tkWorker.user)
-      data.user = tkWorker.user.userName;
+      data.user = tkWorker.user.name;
 
     this.data = data;
 
@@ -146,14 +146,14 @@ Conversation.prototype = {
  *
  * UserData properties:
  *
- * userName: The name of the currently signed-in user.
+ * name:      The name of the currently signed-in user.
  * connected: Whether or not the websocket to the server is connected.
  */
 function UserData(initial, config) {
   this._rootURL = config ? config.ROOTURL : '';
 
   this.defaults = {
-    _userName: undefined,
+    _name: undefined,
     _connected: false
   };
 
@@ -169,12 +169,12 @@ function UserData(initial, config) {
 
 UserData.prototype = {
 
-  get userName() {
-    return this._userName;
+  get name() {
+    return this._name;
   },
 
-  set userName(userName) {
-    this._userName = userName;
+  set name(name) {
+    this._name = name;
     this.send();
   },
 
@@ -219,8 +219,8 @@ UserData.prototype = {
       iconURL: this._rootURL + "/img/" + this.statusIcon,
       // XXX for now, we just hard-code the default avatar image.
       portrait: this._rootURL + "/img/default-avatar.png",
-      userName: this._userName,
-      displayName: this._userName,
+      userName: this._name,
+      displayName: this._name,
       profileURL: this._rootURL + "/user.html"
     };
 
@@ -234,7 +234,7 @@ function _setupSPA(spa) {
     tkWorker.user.connected = true;
     // XXX: we should differentiate login and presence
     ports.broadcastEvent('talkilla.login-success', {
-      username: tkWorker.user.userName
+      username: tkWorker.user.name
     });
 
     // XXX Now we're connected, load the contacts database.
@@ -332,7 +332,7 @@ function _signinCallback(err, responseText) {
     return this.postEvent('talkilla.login-failure', data.error);
   var username = data.nick;
   if (username) {
-    tkWorker.user.userName = username;
+    tkWorker.user.name = username;
 
     spa.connect({nick: username});
     ports.broadcastEvent("talkilla.presence-pending", {});
@@ -374,7 +374,7 @@ var handlers = {
     cookies.forEach(function(cookie) {
       if (cookie.name === "nick") {
         _autologinPending = true;
-        tkWorker.user.userName = cookie.value;
+        tkWorker.user.name = cookie.value;
         spa.connect({nick: cookie.value});
       }
     });
@@ -400,10 +400,10 @@ var handlers = {
   },
 
   'talkilla.logout': function() {
-    if (!tkWorker.user.userName)
+    if (!tkWorker.user.name)
       return;
 
-    spa.signout(tkWorker.user.userName, _signoutCallback.bind(this));
+    spa.signout(tkWorker.user.name, _signoutCallback.bind(this));
   },
 
   'talkilla.conversation-open': function(event) {
@@ -424,10 +424,10 @@ var handlers = {
    */
   'talkilla.sidebar-ready': function(event) {
     this.postEvent('talkilla.worker-ready');
-    if (tkWorker.user.userName && tkWorker.user.connected) {
+    if (tkWorker.user.name && tkWorker.user.connected) {
       // If there's currently a logged in user,
       this.postEvent('talkilla.login-success', {
-        username: tkWorker.user.userName
+        username: tkWorker.user.name
       });
     }
   },
@@ -437,7 +437,7 @@ var handlers = {
    */
   'talkilla.presence-request': function(event) {
     var users = tkWorker.users.toArray();
-    spa.presenceRequest(tkWorker.user.userName);
+    spa.presenceRequest(tkWorker.user.name);
     this.postEvent('talkilla.users', users);
   },
 

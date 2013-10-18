@@ -1,7 +1,7 @@
 /* global sinon, app */
 
 describe("CurrentUser Model", function() {
-  var sandbox, browserIdHandlers, user;
+  var sandbox, browserIdHandlers, currentUser;
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
@@ -15,8 +15,8 @@ describe("CurrentUser Model", function() {
       }
     };
 
-    user = new app.models.CurrentUser();
-    sandbox.stub(user, "trigger");
+    currentUser = new app.models.CurrentUser();
+    sandbox.stub(currentUser, "trigger");
   });
 
   afterEach(function() {
@@ -26,20 +26,20 @@ describe("CurrentUser Model", function() {
   describe("browserid signin", function() {
     it("should not post a signin-requested event if the user is already " +
       "logged in", function() {
-        user.set({nick: "foo", presence: "connected"});
-        user.trigger.reset();
+        currentUser.set({nick: "foo", presence: "connected"});
+        currentUser.trigger.reset();
 
         browserIdHandlers.onlogin("fake assertion");
 
-        sinon.assert.notCalled(user.trigger);
+        sinon.assert.notCalled(currentUser.trigger);
       });
 
     it("should post a signin-requested event when the user logs in",
       function() {
         browserIdHandlers.onlogin("fake assertion");
 
-        sinon.assert.calledOnce(user.trigger);
-        sinon.assert.calledWithExactly(user.trigger,
+        sinon.assert.calledOnce(currentUser.trigger);
+        sinon.assert.calledWithExactly(currentUser.trigger,
                                        "signin-requested",
                                        "fake assertion");
       });
@@ -48,16 +48,16 @@ describe("CurrentUser Model", function() {
   describe("#signin", function() {
     it("should not call navigator.id.request if the user is already logged in",
       function() {
-        user.set({nick: "foo", presence: "connected"});
+        currentUser.set({nick: "foo", presence: "connected"});
 
-        user.signin();
+        currentUser.signin();
 
         sinon.assert.notCalled(navigator.id.request);
       });
 
     it("should call navigator.id.request",
       function() {
-        user.signin();
+        currentUser.signin();
 
         sinon.assert.calledOnce(navigator.id.request);
       });
@@ -66,10 +66,10 @@ describe("CurrentUser Model", function() {
   describe("#signout", function() {
     it("should trigger a signout-requested event when signout is called",
       function() {
-        user.signout();
+        currentUser.signout();
 
-        sinon.assert.calledOnce(user.trigger);
-        sinon.assert.calledWithExactly(user.trigger,
+        sinon.assert.calledOnce(currentUser.trigger);
+        sinon.assert.calledWithExactly(currentUser.trigger,
                                        "signout-requested");
       });
   });

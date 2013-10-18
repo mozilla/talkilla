@@ -32,7 +32,7 @@ describe("SPA events", function() {
     });
 
     it("should broadcast a `talkilla.login-success` event", function() {
-      tkWorker.user.userName = "harvey";
+      tkWorker.user.name = "harvey";
       sandbox.stub(ports, "broadcastEvent");
 
       spa.trigger("connected");
@@ -233,12 +233,12 @@ describe("SPA events", function() {
     });
 
     it("should broadcast a `talkilla.presence-unavailable` event", function() {
-      tkWorker.user.userName = "harvey";
+      tkWorker.user.name = "harvey";
       sandbox.stub(ports, "broadcastEvent");
 
       spa.trigger("disconnected", {code: 1006});
 
-      sinon.assert.calledTwice(ports.broadcastEvent);
+      sinon.assert.calledOnce(ports.broadcastEvent);
       sinon.assert.calledWithExactly(
         ports.broadcastEvent, "talkilla.presence-unavailable", 1006
       );
@@ -258,16 +258,12 @@ describe("SPA events", function() {
 
     });
 
-    it("should broadcast a `talkilla.logout-success` event", function() {
-      tkWorker.user.userName = "harvey";
-      sandbox.stub(ports, "broadcastEvent");
+    it("should close current worker session", function() {
+      sandbox.stub(tkWorker, "closeSession");
 
       spa.trigger("disconnected", {code: 1006});
 
-      sinon.assert.calledTwice(ports.broadcastEvent);
-      sinon.assert.calledWithExactly(
-        ports.broadcastEvent, "talkilla.logout-success", {}
-      );
+      sinon.assert.calledOnce(tkWorker.closeSession);
     });
 
     it("should close the contacts database", function() {
