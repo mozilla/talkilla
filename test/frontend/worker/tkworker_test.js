@@ -76,32 +76,21 @@ describe("tkWorker", function() {
   });
 
   describe("#updateContactList", function() {
-    var contacts = [{username: "foo"}, {username: "bar"}];
-
-    it("should add contacts to the currentUsers list", function() {
-      worker.updateContactList(contacts);
-
-      expect(worker.currentUsers).eql({
-        foo: {presence: "disconnected"},
-        bar: {presence: "disconnected"}
-      });
-    });
-
-    it("shouldn't duplicate contacts", function() {
-      worker.currentUsers.foo = {presence: "connected"};
+    it("should update current users list with contacts", function() {
+      var contacts = [{username: "foo"}];
+      sandbox.stub(worker.currentUsers, "updateContacts");
 
       worker.updateContactList(contacts);
 
-      expect(worker.currentUsers).eql({
-        foo: {presence: "connected"},
-        bar: {presence: "disconnected"}
-      });
+      sinon.assert.calledOnce(worker.currentUsers.updateContacts);
+      sinon.assert.calledWithExactly(worker.currentUsers.updateContacts,
+                                     contacts);
     });
 
     it("should broadcast a talkilla.users event", function() {
       sandbox.stub(ports, "broadcastEvent");
 
-      worker.updateContactList(contacts);
+      worker.updateContactList([{username: "foo"}, {username: "bar"}]);
 
       sinon.assert.calledOnce(ports.broadcastEvent);
       sinon.assert.calledWith(ports.broadcastEvent, "talkilla.users", [

@@ -146,10 +146,10 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
         self.bob.signin()
 
         self.bob.openConversationWith("larry")
-        self.assertPresenceIconConnected(self.bob)
+        self.assertConversationPresenceIconShows(self.bob, "connected")
 
         self.larry.signout()
-        self.assertPresenceIconDisconnected(self.bob)
+        self.assertConversationPresenceIconShows(self.bob, "disconnected")
 
     def test_local_video_visible_to_call_upgrader(self):
         self.bob.signin()
