@@ -61,6 +61,21 @@ class BrowserTest(unittest.TestCase):
             raise AssertionError(u'Chat message containing "%s" not found; %s'
                                  % (message, err))
 
+    @classmethod
+    def assertCallMediaPlaying(cls, driver):
+        # the spec defines playing to be not paused
+        cls.assertMediaElementNotPaused(driver, ".local-media")
+        cls.assertMediaElementNotPaused(driver, ".remote-media")
+
+    @staticmethod
+    def assertMediaElementNotPaused(driver, css_selector):
+        el = driver.waitForElementWithAttrOrPropValue(
+            css_selector, attr_or_prop_name="paused", attr_or_prop_value=None)
+
+        if el.get_attribute("paused"):
+            raise AssertionError((u'media element matching %s paused' %
+                                  css_selector))
+
     def assertElementTextContains(self, driver, css_selector, text,
                                   visible=None):
         element_text = driver.waitForElement(css_selector,
