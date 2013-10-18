@@ -12,7 +12,7 @@ describe("tkWorker", function() {
     browserPort = {postEvent: sandbox.spy()};
     worker = new TkWorker({
       ports: ports,
-      currentUser: new UserData({}, {}),
+      user: new UserData({}, {}),
       contactsDb: new CollectedContacts({
         dbname: "TalkillaContactsTest"
       })
@@ -29,19 +29,19 @@ describe("tkWorker", function() {
 
   describe("#closeSession", function() {
     it("should reset current user data", function() {
-      sandbox.stub(worker.currentUser, "reset");
+      sandbox.stub(worker.user, "reset");
 
       worker.closeSession();
 
-      sinon.assert.calledOnce(worker.currentUser.reset);
+      sinon.assert.calledOnce(worker.user.reset);
     });
 
     it("should reset current users list", function() {
-      sandbox.stub(worker.currentUsers, "reset");
+      sandbox.stub(worker.users, "reset");
 
       worker.closeSession();
 
-      sinon.assert.calledOnce(worker.currentUsers.reset);
+      sinon.assert.calledOnce(worker.users.reset);
     });
 
     it("should close contacts database", function() {
@@ -116,12 +116,12 @@ describe("tkWorker", function() {
   describe("#updateContactList", function() {
     it("should update current users list with contacts", function() {
       var contacts = [{username: "foo"}];
-      sandbox.stub(worker.currentUsers, "updateContacts");
+      sandbox.stub(worker.users, "updateContacts");
 
       worker.updateContactList(contacts);
 
-      sinon.assert.calledOnce(worker.currentUsers.updateContacts);
-      sinon.assert.calledWithExactly(worker.currentUsers.updateContacts,
+      sinon.assert.calledOnce(worker.users.updateContacts);
+      sinon.assert.calledWithExactly(worker.users.updateContacts,
                                      contacts);
     });
 

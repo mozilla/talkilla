@@ -1,5 +1,5 @@
 /*global chai, sinon, browserPort:true, currentConversation:true,
-  SPA, Conversation, ports, tkWorker, _setupSPA, UserData */
+  SPA, Conversation, ports, tkWorker, _setupSPA */
 
 /* Needed due to the use of non-camelcase in the websocket topics */
 /* jshint camelcase:false */
@@ -14,8 +14,8 @@ describe("SPA events", function() {
     spa = new SPA({src: "example.com"});
     _setupSPA(spa);
 
-    tkWorker.currentUsers.reset();
-    sandbox.stub(tkWorker.currentUser, "send");
+    tkWorker.users.reset();
+    sandbox.stub(tkWorker.user, "send");
     sandbox.stub(tkWorker, "loadContacts");
   });
 
@@ -28,11 +28,11 @@ describe("SPA events", function() {
     it("should set the user data as connected", function() {
       spa.trigger("connected");
 
-      expect(tkWorker.currentUser.connected).to.be.equal(true);
+      expect(tkWorker.user.connected).to.be.equal(true);
     });
 
     it("should broadcast a `talkilla.login-success` event", function() {
-      tkWorker.currentUser.userName = "harvey";
+      tkWorker.user.userName = "harvey";
       sandbox.stub(ports, "broadcastEvent");
 
       spa.trigger("connected");
@@ -57,18 +57,18 @@ describe("SPA events", function() {
     });
 
     afterEach(function() {
-      tkWorker.currentUsers.reset();
+      tkWorker.users.reset();
     });
 
     it("should update the current list of users", function() {
-      tkWorker.currentUsers.set("jb", {presence: "disconnected"});
+      tkWorker.users.set("jb", {presence: "disconnected"});
 
       spa.trigger("message:users", [
         {nick: "james"},
         {nick: "harvey"}
       ]);
 
-      expect(tkWorker.currentUsers.all()).to.deep.equal({
+      expect(tkWorker.users.all()).to.deep.equal({
         jb: {presence: "disconnected"},
         james: {presence: "connected"},
         harvey: {presence: "connected"}
@@ -91,7 +91,7 @@ describe("SPA events", function() {
   describe("`message:userJoined` event", function() {
 
     it("should broadcast a `talkilla.users` event", function() {
-      tkWorker.currentUsers.reset();
+      tkWorker.users.reset();
       sandbox.stub(ports, "broadcastEvent");
 
       spa.trigger("message:userJoined", "foo");
@@ -103,7 +103,7 @@ describe("SPA events", function() {
     });
 
     it("should broadcast a `talkilla.user-joined` event", function() {
-      tkWorker.currentUsers.reset();
+      tkWorker.users.reset();
       sandbox.stub(ports, "broadcastEvent");
 
       spa.trigger("message:userJoined", "foo");
@@ -129,7 +129,7 @@ describe("SPA events", function() {
     });
 
     it("should broadcast a `talkilla.users` event", function() {
-      tkWorker.currentUsers.set("foo", {presence: "connected"});
+      tkWorker.users.set("foo", {presence: "connected"});
 
       spa.trigger("message:userLeft", "foo");
 
@@ -140,7 +140,7 @@ describe("SPA events", function() {
     });
 
     it("should broadcast a `talkilla.user-left` event", function() {
-      tkWorker.currentUsers.set("foo", {presence: "connected"});
+      tkWorker.users.set("foo", {presence: "connected"});
 
       spa.trigger("message:userLeft", "foo");
 
@@ -229,11 +229,11 @@ describe("SPA events", function() {
     it("should set the user data as disconnected", function() {
       spa.trigger("disconnected", {code: 1006});
 
-      expect(tkWorker.currentUser.connected).to.be.equal(false);
+      expect(tkWorker.user.connected).to.be.equal(false);
     });
 
     it("should broadcast a `talkilla.presence-unavailable` event", function() {
-      tkWorker.currentUser.userName = "harvey";
+      tkWorker.user.userName = "harvey";
       sandbox.stub(ports, "broadcastEvent");
 
       spa.trigger("disconnected", {code: 1006});
@@ -259,7 +259,7 @@ describe("SPA events", function() {
     });
 
     it("should broadcast a `talkilla.logout-success` event", function() {
-      tkWorker.currentUser.userName = "harvey";
+      tkWorker.user.userName = "harvey";
       sandbox.stub(ports, "broadcastEvent");
 
       spa.trigger("disconnected", {code: 1006});
