@@ -1,4 +1,5 @@
-/*global chai, sinon, TkWorker, CollectedContacts, ports */
+/*global chai, sinon, TkWorker, PortCollection, CollectedContacts, UserData,
+  browserPort:true */
 
 var expect = chai.expect;
 
@@ -8,8 +9,10 @@ describe("tkWorker", function() {
 
   beforeEach(function () {
     sandbox = sinon.sandbox.create();
+    browserPort = {postEvent: sandbox.spy()};
     worker = new TkWorker({
-      ports: ports,
+      ports: new PortCollection(),
+      user: new UserData({}, {}),
       contactsDb: new CollectedContacts({
         dbname: "TalkillaContactsTest"
       })
@@ -18,8 +21,43 @@ describe("tkWorker", function() {
 
   afterEach(function (done) {
     sandbox.restore();
+    browserPort = undefined;
     worker.contactsDb.drop(function() {
       done();
+    });
+  });
+
+  describe("#closeSession", function() {
+    it("should reset current user data", function() {
+      sandbox.stub(worker.user, "reset");
+
+      worker.closeSession();
+
+      sinon.assert.calledOnce(worker.user.reset);
+    });
+
+    it("should reset current users list", function() {
+      sandbox.stub(worker.users, "reset");
+
+      worker.closeSession();
+
+      sinon.assert.calledOnce(worker.users.reset);
+    });
+
+    it("should close contacts database", function() {
+      sandbox.stub(worker.contactsDb, "close");
+
+      worker.closeSession();
+
+      sinon.assert.calledOnce(worker.contactsDb.close);
+    });
+
+    it("should broadcast the talkilla.logout-success event", function() {
+      sandbox.stub(worker.ports, "broadcastEvent");
+
+      worker.closeSession();
+
+      sinon.assert.calledOnce(worker.ports.broadcastEvent);
     });
   });
 
@@ -63,37 +101,37 @@ describe("tkWorker", function() {
 
     it("should broadcast an error message on failure", function() {
       var err = new Error("ko");
-      sandbox.stub(ports, "broadcastError");
+      sandbox.stub(worker.ports, "broadcastError");
       sandbox.stub(worker.contactsDb, "all", function(cb) {
         cb(err);
       });
 
       worker.loadContacts();
 
-      sinon.assert.calledOnce(ports.broadcastError);
-      sinon.assert.calledWithExactly(ports.broadcastError, err);
+      sinon.assert.calledOnce(worker.ports.broadcastError);
+      sinon.assert.calledWithExactly(worker.ports.broadcastError, err);
     });
   });
 
   describe("#updateContactList", function() {
     it("should update current users list with contacts", function() {
       var contacts = [{username: "foo"}];
-      sandbox.stub(worker.currentUsers, "updateContacts");
+      sandbox.stub(worker.users, "updateContacts");
 
       worker.updateContactList(contacts);
 
-      sinon.assert.calledOnce(worker.currentUsers.updateContacts);
-      sinon.assert.calledWithExactly(worker.currentUsers.updateContacts,
+      sinon.assert.calledOnce(worker.users.updateContacts);
+      sinon.assert.calledWithExactly(worker.users.updateContacts,
                                      contacts);
     });
 
     it("should broadcast a talkilla.users event", function() {
-      sandbox.stub(ports, "broadcastEvent");
+      sandbox.stub(worker.ports, "broadcastEvent");
 
       worker.updateContactList([{username: "foo"}, {username: "bar"}]);
 
-      sinon.assert.calledOnce(ports.broadcastEvent);
-      sinon.assert.calledWith(ports.broadcastEvent, "talkilla.users", [
+      sinon.assert.calledOnce(worker.ports.broadcastEvent);
+      sinon.assert.calledWith(worker.ports.broadcastEvent, "talkilla.users", [
         {nick: "foo", presence: "disconnected"},
         {nick: "bar", presence: "disconnected"}
       ]);
