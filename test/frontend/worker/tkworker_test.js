@@ -1,4 +1,5 @@
-/*global chai, sinon, TkWorker, CollectedContacts, ports */
+/*global chai, sinon, TkWorker, CollectedContacts, UserData, ports,
+  browserPort:true */
 
 var expect = chai.expect;
 
@@ -8,8 +9,10 @@ describe("tkWorker", function() {
 
   beforeEach(function () {
     sandbox = sinon.sandbox.create();
+    browserPort = {postEvent: sandbox.spy()};
     worker = new TkWorker({
       ports: ports,
+      user: new UserData({}, {}),
       contactsDb: new CollectedContacts({
         dbname: "TalkillaContactsTest"
       })
@@ -18,8 +21,43 @@ describe("tkWorker", function() {
 
   afterEach(function (done) {
     sandbox.restore();
+    browserPort = undefined;
     worker.contactsDb.drop(function() {
       done();
+    });
+  });
+
+  describe("#closeSession", function() {
+    it("should reset current user data", function() {
+      sandbox.stub(worker.user, "reset");
+
+      worker.closeSession();
+
+      sinon.assert.calledOnce(worker.user.reset);
+    });
+
+    it("should reset current users list", function() {
+      sandbox.stub(worker.users, "reset");
+
+      worker.closeSession();
+
+      sinon.assert.calledOnce(worker.users.reset);
+    });
+
+    it("should close contacts database", function() {
+      sandbox.stub(worker.contactsDb, "close");
+
+      worker.closeSession();
+
+      sinon.assert.calledOnce(worker.contactsDb.close);
+    });
+
+    it("should broadcast the talkilla.logout-success event", function() {
+      sandbox.stub(worker.ports, "broadcastEvent");
+
+      worker.closeSession();
+
+      sinon.assert.calledOnce(worker.ports.broadcastEvent);
     });
   });
 
@@ -78,12 +116,12 @@ describe("tkWorker", function() {
   describe("#updateContactList", function() {
     it("should update current users list with contacts", function() {
       var contacts = [{username: "foo"}];
-      sandbox.stub(worker.currentUsers, "updateContacts");
+      sandbox.stub(worker.users, "updateContacts");
 
       worker.updateContactList(contacts);
 
-      sinon.assert.calledOnce(worker.currentUsers.updateContacts);
-      sinon.assert.calledWithExactly(worker.currentUsers.updateContacts,
+      sinon.assert.calledOnce(worker.users.updateContacts);
+      sinon.assert.calledWithExactly(worker.users.updateContacts,
                                      contacts);
     });
 
