@@ -69,10 +69,11 @@ class BrowserTest(unittest.TestCase):
 
     @staticmethod
     def assertMediaElementNotPaused(driver, css_selector):
-        el = driver.waitForElementWithAttrOrPropValue(
-            css_selector, attr_or_prop_name="paused", attr_or_prop_value=None)
+        el = driver.waitForElementWithPropertyValue(
+            css_selector, property_name="paused", property_value=u'false',
+            timeout=20)
 
-        if el.get_attribute("paused"):
+        if driver.getElementProperty(el, "paused") == u'true':
             raise AssertionError((u'media element matching %s paused' %
                                   css_selector))
 
@@ -100,14 +101,26 @@ class BrowserTest(unittest.TestCase):
                                  % css_selector)
 
     def assertElementVisibleAndInView(self, driver, css_selector):
+        """ Asserts that at least one pixel of the first selected element
+        would be visible to an actual human being.  The WebDriver APIs
+        that use the word visible don't actually guarantee that.  Raises
+        an AssertionError if no element is found or the first element found
+        couldn't be seen at all
 
-        # wait for the element to be what WebDriver considers visible,
-        # which is necessary but not sufficient to verify that a human
-        # would be able to see at least part of it
+            Args:
+            - driver: the driver instance hosting this element
+            - css_selector: the first element matching this selector will be
+              checked.
+        """
+
+        # first, wait for an element matching this selector to be
+        # what the WebDriver APIs consider visible.
         self.assertElementVisible(driver, css_selector)
         found_element = driver.find_element_by_css_selector(css_selector)
 
-        # JS thanks to http://stackoverflow.com/questions/123999/
+        # Now, use JS from <http://stackoverflow.com/questions/123999/> to
+        # verify that the element is in the current viewport and not
+        # completely  covered by other elements
         js_checker = """
         var el = arguments[0];
 
