@@ -142,13 +142,14 @@ body {
   z-index: 1;
 }
 
-/* XXX once we get the local-video stapled to the remote-video,
+/* YYYaudit once we get the local-video stapled to the remote-video,
    much of this stuff may be irrelevant.  Audit this as part
    of that landing. */
 #call .local-video {
   position: absolute;
   bottom: 10px; /* 10px seems to give stablest stapling across most sizes */
-  right: 5px;
+  right: 5px; /* Adjusted dynamically, currently by callView resize handler
+               * If you change this; edit that handler */
   width: 20vw;
   min-width: 80px;
   max-width: 200px;

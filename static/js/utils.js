@@ -183,4 +183,27 @@
     return [scaleFactor * streamSize[0], scaleFactor * streamSize[1]];
   };
 
+  /**
+   * Returns the width of the pillarbox (blank vertical column to the left
+   * or right of the video when preserving the video stream's aspect ratio
+   * requires the displayed video to be smaller than its containing box.
+   *
+   * XXX need to define behavior when width is not an integer
+   *
+   * @param {Array} boxSize -- size of entire <video> element: [width, height]
+   * @param {Array} streamSize -- size of the media stream: [width, height]
+   *
+   * @return {Number} the width of one of the pillarboxes (left and right
+   *                  pillarboxes should be sized identically
+   */
+  app.utils.getPillarboxWidth = function(boxSize, streamSize) {
+
+    var boxWidth = boxSize[0];
+
+    var displayedSize =
+      app.utils.computeDisplayedVideoSize(boxSize, streamSize);
+    var displayedWidth = displayedSize[0];
+
+    return (boxWidth - displayedWidth) / 2;
+  };
 })(app, _);

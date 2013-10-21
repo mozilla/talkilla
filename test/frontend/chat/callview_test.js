@@ -54,6 +54,17 @@ describe("CallView", function() {
       expect(shouldExplode).to.Throw(Error, /missing parameter: el/);
     });
 
+    it("should attach a resize handler to the window", function() {
+
+      sandbox.stub(window, "addEventListener");
+
+      new app.views.CallView({el: el, call: call});
+
+      sinon.assert.calledOnce(window.addEventListener);
+      sinon.assert.calledWith(window.addEventListener, "resize",
+        sinon.match.func);
+    });
+
     describe("Change events", function() {
       var callView;
 
@@ -201,4 +212,84 @@ describe("CallView", function() {
       });
     });
   });
+
+  // Sure would be nice to test this using synthetic events, but those don't
+  // seem to work well enough just yet.  Oh well, one of these years!
+  describe("#_onWindowResize", function() {
+
+    var el, callView, localElement, fakeEvent, remoteElement,
+      fakePillarboxWidth;
+
+    beforeEach(function() {
+
+      // note that we specify width and height here, even though they don't
+      // get laid out, and will therefore be _different_ than clientWidth
+      // and clientWidth (which happens for different reasons with <video>
+      // in the production code).  This is intentional so that our tests later
+      // can ensure the implementation will compute the correct results by
+      // using client* for its math.
+      el = $(['<div>',
+        '  <div id="local-video" width="20" height="20"></div>',
+        '  <div id="remote-video" width="320" height="200"></div>',
+        '</div>'].join(''));
+      $("#fixtures").append(el);
+      var $remoteElement = el.find('#remote-video');
+      remoteElement = $remoteElement.get(0);
+      remoteElement.videoHeight = 300;
+      remoteElement.videoWidth = 180;
+
+      callView = new app.views.CallView({el: el, call: call});
+
+      fakeEvent = {};
+
+      fakePillarboxWidth = 40;
+      sandbox.stub(app.utils, "getPillarboxWidth").returns(fakePillarboxWidth);
+    });
+
+    afterEach(function() {
+      $("#fixtures").empty();
+    });
+
+    // XXX
+    it("should not fire when the view is not small");
+
+    // XXX adjust test to also check that the view is small
+    it("should get the pillarbox width of the remoteVideo element",
+      function() {
+        callView._onWindowResize(fakeEvent);
+
+        // Note that we are testing against clientWidth and clientHeight,
+        // because using width & height will not work in production.
+        sinon.assert.calledOnce(app.utils.getPillarboxWidth);
+        sinon.assert.calledWith(app.utils.getPillarboxWidth,
+          [remoteElement.clientWidth, remoteElement.clientHeight],
+          [remoteElement.videoWidth, remoteElement.videoHeight]);
+      });
+
+    it("should set the CSS |right| property on the localVideo element to" +
+      " pillarboxWidth + gutterWidth",
+      function() {
+        var $localElement = el.find('#local-video');
+        localElement = $localElement.get(0);
+        localElement.style.right = "";
+
+        callView._onWindowResize(fakeEvent);
+
+        expect(localElement.style.right).to.
+          equal(fakePillarboxWidth + callView._localVideoGutterWidth + "px");
+      });
+
+    // there's no meaningful thing to resize in this case, and making the call
+    // would violate the getPillarboxWidth API and cause an exception
+    it("should not call getPillarboxWidth if the remote stream's height" +
+      " or width is 0",
+      function() {
+        remoteElement.videoHeight = 0;
+
+        callView._onWindowResize(fakeEvent);
+
+        sinon.assert.notCalled(app.utils.getPillarboxWidth);
+      });
+  });
+
 });
