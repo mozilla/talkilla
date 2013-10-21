@@ -38,6 +38,7 @@ var tkWorker;
 function Conversation(data) {
   this.data = data;
   this.port = undefined;
+  this.iceCandidates = [];
 
   browserPort.postEvent('social.request-chat', 'chat.html');
 }
@@ -101,6 +102,12 @@ Conversation.prototype = {
       "talkilla.conversation-open";
 
     this.port.postEvent(topic, this.data);
+
+    this.iceCandidates.forEach(function(candidate) {
+      this.port.postEvent("talkilla.ice-candidate", candidate);
+    }, this);
+
+    this.iceCandidates = [];
   },
 
   /**
@@ -131,10 +138,14 @@ Conversation.prototype = {
   },
 
   iceCandidate: function(data) {
-    // XXX its possible for the candidate to get here before we've got
-    // the port set up. We need to handle this.
-    ports.broadcastDebug('ice candidate', data);
-    this.port.postEvent('talkilla.ice-candidate', data);
+    tkWorker.ports.broadcastDebug('ice:candidate', data);
+    // It is possible for the candidate to get here before we've got
+    // the window and port set up, so record this for when they are
+    // set up.
+    if (!this.port)
+      this.iceCandidates.push(data);
+    else
+      this.port.postEvent('talkilla.ice-candidate', data);
   }
 };
 
