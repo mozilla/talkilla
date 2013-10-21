@@ -385,11 +385,15 @@
    */
   WebRTC.prototype._onIceCandidate = function(event) {
     // XXX Manually translate this due to bug 928304
-    this.trigger('ice:candidate-ready', {
-      candidate: event.candidate.candidate,
-      sdpMid: event.candidate.sdpMid,
-      sdpMLineIndex: event.candidate.sdpMLineIndex
-    });
+    // The last candidate event is a null event, so we don't need to do
+    // anything with that.
+    if (event && event.candidate) {
+      this.trigger('ice:candidate-ready', {
+        candidate: event.candidate.candidate,
+        sdpMid: event.candidate.sdpMid,
+        sdpMLineIndex: event.candidate.sdpMLineIndex
+      });
+    }
   };
 
   /**
