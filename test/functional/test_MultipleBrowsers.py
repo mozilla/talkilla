@@ -22,6 +22,7 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
 
         self.assertIncomingCall(self.larry)
         self.larry.acceptCall()
+        self.assertElementNotVisible(self.larry, ".incoming-text")
 
         self.assertCallMediaPlaying(self.bob)
         self.assertCallMediaPlaying(self.larry)
