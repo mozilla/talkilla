@@ -384,7 +384,8 @@
    * @event  `ice:candidate-ready` {Object}
    */
   WebRTC.prototype._onIceCandidate = function(event) {
-    // XXX Manually translate this due to bug 928304
+    // XXX Manually translate this until bug 928304 is incorporated in all
+    // versions we support, i.e. Firefox 27.0a2 onwards.
     // The last candidate event is a null event, so we don't need to do
     // anything with that.
     if (event && event.candidate) {
