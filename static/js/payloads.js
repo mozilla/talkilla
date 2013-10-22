@@ -21,5 +21,24 @@ var payloads = (function() {
     }
   };
 
-  return {Offer: Offer};
+  function Answer(data) {
+    this.peer     = data.peer;
+    this.answer   = data.answer;
+    this.textChat = data.textChat || false;
+  }
+
+  Answer.prototype = {
+    toJSON: function() {
+      return {
+        peer: this.peer,
+        answer: this.answer,
+        textChat: this.textChat
+      };
+    }
+  };
+
+  return {
+    Offer: Offer,
+    Answer: Answer
+  };
 })();
