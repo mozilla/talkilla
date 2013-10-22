@@ -288,11 +288,8 @@ function _setupSPA(spa) {
     currentConversation = new Conversation(offerMsg.toJSON());
   });
 
-  spa.on("answer", function(answer, from, textChat) {
-    var data = {answer: answer, peer: from};
-    if (textChat)
-      data.textChat = textChat;
-    currentConversation.callAccepted(data);
+  spa.on("answer", function(answerMsg) {
+    currentConversation.callAccepted(answerMsg.toJSON());
   });
 
   spa.on("hangup", function(from) {
@@ -448,14 +445,14 @@ var handlers = {
   },
 
   /**
-   * The data for talkilla.call-answer is:
+   * Called when the chat window accepts a call.
    *
-   * - peer:     the person who is calling you
-   * - textChat: is this a text chat offer?
-   * - answer:   an RTCSessionDescription containing the sdp data for the call.
+   * @param {Object} event.data a data structure representation of a
+   * payloads.Answer.
    */
   'talkilla.call-answer': function(event) {
-    spa.callAnswer(event.data.answer, event.data.peer, event.data.textChat);
+    var answerMsg = new payloads.Answer(event.data);
+    spa.callAnswer(answerMsg);
   },
 
   /**

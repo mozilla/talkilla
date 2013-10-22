@@ -163,8 +163,15 @@ var ChatApp = (function(app, $, Backbone, _) {
     this.port.postEvent('talkilla.call-offer', offerMsg.toJSON());
   };
 
-  ChatApp.prototype._onSendAnswer = function(data) {
-    this.port.postEvent('talkilla.call-answer', data);
+  /**
+   * Called when accepting an incoming call.
+   *
+   * @param {payloads.Answer} answerMsg the answer to send to accept
+   * the call.
+   *
+   */
+  ChatApp.prototype._onSendAnswer = function(answerMsg) {
+    this.port.postEvent('talkilla.call-answer', answerMsg.toJSON());
   };
 
   ChatApp.prototype._onSendTimeout = function(data) {

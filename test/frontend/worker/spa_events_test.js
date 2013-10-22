@@ -190,19 +190,20 @@ describe("SPA events", function() {
   describe("`answer` event", function() {
 
     it("should call callAccepted on the conversation", function () {
-      var from = "alice";
-      var answer = {type: "fake", sdp: "sdp"};
-      var data = {peer: from, answer: answer};
+      var answerMsg = new payloads.Answer({
+        answer: "fake answer",
+        peer: "alice"
+      });
 
       currentConversation = {
         callAccepted: sandbox.spy()
       };
 
-      spa.trigger("answer", answer, from);
+      spa.trigger("answer", answerMsg);
 
       sinon.assert.calledOnce(currentConversation.callAccepted);
       sinon.assert.calledWithExactly(
-        currentConversation.callAccepted, data);
+        currentConversation.callAccepted, answerMsg.toJSON());
     });
 
   });

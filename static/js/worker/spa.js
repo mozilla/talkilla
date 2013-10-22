@@ -25,7 +25,7 @@ var SPA = (function() {
       } else if (topic === "offer") {
         this.trigger(topic, new payloads.Offer(data));
       } else if (topic === "answer") {
-        this.trigger(topic, data.answer, data.peer, data.textChat);
+        this.trigger(topic, new payloads.Answer(data));
       } else if (topic === "hangup") {
         this.trigger(topic, data.peer);
       } else {
@@ -55,14 +55,21 @@ var SPA = (function() {
     /**
      * Initiate a call via an SDP offer.
      *
-     * @param {payloads.Offer} offerMsg an Offer payload to initiate a call.
+     * @param {payloads.Offer} offerMsg an Offer payload to initiate a
+     * call.
      */
     callOffer: function(offerMsg) {
       this._send("offer", offerMsg.toJSON());
     },
 
-    callAnswer: function(answer, peer, textChat) {
-      this._send("answer", {answer: answer, peer: peer, textChat: textChat});
+    /**
+     * Accept a call via an SDP answer.
+     *
+     * @param {payloads.Answer} answerMsg an Answer payload to accept
+     * a call.
+     */
+    callAnswer: function(answerMsg) {
+      this._send("answer", answerMsg.toJSON());
     },
 
     callHangup: function(peer) {

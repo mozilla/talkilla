@@ -54,8 +54,17 @@ var Server = (function() {
       }, callback);
     },
 
-    callAccepted: function(data, callback) {
-      this.http.post("/callaccepted", {data: data, nick: this.nick}, callback);
+    /**
+     * Accept a call via the /callanswer API
+     *
+     * @param {payloads.Answer} answerMsg An Answer payload to accept the call.
+     * @param {function} callback A callback for when the server answers back.
+     */
+    callAccepted: function(answerMsg, callback) {
+      this.http.post("/callaccepted", {
+        data: answerMsg,
+        nick: this.nick
+      }, callback);
     },
 
     callHangup: function(data, callback) {

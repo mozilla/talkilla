@@ -167,10 +167,10 @@
       var data = this.get('incomingData');
 
       this.media.once("answer-ready", function(answer) {
-        this.trigger("send-answer", {
+        this.trigger("send-answer", new app.payloads.Answer({
           peer: this.peer.get("nick"),
           answer: answer
-        });
+        }));
 
         // XXX Change transition to complete/ongoing here as
         // this is the best place we've got currently to know that
@@ -467,11 +467,11 @@
 
     answer: function(offer) {
       this.media.once("answer-ready", function(answer) {
-        this.trigger("send-answer", {
+        this.trigger("send-answer", new app.payloads.Answer({
           peer: this.peer.get("nick"),
           answer: answer,
           textChat: true
-        });
+        }));
       }, this);
 
       this.media.answer(offer);

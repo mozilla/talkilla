@@ -35,12 +35,13 @@ var TalkillaSPA = (function() {
       // documented SPA interface. We have to update the server to
       // reflect these events.
       var mapping = {
-        "call_accepted": "answer",
         "call_hangup": "hangup"
       };
 
       if (type === "incoming_call")
         this.port.post("offer", (new payloads.Offer(event)).toJSON());
+      else if (type === "call_accepted")
+        this.port.post("answer", (new payloads.Answer(event)).toJSON());
       else if (type in mapping)
         this.port.post(mapping[type], event);
       else
@@ -62,9 +63,15 @@ var TalkillaSPA = (function() {
       this.server.callOffer(offerMsg);
     },
 
-    _onCallAnswer: function(data) {
-      data = {peer: data.peer, answer: data.answer, textChat: data.textChat};
-      this.server.callAccepted(data);
+    /**
+     * Called when accepting a call.
+     *
+     * @param {Object} answerData a data structure representation of a
+     * payloads.Answer.
+     */
+    _onCallAnswer: function(answerData) {
+      var answerMsg = new payloads.Answer(answerData);
+      this.server.callAccepted(answerMsg);
     },
 
     _onCallHangup: function(data) {

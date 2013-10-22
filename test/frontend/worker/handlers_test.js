@@ -475,19 +475,19 @@ describe('handlers', function() {
       function() {
         tkWorker.user.name = "fred";
         sandbox.stub(spa, "callAnswer");
-        var data = {
-          peer: "fred",
-          answer: { sdp: "sdp", type: "type" }
-        };
+        var answerMsg = new payloads.Answer({
+          answer: "fake answer",
+          peer: "fred"
+        });
 
         handlers['talkilla.call-answer']({
           topic: "talkilla.call-answer",
-          data: data
+          data: answerMsg
         });
 
         sinon.assert.calledOnce(spa.callAnswer);
         sinon.assert.calledWithExactly(
-          spa.callAnswer, data.answer, data.peer, undefined);
+          spa.callAnswer, answerMsg);
       });
   });
 

@@ -105,15 +105,17 @@ describe("SPA", function() {
   describe("#callAnswer", function() {
 
     it("should send a answer event to the worker", function() {
-      var answer = "fake answer";
-      var peer = "cedric";
+      var answerMsg = new payloads.Answer({
+        answer: "fake answer",
+        peer: "lisa"
+      });
 
-      spa.callAnswer(answer, peer);
+      spa.callAnswer(answerMsg);
 
       sinon.assert.calledOnce(spa.worker.postMessage);
       sinon.assert.calledWithExactly(spa.worker.postMessage, {
         topic: "answer",
-        data: {answer: answer, peer: peer, textChat: undefined}
+        data: answerMsg.toJSON()
       });
     });
 

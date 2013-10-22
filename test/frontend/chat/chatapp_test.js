@@ -364,12 +364,12 @@ describe("ChatApp", function() {
     describe("#_onSendAnswer", function() {
       it("should post an event to the worker when onSendAnswer is triggered",
         function() {
-          var answer = {
-            sdp: 'sdp',
-            type: 'type'
-          };
+          var answerMsg = new payloads.Answer({
+            answer: "fake answer",
+            peer: "lisa"
+          });
 
-          chatApp._onSendAnswer(answer);
+          chatApp._onSendAnswer(answerMsg);
 
           sinon.assert.called(chatApp.port.postEvent);
           sinon.assert.calledWith(chatApp.port.postEvent,
