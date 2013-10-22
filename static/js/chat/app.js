@@ -152,8 +152,14 @@ var ChatApp = (function(app, $, Backbone, _) {
     this.audioLibrary.play('incoming');
   };
 
-  ChatApp.prototype._onSendOffer = function(data) {
-    this.port.postEvent('talkilla.call-offer', data);
+  /**
+   *
+   *
+   * @param {payloads.Offer} offerMsg
+   *
+   */
+  ChatApp.prototype._onSendOffer = function(offerMsg) {
+    this.port.postEvent('talkilla.call-offer', offerMsg.toJSON());
   };
 
   ChatApp.prototype._onSendAnswer = function(data) {

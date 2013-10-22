@@ -1,3 +1,4 @@
+/* global payloads */
 /* jshint unused:false */
 
 var TalkillaSPA = (function() {
@@ -34,12 +35,13 @@ var TalkillaSPA = (function() {
       // documented SPA interface. We have to update the server to
       // reflect these events.
       var mapping = {
-        "incoming_call": "offer",
         "call_accepted": "answer",
         "call_hangup": "hangup"
       };
 
-      if (type in mapping)
+      if (type === "incoming_call")
+        this.port.post("offer", (new payloads.Offer(event)).toJSON());
+      else if (type in mapping)
         this.port.post(mapping[type], event);
       else
         this.port.post("message", [type, event]);
@@ -49,9 +51,15 @@ var TalkillaSPA = (function() {
       this.server.connect(credentials);
     },
 
-    _onCallOffer: function(data) {
-      data = {peer: data.peer, offer: data.offer, textChat: data.textChat};
-      this.server.callOffer(data);
+    /**
+     * Called when initiating a call.
+     *
+     * @param {Object} offerData a data structure representation of a
+     * payloads.Offer.
+     */
+    _onCallOffer: function(offerData) {
+      var offerMsg = new payloads.Offer(offerData);
+      this.server.callOffer(offerMsg);
     },
 
     _onCallAnswer: function(data) {

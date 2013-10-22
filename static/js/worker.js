@@ -1,11 +1,11 @@
 /* global indexedDB, importScripts, SPA, HTTP, CollectedContacts, CurrentUsers,
-   loadConfig  */
+   loadConfig, payloads  */
 /* jshint unused:false */
 
 // XXX: Try to import Backbone only in files that need it (and check
 // if multiple imports cause problems).
 importScripts('../vendor/backbone-events-standalone-0.1.5.js');
-importScripts('/config.js', 'addressbook/collected.js');
+importScripts('/config.js', 'payloads.js', 'addressbook/collected.js');
 importScripts('worker/http.js', 'worker/users.js', 'worker/spa.js');
 
 var gConfig = loadConfig();
@@ -271,17 +271,13 @@ function _setupSPA(spa) {
     tkWorker.ports.broadcastEvent("talkilla.user-left", userId);
   });
 
-  spa.on("offer", function(offer, from, textChat) {
-    var data = {offer: offer, peer: from};
-    if (textChat)
-      data.textChat = textChat;
-
+  spa.on("offer", function(offerMsg) {
     // If we're in a conversation, and it is not with the peer,
     // then ignore it
     if (currentConversation) {
       // If the currentConversation window can handle the incoming call
       // data (e.g. peer matches) then just handle it.
-      if (currentConversation.handleIncomingCall(data))
+      if (currentConversation.handleIncomingCall(offerMsg.toJSON()))
         return;
 
       // XXX currently, we can't handle more than one conversation
@@ -289,7 +285,7 @@ function _setupSPA(spa) {
       return;
     }
 
-    currentConversation = new Conversation(data);
+    currentConversation = new Conversation(offerMsg.toJSON());
   });
 
   spa.on("answer", function(answer, from, textChat) {
@@ -441,14 +437,14 @@ var handlers = {
   },
 
   /**
-   * The data for talkilla.call-offer is:
+   * Called when the chat window initiate a call.
    *
-   * - peer:     the person you are calling
-   * - textChat: is this a text chat offer?
-   * - offer:    an RTCSessionDescription containing the sdp data for the call.
+   * @param {Object} event.data a data structure representation of a
+   * payloads.Offer.
    */
   'talkilla.call-offer': function(event) {
-    spa.callOffer(event.data.offer, event.data.peer, event.data.textChat);
+    var offerMsg = new payloads.Offer(event.data);
+    spa.callOffer(offerMsg);
   },
 
   /**

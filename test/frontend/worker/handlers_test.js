@@ -1,7 +1,7 @@
 /*global chai, sinon, Port, handlers, currentConversation:true, UserData,
   _presenceSocket:true, browserPort:true, tkWorker, Conversation,
   _loginPending:true, _autologinPending:true, _cookieNickname:true, SPA,
-  spa:true, _signinCallback */
+  spa:true, _signinCallback, payloads */
 /* jshint expr:true */
 
 var expect = chai.expect;
@@ -451,23 +451,22 @@ describe('handlers', function() {
 
   describe("talkilla.call-offer", function() {
 
-    it("should post an offer when receiving a talkilla.call-offer event",
+    it("should send an offer when receiving a talkilla.call-offer event",
       function() {
         tkWorker.user.name = "tom";
         sandbox.stub(spa, "callOffer");
-        var data = {
+        var offerMsg = new payloads.Offer({
           peer: "tom",
           offer: { sdp: "sdp", type: "type" }
-        };
+        });
 
         handlers['talkilla.call-offer']({
           topic: "talkilla.call-offer",
-          data: data
+          data: offerMsg
         });
 
         sinon.assert.calledOnce(spa.callOffer);
-        sinon.assert.calledWithExactly(
-          spa.callOffer, data.offer, data.peer, undefined);
+        sinon.assert.calledWithExactly(spa.callOffer, offerMsg);
       });
   });
 

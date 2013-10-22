@@ -100,10 +100,10 @@
       this.state.start();
 
       this.media.once("offer-ready", function(offer) {
-        this.trigger("send-offer", {
+        this.trigger("send-offer", new app.payloads.Offer({
           peer: this.peer.get("nick"),
           offer: offer
-        });
+        }));
       }, this);
 
       this.media.initiate(constraints);
@@ -228,12 +228,12 @@
       this.state.upgrade();
 
       this.media.once("offer-ready", function(offer) {
-        this.trigger("send-offer", {
+        this.trigger("send-offer", new app.payloads.Offer({
           peer: this.peer.get("nick"),
           offer: offer,
           textChat: false,
           upgrade: true
-        });
+        }));
       }, this);
 
       this.media.upgrade(constraints);
@@ -455,11 +455,11 @@
 
     initiate: function(constraints) {
       this.media.once("offer-ready", function(offer) {
-        this.trigger("send-offer", {
+        this.trigger("send-offer", new app.payloads.Offer({
           peer: this.peer.get("nick"),
           offer: offer,
           textChat: true
-        });
+        }));
       }, this);
 
       this.media.initiate(constraints);

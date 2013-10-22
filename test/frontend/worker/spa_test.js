@@ -1,4 +1,4 @@
-/* global sinon, SPA, expect */
+/* global sinon, SPA, expect, payloads */
 /* jshint unused:false */
 
 describe("SPA", function() {
@@ -89,15 +89,14 @@ describe("SPA", function() {
   describe("#callOffer", function() {
 
     it("should send a call:offer event to the worker", function() {
-      var offer = "fake offer";
-      var peer = "lucy";
+      var offerMsg = new payloads.Offer({offer: "fake offer", peer: "lucy"});
 
-      spa.callOffer(offer, peer);
+      spa.callOffer(offerMsg);
 
       sinon.assert.calledOnce(spa.worker.postMessage);
       sinon.assert.calledWithExactly(spa.worker.postMessage, {
         topic: "offer",
-        data: {offer: offer, peer: peer, textChat: undefined}
+        data: offerMsg.toJSON()
       });
     });
 

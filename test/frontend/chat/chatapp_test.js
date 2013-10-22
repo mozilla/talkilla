@@ -1,4 +1,4 @@
-/*global app, chai, ChatApp, sinon, WebRTC */
+/*global app, chai, ChatApp, sinon, WebRTC, payloads */
 
 /* jshint expr:true */
 var expect = chai.expect;
@@ -346,18 +346,14 @@ describe("ChatApp", function() {
     });
 
     describe("#_onSendOffer", function() {
-      var offer;
-
-      beforeEach(function() {
-        offer = {
-          sdp: 'sdp',
-          type: 'type'
-        };
-      });
 
       it("should post an event to the worker when onSendOffer is called",
         function() {
-          chatApp._onSendOffer(offer);
+          var offerMsg = new payloads.Offer({
+            offer: "fake offer",
+            peer: "leila"
+          });
+          chatApp._onSendOffer(offerMsg);
 
           sinon.assert.called(chatApp.port.postEvent);
           sinon.assert.calledWith(chatApp.port.postEvent,

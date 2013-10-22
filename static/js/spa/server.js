@@ -41,8 +41,17 @@ var Server = (function() {
       }.bind(this));
     },
 
-    callOffer: function(data, callback) {
-      this.http.post("/calloffer", {data: data, nick: this.nick}, callback);
+    /**
+     * Initiate a call via the /calloffer API
+     *
+     * @param {payloads.Offer} offerMsg An Offer payload to initiate the call.
+     * @param {function} callback A callback for when the server answers back.
+     */
+    callOffer: function(offerMsg, callback) {
+      this.http.post("/calloffer", {
+        data: offerMsg,
+        nick: this.nick
+      }, callback);
     },
 
     callAccepted: function(data, callback) {

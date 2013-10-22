@@ -1,5 +1,5 @@
 /*global chai, sinon, browserPort:true, currentConversation:true,
-  SPA, Conversation, tkWorker, _setupSPA */
+  SPA, Conversation, tkWorker, _setupSPA, payloads */
 
 /* Needed due to the use of non-camelcase in the websocket topics */
 /* jshint camelcase:false */
@@ -162,28 +162,28 @@ describe("SPA events", function() {
     });
 
     it("should create a new conversation object with the call data",
-       function() {
-      var offer = {type: "fake", sdp: "sdp" };
-      var from = "alice";
+      function() {
+      var offerMsg = new payloads.Offer({offer: "fake offer", peer: "alice"});
 
-      spa.trigger("offer", offer, from);
+      spa.trigger("offer", offerMsg);
 
       expect(currentConversation).to.be.an.instanceOf(Conversation);
     });
 
     it("should try to re-use an existing conversation object",
       function() {
+        var offerMsg = new payloads.Offer({
+          offer: "fake offer",
+          peer: "alice"
+        });
         currentConversation = new Conversation({peer: "florian"});
         sandbox.stub(currentConversation, "handleIncomingCall");
 
-        var offer = {type: "fake", sdp: "sdp" };
-        var from = "alice";
-        var data = {offer: offer, peer: from};
-        spa.trigger("offer", offer, from);
+        spa.trigger("offer", offerMsg);
 
         sinon.assert.calledOnce(currentConversation.handleIncomingCall);
         sinon.assert.calledWith(currentConversation.handleIncomingCall,
-                                data);
+                                offerMsg.toJSON());
       });
   });
 

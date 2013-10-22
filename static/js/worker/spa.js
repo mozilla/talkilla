@@ -1,4 +1,4 @@
-/* global importScripts, BackboneEvents, HTTP */
+/* global importScripts, BackboneEvents, HTTP, payloads */
 /* jshint unused:false */
 
 var SPA = (function() {
@@ -23,7 +23,7 @@ var SPA = (function() {
         this.trigger("message", type, data);
         this.trigger("message:" + type, data);
       } else if (topic === "offer") {
-        this.trigger(topic, data.offer, data.peer, data.textChat);
+        this.trigger(topic, new payloads.Offer(data));
       } else if (topic === "answer") {
         this.trigger(topic, data.answer, data.peer, data.textChat);
       } else if (topic === "hangup") {
@@ -34,6 +34,9 @@ var SPA = (function() {
     },
 
     _send: function(topic, data) {
+      // TODO: check the type of data and if it's a payload (like
+      // payloads.Offer) call toJSON on it. The SPA interface should
+      // not send custom objects.
       this.worker.postMessage({topic: topic, data: data});
     },
 
@@ -49,8 +52,13 @@ var SPA = (function() {
       this._send("connect", credentials);
     },
 
-    callOffer: function(offer, peer, textChat) {
-      this._send("offer", {offer: offer, peer: peer, textChat: textChat});
+    /**
+     * Initiate a call via an SDP offer.
+     *
+     * @param {payloads.Offer} offerMsg an Offer payload to initiate a call.
+     */
+    callOffer: function(offerMsg) {
+      this._send("offer", offerMsg.toJSON());
     },
 
     callAnswer: function(answer, peer, textChat) {
