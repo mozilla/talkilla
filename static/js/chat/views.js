@@ -38,7 +38,12 @@
       this.peer.on('change:presence', this._onPeerPresenceChanged, this);
 
       this.call.media.on('local-stream:ready remote-stream:ready', function() {
-        this.$el.addClass('has-video');
+        if (this.call.requiresVideo())
+          this.$el.addClass('has-video');
+        else
+          this.$el.removeClass('has-video');
+
+        return;
       }, this);
     },
 
@@ -387,12 +392,13 @@
         throw new Error("missing parameter: el");
 
       this.call = options.call;
-      this.call.media.on('local-stream:ready', this._displayLocalVideo, this);
-      this.call.media.on('remote-stream:ready', this._displayRemoteVideo, this);
+      this.call.media.on('local-stream:ready', 
+                         this._playLocalMedia, this);
+      this.call.media.on('remote-stream:ready', this._playRemoteMedia, this);
       this.call.media.on('local-stream:terminated',
-                         this._terminateLocalVideo, this);
+                         this._terminateLocalMedia, this);
       this.call.media.on('remote-stream:terminated',
-                         this._terminateRemoteVideo, this);
+                         this._terminateRemoteMedia, this);
       this.call.media.on('connection-upgraded', this.ongoing, this);
 
       this.call.on('change:state', this.render, this);
@@ -400,45 +406,40 @@
       this.render();
     },
 
-    _displayLocalVideo: function(stream) {
-      var $localVideo = this.$('#local-video'),
-          localVideo = $localVideo.get(0);
-      if (!localVideo)
+    _playLocalMedia: function(stream) {
+      var localMedia = this.$('#local-media').get(0);
+      if (!localMedia)
         return this;
-      localVideo.mozSrcObject = stream;
-      localVideo.onplaying = function() {
-        if (this.call.requiresVideo())
-          $localVideo.show();
-      }.bind(this);
-      localVideo.play();
+      localMedia.mozSrcObject = stream;
+      localMedia.play();
       return this;
     },
 
-    _displayRemoteVideo: function(stream) {
-      var remoteVideo = this.$('#remote-video').get(0);
-      remoteVideo.mozSrcObject = stream;
-      remoteVideo.play();
+    _playRemoteMedia: function(stream) {
+      var remoteMedia = this.$('#remote-media').get(0);
+      remoteMedia.mozSrcObject = stream;
+      remoteMedia.play();
       return this;
     },
 
-    _terminateLocalVideo: function() {
-      var localVideo = this.$('#local-video').get(0);
-      if (!localVideo || !localVideo.mozSrcObject)
+    _terminateLocalMedia: function() {
+      var localMedia = this.$('#local-media').get(0);
+      if (!localMedia || !localMedia.mozSrcObject)
         return this;
 
-      localVideo.mozSrcObject = undefined;
+      localMedia.mozSrcObject = undefined;
     },
 
-    _terminateRemoteVideo: function() {
-      var remoteVideo = this.$('#remote-video').get(0);
-      if (!remoteVideo || !remoteVideo.mozSrcObject)
+    _terminateRemoteMedia: function() {
+      var remoteMedia = this.$('#remote-media').get(0);
+      if (!remoteMedia || !remoteMedia.mozSrcObject)
         return this;
 
-      remoteVideo.mozSrcObject = undefined;
+      remoteMedia.mozSrcObject = undefined;
     },
 
     render: function() {
-      if (this.call.state.current === "ongoing")
+      if (this.call.state.current === "ongoing" && this.call.requiresVideo())
         this.$el.show();
       else
         this.$el.hide();

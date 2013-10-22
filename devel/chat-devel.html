@@ -39,13 +39,13 @@
     chat.scrollTop = chat.scrollTopMax;
     // videos
     navigator.mozGetUserMedia({video: true, fake: false}, function(stream) {
-      var local = doc.querySelector('#local-video');
+      var local = doc.querySelector('#local-media');
       local.mozSrcObject = stream;
       local.play();
       local.onplaying = function() {
         local.classList.remove('hide');
       };
-      var remote = doc.querySelector('#remote-video');
+      var remote = doc.querySelector('#remote-media');
       remote.mozSrcObject = stream;
       remote.play();
     }, function(err) {

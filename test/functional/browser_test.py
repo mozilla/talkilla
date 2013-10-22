@@ -61,6 +61,22 @@ class BrowserTest(unittest.TestCase):
             raise AssertionError(u'Chat message containing "%s" not found; %s'
                                  % (message, err))
 
+    @classmethod
+    def assertCallMediaPlaying(cls, driver):
+        # the spec defines playing to be not paused
+        cls.assertMediaElementNotPaused(driver, ".local-media")
+        cls.assertMediaElementNotPaused(driver, ".remote-media")
+
+    @staticmethod
+    def assertMediaElementNotPaused(driver, css_selector):
+        el = driver.waitForElementWithPropertyValue(
+            css_selector, property_name="paused", property_value=u'false',
+            timeout=20)
+
+        if driver.getElementProperty(el, "paused") == u'true':
+            raise AssertionError((u'media element matching %s paused' %
+                                  css_selector))
+
     def assertElementTextContains(self, driver, css_selector, text,
                                   visible=None):
         element_text = driver.waitForElement(css_selector,
@@ -83,6 +99,61 @@ class BrowserTest(unittest.TestCase):
         except TimeoutException:
             raise AssertionError(u"%s is not visible, it should be"
                                  % css_selector)
+
+    def assertElementVisibleAndInView(self, driver, css_selector):
+        """ Asserts that at least one pixel of the first selected element
+        would be visible to an actual human being.  The WebDriver APIs
+        that use the word visible don't actually guarantee that.  Raises
+        an AssertionError if no element is found or the first element found
+        couldn't be seen at all
+
+            Args:
+            - driver: the driver instance hosting this element
+            - css_selector: the first element matching this selector will be
+              checked.
+        """
+
+        # first, wait for an element matching this selector to be
+        # what the WebDriver APIs consider visible.
+        self.assertElementVisible(driver, css_selector)
+        found_element = driver.find_element_by_css_selector(css_selector)
+
+        # Now, use JS from <http://stackoverflow.com/questions/123999/> to
+        # verify that the element is in the current viewport and not
+        # completely  covered by other elements
+        js_checker = """
+        var el = arguments[0];
+
+        var eap,
+        rect     = el.getBoundingClientRect(),
+        docEl    = document.documentElement,
+        vWidth   = window.innerWidth || docEl.clientWidth,
+        vHeight  = window.innerHeight || docEl.clientHeight,
+        efp      = function (x, y) { return document.elementFromPoint(x, y) },
+        contains = "contains" in el ? "contains" : "compareDocumentPosition",
+        has = contains == "contains" ? 1 : 0x10;
+
+        // Return false if it's not in the viewport
+        if (rect.right < 0 || rect.bottom < 0 || rect.left > vWidth ||
+            rect.top > vHeight)
+        return false;
+
+        // Return true if any of its four corners are visible
+        return (
+            (eap = efp(rect.left,  rect.top)) == el
+         || el[contains](eap) == has
+         || (eap = efp(rect.right, rect.top)) == el
+         || el[contains](eap) == has
+         || (eap = efp(rect.right, rect.bottom)) == el
+         || el[contains](eap) == has
+         || (eap = efp(rect.left,  rect.bottom)) == el
+         || el[contains](eap)
+         == has)
+        """
+
+        if not driver.execute_script(js_checker, found_element):
+            raise AssertionError(u"%s is completely out of view" %
+                                 css_selector)
 
     def assertElementNotVisible(self, driver, css_selector):
         if driver.waitForElement(css_selector).is_displayed():
@@ -108,8 +179,8 @@ class BrowserTest(unittest.TestCase):
 
     def assertOngoingCall(self, driver):
         self.assertElementVisible(driver, "#call")
-        self.assertElementVisible(driver, "#local-video")
-        self.assertElementVisible(driver, "#remote-video")
+        self.assertElementVisible(driver, "#local-media")
+        self.assertElementVisible(driver, "#remote-media")
 
     def assertPendingOutgoingCall(self, driver):
         self.assertElementVisible(driver, ".btn-abort")
