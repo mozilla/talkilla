@@ -37,8 +37,19 @@ var payloads = (function() {
     }
   };
 
+  function Hangup(data) {
+    this.peer = data.peer;
+  }
+
+  Hangup.prototype = {
+    toJSON: function() {
+      return {peer: this.peer};
+    }
+  };
+
   return {
     Offer: Offer,
-    Answer: Answer
+    Answer: Answer,
+    Hangup: Hangup
   };
 })();
