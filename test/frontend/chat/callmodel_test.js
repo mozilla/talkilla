@@ -359,17 +359,16 @@ describe("Call Model", function() {
       sinon.assert.calledWithExactly(media.terminate);
     });
 
-    it("should trigger send-hangup", function() {
+    it("should trigger send-hangup", function(done) {
       call.start({});
       call.peer.set("nick", "Mark");
 
-      sandbox.stub(call, "trigger");
+      call.on("send-hangup", function(hangupMsg) {
+        expect(hangupMsg.toJSON()).to.deep.equal({peer: "Mark"});
+        done();
+      });
 
       call.hangup(true);
-
-      sinon.assert.called(call.trigger);
-      sinon.assert.calledWithExactly(call.trigger, "send-hangup",
-                                     {peer: "Mark"});
     });
   });
 

@@ -216,13 +216,14 @@ describe("SPA events", function() {
     });
 
     it("should call callHangup on the conversation", function() {
+      var hangupMsg = new payloads.Hangup({peer: "bar"});
       sandbox.stub(currentConversation, "callHangup");
 
-      spa.trigger("hangup", "bob");
+      spa.trigger("hangup", hangupMsg);
 
       sinon.assert.calledOnce(currentConversation.callHangup);
       sinon.assert.calledWithExactly(
-        currentConversation.callHangup, {peer: "bob"});
+        currentConversation.callHangup, hangupMsg.toJSON());
     });
   });
 

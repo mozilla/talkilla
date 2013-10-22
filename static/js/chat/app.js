@@ -188,9 +188,16 @@ var ChatApp = (function(app, $, Backbone, _) {
     window.close();
   };
 
-  ChatApp.prototype._onCallHangup = function(data) {
+  /**
+   * Called when hanging up a call.
+   *
+   * @param {payloads.Hanging} hangupMsg the hangup to send to stop
+   * the call.
+   *
+   */
+  ChatApp.prototype._onCallHangup = function(hangupMsg) {
     // Send a message as this is this user's call hangup
-    this.port.postEvent('talkilla.call-hangup', data);
+    this.port.postEvent('talkilla.call-hangup', hangupMsg.toJSON());
     window.close();
   };
 

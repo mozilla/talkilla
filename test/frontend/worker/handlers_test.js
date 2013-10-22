@@ -496,21 +496,19 @@ describe('handlers', function() {
       currentConversation = undefined;
     });
 
-    it("should send a websocket message when receiving talkilla.call-hangup",
+    it("should hangup the call when receiving talkilla.call-hangup",
       function() {
+        var hangupMsg = new payloads.Hangup({peer: "florian"});
         tkWorker.user.name = "florian";
         sandbox.stub(spa, "callHangup");
-        var data = {
-          peer: "florian"
-        };
 
         handlers['talkilla.call-hangup']({
           topic: "talkilla.call-hangup",
-          data: data
+          data: hangupMsg.toJSON()
         });
 
         sinon.assert.calledOnce(spa.callHangup);
-        sinon.assert.calledWithExactly(spa.callHangup, "florian");
+        sinon.assert.calledWithExactly(spa.callHangup, hangupMsg);
       });
   });
 

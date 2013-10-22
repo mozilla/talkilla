@@ -210,9 +210,9 @@
       this.media.terminate();
 
       if (sendMsg) {
-        this.trigger("send-hangup", {
+        this.trigger("send-hangup", new app.payloads.Hangup({
           peer: this.peer.get("nick")
-        });
+        }));
       }
     },
 

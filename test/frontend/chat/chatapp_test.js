@@ -334,9 +334,10 @@ describe("ChatApp", function() {
     describe("#_onCallHangup", function() {
 
       it("should send a talkilla.call-hangup event", function() {
+        var fakeHangupMsg = {toJSON: function() {}};
         sandbox.stub(window, "close");
 
-        chatApp._onCallHangup();
+        chatApp._onCallHangup(fakeHangupMsg);
 
         sinon.assert.called(chatApp.port.postEvent);
         sinon.assert.calledWith(chatApp.port.postEvent,

@@ -67,8 +67,17 @@ var Server = (function() {
       }, callback);
     },
 
-    callHangup: function(data, callback) {
-      this.http.post("/callhangup", {data: data, nick: this.nick}, callback);
+    /**
+     * End a call via the /callhangup API
+     *
+     * @param {payloads.Hangup} hangupMsg A Hangup payload to accept the call.
+     * @param {function} callback A callback for when the server answers back.
+     */
+    callHangup: function(hangupMsg, callback) {
+      this.http.post("/callhangup", {
+        data: hangupMsg,
+        nick: this.nick
+      }, callback);
     },
 
     presenceRequest: function(nick, callback) {

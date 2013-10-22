@@ -124,13 +124,13 @@ describe("SPA", function() {
   describe("#callHangup", function() {
 
     it("should send a call:hangup event to the worker", function() {
-      var peer = "foo";
-      spa.callHangup(peer);
+      var hangupMsg = new payloads.Hangup({peer: "foo"});
+      spa.callHangup(hangupMsg);
 
       sinon.assert.calledOnce(spa.worker.postMessage);
       sinon.assert.calledWithExactly(spa.worker.postMessage, {
         topic: "hangup",
-        data: {peer: peer}
+        data: hangupMsg.toJSON()
       });
     });
 

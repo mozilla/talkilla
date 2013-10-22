@@ -27,7 +27,7 @@ var SPA = (function() {
       } else if (topic === "answer") {
         this.trigger(topic, new payloads.Answer(data));
       } else if (topic === "hangup") {
-        this.trigger(topic, data.peer);
+        this.trigger(topic, new payloads.Hangup(data));
       } else {
         this.trigger(topic, data);
       }
@@ -72,8 +72,14 @@ var SPA = (function() {
       this._send("answer", answerMsg.toJSON());
     },
 
-    callHangup: function(peer) {
-      this._send("hangup", {peer: peer});
+    /**
+     * End a call.
+     *
+     * @param {payloads.Hangup} hangupMsg a Hangup payload to end a
+     * call.
+     */
+    callHangup: function(hangupMsg) {
+      this._send("hangup", hangupMsg.toJSON());
     },
 
     presenceRequest: function(nick) {

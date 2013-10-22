@@ -292,10 +292,9 @@ function _setupSPA(spa) {
     currentConversation.callAccepted(answerMsg.toJSON());
   });
 
-  spa.on("hangup", function(from) {
-    var data = {peer: from};
+  spa.on("hangup", function(hangupMsg) {
     if (currentConversation)
-      currentConversation.callHangup(data);
+      currentConversation.callHangup(hangupMsg.toJSON());
   });
 
   spa.on("error", function(event) {
@@ -456,12 +455,14 @@ var handlers = {
   },
 
   /**
-   * Ends a call. The expected data is:
+   * Called when hanging up a call.
    *
-   * - peer: the person you are talking to.
+   * @param {Object} event.data a data structure representation of a
+   * payloads.Hangup.
    */
   'talkilla.call-hangup': function (event) {
-    spa.callHangup(event.data.peer);
+    var hangupMsg = new payloads.Hangup(event.data);
+    spa.callHangup(hangupMsg);
   }
 };
 

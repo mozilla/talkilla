@@ -34,16 +34,12 @@ var TalkillaSPA = (function() {
       // XXX: For now we just translate the server messages to the
       // documented SPA interface. We have to update the server to
       // reflect these events.
-      var mapping = {
-        "call_hangup": "hangup"
-      };
-
       if (type === "incoming_call")
         this.port.post("offer", (new payloads.Offer(event)).toJSON());
       else if (type === "call_accepted")
         this.port.post("answer", (new payloads.Answer(event)).toJSON());
-      else if (type in mapping)
-        this.port.post(mapping[type], event);
+      else if (type === "call_hangup")
+        this.port.post("hangup", (new payloads.Hangup(event)).toJSON());
       else
         this.port.post("message", [type, event]);
     },
@@ -74,9 +70,15 @@ var TalkillaSPA = (function() {
       this.server.callAccepted(answerMsg);
     },
 
-    _onCallHangup: function(data) {
-      data = {peer: data.peer};
-      this.server.callHangup(data);
+    /**
+     * Called when hanging up a call.
+     *
+     * @param {Object} hangupData a data structure representation of a
+     * payloads.Hangup.
+     */
+    _onCallHangup: function(hangupData) {
+      var hangupMsg = new payloads.Hangup(hangupData);
+      this.server.callHangup(hangupMsg);
     },
 
     _onPresenceRequest: function(data) {
