@@ -153,9 +153,10 @@ var ChatApp = (function(app, $, Backbone, _) {
   };
 
   /**
+   * Called when initiating a call.
    *
-   *
-   * @param {payloads.Offer} offerMsg
+   * @param {payloads.Offer} offerMsg the offer to send to initiate
+   * the call.
    *
    */
   ChatApp.prototype._onSendOffer = function(offerMsg) {
