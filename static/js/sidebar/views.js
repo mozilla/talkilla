@@ -303,6 +303,7 @@
       this.user = options.user;
       this.service = options.service;
       this.user.on('signin signout', this.render, this);
+      this.render();
     },
 
     loadGoogleContacts: function() {
