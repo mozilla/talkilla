@@ -125,13 +125,13 @@ api = {
       // just as we call them. We may want to send something back to the
       // caller to indicate the issue.
       logger.warn("Could not forward offer to unknown peer");
-      return res.send(200, JSON.stringify({}));
+      return res.send(204);
     }
 
     data.peer = nick;
     peer.send({'incoming_call': data});
     logger.info({type: "call:offer"});
-    res.send(200, JSON.stringify({}));
+    res.send(204);
   },
 
   callAccepted: function(req, res) {
@@ -144,13 +144,13 @@ api = {
       // just as we call them. We may want to send something back to the
       // caller to indicate the issue.
       logger.warn("Could not forward offer to unknown peer");
-      return res.send(200, JSON.stringify({}));
+      return res.send(204);
     }
 
     data.peer = nick;
     peer.send({'call_accepted': data});
     logger.info({type: "call:accepted"});
-    res.send(200, JSON.stringify({}));
+    res.send(204);
   },
 
   callHangup: function(req, res) {
@@ -163,13 +163,13 @@ api = {
       // just as we call them. We may want to send something back to the
       // caller to indicate the issue.
       logger.warn("Could not forward offer to unknown peer");
-      return res.send(200, JSON.stringify({}));
+      return res.send(204);
     }
 
     data.peer = nick;
     peer.send({'call_hangup': data});
     logger.info({type: "call:hangup"});
-    res.send(200, JSON.stringify({}));
+    res.send(204);
   },
 
   iceCandidate: function(req, res) {
@@ -183,19 +183,19 @@ api = {
       // just as we call them. We may want to send something back to the
       // caller to indicate the issue.
       logger.warn("Could not forward iceCandidate to unknown peer");
-      return res.send(200, JSON.stringify({}));
+      return res.send(204);
     }
 
     data.peer = nick;
     peer.send({'ice:candidate': data});
-    res.send(200, JSON.stringify({}));
+    res.send(204);
   },
 
   presenceRequest: function(req, res) {
     var user = users.get(req.body.nick);
     var presentUsers = users.toJSON(users.present());
     user.send({users: presentUsers});
-    return res.send(200, JSON.stringify({}));
+    return res.send(204);
   }
 };
 

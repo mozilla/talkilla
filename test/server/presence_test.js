@@ -286,7 +286,7 @@ describe("presence", function() {
         api.iceCandidate(req, res);
 
         sinon.assert.calledOnce(res.send);
-        sinon.assert.calledWithExactly(res.send, 200, JSON.stringify({}));
+        sinon.assert.calledWithExactly(res.send, 204);
       });
     });
 
@@ -326,7 +326,7 @@ describe("presence", function() {
         api.iceCandidate(req, res);
 
         sinon.assert.calledOnce(res.send);
-        sinon.assert.calledWithExactly(res.send, 200, JSON.stringify({}));
+        sinon.assert.calledWithExactly(res.send, 204);
       });
     });
 
@@ -366,7 +366,7 @@ describe("presence", function() {
         api.iceCandidate(req, res);
 
         sinon.assert.calledOnce(res.send);
-        sinon.assert.calledWithExactly(res.send, 200, JSON.stringify({}));
+        sinon.assert.calledWithExactly(res.send, 204);
       });
     });
 
@@ -408,7 +408,7 @@ describe("presence", function() {
         api.iceCandidate(req, res);
 
         sinon.assert.calledOnce(res.send);
-        sinon.assert.calledWithExactly(res.send, 200, JSON.stringify({}));
+        sinon.assert.calledWithExactly(res.send, 204);
       });
     });
 
@@ -437,7 +437,7 @@ describe("presence", function() {
         api.presenceRequest(req, res);
 
         sinon.assert.calledOnce(res.send);
-        sinon.assert.calledWithExactly(res.send, 200, JSON.stringify({}));
+        sinon.assert.calledWithExactly(res.send, 204);
       });
     });
   });
