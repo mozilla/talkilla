@@ -45,6 +45,15 @@ describe("ImportContactsView", function() {
       }).to.not.Throw(/missing parameter: service/);
     });
 
+    it("should render the view when initialized", function() {
+      var importView = new app.views.ImportContactsView({
+        user: user,
+        service: {}
+      });
+
+      sinon.assert.calledOnce(importView.render);
+    });
+
     it("should render the view when the user signs in", function() {
       var importView = new app.views.ImportContactsView({
         user: user,
