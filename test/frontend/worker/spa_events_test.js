@@ -225,6 +225,28 @@ describe("SPA events", function() {
     });
   });
 
+  describe("`ice:candidate` event", function() {
+    beforeEach(function() {
+      currentConversation = {
+        iceCandidate: function() {}
+      };
+    });
+
+    it("should call callHangup on the conversation", function() {
+      sandbox.stub(currentConversation, "iceCandidate");
+
+      var data = {
+        candidate: "dummy"
+      };
+
+      spa.trigger("ice:candidate", "lloyd", data);
+
+      sinon.assert.calledOnce(currentConversation.iceCandidate);
+      sinon.assert.calledWithExactly(
+        currentConversation.iceCandidate, {candidate: data, peer: "lloyd"});
+    });
+  });
+
   describe("`disconnected` event", function() {
     it("should set the user data as disconnected", function() {
       spa.trigger("disconnected", {code: 1006});

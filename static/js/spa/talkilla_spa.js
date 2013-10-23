@@ -11,6 +11,7 @@ var TalkillaSPA = (function() {
     this.port.on("offer", this._onCallOffer.bind(this));
     this.port.on("answer", this._onCallAnswer.bind(this));
     this.port.on("hangup", this._onCallHangup.bind(this));
+    this.port.on("ice:candidate", this._onIceCandidate.bind(this));
     this.port.on("presence:request", this._onPresenceRequest.bind(this));
 
     this.server.on("connected", this._onServerEvent.bind(this, "connected"));
@@ -36,7 +37,8 @@ var TalkillaSPA = (function() {
       var mapping = {
         "incoming_call": "offer",
         "call_accepted": "answer",
-        "call_hangup": "hangup"
+        "call_hangup": "hangup",
+        "ice:candidate": "ice:candidate"
       };
 
       if (type in mapping)
@@ -62,6 +64,11 @@ var TalkillaSPA = (function() {
     _onCallHangup: function(data) {
       data = {peer: data.peer};
       this.server.callHangup(data);
+    },
+
+    _onIceCandidate: function(data) {
+      data = {peer: data.peer, candidate: data.candidate};
+      this.server.iceCandidate(data);
     },
 
     _onPresenceRequest: function(data) {
