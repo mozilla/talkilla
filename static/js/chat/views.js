@@ -42,8 +42,6 @@
           this.$el.addClass('has-video');
         else
           this.$el.removeClass('has-video');
-
-        return;
       }, this);
     },
 

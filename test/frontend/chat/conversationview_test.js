@@ -377,6 +377,8 @@ describe("ConversationView", function() {
       expect($("#fixtures").hasClass("has-video")).to.equal(false);
     });
 
+    // TODO we'll need to write this and make it pass as soon as hanging
+    // up the call doesn't make the window close
     it("should remove the has-video class for video calls once the last" +
       " stream has terminated");
   });
