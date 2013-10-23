@@ -129,23 +129,23 @@ body {
   height: calc(100vw / 1.33333); /* keep 4:3 video aspect ratio */
 }
 
-#call .video-area {
+#call .media-display-area {
   position: relative;
   overflow: hidden;
   margin-bottom: -5px;
 }
 
-#call .remote-video {
+#call .remote-media {
   width: 100vw;
   min-width: 100vw;
   max-height: 80vh;
   z-index: 1;
 }
 
-/* XXX once we get the local-video stapled to the remote-video,
+/* XXX once we get the local-media stapled to the remote-media,
    much of this stuff may be irrelevant.  Audit this as part
    of that landing. */
-#call .local-video {
+#call .local-media {
   position: absolute;
   bottom: 10px; /* 10px seems to give stablest stapling across most sizes */
   right: 5px;
@@ -272,7 +272,7 @@ body {
     height: 60vh;
   }
 
-  #call .remote-video {
+  #call .remote-media {
     /**
      * XXX:
      *   - we can't keep both video aspect ratio and display 3 lines of chat
@@ -285,7 +285,7 @@ body {
     transform: scale(1.35);
   }
 
-  #call .local-video {
+  #call .local-media {
     bottom: 5px; /* the default of 10px looks odd when the window is small */
   }
 
@@ -302,18 +302,18 @@ body {
   #call {
     background: #000;
     height: calc(60vh - 25px - 22px);
-    text-align: center; /* cause entire video-area to be centered relative to
-                         * to window */
+    text-align: center; /* cause entire media-display-area to be centered
+                         * relative to window */
   }
 
-  #call .video-area {
+  #call .media-display-area {
     display: inline-block; /* table-cell would insert unwanted extra padding */
     height: 60vh;
     margin-bottom: 0;
     vertical-align: middle;
   }
 
-  #call .local-video {
+  #call .local-media {
     position: static;
     background: #000;
     float: left;
@@ -325,7 +325,7 @@ body {
     border: none;
   }
 
-  #call .remote-video {
+  #call .remote-media {
     position: static;
     display: block;
     float: left;

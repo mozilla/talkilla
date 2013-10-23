@@ -182,7 +182,7 @@ describe("Call Controls View", function() {
     var callControlsView, fakeClickEvent;
 
     beforeEach(function() {
-      var el = $('<div><div id="local-video"></div></div>');
+      var el = $('<div><div id="local-media"></div></div>');
       $("#fixtures").append(el);
 
       callControlsView = new app.views.CallControlsView({
