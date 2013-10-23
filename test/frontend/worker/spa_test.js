@@ -9,6 +9,7 @@ describe("SPA", function() {
     sandbox = sinon.sandbox.create();
     sandbox.stub(window, "Worker").returns(worker);
     spa = new SPA({src: "example.com"});
+    sandbox.stub(spa.http, "post");
   });
 
   afterEach(function() {
@@ -40,6 +41,24 @@ describe("SPA", function() {
       worker.onmessage({data: {topic: "foo", data: "bar"}});
     });
 
+    it("should trigger an ice:candidate event when receiving ice:candidate",
+      function(done) {
+        spa.on("ice:candidate", function(peer, candidate) {
+          expect(peer).to.equal("lloyd", "dummy");
+          done();
+        });
+
+        worker.onmessage({
+          data: {
+            topic: "ice:candidate",
+            data: {
+              peer: "lloyd",
+              candidate: "dummy"
+            }
+          }
+        });
+      });
+
   });
 
   describe("#signin", function() {
@@ -48,23 +67,10 @@ describe("SPA", function() {
       var callback = function() {};
       spa.signin("fake assertion", callback);
 
-      sinon.assert.calledOnce(spa.worker.postMessage);
-      sinon.assert.calledWithExactly(spa.worker.postMessage, {
-        topic: "signin",
-        data: {assertion: "fake assertion"}
-      });
-    });
-
-    it("should wait for a signin-callback event", function(done) {
-      var callback = function(err, response) {
-        expect(err).to.equal("foo");
-        expect(response).to.equal("bar");
-        done();
-      };
-      var data = {err: "foo", response: "bar"};
-
-      spa.signin("fake assertion", callback);
-      spa.worker.onmessage({data: {topic: "signin-callback", data: data}});
+      sinon.assert.calledOnce(spa.http.post);
+      sinon.assert.calledWithExactly(spa.http.post, "/signin", {
+        assertion: "fake assertion"
+      }, callback);
     });
 
   });
@@ -75,23 +81,10 @@ describe("SPA", function() {
       var callback = function() {};
       spa.signout("foo", callback);
 
-      sinon.assert.calledOnce(spa.worker.postMessage);
-      sinon.assert.calledWithExactly(spa.worker.postMessage, {
-        topic: "signout",
-        data: {nick: "foo"}
-      });
-    });
-
-    it("should wait for a signout-callback event", function(done) {
-      var callback = function(err, response) {
-        expect(err).to.equal("foo");
-        expect(response).to.equal("bar");
-        done();
-      };
-      var data = {err: "foo", response: "bar"};
-
-      spa.signout("foo", callback);
-      spa.worker.onmessage({data: {topic: "signout-callback", data: data}});
+      sinon.assert.calledOnce(spa.http.post);
+      sinon.assert.calledWithExactly(spa.http.post, "/signout", {
+        nick: "foo"
+      }, callback);
     });
 
   });
@@ -99,25 +92,12 @@ describe("SPA", function() {
   describe("#connect", function() {
 
     it("should send a connect event to the worker", function() {
-      spa.connect("foo");
+      spa.worker.postMessage.reset();
+      spa.connect({nick: "foo"});
 
       sinon.assert.calledOnce(spa.worker.postMessage);
       sinon.assert.calledWithExactly(spa.worker.postMessage, {
         topic: "connect",
-        data: {nick: "foo"}
-      });
-    });
-
-  });
-
-  describe("#autoconnect", function() {
-
-    it("should send an autoconnect event to the worker", function() {
-      spa.autoconnect("foo");
-
-      sinon.assert.calledOnce(spa.worker.postMessage);
-      sinon.assert.calledWithExactly(spa.worker.postMessage, {
-        topic: "autoconnect",
         data: {nick: "foo"}
       });
     });
@@ -168,6 +148,23 @@ describe("SPA", function() {
       sinon.assert.calledWithExactly(spa.worker.postMessage, {
         topic: "hangup",
         data: {peer: peer}
+      });
+    });
+
+  });
+
+  describe("#iceCandidate", function() {
+
+    it("should send an ice:candidate event to the worker", function() {
+      spa.iceCandidate("lloyd", "dummy");
+
+      sinon.assert.calledOnce(spa.worker.postMessage);
+      sinon.assert.calledWithExactly(spa.worker.postMessage, {
+        topic: "ice:candidate",
+        data: {
+          peer: "lloyd",
+          candidate: "dummy"
+        }
       });
     });
 

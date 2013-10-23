@@ -27,7 +27,7 @@ describe('HTTP', function() {
 
         sinon.assert.calledOnce(callback);
         sinon.assert.calledWithExactly(callback,
-                                       request.statusText,
+                                       request.status,
                                        "response body");
       });
   });

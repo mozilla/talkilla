@@ -10,33 +10,16 @@ var Server = (function() {
   }
 
   Server.prototype = {
-    signin: function(assertion, callback) {
-      this.http.post("/signin", {assertion: assertion}, callback);
-    },
-
-    signout: function(nick, callback) {
-      this.http.post("/signout", {nick: nick}, callback);
-    },
-
-    connect: function(nick) {
-      this.http.post("/stream", {nick: nick}, function(err, response) {
-        if (err)
-          return this.trigger("error", response);
-
-        this.nick = nick;
-        this.trigger("connected");
-        this._longPolling(nick, JSON.parse(response));
-      }.bind(this));
-    },
-
-    autoconnect: function(nick) {
-      this.http.post("/stream", {nick: nick}, function(err, response) {
-        if (err)
+    connect: function(credentials) {
+      this.http.post("/stream", credentials, function(err, response) {
+        if (err === 400)
+          return this.trigger("unauthorized", response);
+        if (err !== null)
           return this.trigger("disconnected", response);
 
-        this.nick = nick;
+        this.nick = credentials.nick;
         this.trigger("connected");
-        this._longPolling(nick, JSON.parse(response));
+        this._longPolling(credentials.nick, JSON.parse(response));
       }.bind(this));
     },
 
@@ -49,7 +32,9 @@ var Server = (function() {
       }.bind(this));
 
       this.http.post("/stream", {nick: nick}, function(err, response) {
-        if (err)
+        if (err === 400)
+          return this.trigger("unauthorized", response);
+        if (err !== null)
           return this.trigger("disconnected", response);
 
         this._longPolling(nick, JSON.parse(response));
@@ -66,6 +51,10 @@ var Server = (function() {
 
     callHangup: function(data, callback) {
       this.http.post("/callhangup", {data: data, nick: this.nick}, callback);
+    },
+
+    iceCandidate: function(data, callback) {
+      this.http.post("/icecandidate", {data: data, nick: this.nick}, callback);
     },
 
     presenceRequest: function(nick, callback) {

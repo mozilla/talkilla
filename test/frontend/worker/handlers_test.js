@@ -1,8 +1,7 @@
-/*global chai, sinon, ports:true, Port, PortCollection, handlers,
-  _currentUserData:true, currentConversation:true, UserData,
-  _presenceSocket:true, browserPort:true, tkWorker,
-  Conversation, _loginPending:true, _autologinPending:true,
-  _cookieNickname:true, SPA, spa:true, _signinCallback */
+/*global chai, sinon, Port, handlers, currentConversation:true, UserData,
+  _presenceSocket:true, browserPort:true, tkWorker, Conversation,
+  _loginPending:true, _autologinPending:true, _cookieNickname:true, SPA,
+  spa:true, _signinCallback */
 /* jshint expr:true */
 
 var expect = chai.expect;
@@ -16,32 +15,30 @@ describe('handlers', function() {
     sandbox.stub(window, "Server");
     sandbox.stub(window, "Worker").returns({postMessage: sinon.spy()});
     spa = new SPA({src: "example.com"});
+    browserPort = {postEvent: sandbox.spy()};
   });
 
   afterEach(function() {
     sandbox.restore();
+    browserPort = undefined;
   });
 
   describe("social.port-closing", function() {
     var port;
 
     beforeEach(function() {
-      ports = new PortCollection();
       port = new Port({_portid: 42});
-      ports.add(port);
-
-      browserPort = {postEvent: sandbox.spy()};
+      tkWorker.ports.add(port);
     });
 
     afterEach(function() {
       currentConversation = undefined;
-      browserPort = undefined;
     });
 
     it("should remove a closed port on receiving social.port-closing",
       function() {
         handlers['social.port-closing'].bind(port)();
-        expect(Object.keys(ports.ports)).to.have.length.of(0);
+        expect(Object.keys(tkWorker.ports.ports)).to.have.length.of(0);
       });
 
     it("should clear the current conversation on receiving " +
@@ -65,28 +62,28 @@ describe('handlers', function() {
 
     it("should try to connect the presence socket",
       function() {
-        _currentUserData = {};
-        sandbox.stub(spa, "autoconnect");
+        tkWorker.user.reset();
+        sandbox.stub(spa, "connect");
         var event = {
           data: [ {name: "nick", value: "Boriss"} ]
         };
 
         handlers['social.cookies-get-response'](event);
 
-        sinon.assert.calledOnce(spa.autoconnect);
-        sinon.assert.calledWithExactly(spa.autoconnect, "Boriss");
+        sinon.assert.calledOnce(spa.connect);
+        sinon.assert.calledWithExactly(spa.connect, {nick: "Boriss"});
       });
 
     it("should NOT try to connect if there is no nick provided",
       function () {
-        sandbox.stub(spa, "autoconnect");
+        sandbox.stub(spa, "connect");
 
         handlers['social.cookies-get-response']({
           topic: "social.cookies-get-response",
           data: []
         });
 
-        sinon.assert.notCalled(spa.autoconnect);
+        sinon.assert.notCalled(spa.connect);
       });
 
   });
@@ -118,15 +115,15 @@ describe('handlers', function() {
       xhr.onCreate = function (req) { requests.push(req); };
 
       rootURL = 'http://fake';
-      _currentUserData = new UserData({}, {
+      tkWorker.user = new UserData({}, {
         ROOTURL: rootURL
       });
-      sandbox.stub(_currentUserData, "send");
+      sandbox.stub(tkWorker.user, "send");
       _loginPending = _autologinPending = false;
     });
 
     afterEach(function() {
-      _currentUserData = undefined;
+      tkWorker.user.reset();
       xhr.restore();
       socketStub.restore();
     });
@@ -215,8 +212,8 @@ describe('handlers', function() {
 
       beforeEach(function() {
         port = {id: "tests", postEvent: sandbox.spy()};
-        ports.add(port);
-        sandbox.stub(spa, "signin", function(nick, callback) {
+        tkWorker.ports.add(port);
+        sandbox.stub(spa, "signin", function(assertion, callback) {
           callback(null, '{"nick":"jb"}');
         });
 
@@ -227,21 +224,21 @@ describe('handlers', function() {
       });
 
       afterEach(function() {
-        ports.remove(port);
+        tkWorker.ports.remove(port);
       });
 
-      it("should store the userName if the server accepted login", function() {
-        expect(_currentUserData.userName).to.be.equal("jb");
+      it("should store the name if the server accepted login", function() {
+        expect(tkWorker.user.name).to.be.equal("jb");
       });
 
       it("should set the current user name if the server accepted login",
         function() {
-          sinon.assert.calledOnce(_currentUserData.send);
+          sinon.assert.calledOnce(tkWorker.user.send);
         });
 
       it("should store the username if the server accepted login",
         function() {
-          expect(_currentUserData.userName).to.equal('jb');
+          expect(tkWorker.user.name).to.equal('jb');
         });
     });
   });
@@ -257,13 +254,13 @@ describe('handlers', function() {
       xhr.onCreate = function (req) { requests.push(req); };
 
       sandbox.stub(UserData.prototype, "send");
-      _currentUserData = new UserData({userName: 'romain'}, {});
+      tkWorker.user = new UserData({name: 'romain'}, {});
       _presenceSocket = { close: sandbox.stub() };
     });
 
     afterEach(function() {
       _presenceSocket = undefined;
-      _currentUserData = undefined;
+      tkWorker.user.reset();
       xhr.restore();
     });
 
@@ -281,11 +278,12 @@ describe('handlers', function() {
 
       beforeEach(function () {
         port = {id: "tests", postEvent: sandbox.spy()};
-        ports.add(port);
+        tkWorker.ports.add(port);
         sandbox.stub(spa, "signout", function(nick, callback) {
           callback(null, "OK");
         });
-        sandbox.stub(_currentUserData, "reset");
+        sandbox.stub(tkWorker.user, "reset");
+        sandbox.stub(tkWorker, "closeSession");
 
         handlers['talkilla.logout']({
           topic: 'talkilla.logout'
@@ -293,18 +291,11 @@ describe('handlers', function() {
       });
 
       afterEach(function() {
-        ports.remove(port);
+        tkWorker.ports.remove(port);
       });
 
-      it("should post a success message",
-        function() {
-          sinon.assert.calledOnce(port.postEvent);
-          sinon.assert.calledWith(port.postEvent, 'talkilla.logout-success');
-          ports.remove(port);
-        });
-
-      it("should reset the current user data", function() {
-        sinon.assert.calledOnce(_currentUserData.reset);
+      it("should close current worker session", function() {
+        sinon.assert.calledOnce(tkWorker.closeSession);
       });
     });
 
@@ -323,13 +314,8 @@ describe('handlers', function() {
   });
 
   describe("talkilla.conversation-open", function() {
-    beforeEach(function() {
-      browserPort = {postEvent: sandbox.spy()};
-    });
-
     afterEach(function() {
       currentConversation = undefined;
-      browserPort = undefined;
     });
 
     it("should create a new conversation object when receiving a " +
@@ -346,8 +332,7 @@ describe('handlers', function() {
 
   describe("talkilla.chat-window-ready", function() {
     beforeEach(function() {
-      browserPort = {postEvent: sandbox.spy()};
-      _currentUserData = new UserData();
+      tkWorker.user = new UserData();
       currentConversation = {
         windowOpened: sandbox.spy()
       };
@@ -355,15 +340,14 @@ describe('handlers', function() {
 
     afterEach(function() {
       currentConversation = undefined;
-      _currentUserData = undefined;
-      browserPort = undefined;
+      tkWorker.user.reset();
     });
 
     it("should tell the conversation the window has opened when " +
       "receiving a talkilla.chat-window-ready",
       function () {
         var chatAppPort = {postEvent: sinon.spy()};
-        _currentUserData.userName = "bob";
+        tkWorker.user.name = "bob";
 
         handlers['talkilla.chat-window-ready'].bind(chatAppPort)({
           topic: "talkilla.chat-window-ready",
@@ -379,17 +363,18 @@ describe('handlers', function() {
   describe("talkilla.sidebar-ready", function() {
 
     beforeEach(function() {
-      _currentUserData = new UserData();
-      sandbox.stub(_currentUserData, "send");
+      tkWorker.user = new UserData();
+      sandbox.stub(tkWorker.user, "send");
     });
 
     afterEach(function() {
-      _currentUserData = undefined;
+      tkWorker.user.reset();
     });
 
     it("should notify new sidebars of the logged in user",
       function() {
-        _currentUserData.userName = "jb";
+        tkWorker.user.name = "jb";
+        tkWorker.user.connected = true;
         handlers.postEvent = sinon.spy();
         handlers['talkilla.sidebar-ready']({
           topic: "talkilla.sidebar-ready",
@@ -402,14 +387,14 @@ describe('handlers', function() {
 
     it("should notify new sidebars only if there's a logged in user",
       function() {
-        sandbox.stub(spa, "autoconnect");
+        sandbox.stub(spa, "connect");
         handlers.postEvent = sinon.spy();
         handlers['talkilla.sidebar-ready']({
           topic: "talkilla.sidebar-ready",
           data: {}
         });
 
-        sinon.assert.notCalled(spa.autoconnect);
+        sinon.assert.notCalled(spa.connect);
       });
     it("should notify new sidebars only if there's a logged in user",
       function() {
@@ -428,20 +413,20 @@ describe('handlers', function() {
 
   describe("talkilla.presence-request", function () {
     beforeEach(function() {
-      _currentUserData = new UserData();
-      sandbox.stub(_currentUserData, "send");
+      tkWorker.user = new UserData();
+      sandbox.stub(tkWorker.user, "send");
       sandbox.stub(spa, "presenceRequest");
     });
 
     afterEach(function() {
-      _currentUserData = null;
+      tkWorker.user.reset();
     });
 
     it("should notify new sidebars of current users",
       function() {
-        _currentUserData.userName = "jb";
+        tkWorker.user.name = "jb";
         _presenceSocket = {send: sinon.spy()};
-        tkWorker.currentUsers.reset();
+        tkWorker.users.reset();
         handlers.postEvent = sinon.spy();
         handlers['talkilla.presence-request']({
           topic: "talkilla.presence-request",
@@ -453,7 +438,7 @@ describe('handlers', function() {
 
     it("should request for the initial presence state " +
        "if there is no current users", function() {
-        tkWorker.currentUsers.reset();
+        tkWorker.users.reset();
         handlers['talkilla.presence-request']({
           topic: "talkilla.presence-request",
           data: {}
@@ -468,7 +453,7 @@ describe('handlers', function() {
 
     it("should post an offer when receiving a talkilla.call-offer event",
       function() {
-        _currentUserData = {userName: "tom"};
+        tkWorker.user.name = "tom";
         sandbox.stub(spa, "callOffer");
         var data = {
           peer: "tom",
@@ -489,7 +474,7 @@ describe('handlers', function() {
   describe("talkilla.call-answer", function() {
     it("should send a websocket message when receiving talkilla.call-answer",
       function() {
-        _currentUserData = {userName: "fred"};
+        tkWorker.user.name = "fred";
         sandbox.stub(spa, "callAnswer");
         var data = {
           peer: "fred",
@@ -514,7 +499,7 @@ describe('handlers', function() {
 
     it("should send a websocket message when receiving talkilla.call-hangup",
       function() {
-        _currentUserData = {userName: "florian"};
+        tkWorker.user.name = "florian";
         sandbox.stub(spa, "callHangup");
         var data = {
           peer: "florian"
@@ -527,6 +512,28 @@ describe('handlers', function() {
 
         sinon.assert.calledOnce(spa.callHangup);
         sinon.assert.calledWithExactly(spa.callHangup, "florian");
+      });
+  });
+
+  describe("talkilla.ice-candidate", function() {
+    afterEach(function() {
+    });
+
+    it("should pass the ice candidate to the spa",
+      function() {
+        sandbox.stub(spa, "iceCandidate");
+        var data = {
+          peer: "lloyd",
+          candidate: "dummy"
+        };
+
+        handlers['talkilla.ice-candidate']({
+          topic: "talkilla.ice-candidate",
+          data: data
+        });
+
+        sinon.assert.calledOnce(spa.iceCandidate);
+        sinon.assert.calledWithExactly(spa.iceCandidate, "lloyd", "dummy");
       });
   });
 

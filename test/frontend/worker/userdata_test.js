@@ -24,9 +24,9 @@ describe('UserData', function() {
     });
 
     it("should accept initial values", function() {
-      var userData = new UserData({userName: "foo", connected: true});
+      var userData = new UserData({name: "foo", connected: true});
       expect(userData).to.include.keys(Object.keys(userData.defaults));
-      expect(userData.userName).to.equal("foo");
+      expect(userData.name).to.equal("foo");
       expect(userData.connected).to.equal(true);
     });
 
@@ -37,7 +37,7 @@ describe('UserData', function() {
       });
   });
 
-  describe("#userName", function() {
+  describe("#name", function() {
     var userData;
 
     beforeEach(function () {
@@ -49,14 +49,14 @@ describe('UserData', function() {
     });
 
     it("should return the set value", function() {
-      userData.userName = "foo";
+      userData.name = "foo";
 
-      expect(userData.userName).to.be.equal("foo");
+      expect(userData.name).to.be.equal("foo");
     });
     it("should call send when changed", function() {
       sandbox.stub(UserData.prototype, "send");
 
-      userData.userName = "foo";
+      userData.name = "foo";
 
       sinon.assert.calledOnce(userData.send);
     });
@@ -89,16 +89,16 @@ describe('UserData', function() {
 
   describe("#reset", function() {
     it("should reset to defaults", function() {
-      var userData = new UserData({userName: "foo"});
+      var userData = new UserData({name: "foo"});
 
       userData.reset();
 
       expect(userData).to.include.keys(Object.keys(userData.defaults));
-      expect(userData.userName).to.equal(undefined);
+      expect(userData.name).to.equal(undefined);
     });
 
     it("should send a message", function() {
-      var userData = new UserData({userName: "foo"});
+      var userData = new UserData({name: "foo"});
       sandbox.stub(UserData.prototype, "send");
 
       userData.reset();
@@ -110,7 +110,7 @@ describe('UserData', function() {
   describe("#send", function() {
     var userData;
     beforeEach(function() {
-      userData = new UserData({userName: 'jb'}, {ROOTURL: "http://fake"});
+      userData = new UserData({name: 'jb'}, {ROOTURL: "http://fake"});
       browserPort.postEvent.reset();
     });
 

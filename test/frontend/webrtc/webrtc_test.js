@@ -50,6 +50,7 @@ describe("WebRTC", function() {
     sandbox.stub(window, "mozRTCPeerConnection").returns({
       close: sandbox.spy(),
       addStream: sandbox.spy(),
+      addIceCandidate: sandbox.spy(),
       createAnswer: function(success) {
         success(fakeAnswer);
       },
@@ -435,6 +436,18 @@ describe("WebRTC", function() {
       });
     });
 
+    describe("#addIceCandidate", function() {
+
+      it("should add the candidate to the peer connection", function() {
+        webrtc.initiate();
+
+        webrtc.addIceCandidate({candidate: "dummy"});
+
+        sinon.assert.calledOnce(webrtc.pc.addIceCandidate);
+      });
+
+    });
+
     describe("#establish", function() {
       var offerer, answerer;
 
@@ -577,6 +590,33 @@ describe("WebRTC", function() {
         expect(audioStreamTrack.enabled).to.be.equal(true);
         expect(videoStreamTrack.enabled).to.be.equal(false);
       });
+    });
+  });
+
+  describe("Event handling", function() {
+    beforeEach(function() {
+      webrtc = new WebRTC();
+
+      webrtc.initiate();
+    });
+
+    describe("#_onIceCandidate", function() {
+
+      it("should trigger an ice:candidate-ready event", function() {
+        sandbox.stub(webrtc, "trigger");
+
+        var candidate = {
+          candidate: "dummy",
+          sdpMid: "foo",
+          sdpMLineIndex: 1
+        };
+        webrtc.pc.onicecandidate({candidate: candidate});
+
+        sinon.assert.calledOnce(webrtc.trigger);
+        sinon.assert.calledWithExactly(webrtc.trigger, "ice:candidate-ready",
+                                       candidate);
+      });
+
     });
   });
 
