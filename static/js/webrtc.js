@@ -380,7 +380,7 @@
 
   /**
    * Executed when an ICE candidate is received.
-   * @param  {mozRTCIceCandidate} candidate
+   * @param  {mozRTCIceCandidate} event.candidate
    * @event  `ice:candidate-ready` {Object}
    */
   WebRTC.prototype._onIceCandidate = function(event) {
