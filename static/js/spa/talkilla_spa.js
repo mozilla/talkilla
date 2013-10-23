@@ -34,11 +34,11 @@ var TalkillaSPA = (function() {
       // XXX: For now we just translate the server messages to the
       // documented SPA interface. We have to update the server to
       // reflect these events.
-      if (type === "incoming_call")
+      if (type === "offer")
         this.port.post("offer", (new payloads.Offer(event)).toJSON());
-      else if (type === "call_accepted")
+      else if (type === "answer")
         this.port.post("answer", (new payloads.Answer(event)).toJSON());
-      else if (type === "call_hangup")
+      else if (type === "hangup")
         this.port.post("hangup", (new payloads.Hangup(event)).toJSON());
       else
         this.port.post("message", [type, event]);

@@ -111,9 +111,9 @@ describe("Server", function() {
     it("should trigger a message event for each event", function(done) {
       var nbCall = 1;
       var events = [
-        {first:  "event 1"},
-        {second: "event 2"},
-        {third:  "event 3"}
+        {topic: "first",  data: "event 1"},
+        {topic: "second", data: "event 2"},
+        {topic: "third",  data: "event 3"}
       ];
       sandbox.stub(server.http, "post");
       server.on("message", function(type, event) {
@@ -140,10 +140,10 @@ describe("Server", function() {
     });
 
     it("should trigger a custom message event", function(done) {
-      var events = [{"sometype":  "event"}];
+      var events = [{topic: "sometopic", data: "event"}];
 
       sandbox.stub(server.http, "post");
-      server.on("message:sometype", function(event) {
+      server.on("message:sometopic", function(event) {
         expect(event).to.equal("event");
         done();
       });

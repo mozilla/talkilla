@@ -25,10 +25,8 @@ var Server = (function() {
 
     _longPolling: function(nick, events) {
       events.forEach(function(event) {
-        for (var type in event) {
-          this.trigger("message", type, event[type]);
-          this.trigger("message:" + type, event[type]);
-        }
+        this.trigger("message", event.topic, event.data);
+        this.trigger("message:" + event.topic, event.data);
       }.bind(this));
 
       this.http.post("/stream", {nick: nick}, function(err, response) {
