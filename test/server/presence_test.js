@@ -251,11 +251,16 @@ describe("presence", function() {
     });
 
     describe("#callOffer", function() {
+      var req, res;
+
+      beforeEach(function() {
+        req = {body: {data: {peer: "bar"}, nick: "foo"}};
+        res = {send: sinon.spy()};
+      });
+
 
       it("should forward the event to the peer after swapping the nick",
         function() {
-          var req = {body: {data: {peer: "bar"}, nick: "foo"}};
-          var res = {send: function() {}};
           var forwardedEvent = {peer: "foo"};
           var bar = users.add("foo").add("bar").get("bar");
           sandbox.stub(bar, "send");
@@ -269,22 +274,33 @@ describe("presence", function() {
 
       it("should warn on handling offers to unknown users", function() {
         sandbox.stub(logger, "warn");
-        var req = {body: {data: {peer: "bar"}}};
-        var res = {send: function() {}};
 
         api.callOffer(req, res);
 
         sinon.assert.calledOnce(logger.warn);
       });
 
+      it("should return success", function() {
+        users.add("foo").add("bar").get("bar");
+
+        api.iceCandidate(req, res);
+
+        sinon.assert.calledOnce(res.send);
+        sinon.assert.calledWithExactly(res.send, 200, JSON.stringify({}));
+      });
     });
 
     describe("#callAccepted", function() {
+      var req, res;
+
+      beforeEach(function() {
+        req = {body: {data: {peer: "bar"}, nick: "foo"}};
+        res = {send: sinon.spy()};
+      });
+
 
       it("should forward the event to the peer after swapping the nick",
         function() {
-          var req = {body: {data: {peer: "bar"}, nick: "foo"}};
-          var res = {send: function() {}};
           var forwardedEvent = {peer: "foo"};
           var bar = users.add("foo").add("bar").get("bar");
           sandbox.stub(bar, "send");
@@ -298,20 +314,32 @@ describe("presence", function() {
 
       it("should warn on handling answers to unknown users", function() {
         sandbox.stub(logger, "warn");
-        var req = {body: {data: {peer: "bar"}}};
-        var res = {send: function() {}};
 
         api.callAccepted(req, res);
 
         sinon.assert.calledOnce(logger.warn);
       });
+
+      it("should return success", function() {
+        users.add("foo").add("bar").get("bar");
+
+        api.iceCandidate(req, res);
+
+        sinon.assert.calledOnce(res.send);
+        sinon.assert.calledWithExactly(res.send, 200, JSON.stringify({}));
+      });
     });
 
     describe("#callHangup", function() {
+      var req, res;
+
+      beforeEach(function() {
+        req = {body: {data: {peer: "bar"}, nick: "foo"}};
+        res = {send: sinon.spy()};
+      });
 
       it("should forward the event to the peer after swapping the nick",
         function() {
-          var req = {body: {data: {peer: "bar"}, nick: "foo"}};
           var res = {send: function() {}};
           var forwardedEvent = {peer: "foo"};
           var bar = users.add("foo").add("bar").get("bar");
@@ -326,23 +354,35 @@ describe("presence", function() {
 
       it("should warn on handling hangups to unknown users", function() {
         sandbox.stub(logger, "warn");
-        var req = {body: {data: {peer: "bar"}}};
-        var res = {send: function() {}};
 
         api.callHangup(req, res);
 
         sinon.assert.calledOnce(logger.warn);
       });
+
+      it("should return success", function() {
+        users.add("foo").add("bar").get("bar");
+
+        api.iceCandidate(req, res);
+
+        sinon.assert.calledOnce(res.send);
+        sinon.assert.calledWithExactly(res.send, 200, JSON.stringify({}));
+      });
     });
 
     describe("#iceCandidate", function() {
+      var req, res;
+
+      beforeEach(function() {
+        req = {
+          body: {data: {peer: "bar", candidate: "dummy"},
+                 nick: "foo"}
+        };
+        res = {send: sinon.spy()};
+      });
+
       it("should forward the event to the peer after swapping the nick",
         function() {
-          var req = {
-            body: {data: {peer: "bar", candidate: "dummy"},
-                   nick: "foo"}
-          };
-          var res = {send: function() {}};
           var forwardedEvent = {peer: "foo", candidate: "dummy"};
           var bar = users.add("foo").add("bar").get("bar");
           sandbox.stub(bar, "send");
@@ -356,12 +396,19 @@ describe("presence", function() {
 
       it("should warn on handling candidates to unknown users", function() {
         sandbox.stub(logger, "warn");
-        var req = {body: {data: {peer: "bar"}}};
-        var res = {send: function() {}};
 
         api.iceCandidate(req, res);
 
         sinon.assert.calledOnce(logger.warn);
+      });
+
+      it("should return success", function() {
+        users.add("foo").add("bar").get("bar");
+
+        api.iceCandidate(req, res);
+
+        sinon.assert.calledOnce(res.send);
+        sinon.assert.calledWithExactly(res.send, 200, JSON.stringify({}));
       });
     });
 

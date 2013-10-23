@@ -131,6 +131,7 @@ api = {
     data.peer = nick;
     peer.send({'incoming_call': data});
     logger.info({type: "call:offer"});
+    res.send(200, JSON.stringify({}));
   },
 
   callAccepted: function(req, res) {
@@ -149,6 +150,7 @@ api = {
     data.peer = nick;
     peer.send({'call_accepted': data});
     logger.info({type: "call:accepted"});
+    res.send(200, JSON.stringify({}));
   },
 
   callHangup: function(req, res) {
@@ -167,6 +169,7 @@ api = {
     data.peer = nick;
     peer.send({'call_hangup': data});
     logger.info({type: "call:hangup"});
+    res.send(200, JSON.stringify({}));
   },
 
   iceCandidate: function(req, res) {
@@ -185,6 +188,7 @@ api = {
 
     data.peer = nick;
     peer.send({'ice:candidate': data});
+    res.send(200, JSON.stringify({}));
   },
 
   presenceRequest: function(req, res) {
