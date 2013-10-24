@@ -86,7 +86,10 @@ var Server = (function() {
      * @param {function} callback A callback for when the server answers back.
      */
     iceCandidate: function(iceCandidateMsg, callback) {
-      this.http.post("/icecandidate", iceCandidateMsg, callback);
+      this.http.post("/icecandidate", {
+        data: iceCandidateMsg,
+        nick: this.nick
+      }, callback);
     },
 
     presenceRequest: function(nick, callback) {

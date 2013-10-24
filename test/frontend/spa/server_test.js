@@ -239,14 +239,16 @@ describe("Server", function() {
         peer: "lloyd",
         candidate: "dummy"
       });
+      var callback = function() {};
       sandbox.stub(server.http, "post");
       server.nick = "lloyd";
-      server.iceCandidate(iceCandidateMsg);
+      server.iceCandidate(iceCandidateMsg, callback);
 
       sinon.assert.calledOnce(server.http.post);
-      sinon.assert.calledWith(server.http.post,
-                              "/icecandidate",
-                              iceCandidateMsg);
+      sinon.assert.calledWith(server.http.post, "/icecandidate", {
+        data: iceCandidateMsg,
+        nick: "lloyd"
+      }, callback);
     });
 
   });
