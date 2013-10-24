@@ -47,9 +47,24 @@ var payloads = (function() {
     }
   };
 
+  function IceCandidate(data) {
+    this.peer = data.peer;
+    this.candidate = data.candidate;
+  }
+
+  IceCandidate.prototype = {
+    toJSON: function() {
+      return {
+        peer: this.peer,
+        candidate: this.candidate
+      };
+    }
+  };
+
   return {
     Offer: Offer,
     Answer: Answer,
-    Hangup: Hangup
+    Hangup: Hangup,
+    IceCandidate: IceCandidate
   };
 })();
