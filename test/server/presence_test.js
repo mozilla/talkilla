@@ -347,8 +347,7 @@ describe("presence", function() {
           api.iceCandidate(req, res);
 
           sinon.assert.calledOnce(bar.send);
-          sinon.assert.calledWith(
-            bar.send, {"ice:candidate": forwardedEvent});
+          sinon.assert.calledWith(bar.send, "ice:candidate", forwardedEvent);
         });
 
       it("should warn on handling candidates to unknown users", function() {
