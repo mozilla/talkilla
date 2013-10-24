@@ -184,7 +184,7 @@ api = {
     }
 
     data.peer = nick;
-    peer.send({'ice:candidate': data});
+    peer.send('ice:candidate', data);
   },
 
   presenceRequest: function(req, res) {
