@@ -62,7 +62,11 @@
 }
 
 .sidebar .users li a .username {
+  display: block;
+  overflow: hidden;
   padding-left: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .sidebar .status {

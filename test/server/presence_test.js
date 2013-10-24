@@ -332,6 +332,36 @@ describe("presence", function() {
       });
     });
 
+    describe("#iceCandidate", function() {
+      it("should forward the event to the peer after swapping the nick",
+        function() {
+          var req = {
+            body: {data: {peer: "bar", candidate: "dummy"},
+                   nick: "foo"}
+          };
+          var res = {send: function() {}};
+          var forwardedEvent = {peer: "foo", candidate: "dummy"};
+          var bar = users.add("foo").add("bar").get("bar");
+          sandbox.stub(bar, "send");
+
+          api.iceCandidate(req, res);
+
+          sinon.assert.calledOnce(bar.send);
+          sinon.assert.calledWith(
+            bar.send, {"ice:candidate": forwardedEvent});
+        });
+
+      it("should warn on handling candidates to unknown users", function() {
+        sandbox.stub(logger, "warn");
+        var req = {body: {data: {peer: "bar"}}};
+        var res = {send: function() {}};
+
+        api.iceCandidate(req, res);
+
+        sinon.assert.calledOnce(logger.warn);
+      });
+    });
+
     describe("#presenceRequest", function() {
       var req, res, foo, bar;
 

@@ -409,6 +409,38 @@ describe("ChatApp", function() {
     });
 
     describe("Events", function() {
+      describe("ice:candidate-ready", function() {
+        it("should post a talkilla:ice-candidate message to the worker",
+          function() {
+          var candidate = "dummy";
+          chatApp.peer.set("nick", "lloyd");
+
+          chatApp.webrtc.trigger("ice:candidate-ready", candidate);
+
+          sinon.assert.called(AppPortStub.postEvent);
+          sinon.assert.calledWith(AppPortStub.postEvent,
+                                  "talkilla.ice-candidate", {
+            candidate: candidate,
+            peer: "lloyd"
+          });
+        });
+      });
+
+      describe("talkilla.ice-candidate", function () {
+        it("should pass the candidate to the webrtc model", function() {
+          var candidate = "dummy";
+
+          sandbox.stub(chatApp.webrtc, "addIceCandidate");
+
+          chatApp.port.trigger("talkilla.ice-candidate", {
+            candidate: candidate
+          });
+
+          sinon.assert.calledOnce(chatApp.webrtc.addIceCandidate);
+          sinon.assert.calledWith(chatApp.webrtc.addIceCandidate, candidate);
+        });
+      });
+
       describe("unload", function() {
         it("should hangup the call", function() {
           sandbox.stub(chatApp.call, "hangup");

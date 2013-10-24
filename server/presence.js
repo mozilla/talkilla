@@ -169,6 +169,24 @@ api = {
     logger.info({type: "call:hangup"});
   },
 
+  iceCandidate: function(req, res) {
+    logger.info({type: "ice:candidate"});
+    var nick = req.body.nick;
+    var data = req.body.data;
+    var peer = users.get(data.peer);
+
+    if (!peer) {
+      // XXX This could happen in the case of the user disconnecting
+      // just as we call them. We may want to send something back to the
+      // caller to indicate the issue.
+      logger.warn("Could not forward iceCandidate to unknown peer");
+      return res.send(200, JSON.stringify({}));
+    }
+
+    data.peer = nick;
+    peer.send({'ice:candidate': data});
+  },
+
   presenceRequest: function(req, res) {
     var user = users.get(req.body.nick);
     var presentUsers = users.toJSON(users.present());
@@ -183,6 +201,7 @@ app.post('/stream', api.stream);
 app.post('/calloffer', api.callOffer);
 app.post('/callaccepted', api.callAccepted);
 app.post('/callhangup', api.callHangup);
+app.post('/icecandidate', api.iceCandidate);
 app.post('/presenceRequest', api.presenceRequest);
 
 module.exports.api = api;

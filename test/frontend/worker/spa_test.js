@@ -41,6 +41,24 @@ describe("SPA", function() {
       worker.onmessage({data: {topic: "foo", data: "bar"}});
     });
 
+    it("should trigger an ice:candidate event when receiving ice:candidate",
+      function(done) {
+        spa.on("ice:candidate", function(peer, candidate) {
+          expect(peer).to.equal("lloyd", "dummy");
+          done();
+        });
+
+        worker.onmessage({
+          data: {
+            topic: "ice:candidate",
+            data: {
+              peer: "lloyd",
+              candidate: "dummy"
+            }
+          }
+        });
+      });
+
   });
 
   describe("#signin", function() {
@@ -131,6 +149,23 @@ describe("SPA", function() {
       sinon.assert.calledWithExactly(spa.worker.postMessage, {
         topic: "hangup",
         data: hangupMsg.toJSON()
+      });
+    });
+
+  });
+
+  describe("#iceCandidate", function() {
+
+    it("should send an ice:candidate event to the worker", function() {
+      spa.iceCandidate("lloyd", "dummy");
+
+      sinon.assert.calledOnce(spa.worker.postMessage);
+      sinon.assert.calledWithExactly(spa.worker.postMessage, {
+        topic: "ice:candidate",
+        data: {
+          peer: "lloyd",
+          candidate: "dummy"
+        }
       });
     });
 

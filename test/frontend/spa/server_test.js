@@ -232,6 +232,25 @@ describe("Server", function() {
 
   });
 
+  describe("#iceCandidate", function() {
+
+    it("should send an ice candidate", function() {
+      sandbox.stub(server.http, "post");
+      server.nick = "lloyd";
+      var candidate = {
+        candidate: "dummy"
+      };
+      server.iceCandidate(candidate);
+
+      sinon.assert.calledOnce(server.http.post);
+      sinon.assert.calledWith(server.http.post, "/icecandidate", {
+        data: candidate,
+        nick: "lloyd"
+      });
+    });
+
+  });
+
   describe("#presenceRequest", function() {
 
     it("should send a presence request", function() {

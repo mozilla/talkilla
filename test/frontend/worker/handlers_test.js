@@ -512,4 +512,26 @@ describe('handlers', function() {
       });
   });
 
+  describe("talkilla.ice-candidate", function() {
+    afterEach(function() {
+    });
+
+    it("should pass the ice candidate to the spa",
+      function() {
+        sandbox.stub(spa, "iceCandidate");
+        var data = {
+          peer: "lloyd",
+          candidate: "dummy"
+        };
+
+        handlers['talkilla.ice-candidate']({
+          topic: "talkilla.ice-candidate",
+          data: data
+        });
+
+        sinon.assert.calledOnce(spa.iceCandidate);
+        sinon.assert.calledWithExactly(spa.iceCandidate, "lloyd", "dummy");
+      });
+  });
+
 });

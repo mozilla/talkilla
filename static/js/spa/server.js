@@ -78,6 +78,10 @@ var Server = (function() {
       }, callback);
     },
 
+    iceCandidate: function(data, callback) {
+      this.http.post("/icecandidate", {data: data, nick: this.nick}, callback);
+    },
+
     presenceRequest: function(nick, callback) {
       this.http.post("/presencerequest", {nick: nick}, callback);
     }

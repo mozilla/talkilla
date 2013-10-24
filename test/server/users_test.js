@@ -8,6 +8,7 @@ var config = require('../../server/config').config;
 var logger = require('../../server/logger');
 var Users = require("../../server/users").Users;
 var User = require("../../server/users").User;
+var Waiter = require("../../server/users").Waiter;
 
 describe("User", function() {
 
@@ -51,6 +52,18 @@ describe("User", function() {
         });
 
         user.send(event.topic, event.data);
+      });
+
+    it("should queue the data if the pending timeout has already been resolved",
+      function() {
+        var data = {message: "some message"};
+        sandbox.stub(user, "present").returns(true);
+        user.pending = new Waiter();
+        user.pending.resolved = true;
+
+        user.send(data);
+
+        expect(user.events).to.deep.equal([data]);
       });
 
     it("should log a warning if the user is not present", function() {

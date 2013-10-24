@@ -12,6 +12,7 @@ var TalkillaSPA = (function() {
     this.port.on("offer", this._onCallOffer.bind(this));
     this.port.on("answer", this._onCallAnswer.bind(this));
     this.port.on("hangup", this._onCallHangup.bind(this));
+    this.port.on("ice:candidate", this._onIceCandidate.bind(this));
     this.port.on("presence:request", this._onPresenceRequest.bind(this));
 
     this.server.on("connected", this._onServerEvent.bind(this, "connected"));
@@ -40,6 +41,8 @@ var TalkillaSPA = (function() {
         this.port.post("answer", (new payloads.Answer(event)).toJSON());
       else if (type === "hangup")
         this.port.post("hangup", (new payloads.Hangup(event)).toJSON());
+      else if (type === "ice:candidate")
+        this.port.post("ice:candidate", event);
       else
         this.port.post("message", [type, event]);
     },
@@ -79,6 +82,11 @@ var TalkillaSPA = (function() {
     _onCallHangup: function(hangupData) {
       var hangupMsg = new payloads.Hangup(hangupData);
       this.server.callHangup(hangupMsg);
+    },
+
+    _onIceCandidate: function(data) {
+      data = {peer: data.peer, candidate: data.candidate};
+      this.server.iceCandidate(data);
     },
 
     _onPresenceRequest: function(data) {

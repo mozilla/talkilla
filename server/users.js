@@ -4,6 +4,7 @@ var logger = require('./logger');
 function Waiter(callback) {
   this.timeout = undefined;
   this.callback = callback;
+  this.resolved = false;
 }
 
 Waiter.prototype.after = function(timeout, data) {
@@ -14,6 +15,7 @@ Waiter.prototype.after = function(timeout, data) {
 
 Waiter.prototype.resolve = function(data) {
   clearTimeout(this.timeout);
+  this.resolved = true;
   this.callback(data);
 };
 
@@ -53,7 +55,7 @@ function User(nick) {
 User.prototype.send = function(topic, data) {
   var event = {topic: topic, data: data};
 
-  if (this.pending)
+  if (this.pending && !this.pending.resolved)
     // If there is an existing timeout, we resolve it with the
     // provided data.
     this.pending.resolve([event]);

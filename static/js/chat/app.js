@@ -88,6 +88,7 @@ var ChatApp = (function(app, $, Backbone, _) {
     this.port.on('talkilla.call-establishment',
                  this._onCallEstablishment, this);
     this.port.on('talkilla.call-hangup', this._onCallShutdown, this);
+    this.port.on('talkilla.ice-candidate', this._onIceCandidate, this);
     this.port.on('talkilla.user-joined', this._onUserJoined, this);
     this.port.on('talkilla.user-left', this._onUserLeft, this);
 
@@ -99,6 +100,9 @@ var ChatApp = (function(app, $, Backbone, _) {
     this.call.on('send-timeout', this._onSendTimeout, this);
     this.call.on('send-hangup', this._onCallHangup, this);
     this.call.on('transition:accept', this._onCallAccepted, this);
+    // As we can get ice candidates for calls or text chats, just get this
+    // straight from the media model.
+    this.webrtc.on('ice:candidate-ready', this._onIceCandidateReady, this);
 
     // Internal events
     window.addEventListener("unload", this._onWindowClose.bind(this));
@@ -152,12 +156,14 @@ var ChatApp = (function(app, $, Backbone, _) {
     this.audioLibrary.play('incoming');
   };
 
+  ChatApp.prototype._onIceCandidate = function(data) {
+    this.webrtc.addIceCandidate(data.candidate);
+  };
+
   /**
    * Called when initiating a call.
    *
-   * @param {payloads.Offer} offerMsg the offer to send to initiate
-   * the call.
-   *
+   * @param {payloads.Offer} offerMsg the offer to send to initiate the call.
    */
   ChatApp.prototype._onSendOffer = function(offerMsg) {
     this.port.postEvent('talkilla.call-offer', offerMsg.toJSON());
@@ -166,9 +172,7 @@ var ChatApp = (function(app, $, Backbone, _) {
   /**
    * Called when accepting an incoming call.
    *
-   * @param {payloads.Answer} answerMsg the answer to send to accept
-   * the call.
-   *
+   * @param {payloads.Answer} answerMsg the answer to send to accept the call.
    */
   ChatApp.prototype._onSendAnswer = function(answerMsg) {
     this.port.postEvent('talkilla.call-answer', answerMsg.toJSON());
@@ -179,6 +183,13 @@ var ChatApp = (function(app, $, Backbone, _) {
     // For this, we send call-hangup, the same as in the case where
     // the user decides to abandon the call attempt.
     this.port.postEvent('talkilla.call-hangup', data);
+  };
+
+  ChatApp.prototype._onIceCandidateReady = function(candidate) {
+    this.port.postEvent('talkilla.ice-candidate', {
+      peer: this.peer.get("nick"),
+      candidate: candidate
+    });
   };
 
   // Call Hangup

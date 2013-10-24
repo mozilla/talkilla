@@ -38,6 +38,7 @@ var tkWorker;
 function Conversation(data) {
   this.data = data;
   this.port = undefined;
+  this.iceCandidates = [];
 
   browserPort.postEvent('social.request-chat', 'chat.html');
 }
@@ -101,6 +102,12 @@ Conversation.prototype = {
       "talkilla.conversation-open";
 
     this.port.postEvent(topic, this.data);
+
+    this.iceCandidates.forEach(function(candidate) {
+      this.port.postEvent("talkilla.ice-candidate", candidate);
+    }, this);
+
+    this.iceCandidates = [];
   },
 
   /**
@@ -128,6 +135,17 @@ Conversation.prototype = {
   callHangup: function(data) {
     tkWorker.ports.broadcastDebug('conversation hangup', data);
     this.port.postEvent('talkilla.call-hangup', data);
+  },
+
+  iceCandidate: function(data) {
+    tkWorker.ports.broadcastDebug('ice:candidate', data);
+    // It is possible for the candidate to get here before we've got
+    // the window and port set up, so record this for when they are
+    // set up.
+    if (!this.port)
+      this.iceCandidates.push(data);
+    else
+      this.port.postEvent('talkilla.ice-candidate', data);
   }
 };
 
@@ -297,6 +315,12 @@ function _setupSPA(spa) {
       currentConversation.callHangup(hangupMsg.toJSON());
   });
 
+  spa.on("ice:candidate", function(peer, candidate) {
+    var data = {peer: peer, candidate: candidate};
+    if (currentConversation)
+      currentConversation.iceCandidate(data);
+  });
+
   spa.on("error", function(event) {
     tkWorker.ports.broadcastEvent("talkilla.websocket-error", event);
   });
@@ -461,8 +485,17 @@ var handlers = {
    * payloads.Hangup.
    */
   'talkilla.call-hangup': function (event) {
-    var hangupMsg = new payloads.Hangup(event.data);
-    spa.callHangup(hangupMsg);
+    spa.callHangup(new payloads.Hangup(event.data));
+  },
+
+  /**
+   * Handles an ICE candidate
+   *
+   * - peer: the person you are talking to
+   * - candidate: an mozRTCIceCandidate for the candidate
+   */
+  'talkilla.ice-candidate': function(event) {
+    spa.iceCandidate(event.data.peer, event.data.candidate);
   }
 };
 
