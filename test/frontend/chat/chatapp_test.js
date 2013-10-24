@@ -412,17 +412,18 @@ describe("ChatApp", function() {
       describe("ice:candidate-ready", function() {
         it("should post a talkilla:ice-candidate message to the worker",
           function() {
-          var candidate = "dummy";
+          var iceCandidateMsg = new payloads.IceCandidate({
+            peer: "lloyd",
+            candidate: "dummy"
+          });
           chatApp.peer.set("nick", "lloyd");
 
-          chatApp.webrtc.trigger("ice:candidate-ready", candidate);
+          chatApp.webrtc.trigger("ice:candidate-ready", "dummy");
 
           sinon.assert.called(AppPortStub.postEvent);
           sinon.assert.calledWith(AppPortStub.postEvent,
-                                  "talkilla.ice-candidate", {
-            candidate: candidate,
-            peer: "lloyd"
-          });
+                                  "talkilla.ice-candidate",
+                                  iceCandidateMsg.toJSON());
         });
       });
 

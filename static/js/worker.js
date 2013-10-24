@@ -315,10 +315,9 @@ function _setupSPA(spa) {
       currentConversation.callHangup(hangupMsg.toJSON());
   });
 
-  spa.on("ice:candidate", function(peer, candidate) {
-    var data = {peer: peer, candidate: candidate};
+  spa.on("ice:candidate", function(iceCandidateMsg) {
     if (currentConversation)
-      currentConversation.iceCandidate(data);
+      currentConversation.iceCandidate(iceCandidateMsg.toJSON());
   });
 
   spa.on("error", function(event) {
@@ -489,13 +488,13 @@ var handlers = {
   },
 
   /**
-   * Handles an ICE candidate
+   * Called when hanging up a call.
    *
-   * - peer: the person you are talking to
-   * - candidate: an mozRTCIceCandidate for the candidate
+   * @param {Object} event.data a data structure representation of a
+   * payloads.IceCandidate.
    */
   'talkilla.ice-candidate': function(event) {
-    spa.iceCandidate(event.data.peer, event.data.candidate);
+    spa.iceCandidate(new payloads.IceCandidate(event.data));
   }
 };
 

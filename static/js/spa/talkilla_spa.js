@@ -42,7 +42,8 @@ var TalkillaSPA = (function() {
       else if (type === "hangup")
         this.port.post("hangup", (new payloads.Hangup(event)).toJSON());
       else if (type === "ice:candidate")
-        this.port.post("ice:candidate", event);
+        this.port.post("ice:candidate",
+                       (new payloads.IceCandidate(event)).toJSON());
       else
         this.port.post("message", [type, event]);
     },
@@ -84,9 +85,15 @@ var TalkillaSPA = (function() {
       this.server.callHangup(hangupMsg);
     },
 
-    _onIceCandidate: function(data) {
-      data = {peer: data.peer, candidate: data.candidate};
-      this.server.iceCandidate(data);
+    /**
+     * Called when sending a new ice candidate.
+     *
+     * @param {Object} iceCandidateData a data structure
+     * representation of a payloads.IceCandidate.
+     */
+    _onIceCandidate: function(iceCandidateData) {
+      var iceCandidateMsg = new payloads.IceCandidate(iceCandidateData);
+      this.server.iceCandidate(iceCandidateMsg);
     },
 
     _onPresenceRequest: function(data) {

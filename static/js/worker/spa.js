@@ -29,7 +29,7 @@ var SPA = (function() {
       } else if (topic === "hangup") {
         this.trigger(topic, new payloads.Hangup(data));
       } else if (topic === "ice:candidate") {
-        this.trigger(topic, data.peer, data.candidate);
+        this.trigger(topic, new payloads.IceCandidate(data));
       } else {
         this.trigger(topic, data);
       }
@@ -84,8 +84,8 @@ var SPA = (function() {
       this._send("hangup", hangupMsg.toJSON());
     },
 
-    iceCandidate: function(peer, candidate) {
-      this._send("ice:candidate", {peer: peer, candidate: candidate});
+    iceCandidate: function(iceCandidateMsg) {
+      this._send("ice:candidate", iceCandidateMsg.toJSON());
     },
 
     presenceRequest: function(nick) {

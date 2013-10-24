@@ -43,8 +43,9 @@ describe("SPA", function() {
 
     it("should trigger an ice:candidate event when receiving ice:candidate",
       function(done) {
-        spa.on("ice:candidate", function(peer, candidate) {
-          expect(peer).to.equal("lloyd", "dummy");
+        spa.on("ice:candidate", function(iceCandidateMsg) {
+          expect(iceCandidateMsg.peer).to.equal("lloyd");
+          expect(iceCandidateMsg.candidate).to.equal("dummy");
           done();
         });
 
@@ -157,7 +158,11 @@ describe("SPA", function() {
   describe("#iceCandidate", function() {
 
     it("should send an ice:candidate event to the worker", function() {
-      spa.iceCandidate("lloyd", "dummy");
+      var iceCandidateMsg = new payloads.IceCandidate({
+        candidate: "dummy",
+        peer: "lloyd"
+      });
+      spa.iceCandidate(iceCandidateMsg);
 
       sinon.assert.calledOnce(spa.worker.postMessage);
       sinon.assert.calledWithExactly(spa.worker.postMessage, {

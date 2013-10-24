@@ -56,14 +56,14 @@ describe("User", function() {
 
     it("should queue the data if the pending timeout has already been resolved",
       function() {
-        var data = {message: "some message"};
+        var event = {topic: "message", data: "some message"};
         sandbox.stub(user, "present").returns(true);
         user.pending = new Waiter();
         user.pending.resolved = true;
 
-        user.send(data);
+        user.send(event.topic, event.data);
 
-        expect(user.events).to.deep.equal([data]);
+        expect(user.events).to.deep.equal([event]);
       });
 
     it("should log a warning if the user is not present", function() {

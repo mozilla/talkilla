@@ -1,5 +1,5 @@
 /* global Server */
-/* global describe, beforeEach, afterEach, sinon, it, expect */
+/* global describe, beforeEach, afterEach, sinon, it, expect, payloads */
 
 describe("Server", function() {
   var sandbox, server;
@@ -235,18 +235,18 @@ describe("Server", function() {
   describe("#iceCandidate", function() {
 
     it("should send an ice candidate", function() {
+      var iceCandidateMsg = new payloads.IceCandidate({
+        peer: "lloyd",
+        candidate: "dummy"
+      });
       sandbox.stub(server.http, "post");
       server.nick = "lloyd";
-      var candidate = {
-        candidate: "dummy"
-      };
-      server.iceCandidate(candidate);
+      server.iceCandidate(iceCandidateMsg);
 
       sinon.assert.calledOnce(server.http.post);
-      sinon.assert.calledWith(server.http.post, "/icecandidate", {
-        data: candidate,
-        nick: "lloyd"
-      });
+      sinon.assert.calledWith(server.http.post,
+                              "/icecandidate",
+                              iceCandidateMsg);
     });
 
   });

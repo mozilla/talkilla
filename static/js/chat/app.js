@@ -186,10 +186,11 @@ var ChatApp = (function(app, $, Backbone, _) {
   };
 
   ChatApp.prototype._onIceCandidateReady = function(candidate) {
-    this.port.postEvent('talkilla.ice-candidate', {
+    var iceCandidateMsg = new app.payloads.IceCandidate({
       peer: this.peer.get("nick"),
       candidate: candidate
     });
+    this.port.postEvent('talkilla.ice-candidate', iceCandidateMsg.toJSON());
   };
 
   // Call Hangup

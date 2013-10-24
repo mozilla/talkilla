@@ -237,15 +237,16 @@ describe("SPA events", function() {
     it("should call callHangup on the conversation", function() {
       sandbox.stub(currentConversation, "iceCandidate");
 
-      var data = {
+      var iceCandidateMsg = new payloads.IceCandidate({
+        peer: "lloyd",
         candidate: "dummy"
-      };
+      });
 
-      spa.trigger("ice:candidate", "lloyd", data);
+      spa.trigger("ice:candidate", iceCandidateMsg);
 
       sinon.assert.calledOnce(currentConversation.iceCandidate);
       sinon.assert.calledWithExactly(
-        currentConversation.iceCandidate, {candidate: data, peer: "lloyd"});
+        currentConversation.iceCandidate, iceCandidateMsg.toJSON());
     });
   });
 

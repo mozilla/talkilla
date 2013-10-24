@@ -78,8 +78,15 @@ var Server = (function() {
       }, callback);
     },
 
-    iceCandidate: function(data, callback) {
-      this.http.post("/icecandidate", {data: data, nick: this.nick}, callback);
+    /**
+     * Send a new ICE candidate via /icecandidate
+     *
+     * @param {payloads.IceCandidate} iceCandidateMsg An IceCandidate
+     * payload to send to a peer.
+     * @param {function} callback A callback for when the server answers back.
+     */
+    iceCandidate: function(iceCandidateMsg, callback) {
+      this.http.post("/icecandidate", iceCandidateMsg, callback);
     },
 
     presenceRequest: function(nick, callback) {

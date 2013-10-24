@@ -519,18 +519,18 @@ describe('handlers', function() {
     it("should pass the ice candidate to the spa",
       function() {
         sandbox.stub(spa, "iceCandidate");
-        var data = {
+        var iceCandidateMsg = new payloads.IceCandidate({
           peer: "lloyd",
           candidate: "dummy"
-        };
+        });
 
         handlers['talkilla.ice-candidate']({
           topic: "talkilla.ice-candidate",
-          data: data
+          data: iceCandidateMsg
         });
 
         sinon.assert.calledOnce(spa.iceCandidate);
-        sinon.assert.calledWithExactly(spa.iceCandidate, "lloyd", "dummy");
+        sinon.assert.calledWithExactly(spa.iceCandidate, iceCandidateMsg);
       });
   });
 
