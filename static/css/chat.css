@@ -121,6 +121,18 @@ body {
   background: url(../img/speaker.png);
 }
 
+/* Notifications */
+#notifications .alert {
+  position: fixed;
+  width: 100%;
+  top: 25px;
+  font-size: 80%;
+  padding: 5px 25px 5px 5px;
+  z-index: 10;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
 /**
  * Video call
  */

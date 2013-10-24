@@ -14,12 +14,16 @@
   <div id="call-controls">
     <ul class="controls">
       <li class="btn-video"><a href="#" title="Start a video call"></a></li>
-     <li class="btn-audio"><a href="#" title="Start an audio call"></a></li>
-     <li class="btn-hangup hide"><a href="#" title="Hang up"></a></li>
-     <li class="btn-microphone-mute hide"><a href="#" title="Mute microphone"></a></li>
-     <li class="btn-speaker-mute hide"><a href="#" title="Mute peer's audio"></a></li>
+      <li class="btn-audio"><a href="#" title="Start an audio call"></a></li>
+      <li class="btn-hangup hide"><a href="#" title="Hang up"></a></li>
+      <li class="btn-microphone-mute hide"><a href="#" title="Mute microphone"></a></li>
+      <li class="btn-speaker-mute hide"><a href="#" title="Mute peer's audio"></a></li>
     </ul>
   </div>
+
+  <!-- Notifications -->
+  <div id="notifications"></div>
+  <!-- /Notifications -->
 
   <!-- Call Offer -->
   <div id="offer" class="pending hide">
@@ -111,6 +115,7 @@
   <script src="js/utils.js"></script>
   <script src="js/models.js"></script>
   <script src="js/chat/models.js"></script>
+  <script src="js/views.js"></script>
   <script src="js/chat/views.js"></script>
   <script>
     jQuery(function($) {

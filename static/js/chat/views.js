@@ -37,12 +37,36 @@
 
       this.peer.on('change:presence', this._onPeerPresenceChanged, this);
 
+      // Media streams
       this.call.media.on('local-stream:ready remote-stream:ready', function() {
         if (this.call.requiresVideo())
           this.$el.addClass('has-video');
         else
           this.$el.removeClass('has-video');
       }, this);
+
+      // ICE connection state changes
+      this.call.media.on('ice:failed',
+        this._notify.bind(this, "Your call could not be connected."));
+      this.call.media.on('ice:disconnected',
+        this._notify.bind(this, "The call was disconnected."));
+      this.call.media.on('ice:new ice:checking ice:connected ice:completed',
+        this._clearNotification, this);
+    },
+
+    _clearNotification: function() {
+      if (!this.notification)
+        return;
+      this.notification.clear();
+      this.$('#notifications').empty();
+    },
+
+    _notify: function(message) {
+      this._clearNotification();
+      this.notification = new app.views.NotificationView({
+        model: new app.models.Notification({message: message})
+      });
+      this.$('#notifications').append(this.notification.render().$el.html());
     },
 
     _onPeerPresenceChanged: function(peer) {
@@ -390,14 +414,12 @@
         throw new Error("missing parameter: el");
 
       this.call = options.call;
-      this.call.media.on('local-stream:ready', 
-                         this._playLocalMedia, this);
+      this.call.media.on('local-stream:ready', this._playLocalMedia, this);
       this.call.media.on('remote-stream:ready', this._playRemoteMedia, this);
       this.call.media.on('local-stream:terminated',
                          this._terminateLocalMedia, this);
       this.call.media.on('remote-stream:terminated',
                          this._terminateRemoteMedia, this);
-      this.call.media.on('connection-upgraded', this.ongoing, this);
 
       this.call.on('change:state', this.render, this);
 
