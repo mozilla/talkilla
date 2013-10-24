@@ -38,7 +38,7 @@ var tkWorker;
 function Conversation(data) {
   this.data = data;
   this.port = undefined;
-  this.iceCandidates = [];
+  this.messageQueue = [];
 
   browserPort.postEvent('social.request-chat', 'chat.html');
 }
@@ -87,6 +87,10 @@ Conversation.prototype = {
 
   /**
    * Sends call information to the conversation window.
+   *
+   * If the window is not yet completely open, this will queue the
+   * message to the window. When the window is opened, this function
+   * is called again and will send the queued messages.
    */
   _sendCall: function() {
     tkWorker.contactsDb.add({username: this.data.peer}, function(err) {
@@ -101,13 +105,20 @@ Conversation.prototype = {
       "talkilla.conversation-incoming" :
       "talkilla.conversation-open";
 
-    this.port.postEvent(topic, this.data);
+    // Check if the window has completed opening
+    if (!this.port) {
+      tkWorker.ports.broadcastDebug("queuing offer!");
+      this.messageQueue.push({topic: topic, data: this.data});
+    }
+    else {
+      this.port.postEvent(topic, this.data);
 
-    this.iceCandidates.forEach(function(candidate) {
-      this.port.postEvent("talkilla.ice-candidate", candidate);
-    }, this);
+      this.messageQueue.forEach(function(message) {
+        this.port.postEvent(message.topic, message.data);
+      }, this);
 
-    this.iceCandidates = [];
+      this.messageQueue = [];
+    }
   },
 
   /**
@@ -143,7 +154,7 @@ Conversation.prototype = {
     // the window and port set up, so record this for when they are
     // set up.
     if (!this.port)
-      this.iceCandidates.push(data);
+      this.messageQueue.push({topic: 'talkilla.ice-candidate', data: data});
     else
       this.port.postEvent('talkilla.ice-candidate', data);
   }
