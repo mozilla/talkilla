@@ -61,7 +61,33 @@ Conversation.prototype = {
       this.data.user = tkWorker.user.name;
     }
 
-    this._sendCall();
+    tkWorker.contactsDb.add({username: this.data.peer}, function(err) {
+      if (err)
+        tkWorker.ports.broadcastError(err);
+    });
+
+    // retrieve peer presence information
+    this.data.peerPresence = tkWorker.users.getPresence(this.data.peer);
+
+    if (this.data.offer) {
+      // We don't want to send a duplicate incoming message if one has
+      // already been queued.
+      var msgQueued = this.messageQueue.some(function(message) {
+        return message.topic === "talkilla.conversation-incoming";
+      });
+
+      if (!msgQueued)
+        this.port.postEvent("talkilla.conversation-incoming", this.data);
+    }
+    else
+      this.port.postEvent("talkilla.conversation-open", this.data);
+
+    // Now send any queued messages
+    this.messageQueue.forEach(function(message) {
+      this.port.postEvent(message.topic, message.data);
+    }, this);
+
+    this.messageQueue = [];
   },
 
   /**
@@ -81,44 +107,23 @@ Conversation.prototype = {
 
     this.data = data;
 
-    this._sendCall();
+    // retrieve peer presence information
+    this.data.peerPresence = tkWorker.users.getPresence(this.data.peer);
+
+    this._sendMessage("talkilla.conversation-incoming", this.data);
+
     return true;
   },
 
   /**
-   * Sends call information to the conversation window.
-   *
-   * If the window is not yet completely open, this will queue the
-   * message to the window. When the window is opened, this function
-   * is called again and will send the queued messages.
+   * Attempts to send a message to the port, if the port is not known
+   * it will queue the message for delivery on window opened.
    */
-  _sendCall: function() {
-    tkWorker.contactsDb.add({username: this.data.peer}, function(err) {
-      if (err)
-        tkWorker.ports.broadcastError(err);
-    });
-
-    // retrieve peer presence information
-    this.data.peerPresence = tkWorker.users.getPresence(this.data.peer);
-
-    var topic = this.data.offer ?
-      "talkilla.conversation-incoming" :
-      "talkilla.conversation-open";
-
-    // Check if the window has completed opening
-    if (!this.port) {
-      tkWorker.ports.broadcastDebug("queuing offer!");
-      this.messageQueue.push({topic: topic, data: this.data});
-    }
-    else {
-      this.port.postEvent(topic, this.data);
-
-      this.messageQueue.forEach(function(message) {
-        this.port.postEvent(message.topic, message.data);
-      }, this);
-
-      this.messageQueue = [];
-    }
+  _sendMessage: function(topic, data) {
+    if (this.port)
+      this.port.postEvent(topic, data);
+    else
+      this.messageQueue.push({topic: topic, data: data});
   },
 
   /**
@@ -150,13 +155,7 @@ Conversation.prototype = {
 
   iceCandidate: function(data) {
     tkWorker.ports.broadcastDebug('ice:candidate', data);
-    // It is possible for the candidate to get here before we've got
-    // the window and port set up, so record this for when they are
-    // set up.
-    if (!this.port)
-      this.messageQueue.push({topic: 'talkilla.ice-candidate', data: data});
-    else
-      this.port.postEvent('talkilla.ice-candidate', data);
+    this._sendMessage('talkilla.ice-candidate', data);
   }
 };
 
