@@ -364,7 +364,8 @@ describe("Call Model", function() {
       call.peer.set("nick", "Mark");
 
       call.on("send-hangup", function(hangupMsg) {
-        expect(hangupMsg.toJSON()).to.deep.equal({peer: "Mark"});
+        expect(hangupMsg instanceof payloads.Hangup).to.equal(true);
+        expect(hangupMsg.peer).to.equal("Mark");
         done();
       });
 
