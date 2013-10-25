@@ -456,7 +456,7 @@ var handlers = {
   },
 
   /**
-   * Called when the chat window initiate a call.
+   * Called when the chat window initiates a call.
    *
    * @param {Object} event.data a data structure representation of a
    * payloads.Offer.

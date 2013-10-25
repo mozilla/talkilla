@@ -17,19 +17,21 @@ var SPA = (function() {
       var topic = event.data.topic;
       var data = event.data.data;
 
+      var mapping = {
+        "offer": payloads.Offer,
+        "answer": payloads.Answer,
+        "hangup": payloads.Hangup,
+        "ice:candidate": payloads.IceCandidate
+      };
+
       if (topic === "message") {
         type = data.shift();
         data = data.shift();
         this.trigger("message", type, data);
         this.trigger("message:" + type, data);
-      } else if (topic === "offer") {
-        this.trigger(topic, new payloads.Offer(data));
-      } else if (topic === "answer") {
-        this.trigger(topic, new payloads.Answer(data));
-      } else if (topic === "hangup") {
-        this.trigger(topic, new payloads.Hangup(data));
-      } else if (topic === "ice:candidate") {
-        this.trigger(topic, new payloads.IceCandidate(data));
+      } else if (topic in mapping) {
+        var Constructor = mapping[topic];
+        this.trigger(topic, new Constructor(data));
       } else {
         this.trigger(topic, data);
       }
@@ -84,6 +86,12 @@ var SPA = (function() {
       this._send("hangup", hangupMsg.toJSON());
     },
 
+    /**
+     * Update the available ICE candidates for a call.
+     *
+     * @param {payloads.IceCandidate} iceCandidateMsg a IceCandidate
+     * payload to update the available ICE candidates.
+     */
     iceCandidate: function(iceCandidateMsg) {
       this._send("ice:candidate", iceCandidateMsg.toJSON());
     },

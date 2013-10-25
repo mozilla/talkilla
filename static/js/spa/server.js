@@ -68,7 +68,7 @@ var Server = (function() {
     /**
      * End a call via the /callhangup API
      *
-     * @param {payloads.Hangup} hangupMsg A Hangup payload to accept the call.
+     * @param {payloads.Hangup} hangupMsg A Hangup payload to end the call.
      * @param {function} callback A callback for when the server answers back.
      */
     callHangup: function(hangupMsg, callback) {
