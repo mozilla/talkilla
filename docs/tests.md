@@ -4,13 +4,13 @@ Talkilla Automated Tests
 The Talkilla repository contains various levels of tests:
 
 * Lint tests
-** These are used to ensure that the code uses the general standards defined in the Coding Style of the (Contributing document)[../CONTRIBUTING.md]
+  * These are used to ensure that the code uses the general standards defined in the Coding Style of the (Contributing document)[../CONTRIBUTING.md]
 * Mocha tests
-** These are unit tests to test the Talkilla node.js server
+  * These are unit tests to test the Talkilla node.js server
 * Front-end tests
-** These are for unit testing the front-end client javascript code, they use the selenium server to run within the browser
+  * These are for unit testing the front-end client javascript code, they use the selenium server to run within the browser
 * Functional tests
-** These ensure that Talkilla works functionally correctly
+  * These ensure that Talkilla works functionally correctly
 
 Running all Tests
 -----------------
@@ -52,7 +52,7 @@ To run the front-end unit tests standalone:
 
 1. First make sure you are running the server in development mode:
 
-    $ make runserver_dev
+        $ make runserver_dev
 
 2. Visit http://localhost:5000/test/frontend/index.html
 
@@ -121,8 +121,8 @@ You can generate a url for failing functional tests, this is especially helpful 
 
 To generate a screenshot at any time, first ensure the function is imported:
 
-   from browser_test import output_base64_screenshot
+    from browser_test import output_base64_screenshot
 
 Then, call the function at the approriate point, this can be before or after a failure:
 
-   output_base64_screenshot(self)
+    output_base64_screenshot(self)

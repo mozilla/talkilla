@@ -28,7 +28,7 @@ To log to the browser console from a worker:
 
 3. Call a special function:
 
-    tkWorker.ports.broadcastDebug("Message", object);
+        tkWorker.ports.broadcastDebug("Message", object);
 
 This function can only take one object to log.
 
@@ -44,7 +44,7 @@ The remote debugger can be used for debugging in the sidebar or the frameworker.
 
 There are a couple of known issues:
 
-* It cannot currently be used for debugging the sub-workers e.g. the SPAs ([bug 757133](https://bugzilla.mozilla.org/show_bug.cgi?id=757133)
+* It cannot currently be used for debugging the sub-workers e.g. the SPAs ([bug 757133](https://bugzilla.mozilla.org/show_bug.cgi?id=757133))
 * There is also a known issue where closing and opening a window, or reloading may cause breakpoints not to work as well
 
 To use the remote debugger:
