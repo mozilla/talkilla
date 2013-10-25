@@ -47,11 +47,13 @@ cover_server:
 # other targets
 
 .PHONY: selenium_all
-selenium_all: frontend selenium
+selenium_all:
+	bin/run_selenium_test.sh "python -m unittest discover -v test/frontend" \
+	  "python -m unittest discover -v test/functional"
 
 .PHONY: selenium
 selenium:
-	bin/run_selenium_test.sh python -m unittest discover -v test/functional
+	bin/run_selenium_test.sh "python -m unittest discover -v test/functional"
 
 .PHONY: selenium-repeat
 REPEAT_TIMES ?= 10
@@ -61,5 +63,5 @@ selenium-repeat:
 
 .PHONY: frontend
 frontend:
-	bin/run_selenium_test.sh python -m unittest discover -v test/frontend
+	bin/run_selenium_test.sh "python -m unittest discover -v test/frontend"
 
