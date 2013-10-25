@@ -46,7 +46,12 @@ Optional settings are:
 Testing
 -------
 
-Talkilla has a comprehensive test suite. See the [tests.md](docs/tests.md) file for more detail.
+Talkilla has a comprehensive test suite. See the [docs/tests.md](docs/tests.md) file for more detail.
+
+Debugging
+---------
+
+There are various ways to debug Talkilla, see the [docs/debugging.md](docs/debugging.md) file for more detail.
 
 Contribution
 ------------
