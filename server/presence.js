@@ -65,12 +65,17 @@ api = {
         logger.info({type: "disconnection"});
       };
       logger.info({type: "signin"});
+
+      req.session.email = nick;
       res.send(200, JSON.stringify(users.get(nick)));
     });
   },
 
   signout: function(req, res) {
-    var nick = req.body.nick;
+    if (!req.session.email)
+      return res.send(400);
+
+    var nick = req.session.email;
     users.get(nick).disconnect();
     users.remove(nick);
     logger.info({type: "signout"});
@@ -88,15 +93,11 @@ api = {
    * Events received between reconnections are not lost.
    */
   stream: function(req, res) {
-    var nick = req.body.nick;
+    if (!req.session.email)
+      return res.send(400);
+
+    var nick = req.session.email;
     var user = users.get(nick);
-    // XXX: Here we verify if the user is signed in. Of course the
-    // nickname is not a sufficient proof of authentication nor
-    // authorization. We should fix that in the signin API by
-    // generating a secret token and verify it. Probably as a session
-    // property.
-    if (!user)
-      return res.send(400, JSON.stringify({}));
 
     if (!user.present()) {
       users.present().forEach(function(user) {
@@ -116,7 +117,10 @@ api = {
   },
 
   callOffer: function(req, res) {
-    var nick = req.body.nick;
+    if (!req.session.email)
+      return res.send(400);
+
+    var nick = req.session.email;
     var data = req.body.data;
     var peer = users.get(data.peer);
 
@@ -135,7 +139,10 @@ api = {
   },
 
   callAccepted: function(req, res) {
-    var nick = req.body.nick;
+    if (!req.session.email)
+      return res.send(400);
+
+    var nick = req.session.email;
     var data = req.body.data;
     var peer = users.get(data.peer);
 
@@ -154,7 +161,10 @@ api = {
   },
 
   callHangup: function(req, res) {
-    var nick = req.body.nick;
+    if (!req.session.email)
+      return res.send(400);
+
+    var nick = req.session.email;
     var data = req.body.data;
     var peer = users.get(data.peer);
 
@@ -173,8 +183,11 @@ api = {
   },
 
   iceCandidate: function(req, res) {
+    if (!req.session.email)
+      return res.send(400);
+
     logger.info({type: "ice:candidate"});
-    var nick = req.body.nick;
+    var nick = req.session.email;
     var data = req.body.data;
     var peer = users.get(data.peer);
 
@@ -192,7 +205,11 @@ api = {
   },
 
   presenceRequest: function(req, res) {
-    var user = users.get(req.body.nick);
+    if (!req.session.email)
+      return res.send(400);
+
+    var nick = req.session.email;
+    var user = users.get(nick);
     var presentUsers = users.toJSON(users.present());
 
     user.send("users", presentUsers);
