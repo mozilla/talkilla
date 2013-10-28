@@ -1,6 +1,6 @@
-/*global app, chai, sinon */
-
+/*global app, chai, sinon, payloads */
 /* jshint expr:true */
+
 var expect = chai.expect;
 
 describe("Call Model", function() {
@@ -359,17 +359,17 @@ describe("Call Model", function() {
       sinon.assert.calledWithExactly(media.terminate);
     });
 
-    it("should trigger send-hangup", function() {
+    it("should trigger send-hangup", function(done) {
       call.start({});
       call.peer.set("nick", "Mark");
 
-      sandbox.stub(call, "trigger");
+      call.on("send-hangup", function(hangupMsg) {
+        expect(hangupMsg instanceof payloads.Hangup).to.equal(true);
+        expect(hangupMsg.peer).to.equal("Mark");
+        done();
+      });
 
       call.hangup(true);
-
-      sinon.assert.called(call.trigger);
-      sinon.assert.calledWithExactly(call.trigger, "send-hangup",
-                                     {peer: "Mark"});
     });
   });
 

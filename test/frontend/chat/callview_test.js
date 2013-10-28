@@ -78,63 +78,38 @@ describe("CallView", function() {
         call.media = _.extend({}, Backbone.Events);
 
         el = $(['<div>',
-                '  <div id="local-video"></div>',
-                '  <div id="remote-video"></div>',
+                '  <div id="local-media"></div>',
+                '  <div id="remote-media"></div>',
                 '</div>'].join(''));
         $("#fixtures").append(el);
         callView = new app.views.CallView({el: el, call: call});
 
-        $localElement = el.find('#local-video');
+        $localElement = el.find('#local-media');
         localElement = $localElement.get(0);
         localElement.play = sandbox.spy();
 
-        remoteElement = el.find('#remote-video').get(0);
+        remoteElement = el.find('#remote-media').get(0);
         remoteElement.play = sandbox.spy();
       });
 
       describe("local-stream:ready", function() {
-        it("should attach the local stream to the local-video element",
+        it("should attach the local stream to the local-media element",
           function() {
             call.media.trigger("local-stream:ready", fakeLocalStream);
 
             expect(localElement.mozSrcObject).to.equal(fakeLocalStream);
           });
 
-        it("should call play on the local-video element",
+        it("should call play on the local-media element",
           function() {
             call.media.trigger("local-stream:ready", fakeLocalStream);
 
             sinon.assert.calledOnce(localElement.play);
           });
-
-        it("should show the local-video element for video calls", function() {
-          sandbox.stub(jQuery.prototype, "show");
-          sandbox.stub(call, "requiresVideo").returns(true);
-          localElement.play = function() {
-            localElement.onplaying();
-          };
-
-          call.media.trigger("local-stream:ready", fakeLocalStream);
-
-          sinon.assert.calledOnce($localElement.show);
-        });
-
-        it("should not show the local-video element for audio calls",
-          function() {
-            sandbox.stub(jQuery.prototype, "show");
-            sandbox.stub(call, "requiresVideo").returns(false);
-            localElement.play = function() {
-              localElement.onplaying();
-            };
-
-            call.media.trigger("local-stream:ready", fakeLocalStream);
-
-            sinon.assert.notCalled($localElement.show);
-          });
       });
 
       describe("local-stream:terminated", function() {
-        it("should detach the local stream from the local-video element",
+        it("should detach the local stream from the local-media element",
           function() {
             localElement.mozSrcObject = fakeLocalStream;
 
@@ -145,7 +120,7 @@ describe("CallView", function() {
       });
 
       describe("remote-stream:ready", function() {
-        it("should attach the remote stream to the 'remote-video' element",
+        it("should attach the remote stream to the 'remote-media' element",
           function() {
             call.media.trigger("remote-stream:ready", fakeRemoteStream);
 
@@ -153,7 +128,7 @@ describe("CallView", function() {
               to.equal(fakeRemoteStream);
           });
 
-        it("should play the remote videoStream",
+        it("should play the remote media stream",
           function() {
             call.media.trigger("remote-stream:ready", fakeRemoteStream);
 
@@ -162,7 +137,7 @@ describe("CallView", function() {
       });
 
       describe("remote-stream:terminated", function() {
-        it("should detach the remote stream from the remote-video element",
+        it("should detach the remote stream from the remote-media element",
           function() {
             remoteElement.mozSrcObject = fakeRemoteStream;
 
@@ -182,23 +157,42 @@ describe("CallView", function() {
       callView = new app.views.CallView({el: $("#fixtures #call"), call: call});
     });
 
-    it("should show this widget when a call is ongoing", function() {
-      call.state.current = "ongoing";
+    it("should show this widget when a call is ongoing and contains video",
+      function() {
+        sandbox.stub(call, "requiresVideo").returns(true);
+        call.state.current = "ongoing";
 
-      callView.render();
+        callView.render();
 
-      expect(callView.$el.is(':visible')).to.equal(true);
-    });
+        expect(callView.$el.is(':visible')).to.equal(true);
+      });
 
-    it("should hide this widget when a call isn't ongoing", function() {
-      var states = ["pending", "incoming", "terminated", "timeout"];
-      states.forEach(function(state) {
-        call.state.current = state;
+    it("should hide this widget when a call is ongoing and has no video",
+      function() {
+        sandbox.stub(call, "requiresVideo").returns(false);
+        call.state.current = "ongoing";
 
         callView.render();
 
         expect(callView.$el.is(':visible')).to.equal(false);
       });
-    });
+
+    it("should hide this widget when a call isn't ongoing and has video",
+      function() {
+        sandbox.stub(call, "requiresVideo").returns(true);
+
+        var states = ["pending", "incoming", "terminated", "timeout"];
+        states.forEach(function(state) {
+
+          call.state.current = state;
+
+          callView.render();
+
+          expect(callView.$el.is(':visible')).to.equal(false);
+
+        });
+      });
+
+
   });
 });

@@ -1,4 +1,4 @@
-/* global sinon, SPA, expect */
+/* global sinon, SPA, expect, payloads */
 /* jshint unused:false */
 
 describe("SPA", function() {
@@ -43,8 +43,9 @@ describe("SPA", function() {
 
     it("should trigger an ice:candidate event when receiving ice:candidate",
       function(done) {
-        spa.on("ice:candidate", function(peer, candidate) {
-          expect(peer).to.equal("lloyd", "dummy");
+        spa.on("ice:candidate", function(iceCandidateMsg) {
+          expect(iceCandidateMsg.peer).to.equal("lloyd");
+          expect(iceCandidateMsg.candidate).to.equal("dummy");
           done();
         });
 
@@ -107,15 +108,14 @@ describe("SPA", function() {
   describe("#callOffer", function() {
 
     it("should send a call:offer event to the worker", function() {
-      var offer = "fake offer";
-      var peer = "lucy";
+      var offerMsg = new payloads.Offer({offer: "fake offer", peer: "lucy"});
 
-      spa.callOffer(offer, peer);
+      spa.callOffer(offerMsg);
 
       sinon.assert.calledOnce(spa.worker.postMessage);
       sinon.assert.calledWithExactly(spa.worker.postMessage, {
         topic: "offer",
-        data: {offer: offer, peer: peer, textChat: undefined}
+        data: offerMsg.toJSON()
       });
     });
 
@@ -124,15 +124,17 @@ describe("SPA", function() {
   describe("#callAnswer", function() {
 
     it("should send a answer event to the worker", function() {
-      var answer = "fake answer";
-      var peer = "cedric";
+      var answerMsg = new payloads.Answer({
+        answer: "fake answer",
+        peer: "lisa"
+      });
 
-      spa.callAnswer(answer, peer);
+      spa.callAnswer(answerMsg);
 
       sinon.assert.calledOnce(spa.worker.postMessage);
       sinon.assert.calledWithExactly(spa.worker.postMessage, {
         topic: "answer",
-        data: {answer: answer, peer: peer, textChat: undefined}
+        data: answerMsg.toJSON()
       });
     });
 
@@ -141,13 +143,13 @@ describe("SPA", function() {
   describe("#callHangup", function() {
 
     it("should send a call:hangup event to the worker", function() {
-      var peer = "foo";
-      spa.callHangup(peer);
+      var hangupMsg = new payloads.Hangup({peer: "foo"});
+      spa.callHangup(hangupMsg);
 
       sinon.assert.calledOnce(spa.worker.postMessage);
       sinon.assert.calledWithExactly(spa.worker.postMessage, {
         topic: "hangup",
-        data: {peer: peer}
+        data: hangupMsg.toJSON()
       });
     });
 
@@ -156,7 +158,11 @@ describe("SPA", function() {
   describe("#iceCandidate", function() {
 
     it("should send an ice:candidate event to the worker", function() {
-      spa.iceCandidate("lloyd", "dummy");
+      var iceCandidateMsg = new payloads.IceCandidate({
+        candidate: "dummy",
+        peer: "lloyd"
+      });
+      spa.iceCandidate(iceCandidateMsg);
 
       sinon.assert.calledOnce(spa.worker.postMessage);
       sinon.assert.calledWithExactly(spa.worker.postMessage, {

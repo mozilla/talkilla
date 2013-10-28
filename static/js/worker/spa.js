@@ -1,4 +1,4 @@
-/* global importScripts, BackboneEvents, HTTP */
+/* global importScripts, BackboneEvents, HTTP, payloads */
 /* jshint unused:false */
 
 var SPA = (function() {
@@ -17,25 +17,30 @@ var SPA = (function() {
       var topic = event.data.topic;
       var data = event.data.data;
 
+      var mapping = {
+        "offer": payloads.Offer,
+        "answer": payloads.Answer,
+        "hangup": payloads.Hangup,
+        "ice:candidate": payloads.IceCandidate
+      };
+
       if (topic === "message") {
         type = data.shift();
         data = data.shift();
         this.trigger("message", type, data);
         this.trigger("message:" + type, data);
-      } else if (topic === "offer") {
-        this.trigger(topic, data.offer, data.peer, data.textChat);
-      } else if (topic === "answer") {
-        this.trigger(topic, data.answer, data.peer, data.textChat);
-      } else if (topic === "hangup") {
-        this.trigger(topic, data.peer);
-      } else if (topic === "ice:candidate") {
-        this.trigger(topic, data.peer, data.candidate);
+      } else if (topic in mapping) {
+        var Constructor = mapping[topic];
+        this.trigger(topic, new Constructor(data));
       } else {
         this.trigger(topic, data);
       }
     },
 
     _send: function(topic, data) {
+      // TODO: check the type of data and if it's a payload (like
+      // payloads.Offer) call toJSON on it. The SPA interface should
+      // not send custom objects.
       this.worker.postMessage({topic: topic, data: data});
     },
 
@@ -51,20 +56,44 @@ var SPA = (function() {
       this._send("connect", credentials);
     },
 
-    callOffer: function(offer, peer, textChat) {
-      this._send("offer", {offer: offer, peer: peer, textChat: textChat});
+    /**
+     * Initiate a call via an SDP offer.
+     *
+     * @param {payloads.Offer} offerMsg an Offer payload to initiate a
+     * call.
+     */
+    callOffer: function(offerMsg) {
+      this._send("offer", offerMsg.toJSON());
     },
 
-    callAnswer: function(answer, peer, textChat) {
-      this._send("answer", {answer: answer, peer: peer, textChat: textChat});
+    /**
+     * Accept a call via an SDP answer.
+     *
+     * @param {payloads.Answer} answerMsg an Answer payload to accept
+     * a call.
+     */
+    callAnswer: function(answerMsg) {
+      this._send("answer", answerMsg.toJSON());
     },
 
-    callHangup: function(peer) {
-      this._send("hangup", {peer: peer});
+    /**
+     * End a call.
+     *
+     * @param {payloads.Hangup} hangupMsg a Hangup payload to end a
+     * call.
+     */
+    callHangup: function(hangupMsg) {
+      this._send("hangup", hangupMsg.toJSON());
     },
 
-    iceCandidate: function(peer, candidate) {
-      this._send("ice:candidate", {peer: peer, candidate: candidate});
+    /**
+     * Update the available ICE candidates for a call.
+     *
+     * @param {payloads.IceCandidate} iceCandidateMsg a IceCandidate
+     * payload to update the available ICE candidates.
+     */
+    iceCandidate: function(iceCandidateMsg) {
+      this._send("ice:candidate", iceCandidateMsg.toJSON());
     },
 
     presenceRequest: function(nick) {

@@ -2,8 +2,8 @@
 
 import os
 
-from selenium.common.exceptions import NoSuchElementException
-from selenium.common.exceptions import WebDriverException
+from selenium.common.exceptions import NoSuchElementException, \
+    InvalidElementStateException, TimeoutException, WebDriverException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
@@ -40,6 +40,29 @@ class Driver(WebDriver):
     def clickElement(self, css_selector):
         """ Clicks the element matching the provided CSS selector."""
         self.waitForElement(css_selector, visible=True).click()
+
+    def getElementProperty(self, element, property_name):
+        """Returns the value of the named property as a unicode string"""
+        return self.execute_script(
+            "return arguments[0][arguments[1]].toString();", element,
+            property_name)
+
+    def find_uncached_element_by_css_selector(self, css_selector):
+        """ Finds an uncached (and therefore current) copy of the first
+        element matched by this selector.  Believed to avoid intermittent
+        failure problems when doing a WebDriverWait on an attribute or
+        property as described in the "avoid this!" section of
+        <https://blog.mozilla.org/webqa/2012/07/12/how-to-webdriverwait/>.
+
+            Args:
+            - css_selector: selector to match
+
+            Returns:
+            - an uncached version of the first element matching the given
+            selector
+        """
+        return self.execute_script(
+            "return document.querySelector(arguments[0]);", css_selector)
 
     def signin(self):
         """ Signs the user in."""
@@ -218,6 +241,54 @@ class Driver(WebDriver):
             get_element_checker(self, visible), message=message)
 
         return self.find_elements_by_css_selector(css_selector)
+
+    def waitForElementWithPropertyValue(self, css_selector,
+                                        property_name,
+                                        property_value,
+                                        timeout=DEFAULT_WAIT_TIMEOUT):
+        """ Waits for DOM element matching the provided CSS selector to be
+            available and to have the given attribute or property set to
+            the given value
+
+            Args:
+            - css_selector: CSS selector string
+            - property_name: HTML attribute or DOM Element JS property name
+            - property_value: Unicode string representing expected JS value
+
+            Kwargs:
+            - timeout: Operation timeout in seconds
+
+            Returns: a single WebElement
+        """
+
+        def get_element_checker():
+
+            def find_element_by_selector_and_prop_value(driver):
+
+                # uncached to give the test a chance to pass
+                el = self.find_uncached_element_by_css_selector(css_selector)
+
+                # excitingly, WebDriver uses the word "attribute" to mean
+                # "attribute or property"!
+                if self.getElementProperty(el, property_name) == \
+                        property_value:
+                    return True
+
+                return False
+
+            return find_element_by_selector_and_prop_value
+
+        message = u"Couldn't find elem matching %s with property '%s' set " \
+                  u"to '%s')" % (css_selector, property_name,
+                                 property_value)
+
+        try:
+            WebDriverWait(self, timeout, poll_frequency=.25).until(
+                get_element_checker(), message=message)
+        except TimeoutException:
+            raise InvalidElementStateException(message)
+
+        return self.find_uncached_element_by_css_selector(css_selector)
 
     def detectWindowClose(self, javascriptAction):
         """ Detects closing of a window when a javascript action is run.

@@ -1,5 +1,5 @@
 /* global Server */
-/* global describe, beforeEach, afterEach, sinon, it, expect */
+/* global describe, beforeEach, afterEach, sinon, it, expect, payloads */
 
 describe("Server", function() {
   var sandbox, server;
@@ -111,9 +111,9 @@ describe("Server", function() {
     it("should trigger a message event for each event", function(done) {
       var nbCall = 1;
       var events = [
-        {first:  "event 1"},
-        {second: "event 2"},
-        {third:  "event 3"}
+        {topic: "first",  data: "event 1"},
+        {topic: "second", data: "event 2"},
+        {topic: "third",  data: "event 3"}
       ];
       sandbox.stub(server.http, "post");
       server.on("message", function(type, event) {
@@ -140,10 +140,10 @@ describe("Server", function() {
     });
 
     it("should trigger a custom message event", function(done) {
-      var events = [{"sometype":  "event"}];
+      var events = [{topic: "sometopic", data: "event"}];
 
       sandbox.stub(server.http, "post");
-      server.on("message:sometype", function(event) {
+      server.on("message:sometopic", function(event) {
         expect(event).to.equal("event");
         done();
       });
@@ -235,18 +235,20 @@ describe("Server", function() {
   describe("#iceCandidate", function() {
 
     it("should send an ice candidate", function() {
+      var iceCandidateMsg = new payloads.IceCandidate({
+        peer: "lloyd",
+        candidate: "dummy"
+      });
+      var callback = function() {};
       sandbox.stub(server.http, "post");
       server.nick = "lloyd";
-      var candidate = {
-        candidate: "dummy"
-      };
-      server.iceCandidate(candidate);
+      server.iceCandidate(iceCandidateMsg, callback);
 
       sinon.assert.calledOnce(server.http.post);
       sinon.assert.calledWith(server.http.post, "/icecandidate", {
-        data: candidate,
+        data: iceCandidateMsg,
         nick: "lloyd"
-      });
+      }, callback);
     });
 
   });
