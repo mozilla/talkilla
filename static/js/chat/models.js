@@ -100,10 +100,10 @@
       this.state.start();
 
       this.media.once("offer-ready", function(offer) {
-        this.trigger("send-offer", {
+        this.trigger("send-offer", new app.payloads.Offer({
           peer: this.peer.get("nick"),
           offer: offer
-        });
+        }));
       }, this);
 
       this.media.initiate(constraints);
@@ -167,10 +167,10 @@
       var data = this.get('incomingData');
 
       this.media.once("answer-ready", function(answer) {
-        this.trigger("send-answer", {
+        this.trigger("send-answer", new app.payloads.Answer({
           peer: this.peer.get("nick"),
           answer: answer
-        });
+        }));
 
         // XXX Change transition to complete/ongoing here as
         // this is the best place we've got currently to know that
@@ -210,9 +210,9 @@
       this.media.terminate();
 
       if (sendMsg) {
-        this.trigger("send-hangup", {
+        this.trigger("send-hangup", new app.payloads.Hangup({
           peer: this.peer.get("nick")
-        });
+        }));
       }
     },
 
@@ -228,12 +228,12 @@
       this.state.upgrade();
 
       this.media.once("offer-ready", function(offer) {
-        this.trigger("send-offer", {
+        this.trigger("send-offer", new app.payloads.Offer({
           peer: this.peer.get("nick"),
           offer: offer,
           textChat: false,
           upgrade: true
-        });
+        }));
       }, this);
 
       this.media.upgrade(constraints);
@@ -455,11 +455,11 @@
 
     initiate: function(constraints) {
       this.media.once("offer-ready", function(offer) {
-        this.trigger("send-offer", {
+        this.trigger("send-offer", new app.payloads.Offer({
           peer: this.peer.get("nick"),
           offer: offer,
           textChat: true
-        });
+        }));
       }, this);
 
       this.media.initiate(constraints);
@@ -467,11 +467,11 @@
 
     answer: function(offer) {
       this.media.once("answer-ready", function(answer) {
-        this.trigger("send-answer", {
+        this.trigger("send-answer", new app.payloads.Answer({
           peer: this.peer.get("nick"),
           answer: answer,
           textChat: true
-        });
+        }));
       }, this);
 
       this.media.answer(offer);

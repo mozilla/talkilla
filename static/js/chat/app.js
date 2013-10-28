@@ -160,12 +160,22 @@ var ChatApp = (function(app, $, Backbone, _) {
     this.webrtc.addIceCandidate(data.candidate);
   };
 
-  ChatApp.prototype._onSendOffer = function(data) {
-    this.port.postEvent('talkilla.call-offer', data);
+  /**
+   * Called when initiating a call.
+   *
+   * @param {payloads.Offer} offerMsg the offer to send to initiate the call.
+   */
+  ChatApp.prototype._onSendOffer = function(offerMsg) {
+    this.port.postEvent('talkilla.call-offer', offerMsg.toJSON());
   };
 
-  ChatApp.prototype._onSendAnswer = function(data) {
-    this.port.postEvent('talkilla.call-answer', data);
+  /**
+   * Called when accepting an incoming call.
+   *
+   * @param {payloads.Answer} answerMsg the answer to send to accept the call.
+   */
+  ChatApp.prototype._onSendAnswer = function(answerMsg) {
+    this.port.postEvent('talkilla.call-answer', answerMsg.toJSON());
   };
 
   ChatApp.prototype._onSendTimeout = function(data) {
@@ -176,10 +186,11 @@ var ChatApp = (function(app, $, Backbone, _) {
   };
 
   ChatApp.prototype._onIceCandidateReady = function(candidate) {
-    this.port.postEvent('talkilla.ice-candidate', {
+    var iceCandidateMsg = new app.payloads.IceCandidate({
       peer: this.peer.get("nick"),
       candidate: candidate
     });
+    this.port.postEvent('talkilla.ice-candidate', iceCandidateMsg.toJSON());
   };
 
   // Call Hangup
@@ -189,9 +200,16 @@ var ChatApp = (function(app, $, Backbone, _) {
     window.close();
   };
 
-  ChatApp.prototype._onCallHangup = function(data) {
+  /**
+   * Called when hanging up a call.
+   *
+   * @param {payloads.Hanging} hangupMsg the hangup to send to stop
+   * the call.
+   *
+   */
+  ChatApp.prototype._onCallHangup = function(hangupMsg) {
     // Send a message as this is this user's call hangup
-    this.port.postEvent('talkilla.call-hangup', data);
+    this.port.postEvent('talkilla.call-hangup', hangupMsg.toJSON());
     window.close();
   };
 

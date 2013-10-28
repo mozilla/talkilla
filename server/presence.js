@@ -60,7 +60,7 @@ api = {
       users.add(nick);
       users.get(nick).ondisconnect = function() {
         users.present().forEach(function(user) {
-          user.send({userLeft: nick});
+          user.send("userLeft", nick);
         });
         logger.info({type: "disconnection"});
       };
@@ -100,7 +100,7 @@ api = {
 
     if (!user.present()) {
       users.present().forEach(function(user) {
-        user.send({userJoined: nick});
+        user.send("userJoined", nick);
       });
       user.touch();
       // XXX: Here we force the first long-polling request to return
@@ -129,7 +129,7 @@ api = {
     }
 
     data.peer = nick;
-    peer.send({'incoming_call': data});
+    peer.send("offer", data);
     logger.info({type: "call:offer"});
   },
 
@@ -147,7 +147,7 @@ api = {
     }
 
     data.peer = nick;
-    peer.send({'call_accepted': data});
+    peer.send("answer", data);
     logger.info({type: "call:accepted"});
   },
 
@@ -165,7 +165,7 @@ api = {
     }
 
     data.peer = nick;
-    peer.send({'call_hangup': data});
+    peer.send("hangup", data);
     logger.info({type: "call:hangup"});
   },
 
@@ -184,13 +184,13 @@ api = {
     }
 
     data.peer = nick;
-    peer.send({'ice:candidate': data});
+    peer.send('ice:candidate', data);
   },
 
   presenceRequest: function(req, res) {
     var user = users.get(req.body.nick);
     var presentUsers = users.toJSON(users.present());
-    user.send({users: presentUsers});
+    user.send("users", presentUsers);
     return res.send(200, JSON.stringify({}));
   }
 };

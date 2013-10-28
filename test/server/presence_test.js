@@ -203,9 +203,9 @@ describe("presence", function() {
         api.stream(req, res);
 
         sinon.assert.calledOnce(bar.send);
-        sinon.assert.calledWith(bar.send, {userJoined: "foo"});
+        sinon.assert.calledWith(bar.send, "userJoined", "foo");
         sinon.assert.calledOnce(xoo.send);
-        sinon.assert.calledWith(xoo.send, {userJoined: "foo"});
+        sinon.assert.calledWith(xoo.send, "userJoined", "foo");
         sinon.assert.notCalled(oof.send);
       });
 
@@ -225,7 +225,7 @@ describe("presence", function() {
 
       it("should send a list of events", function(done) {
         var user = users.add("foo").get("foo");
-        var event = {some: "data"};
+        var event = {topic: "some", data: "data"};
         var req = {body: {nick: "foo"}};
         var res = {send: function(code, data) {
           expect(code).to.equal(200);
@@ -235,7 +235,7 @@ describe("presence", function() {
         sandbox.stub(user, "present").returns(true);
 
         api.stream(req, res);
-        user.send(event);
+        user.send("some", "data");
       });
 
       it("should fail if no nick is provided", function() {
@@ -263,8 +263,7 @@ describe("presence", function() {
           api.callOffer(req, res);
 
           sinon.assert.calledOnce(bar.send);
-          sinon.assert.calledWith(
-            bar.send, {"incoming_call": forwardedEvent});
+          sinon.assert.calledWith(bar.send, "offer", forwardedEvent);
         });
 
       it("should warn on handling offers to unknown users", function() {
@@ -292,8 +291,7 @@ describe("presence", function() {
           api.callAccepted(req, res);
 
           sinon.assert.calledOnce(bar.send);
-          sinon.assert.calledWith(
-            bar.send, {"call_accepted": forwardedEvent});
+          sinon.assert.calledWith(bar.send, "answer", forwardedEvent);
         });
 
       it("should warn on handling answers to unknown users", function() {
@@ -320,8 +318,7 @@ describe("presence", function() {
           api.callHangup(req, res);
 
           sinon.assert.calledOnce(bar.send);
-          sinon.assert.calledWith(
-            bar.send, {"call_hangup": forwardedEvent});
+          sinon.assert.calledWith(bar.send, "hangup", forwardedEvent);
         });
 
       it("should warn on handling hangups to unknown users", function() {
@@ -350,8 +347,7 @@ describe("presence", function() {
           api.iceCandidate(req, res);
 
           sinon.assert.calledOnce(bar.send);
-          sinon.assert.calledWith(
-            bar.send, {"ice:candidate": forwardedEvent});
+          sinon.assert.calledWith(bar.send, "ice:candidate", forwardedEvent);
         });
 
       it("should warn on handling candidates to unknown users", function() {
@@ -383,7 +379,7 @@ describe("presence", function() {
           api.presenceRequest(req, res);
 
           sinon.assert.calledOnce(foo.send);
-          sinon.assert.calledWithExactly(foo.send, {users: [bar.toJSON()]});
+          sinon.assert.calledWithExactly(foo.send, "users", [bar.toJSON()]);
         });
 
       it("should return success", function() {

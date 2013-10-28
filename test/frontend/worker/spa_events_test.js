@@ -1,5 +1,5 @@
 /*global chai, sinon, browserPort:true, currentConversation:true,
-  SPA, Conversation, tkWorker, _setupSPA */
+  SPA, Conversation, tkWorker, _setupSPA, payloads */
 
 /* Needed due to the use of non-camelcase in the websocket topics */
 /* jshint camelcase:false */
@@ -162,47 +162,48 @@ describe("SPA events", function() {
     });
 
     it("should create a new conversation object with the call data",
-       function() {
-      var offer = {type: "fake", sdp: "sdp" };
-      var from = "alice";
+      function() {
+      var offerMsg = new payloads.Offer({offer: "fake offer", peer: "alice"});
 
-      spa.trigger("offer", offer, from);
+      spa.trigger("offer", offerMsg);
 
       expect(currentConversation).to.be.an.instanceOf(Conversation);
     });
 
     it("should try to re-use an existing conversation object",
       function() {
+        var offerMsg = new payloads.Offer({
+          offer: "fake offer",
+          peer: "alice"
+        });
         currentConversation = new Conversation({peer: "florian"});
         sandbox.stub(currentConversation, "handleIncomingCall");
 
-        var offer = {type: "fake", sdp: "sdp" };
-        var from = "alice";
-        var data = {offer: offer, peer: from};
-        spa.trigger("offer", offer, from);
+        spa.trigger("offer", offerMsg);
 
         sinon.assert.calledOnce(currentConversation.handleIncomingCall);
         sinon.assert.calledWith(currentConversation.handleIncomingCall,
-                                data);
+                                offerMsg.toJSON());
       });
   });
 
   describe("`answer` event", function() {
 
     it("should call callAccepted on the conversation", function () {
-      var from = "alice";
-      var answer = {type: "fake", sdp: "sdp"};
-      var data = {peer: from, answer: answer};
+      var answerMsg = new payloads.Answer({
+        answer: "fake answer",
+        peer: "alice"
+      });
 
       currentConversation = {
         callAccepted: sandbox.spy()
       };
 
-      spa.trigger("answer", answer, from);
+      spa.trigger("answer", answerMsg);
 
       sinon.assert.calledOnce(currentConversation.callAccepted);
       sinon.assert.calledWithExactly(
-        currentConversation.callAccepted, data);
+        currentConversation.callAccepted, answerMsg.toJSON());
     });
 
   });
@@ -215,13 +216,14 @@ describe("SPA events", function() {
     });
 
     it("should call callHangup on the conversation", function() {
+      var hangupMsg = new payloads.Hangup({peer: "bar"});
       sandbox.stub(currentConversation, "callHangup");
 
-      spa.trigger("hangup", "bob");
+      spa.trigger("hangup", hangupMsg);
 
       sinon.assert.calledOnce(currentConversation.callHangup);
       sinon.assert.calledWithExactly(
-        currentConversation.callHangup, {peer: "bob"});
+        currentConversation.callHangup, hangupMsg.toJSON());
     });
   });
 
@@ -235,15 +237,16 @@ describe("SPA events", function() {
     it("should call callHangup on the conversation", function() {
       sandbox.stub(currentConversation, "iceCandidate");
 
-      var data = {
+      var iceCandidateMsg = new payloads.IceCandidate({
+        peer: "lloyd",
         candidate: "dummy"
-      };
+      });
 
-      spa.trigger("ice:candidate", "lloyd", data);
+      spa.trigger("ice:candidate", iceCandidateMsg);
 
       sinon.assert.calledOnce(currentConversation.iceCandidate);
       sinon.assert.calledWithExactly(
-        currentConversation.iceCandidate, {candidate: data, peer: "lloyd"});
+        currentConversation.iceCandidate, iceCandidateMsg.toJSON());
     });
   });
 
