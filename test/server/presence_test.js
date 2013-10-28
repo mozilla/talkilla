@@ -123,7 +123,7 @@ describe("presence", function() {
 
       it("should add a new user to the user list and return the nick",
         function(done) {
-          var req = {body: {assertion: "fake assertion"}};
+          var req = {body: {assertion: "fake assertion"}, session: {}};
           var res = {send: sinon.spy()};
           var answer = JSON.stringify({nick: "foo"});
           sandbox.stub(presence.api, "_verifyAssertion", function(a, c) {
@@ -140,7 +140,7 @@ describe("presence", function() {
         });
 
       it("should return a 400 if the assertion was invalid", function(done) {
-        var req = {body: {assertion: "fake assertion"}};
+        var req = {body: {assertion: "fake assertion"}, session: {}};
         var res = {send: sinon.spy()};
         var answer = JSON.stringify({error: "invalid assertion"});
         sandbox.stub(presence.api, "_verifyAssertion", function(a, c) {
@@ -161,7 +161,7 @@ describe("presence", function() {
     describe("#signout", function() {
 
       it("should remove the user from the user list", function() {
-        var req = {body: {nick: "foo"}};
+        var req = {session: {email: "foo"}};
         var res = {send: sinon.spy()};
 
         users.add("foo");
@@ -192,7 +192,7 @@ describe("presence", function() {
         var bar = users.add("bar").get("bar");
         var xoo = users.add("xoo").get("xoo");
         var oof = users.add("oof").get("oof");
-        var req = {body: {nick: "foo"}};
+        var req = {session: {email: "foo"}};
         var res = {send: function() {}};
         sandbox.stub(bar, "present").returns(true);
         sandbox.stub(xoo, "present").returns(true);
@@ -211,7 +211,7 @@ describe("presence", function() {
 
       it("should send an empty list of events", function(done) {
         var user = users.add("foo").get("foo");
-        var req = {body: {nick: "foo"}};
+        var req = {session: {email: "foo"}};
         var res = {send: function(code, data) {
           expect(code).to.equal(200);
           expect(data).to.equal(JSON.stringify([]));
@@ -226,7 +226,7 @@ describe("presence", function() {
       it("should send a list of events", function(done) {
         var user = users.add("foo").get("foo");
         var event = {topic: "some", data: "data"};
-        var req = {body: {nick: "foo"}};
+        var req = {session: {email: "foo"}};
         var res = {send: function(code, data) {
           expect(code).to.equal(200);
           expect(data).to.equal(JSON.stringify([event]));
@@ -239,13 +239,13 @@ describe("presence", function() {
       });
 
       it("should fail if no nick is provided", function() {
-        var req = {body: {}};
+        var req = {session: {}};
         var res = {send: sinon.spy()};
 
         api.stream(req, res);
 
         sinon.assert.calledOnce(res.send);
-        sinon.assert.calledWithExactly(res.send, 400, JSON.stringify({}));
+        sinon.assert.calledWithExactly(res.send, 400);
       });
 
     });
@@ -254,7 +254,7 @@ describe("presence", function() {
       var req, res;
 
       beforeEach(function() {
-        req = {body: {data: {peer: "bar"}, nick: "foo"}};
+        req = {body: {data: {peer: "bar"}}, session: {email: "foo"}};
         res = {send: sinon.spy()};
       });
 
@@ -293,7 +293,7 @@ describe("presence", function() {
       var req, res;
 
       beforeEach(function() {
-        req = {body: {data: {peer: "bar"}, nick: "foo"}};
+        req = {body: {data: {peer: "bar"}}, session: {email: "foo"}};
         res = {send: sinon.spy()};
       });
 
@@ -332,7 +332,7 @@ describe("presence", function() {
       var req, res;
 
       beforeEach(function() {
-        req = {body: {data: {peer: "bar"}, nick: "foo"}};
+        req = {body: {data: {peer: "bar"}}, session: {email: "foo"}};
         res = {send: sinon.spy()};
       });
 
@@ -372,8 +372,8 @@ describe("presence", function() {
 
       beforeEach(function() {
         req = {
-          body: {data: {peer: "bar", candidate: "dummy"},
-                 nick: "foo"}
+          body:    {data: {peer: "bar", candidate: "dummy"}},
+          session: {email: "foo"}
         };
         res = {send: sinon.spy()};
       });
@@ -412,7 +412,7 @@ describe("presence", function() {
       var req, res, foo, bar;
 
       beforeEach(function() {
-        req = {body: {nick: "foo"}};
+        req = {session: {email: "foo"}};
         res = {send: sinon.spy()};
         foo = users.add("foo").get("foo");
         bar = users.add("bar").get("bar");

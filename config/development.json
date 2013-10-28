@@ -4,5 +4,6 @@
   "FAKE_MEDIA_STREAMS": false,
   "LOG_LEVEL": "debug",
   "PERSONA_INCLUDE_URL": "https://login.persona.org/include.js",
+  "SESSION_SECRET": "unguessablesecret",
   "LONG_POLLING_TIMEOUT": 20000
 }

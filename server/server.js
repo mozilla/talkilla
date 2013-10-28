@@ -1,12 +1,18 @@
 /* jshint unused:false */
-var express = require('express');
-var http = require('http');
-var config = require('./config').config;
-var logger = require('./logger');
-var app = express();
+var express  = require('express');
+var http     = require('http');
+var sessions = require("client-sessions");
+var config   = require('./config').config;
+var logger   = require('./logger');
+var app      = express();
 
 app.use(express.bodyParser());
 app.use(express.static(__dirname + "/../static"));
+app.use(sessions({
+  cookieName: 'session',
+  secret: config.SESSION_SECRET,
+  duration: 10 * 24 * 60 * 60 * 1000, // 10 days
+}));
 app.use(app.router);
 
 var server = http.createServer(app);

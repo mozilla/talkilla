@@ -5,8 +5,6 @@ var Server = (function() {
   function Server(options) {
     this.options = options;
     this.http = new HTTP();
-    // XXX: Temporary attribute. We need proper sessions.
-    this.nick = undefined;
   }
 
   Server.prototype = {
@@ -17,25 +15,24 @@ var Server = (function() {
         if (err !== null)
           return this.trigger("disconnected", response);
 
-        this.nick = credentials.nick;
         this.trigger("connected");
-        this._longPolling(credentials.nick, JSON.parse(response));
+        this._longPolling(JSON.parse(response));
       }.bind(this));
     },
 
-    _longPolling: function(nick, events) {
+    _longPolling: function(events) {
       events.forEach(function(event) {
         this.trigger("message", event.topic, event.data);
         this.trigger("message:" + event.topic, event.data);
       }.bind(this));
 
-      this.http.post("/stream", {nick: nick}, function(err, response) {
+      this.http.post("/stream", {}, function(err, response) {
         if (err === 400)
           return this.trigger("unauthorized", response);
         if (err !== null)
           return this.trigger("disconnected", response);
 
-        this._longPolling(nick, JSON.parse(response));
+        this._longPolling(JSON.parse(response));
       }.bind(this));
     },
 
@@ -46,10 +43,7 @@ var Server = (function() {
      * @param {function} callback A callback for when the server answers back.
      */
     callOffer: function(offerMsg, callback) {
-      this.http.post("/calloffer", {
-        data: offerMsg,
-        nick: this.nick
-      }, callback);
+      this.http.post("/calloffer", {data: offerMsg}, callback);
     },
 
     /**
@@ -59,10 +53,7 @@ var Server = (function() {
      * @param {function} callback A callback for when the server answers back.
      */
     callAccepted: function(answerMsg, callback) {
-      this.http.post("/callaccepted", {
-        data: answerMsg,
-        nick: this.nick
-      }, callback);
+      this.http.post("/callaccepted", {data: answerMsg}, callback);
     },
 
     /**
@@ -72,10 +63,7 @@ var Server = (function() {
      * @param {function} callback A callback for when the server answers back.
      */
     callHangup: function(hangupMsg, callback) {
-      this.http.post("/callhangup", {
-        data: hangupMsg,
-        nick: this.nick
-      }, callback);
+      this.http.post("/callhangup", {data: hangupMsg}, callback);
     },
 
     /**
@@ -86,14 +74,11 @@ var Server = (function() {
      * @param {function} callback A callback for when the server answers back.
      */
     iceCandidate: function(iceCandidateMsg, callback) {
-      this.http.post("/icecandidate", {
-        data: iceCandidateMsg,
-        nick: this.nick
-      }, callback);
+      this.http.post("/icecandidate", {data: iceCandidateMsg}, callback);
     },
 
-    presenceRequest: function(nick, callback) {
-      this.http.post("/presencerequest", {nick: nick}, callback);
+    presenceRequest: function(callback) {
+      this.http.post("/presencerequest", {}, callback);
     }
   };
 

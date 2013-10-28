@@ -96,8 +96,8 @@ var TalkillaSPA = (function() {
       this.server.iceCandidate(iceCandidateMsg);
     },
 
-    _onPresenceRequest: function(data) {
-      this.server.presenceRequest(data.nick);
+    _onPresenceRequest: function() {
+      this.server.presenceRequest();
     }
   };
 

@@ -71,7 +71,7 @@ describe('handlers', function() {
         handlers['social.cookies-get-response'](event);
 
         sinon.assert.calledOnce(spa.connect);
-        sinon.assert.calledWithExactly(spa.connect, {nick: "Boriss"});
+        sinon.assert.calledWithExactly(spa.connect);
       });
 
     it("should NOT try to connect if there is no nick provided",
@@ -279,7 +279,7 @@ describe('handlers', function() {
       beforeEach(function () {
         port = {id: "tests", postEvent: sandbox.spy()};
         tkWorker.ports.add(port);
-        sandbox.stub(spa, "signout", function(nick, callback) {
+        sandbox.stub(spa, "signout", function(callback) {
           callback(null, "OK");
         });
         sandbox.stub(tkWorker.user, "reset");
@@ -301,7 +301,7 @@ describe('handlers', function() {
 
     it("should log failure, if the server failed to sign the user out",
       function() {
-        sandbox.stub(spa, "signout", function(nick, callback) {
+        sandbox.stub(spa, "signout", function(callback) {
           callback("error", "Not Authorised");
         });
         handlers.postEvent = sandbox.spy();
