@@ -1,6 +1,6 @@
-/*global app, chai, sinon */
-
+/*global app, chai, sinon, payloads */
 /* jshint expr:true */
+
 var expect = chai.expect;
 
 describe("Call Model", function() {
