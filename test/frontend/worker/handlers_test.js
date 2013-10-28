@@ -1,7 +1,7 @@
 /*global chai, sinon, Port, handlers, currentConversation:true, UserData,
   _presenceSocket:true, browserPort:true, tkWorker, Conversation,
   _loginPending:true, _autologinPending:true, _cookieNickname:true, SPA,
-  spa:true, _signinCallback */
+  spa:true, _signinCallback, payloads */
 /* jshint expr:true */
 
 var expect = chai.expect;
@@ -71,7 +71,7 @@ describe('handlers', function() {
         handlers['social.cookies-get-response'](event);
 
         sinon.assert.calledOnce(spa.connect);
-        sinon.assert.calledWithExactly(spa.connect, {nick: "Boriss"});
+        sinon.assert.calledWithExactly(spa.connect);
       });
 
     it("should NOT try to connect if there is no nick provided",
@@ -279,7 +279,7 @@ describe('handlers', function() {
       beforeEach(function () {
         port = {id: "tests", postEvent: sandbox.spy()};
         tkWorker.ports.add(port);
-        sandbox.stub(spa, "signout", function(nick, callback) {
+        sandbox.stub(spa, "signout", function(callback) {
           callback(null, "OK");
         });
         sandbox.stub(tkWorker.user, "reset");
@@ -301,7 +301,7 @@ describe('handlers', function() {
 
     it("should log failure, if the server failed to sign the user out",
       function() {
-        sandbox.stub(spa, "signout", function(nick, callback) {
+        sandbox.stub(spa, "signout", function(callback) {
           callback("error", "Not Authorised");
         });
         handlers.postEvent = sandbox.spy();
@@ -451,23 +451,22 @@ describe('handlers', function() {
 
   describe("talkilla.call-offer", function() {
 
-    it("should post an offer when receiving a talkilla.call-offer event",
+    it("should send an offer when receiving a talkilla.call-offer event",
       function() {
         tkWorker.user.name = "tom";
         sandbox.stub(spa, "callOffer");
-        var data = {
+        var offerMsg = new payloads.Offer({
           peer: "tom",
           offer: { sdp: "sdp", type: "type" }
-        };
+        });
 
         handlers['talkilla.call-offer']({
           topic: "talkilla.call-offer",
-          data: data
+          data: offerMsg
         });
 
         sinon.assert.calledOnce(spa.callOffer);
-        sinon.assert.calledWithExactly(
-          spa.callOffer, data.offer, data.peer, undefined);
+        sinon.assert.calledWithExactly(spa.callOffer, offerMsg);
       });
   });
 
@@ -476,19 +475,19 @@ describe('handlers', function() {
       function() {
         tkWorker.user.name = "fred";
         sandbox.stub(spa, "callAnswer");
-        var data = {
-          peer: "fred",
-          answer: { sdp: "sdp", type: "type" }
-        };
+        var answerMsg = new payloads.Answer({
+          answer: "fake answer",
+          peer: "fred"
+        });
 
         handlers['talkilla.call-answer']({
           topic: "talkilla.call-answer",
-          data: data
+          data: answerMsg
         });
 
         sinon.assert.calledOnce(spa.callAnswer);
         sinon.assert.calledWithExactly(
-          spa.callAnswer, data.answer, data.peer, undefined);
+          spa.callAnswer, answerMsg);
       });
   });
 
@@ -497,21 +496,19 @@ describe('handlers', function() {
       currentConversation = undefined;
     });
 
-    it("should send a websocket message when receiving talkilla.call-hangup",
+    it("should hangup the call when receiving talkilla.call-hangup",
       function() {
+        var hangupMsg = new payloads.Hangup({peer: "florian"});
         tkWorker.user.name = "florian";
         sandbox.stub(spa, "callHangup");
-        var data = {
-          peer: "florian"
-        };
 
         handlers['talkilla.call-hangup']({
           topic: "talkilla.call-hangup",
-          data: data
+          data: hangupMsg.toJSON()
         });
 
         sinon.assert.calledOnce(spa.callHangup);
-        sinon.assert.calledWithExactly(spa.callHangup, "florian");
+        sinon.assert.calledWithExactly(spa.callHangup, hangupMsg);
       });
   });
 
@@ -522,18 +519,18 @@ describe('handlers', function() {
     it("should pass the ice candidate to the spa",
       function() {
         sandbox.stub(spa, "iceCandidate");
-        var data = {
+        var iceCandidateMsg = new payloads.IceCandidate({
           peer: "lloyd",
           candidate: "dummy"
-        };
+        });
 
         handlers['talkilla.ice-candidate']({
           topic: "talkilla.ice-candidate",
-          data: data
+          data: iceCandidateMsg
         });
 
         sinon.assert.calledOnce(spa.iceCandidate);
-        sinon.assert.calledWithExactly(spa.iceCandidate, "lloyd", "dummy");
+        sinon.assert.calledWithExactly(spa.iceCandidate, iceCandidateMsg);
       });
   });
 

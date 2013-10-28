@@ -3,7 +3,7 @@
 
 importScripts('../../vendor/backbone-events-standalone-0.1.5.js');
 importScripts('../worker/http.js');
-importScripts('port.js', 'server.js', 'talkilla_spa.js');
+importScripts('port.js', '../payloads.js', 'server.js', 'talkilla_spa.js');
 
 var port = new SPAPort();
 var server = new Server();

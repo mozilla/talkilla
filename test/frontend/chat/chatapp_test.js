@@ -1,4 +1,4 @@
-/*global app, chai, ChatApp, sinon, WebRTC */
+/*global app, chai, ChatApp, sinon, WebRTC, payloads */
 
 /* jshint expr:true */
 var expect = chai.expect;
@@ -334,9 +334,10 @@ describe("ChatApp", function() {
     describe("#_onCallHangup", function() {
 
       it("should send a talkilla.call-hangup event", function() {
+        var fakeHangupMsg = {toJSON: function() {}};
         sandbox.stub(window, "close");
 
-        chatApp._onCallHangup();
+        chatApp._onCallHangup(fakeHangupMsg);
 
         sinon.assert.called(chatApp.port.postEvent);
         sinon.assert.calledWith(chatApp.port.postEvent,
@@ -346,18 +347,14 @@ describe("ChatApp", function() {
     });
 
     describe("#_onSendOffer", function() {
-      var offer;
-
-      beforeEach(function() {
-        offer = {
-          sdp: 'sdp',
-          type: 'type'
-        };
-      });
 
       it("should post an event to the worker when onSendOffer is called",
         function() {
-          chatApp._onSendOffer(offer);
+          var offerMsg = new payloads.Offer({
+            offer: "fake offer",
+            peer: "leila"
+          });
+          chatApp._onSendOffer(offerMsg);
 
           sinon.assert.called(chatApp.port.postEvent);
           sinon.assert.calledWith(chatApp.port.postEvent,
@@ -368,12 +365,12 @@ describe("ChatApp", function() {
     describe("#_onSendAnswer", function() {
       it("should post an event to the worker when onSendAnswer is triggered",
         function() {
-          var answer = {
-            sdp: 'sdp',
-            type: 'type'
-          };
+          var answerMsg = new payloads.Answer({
+            answer: "fake answer",
+            peer: "lisa"
+          });
 
-          chatApp._onSendAnswer(answer);
+          chatApp._onSendAnswer(answerMsg);
 
           sinon.assert.called(chatApp.port.postEvent);
           sinon.assert.calledWith(chatApp.port.postEvent,
@@ -415,17 +412,18 @@ describe("ChatApp", function() {
       describe("ice:candidate-ready", function() {
         it("should post a talkilla:ice-candidate message to the worker",
           function() {
-          var candidate = "dummy";
+          var iceCandidateMsg = new payloads.IceCandidate({
+            peer: "lloyd",
+            candidate: "dummy"
+          });
           chatApp.peer.set("nick", "lloyd");
 
-          chatApp.webrtc.trigger("ice:candidate-ready", candidate);
+          chatApp.webrtc.trigger("ice:candidate-ready", "dummy");
 
           sinon.assert.called(AppPortStub.postEvent);
           sinon.assert.calledWith(AppPortStub.postEvent,
-                                  "talkilla.ice-candidate", {
-            candidate: candidate,
-            peer: "lloyd"
-          });
+                                  "talkilla.ice-candidate",
+                                  iceCandidateMsg.toJSON());
         });
       });
 

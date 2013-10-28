@@ -12,8 +12,13 @@ set +x
 . ./.venv/bin/activate
 set -x
 
-$@
-RESULT=$?
+for test in "$@"; do
+  $test
+  RESULT=$?
+  if [ $RESULT != 0 ]; then
+    break;
+  fi
+done
 $DIR/selenium.sh stop
 
 set +x

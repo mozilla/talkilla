@@ -1,3 +1,4 @@
+/* global payloads */
 /* jshint unused:false */
 
 var TalkillaSPA = (function() {
@@ -34,15 +35,15 @@ var TalkillaSPA = (function() {
       // XXX: For now we just translate the server messages to the
       // documented SPA interface. We have to update the server to
       // reflect these events.
-      var mapping = {
-        "incoming_call": "offer",
-        "call_accepted": "answer",
-        "call_hangup": "hangup",
-        "ice:candidate": "ice:candidate"
-      };
-
-      if (type in mapping)
-        this.port.post(mapping[type], event);
+      if (type === "offer")
+        this.port.post("offer", (new payloads.Offer(event)).toJSON());
+      else if (type === "answer")
+        this.port.post("answer", (new payloads.Answer(event)).toJSON());
+      else if (type === "hangup")
+        this.port.post("hangup", (new payloads.Hangup(event)).toJSON());
+      else if (type === "ice:candidate")
+        this.port.post("ice:candidate",
+                       (new payloads.IceCandidate(event)).toJSON());
       else
         this.port.post("message", [type, event]);
     },
@@ -51,28 +52,52 @@ var TalkillaSPA = (function() {
       this.server.connect(credentials);
     },
 
-    _onCallOffer: function(data) {
-      data = {peer: data.peer, offer: data.offer, textChat: data.textChat};
-      this.server.callOffer(data);
+    /**
+     * Called when initiating a call.
+     *
+     * @param {Object} offerData a data structure representation of a
+     * payloads.Offer.
+     */
+    _onCallOffer: function(offerData) {
+      var offerMsg = new payloads.Offer(offerData);
+      this.server.callOffer(offerMsg);
     },
 
-    _onCallAnswer: function(data) {
-      data = {peer: data.peer, answer: data.answer, textChat: data.textChat};
-      this.server.callAccepted(data);
+    /**
+     * Called when accepting a call.
+     *
+     * @param {Object} answerData a data structure representation of a
+     * payloads.Answer.
+     */
+    _onCallAnswer: function(answerData) {
+      var answerMsg = new payloads.Answer(answerData);
+      this.server.callAccepted(answerMsg);
     },
 
-    _onCallHangup: function(data) {
-      data = {peer: data.peer};
-      this.server.callHangup(data);
+    /**
+     * Called when hanging up a call.
+     *
+     * @param {Object} hangupData a data structure representation of a
+     * payloads.Hangup.
+     */
+    _onCallHangup: function(hangupData) {
+      var hangupMsg = new payloads.Hangup(hangupData);
+      this.server.callHangup(hangupMsg);
     },
 
-    _onIceCandidate: function(data) {
-      data = {peer: data.peer, candidate: data.candidate};
-      this.server.iceCandidate(data);
+    /**
+     * Called when sending a new ice candidate.
+     *
+     * @param {Object} iceCandidateData a data structure
+     * representation of a payloads.IceCandidate.
+     */
+    _onIceCandidate: function(iceCandidateData) {
+      var iceCandidateMsg = new payloads.IceCandidate(iceCandidateData);
+      this.server.iceCandidate(iceCandidateMsg);
     },
 
-    _onPresenceRequest: function(data) {
-      this.server.presenceRequest(data.nick);
+    _onPresenceRequest: function() {
+      this.server.presenceRequest();
     }
   };
 

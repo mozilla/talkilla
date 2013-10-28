@@ -35,43 +35,42 @@ describe("User", function() {
   describe("#send", function() {
 
     it("should queue the data if no pending timeout is available", function() {
-      var data = {message: "some message"};
+      var event = {topic: "message", data: "some message"};
       sandbox.stub(user, "present").returns(true);
 
-      user.send(data);
+      user.send(event.topic, event.data);
 
-      expect(user.events).to.deep.equal([data]);
+      expect(user.events).to.deep.equal([event]);
     });
 
     it("should stop to wait for events if one is available",
       function(done) {
-        var data = {message: "some message"};
+        var event = {topic: "message", data: "some message"};
         user.waitForEvents(function(events) {
-          expect(events).to.deep.equal([data]);
+          expect(events).to.deep.equal([event]);
           done();
         });
 
-        user.send(data);
+        user.send(event.topic, event.data);
       });
 
     it("should queue the data if the pending timeout has already been resolved",
       function() {
-        var data = {message: "some message"};
+        var event = {topic: "message", data: "some message"};
         sandbox.stub(user, "present").returns(true);
         user.pending = new Waiter();
         user.pending.resolved = true;
 
-        user.send(data);
+        user.send(event.topic, event.data);
 
-        expect(user.events).to.deep.equal([data]);
+        expect(user.events).to.deep.equal([event]);
       });
 
     it("should log a warning if the user is not present", function() {
-      var data = {message: "some message"};
       sandbox.stub(user, "present").returns(false);
       sandbox.stub(logger, "warn");
 
-      user.send(data);
+      user.send("message", "some message");
 
       expect(user.events).to.deep.equal([]);
       sinon.assert.calledOnce(logger.warn);
@@ -121,14 +120,14 @@ describe("User", function() {
         user.waitForEvents(function(events) {
           var afterTimeout = new Date().getTime();
 
-          expect(events).to.deep.equal([{some: "data"}]);
+          expect(events).to.deep.equal([{topic: "some", data: "data"}]);
           expect((afterTimeout - beforeTimeout) < config.LONG_POLLING_TIMEOUT)
             .to.equal(true);
           done();
         });
 
         setTimeout(function() {
-          user.send({some: "data"});
+          user.send("some", "data");
         }, 10);
         clock.tick(config.LONG_POLLING_TIMEOUT * 3);
       });

@@ -5,8 +5,6 @@ var Server = (function() {
   function Server(options) {
     this.options = options;
     this.http = new HTTP();
-    // XXX: Temporary attribute. We need proper sessions.
-    this.nick = undefined;
   }
 
   Server.prototype = {
@@ -17,48 +15,70 @@ var Server = (function() {
         if (err !== null)
           return this.trigger("disconnected", response);
 
-        this.nick = credentials.nick;
         this.trigger("connected");
-        this._longPolling(credentials.nick, JSON.parse(response));
+        this._longPolling(JSON.parse(response));
       }.bind(this));
     },
 
-    _longPolling: function(nick, events) {
+    _longPolling: function(events) {
       events.forEach(function(event) {
-        for (var type in event) {
-          this.trigger("message", type, event[type]);
-          this.trigger("message:" + type, event[type]);
-        }
+        this.trigger("message", event.topic, event.data);
+        this.trigger("message:" + event.topic, event.data);
       }.bind(this));
 
-      this.http.post("/stream", {nick: nick}, function(err, response) {
+      this.http.post("/stream", {}, function(err, response) {
         if (err === 400)
           return this.trigger("unauthorized", response);
         if (err !== null)
           return this.trigger("disconnected", response);
 
-        this._longPolling(nick, JSON.parse(response));
+        this._longPolling(JSON.parse(response));
       }.bind(this));
     },
 
-    callOffer: function(data, callback) {
-      this.http.post("/calloffer", {data: data, nick: this.nick}, callback);
+    /**
+     * Initiate a call via the /calloffer API
+     *
+     * @param {payloads.Offer} offerMsg An Offer payload to initiate the call.
+     * @param {function} callback A callback for when the server answers back.
+     */
+    callOffer: function(offerMsg, callback) {
+      this.http.post("/calloffer", {data: offerMsg}, callback);
     },
 
-    callAccepted: function(data, callback) {
-      this.http.post("/callaccepted", {data: data, nick: this.nick}, callback);
+    /**
+     * Accept a call via the /callanswer API
+     *
+     * @param {payloads.Answer} answerMsg An Answer payload to accept the call.
+     * @param {function} callback A callback for when the server answers back.
+     */
+    callAccepted: function(answerMsg, callback) {
+      this.http.post("/callaccepted", {data: answerMsg}, callback);
     },
 
-    callHangup: function(data, callback) {
-      this.http.post("/callhangup", {data: data, nick: this.nick}, callback);
+    /**
+     * End a call via the /callhangup API
+     *
+     * @param {payloads.Hangup} hangupMsg A Hangup payload to end the call.
+     * @param {function} callback A callback for when the server answers back.
+     */
+    callHangup: function(hangupMsg, callback) {
+      this.http.post("/callhangup", {data: hangupMsg}, callback);
     },
 
-    iceCandidate: function(data, callback) {
-      this.http.post("/icecandidate", {data: data, nick: this.nick}, callback);
+    /**
+     * Send a new ICE candidate via /icecandidate
+     *
+     * @param {payloads.IceCandidate} iceCandidateMsg An IceCandidate
+     * payload to send to a peer.
+     * @param {function} callback A callback for when the server answers back.
+     */
+    iceCandidate: function(iceCandidateMsg, callback) {
+      this.http.post("/icecandidate", {data: iceCandidateMsg}, callback);
     },
 
-    presenceRequest: function(nick, callback) {
-      this.http.post("/presencerequest", {nick: nick}, callback);
+    presenceRequest: function(callback) {
+      this.http.post("/presencerequest", {}, callback);
     }
   };
 
