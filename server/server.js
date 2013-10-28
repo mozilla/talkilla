@@ -9,7 +9,8 @@ var app      = express();
 app.use(express.bodyParser());
 app.use(express.static(__dirname + "/../static"));
 app.use(sessions({
-  cookieName: 'session',
+  cookieName: 'talkilla-session',
+  requestKey: 'session',
   secret: config.SESSION_SECRET,
   duration: 10 * 24 * 60 * 60 * 1000, // 10 days
 }));
