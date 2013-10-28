@@ -48,12 +48,13 @@ var SPA = (function() {
       this.http.post("/signin", {assertion: assertion}, callback);
     },
 
-    signout: function(nick, callback) {
-      this.http.post("/signout", {nick: nick}, callback);
+    signout: function(callback) {
+      this.http.post("/signout", {}, callback);
     },
 
-    connect: function(credentials) {
-      this._send("connect", credentials);
+    connect: function() {
+      // XXX: connect should accept credentials here
+      this._send("connect", {});
     },
 
     /**
@@ -96,8 +97,8 @@ var SPA = (function() {
       this._send("ice:candidate", iceCandidateMsg.toJSON());
     },
 
-    presenceRequest: function(nick) {
-      this._send("presence:request", {nick: nick});
+    presenceRequest: function() {
+      this._send("presence:request");
     }
   };
 

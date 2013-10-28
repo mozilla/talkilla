@@ -80,12 +80,10 @@ describe("SPA", function() {
 
     it("should send a signout event to the worker", function() {
       var callback = function() {};
-      spa.signout("foo", callback);
+      spa.signout(callback);
 
       sinon.assert.calledOnce(spa.http.post);
-      sinon.assert.calledWithExactly(spa.http.post, "/signout", {
-        nick: "foo"
-      }, callback);
+      sinon.assert.calledWithExactly(spa.http.post, "/signout", {}, callback);
     });
 
   });
@@ -94,12 +92,12 @@ describe("SPA", function() {
 
     it("should send a connect event to the worker", function() {
       spa.worker.postMessage.reset();
-      spa.connect({nick: "foo"});
+      spa.connect();
 
       sinon.assert.calledOnce(spa.worker.postMessage);
       sinon.assert.calledWithExactly(spa.worker.postMessage, {
         topic: "connect",
-        data: {nick: "foo"}
+        data: {}
       });
     });
 

@@ -399,7 +399,7 @@ var handlers = {
       if (cookie.name === "nick") {
         _autologinPending = true;
         tkWorker.user.name = cookie.value;
-        spa.connect({nick: cookie.value});
+        spa.connect();
       }
     });
   },
@@ -427,7 +427,7 @@ var handlers = {
     if (!tkWorker.user.name)
       return;
 
-    spa.signout(tkWorker.user.name, _signoutCallback.bind(this));
+    spa.signout(_signoutCallback.bind(this));
   },
 
   'talkilla.conversation-open': function(event) {
@@ -461,7 +461,7 @@ var handlers = {
    */
   'talkilla.presence-request': function(event) {
     var users = tkWorker.users.toArray();
-    spa.presenceRequest(tkWorker.user.name);
+    spa.presenceRequest();
     this.postEvent('talkilla.users', users);
   },
 
