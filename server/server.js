@@ -13,6 +13,13 @@ app.use(sessions({
   requestKey: 'session',
   secret: config.SESSION_SECRET,
   duration: 10 * 24 * 60 * 60 * 1000, // 10 days
+  cookie: {
+    path: '/',
+    maxAge: 10 * 24 * 60 * 60 * 1000, // 10 days
+    ephemeral: false, // when true, cookie expires when the browser closes
+    httpOnly: true, // when true, cookie is not accessible from javascript
+    secure: false   // when true, cookie will only be sent over SSL
+  }
 }));
 app.use(app.router);
 
