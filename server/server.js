@@ -18,7 +18,8 @@ app.use(sessions({
     maxAge: 10 * 24 * 60 * 60 * 1000, // 10 days
     ephemeral: false, // when true, cookie expires when the browser closes
     httpOnly: true, // when true, cookie is not accessible from javascript
-    secure: false   // when true, cookie will only be sent over SSL
+    // when secure is true, the cookie will only be sent over SSL
+    secure: (config.ROOTURL.indexOf("https") === 0) ? true : false
   }
 }));
 app.use(app.router);
