@@ -9,9 +9,18 @@ var app      = express();
 app.use(express.bodyParser());
 app.use(express.static(__dirname + "/../static"));
 app.use(sessions({
-  cookieName: 'session',
+  cookieName: 'talkilla-session',
+  requestKey: 'session',
   secret: config.SESSION_SECRET,
   duration: 10 * 24 * 60 * 60 * 1000, // 10 days
+  cookie: {
+    path: '/',
+    maxAge: 10 * 24 * 60 * 60 * 1000, // 10 days
+    ephemeral: false, // when true, cookie expires when the browser closes
+    httpOnly: true, // when true, cookie is not accessible from javascript
+    // when secure is true, the cookie will only be sent over SSL
+    secure: (config.ROOTURL.indexOf("https") === 0) ? true : false
+  }
 }));
 app.use(app.router);
 
