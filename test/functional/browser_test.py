@@ -6,7 +6,7 @@ import signal
 import subprocess
 import unittest
 import functools
-import pdb
+import ipdb
 import sys
 
 from selenium.common.exceptions import TimeoutException
@@ -32,7 +32,7 @@ def debug_on(*exceptions):
             try:
                 return f(*args, **kwargs)
             except exceptions:
-                pdb.post_mortem(sys.exc_info()[2])
+                ipdb.post_mortem(sys.exc_info()[2])
         return wrapper
     return decorator
 
