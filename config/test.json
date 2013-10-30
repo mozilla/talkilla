@@ -1,6 +1,6 @@
 {
   "DEBUG": true,
-  "PENDING_CALL_TIMEOUT": 4000,
+  "PENDING_CALL_TIMEOUT": 6000,
   "FAKE_MEDIA_STREAMS": true,
   "LOG_LEVEL": "error",
   "PERSONA_INCLUDE_URL": "/test/functional/persona.js",

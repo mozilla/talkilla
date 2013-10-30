@@ -13,7 +13,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 SELENIUM_COMMAND_EXECUTOR = os.getenv("SELENIUM_COMMAND_EXECUTOR",
                                       "http://127.0.0.1:4444/wd/hub")
 BASE_APP_URL = "http://localhost:3000"
-DEFAULT_WAIT_TIMEOUT = 5
+DEFAULT_WAIT_TIMEOUT = 7
 
 
 class Driver(WebDriver):
@@ -177,10 +177,10 @@ class Driver(WebDriver):
             wait_for_correct_document, message=msg)
         return self
 
-    def switchToChatWindow(self):
+    def switchToChatWindow(self, timeout=DEFAULT_WAIT_TIMEOUT * 2):
         """Switches to the Social API chat window."""
         return self.switchToFrame("//chatbox",
-                                  BASE_APP_URL + "/chat.html")
+                                  BASE_APP_URL + "/chat.html", timeout=timeout)
 
     def switchToSidebar(self):
         """Switches to the Social API sidebar."""

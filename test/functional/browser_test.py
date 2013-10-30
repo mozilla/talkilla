@@ -210,6 +210,19 @@ class BrowserTest(unittest.TestCase):
             raise AssertionError(u'Title does not equal "%s"; got "%s"' % (
                 title, driver.title))
 
+    def assertChatWindowOpen(self, driver):
+        try:
+            driver.switchToChatWindow(timeout=1)
+        except TimeoutException:
+            raise AssertionError('The Chat Window is not open')
+
+    def assertChatWindowClosed(self, driver):
+        try:
+            driver.switchToChatWindow(timeout=1)
+            raise AssertionError('The Chat Window is not closed')
+        except TimeoutException:
+            pass
+
 
 # SingleNodeBrowserTest is used for starting up a single
 # node instance that is used for all tests in a test class.
