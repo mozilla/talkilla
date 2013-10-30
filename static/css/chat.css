@@ -126,10 +126,10 @@ body {
  */
 #call {
   display: table-row;
-  height: calc(100vw / 1.33333); /* keep 4:3 video aspect ratio */
 }
 
 #call .media-display-area {
+  height: calc(100vw / 1.33333); /* keep 4:3 video aspect ratio */
   position: relative;
   overflow: hidden;
   margin-bottom: -5px;
@@ -268,7 +268,7 @@ body {
  * Small height window
  */
 @media screen and (max-height: 300px) {
-  #call {
+  #call .media-display-area {
     height: 60vh;
   }
 
@@ -301,14 +301,13 @@ body {
 @media screen and (min-width: 720px) {
   #call {
     background: #000;
-    height: calc(60vh - 25px - 22px);
     text-align: center; /* cause entire media-display-area to be centered
                          * relative to window */
   }
 
   #call .media-display-area {
     display: inline-block; /* table-cell would insert unwanted extra padding */
-    height: 60vh;
+    height: calc(60vh - 25px - 22px);
     margin-bottom: 0;
     vertical-align: middle;
   }

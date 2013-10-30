@@ -28,7 +28,7 @@
   function configure(doc) {
     doc.body.classList.add("has-video");
     // call area
-    doc.querySelector('#call').classList.remove('hide');
+    doc.querySelector('.media-display-area').classList.remove('hide');
     // chat
     var chat = doc.querySelector('#textchat ul');
     for (var i=0; i<=25; i++) {
@@ -42,9 +42,6 @@
       var local = doc.querySelector('#local-media');
       local.mozSrcObject = stream;
       local.play();
-      local.onplaying = function() {
-        local.classList.remove('hide');
-      };
       var remote = doc.querySelector('#remote-media');
       remote.mozSrcObject = stream;
       remote.play();
@@ -84,7 +81,7 @@
       fdoc.body.classList.remove("has-video");
       hide(fdoc.querySelector("#offer"));
       hide(fdoc.querySelector("#establish"));
-      hide(fdoc.querySelector("#call"));
+      hide(fdoc.querySelector(".media-display-area"));
       show(fdoc.querySelector("#textchat"));
     });
   }
@@ -96,7 +93,7 @@
       hide(fdoc.querySelector("#offer"));
       hide(fdoc.querySelector("#establish"));
       show(fdoc.querySelector("#textchat"));
-      show(fdoc.querySelector("#call"));
+      show(fdoc.querySelector(".media-display-area"));
     });
   }
 
@@ -105,7 +102,7 @@
       var fdoc = f.contentDocument;
       fdoc.body.classList.remove("has-video");
       hide(fdoc.querySelector("#establish"));
-      hide(fdoc.querySelector("#call"));
+      hide(fdoc.querySelector(".media-display-area"));
       hide(fdoc.querySelector("#textchat"));
       show(fdoc.querySelector("#offer"));
     });
@@ -116,7 +113,7 @@
       var fdoc = f.contentDocument;
       fdoc.body.classList.remove("has-video");
       hide(fdoc.querySelector("#offer"));
-      hide(fdoc.querySelector("#call"));
+      hide(fdoc.querySelector(".media-display-area"));
       hide(fdoc.querySelector("#textchat"));
       show(fdoc.querySelector("#establish"));
     });
