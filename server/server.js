@@ -19,7 +19,8 @@ app.use(sessions({
     ephemeral: false, // when true, cookie expires when the browser closes
     httpOnly: true, // when true, cookie is not accessible from javascript
     // when secure is true, the cookie will only be sent over SSL
-    secure: (config.ROOTURL.indexOf("https") === 0) ? true : false
+    // XXX Temp disabled, as this needs secure/trusted proxy mode enabling
+    secure: false//(config.ROOTURL.indexOf("https") === 0) ? true : false
   }
 }));
 app.use(app.router);
