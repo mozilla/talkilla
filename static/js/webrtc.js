@@ -381,6 +381,8 @@
    * - ice:failed
    * - ice:disconnected
    * - ice:closed
+   *
+   * @link http://www.w3.org/TR/webrtc/#h4_rtciceconnectionstate-enum
    */
   WebRTC.prototype._onIceConnectionStateChange = function() {
     this.trigger('ice:' + this.pc.iceConnectionState);
