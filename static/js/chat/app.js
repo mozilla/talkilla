@@ -194,7 +194,11 @@ var ChatApp = (function(app, $, Backbone, _) {
   };
 
   // Call Hangup
-  ChatApp.prototype._onCallShutdown = function() {
+  ChatApp.prototype._onCallShutdown = function(hangupData) {
+    var hangupMsg = new app.payloads.Hangup(hangupData);
+    if (hangupMsg.callid !== this.call.callid)
+      return;
+
     this.audioLibrary.stop('incoming');
     this.call.hangup(false);
     window.close();

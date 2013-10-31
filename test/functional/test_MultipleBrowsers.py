@@ -3,6 +3,7 @@
 
 import mixins
 import unittest
+import time
 
 from browser_test import MultipleNodeBrowserTest
 
@@ -146,6 +147,21 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
         self.larry.ignoreCall()
 
         self.assertCallTimedOut(self.bob)
+
+    def test_video_call_late_hangup(self):
+        self.bob.signin()
+        self.larry.signin()
+
+        self.bob.openConversationWith("larry").startCall(True)
+
+        self.larry.switchToChatWindow()
+        self.larry.ignoreCall()
+        time.sleep(3)  # The window takes 3 seconds to close itself.
+        self.assertChatWindowClosed(self.larry)
+
+        self.larry.openConversationWith("bob")
+        self.assertCallTimedOut(self.bob)
+        self.assertChatWindowOpen(self.larry)
 
     def test_text_chat(self):
         self.larry.signin()

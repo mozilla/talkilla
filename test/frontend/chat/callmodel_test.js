@@ -50,6 +50,13 @@ describe("Call Model", function() {
       var call = new app.models.Call({peer: "larry"}, {media: media});
       expect(call.get("peer")).to.equal("larry");
     });
+
+    it("should have a random id", function() {
+      sandbox.stub(app.utils, "id").returns(1);
+      var call = new app.models.Call({}, {media: media, peer: peer});
+      expect(call.callid).to.not.equal(undefined);
+      sinon.assert.calledOnce(app.utils.id);
+    });
   });
 
   describe("#start", function() {
@@ -100,6 +107,11 @@ describe("Call Model", function() {
         expect(call.requiresVideo()).to.equal(true);
       });
 
+    it("should generate a new call id", function() {
+      var oldid = call.callid;
+      call.start({});
+      expect(call.callid).to.not.equal(oldid);
+    });
 
     describe("send-offer", function() {
       var fakeOffer = {peer: "larry", offer: {fake: true}};
@@ -200,6 +212,11 @@ describe("Call Model", function() {
       call.incoming(callData);
 
       expect(call.get("incomingData")).to.equal(callData);
+    });
+
+    it("should have the same id as the incoming call", function() {
+      call.incoming({callid: 1});
+      expect(call.callid).to.equal(1);
     });
 
   });
