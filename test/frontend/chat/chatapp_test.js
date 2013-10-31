@@ -309,9 +309,15 @@ describe("ChatApp", function() {
 
     describe("#_onCallShutdown", function() {
       beforeEach(function() {
+        var hangupData = new app.payloads.Hangup({
+          peer: "foo",
+          callid: 1
+        }).toJSON();
+        chatApp.call.callid = 1;
+
         sandbox.stub(chatApp.call, "hangup");
         sandbox.stub(window, "close");
-        chatApp._onCallShutdown();
+        chatApp._onCallShutdown(hangupData);
       });
 
       it("should hangup the call", function() {
