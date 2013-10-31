@@ -446,11 +446,12 @@ describe("WebRTC", function() {
         sinon.assert.calledOnce(webrtc.pc.addIceCandidate);
       });
 
-      it("should not error when adding an undefined candidate", function() {
-        webrtc.initiate();
+      it("should not throw an error when adding an undefined candidate",
+        function() {
+          webrtc.initiate();
 
-        expect(webrtc.addIceCandidate).to.not.Throw();
-      });
+          expect(webrtc.addIceCandidate).to.not.Throw();
+        });
 
     });
 
@@ -631,7 +632,7 @@ describe("WebRTC", function() {
 
           sinon.assert.calledOnce(webrtc.trigger);
           sinon.assert.calledWithExactly(webrtc.trigger, "ice:candidate-ready",
-                                         undefined);
+                                         null);
         });
 
     });
