@@ -4,6 +4,7 @@ var payloads = (function() {
   "use strict";
 
   function Offer(data) {
+    this.callid   = data.callid;
     this.peer     = data.peer;
     this.offer    = data.offer;
     this.textChat = data.textChat || false;
@@ -13,6 +14,7 @@ var payloads = (function() {
   Offer.prototype = {
     toJSON: function() {
       return {
+        callid: this.callid,
         peer: this.peer,
         offer: this.offer,
         textChat: this.textChat,
