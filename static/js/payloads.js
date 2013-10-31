@@ -38,12 +38,13 @@ var payloads = (function() {
   };
 
   function Hangup(data) {
+    this.callid = data.callid;
     this.peer = data.peer;
   }
 
   Hangup.prototype = {
     toJSON: function() {
-      return {peer: this.peer};
+      return {peer: this.peer, callid: this.callid};
     }
   };
 

@@ -183,4 +183,15 @@
     return [scaleFactor * streamSize[0], scaleFactor * streamSize[1]];
   };
 
+  /**
+   * Generate an id via getRandomValues.
+   *
+   * @return {int} the generated id as an integer
+   */
+  app.utils.id = function() {
+    var array = new Uint32Array(1);
+    window.crypto.getRandomValues(array);
+    return array[0];
+  };
+
 })(app, _);
