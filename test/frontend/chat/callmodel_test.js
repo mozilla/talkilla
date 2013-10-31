@@ -51,7 +51,7 @@ describe("Call Model", function() {
       expect(call.get("peer")).to.equal("larry");
     });
 
-    it("should a random id", function() {
+    it("should have a random id", function() {
       sandbox.stub(app.utils, "id").returns(1);
       var call = new app.models.Call({}, {media: media, peer: peer});
       expect(call.callid).to.not.equal(undefined);
