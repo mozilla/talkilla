@@ -308,8 +308,10 @@ describe("ChatApp", function() {
     });
 
     describe("#_onCallShutdown", function() {
+      var hangupData;
+
       beforeEach(function() {
-        var hangupData = new app.payloads.Hangup({
+        hangupData = new app.payloads.Hangup({
           peer: "foo",
           callid: 1
         }).toJSON();
@@ -335,6 +337,15 @@ describe("ChatApp", function() {
         sinon.assert.calledWithExactly(chatApp.audioLibrary.stop,
           "incoming");
       });
+
+      it("should not hangup the call if the call id is different", function() {
+        chatApp.call.hangup.reset();
+        chatApp.call.callid = 2;
+        chatApp._onCallShutdown(hangupData);
+
+        sinon.assert.notCalled(chatApp.call.hangup);
+      });
+
     });
 
     describe("#_onCallHangup", function() {

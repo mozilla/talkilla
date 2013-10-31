@@ -156,7 +156,7 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
 
         self.larry.switchToChatWindow()
         self.larry.ignoreCall()
-        time.sleep(3)
+        time.sleep(3)  # The window takes 3 seconds to close itself.
         self.assertChatWindowClosed(self.larry)
 
         self.larry.openConversationWith("bob")
