@@ -156,7 +156,11 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
 
         self.larry.switchToChatWindow()
         self.larry.ignoreCall()
-        time.sleep(3)  # The window takes 3 seconds to close itself.
+        # The window takes 3 seconds to close, this is the timeout
+        # set in CallOfferView
+        # XXX Ideally, assertChatWindowClosed would be able to wait
+        # and detect the chat window closing.
+        time.sleep(3)
         self.assertChatWindowClosed(self.larry)
 
         self.larry.openConversationWith("bob")
