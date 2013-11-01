@@ -92,6 +92,15 @@ describe("GoogleContacts", function() {
     });
   });
 
+  describe("#initialize", function() {
+    it("should initialize the google api client", function(done) {
+      window.gapi = fakeGApi;
+      new GoogleContacts().initialize(function() {
+        done();
+      });
+    });
+  });
+
   describe("#authorize", function() {
     it("should pass an error if the google api client is unavailable",
       function(done) {
@@ -135,17 +144,14 @@ describe("GoogleContacts", function() {
         });
       });
 
-    it("should pass back auth errors", function(done) {
+    it("should pass back auth errors", function() {
       window.gapi = fakeGApi;
       fakeGApi.auth.authorize = function(config, cb) {
         cb({access_token: undefined});
       };
 
       var gc = new GoogleContacts();
-      gc.authorize(function(err) {
-        expect(err).to.match(/missing auth token/);
-        done();
-      });
+      expect(function () { gc.authorize(); }).to.Throw(/missing auth token/);
     });
   });
 

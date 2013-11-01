@@ -56,6 +56,9 @@ var SidebarApp = (function(app, $) {
 
   SidebarApp.prototype._onWorkerReady = function() {
     this.appStatus.set("workerInitialized", true);
+    // XXX The contacts button should probably only be displayed once
+    // this completes.
+    this.services.google.initialize();
   };
 
   SidebarApp.prototype._onUserSigninRequested = function(assertion) {
