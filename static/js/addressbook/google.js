@@ -68,7 +68,7 @@ var GoogleContacts = (function() {
      */
     initialize: function(cb) {
       if (typeof gapi !== "object")
-        return cb && cb.call(this, new Error("gapi is missing"));
+        return cb && cb(new Error("gapi is missing"));
 
       // Init the google auth api now, because this needs to be done
       // before any button click for authorization.
@@ -90,8 +90,12 @@ var GoogleContacts = (function() {
         return cb.call(this, new Error("gapi is missing"));
 
       gapi.auth.authorize(config, function(auth) {
-        this._storeToken(auth.access_token);
-        cb.call(this, null);
+        try {
+          this._storeToken(auth.access_token);
+          cb.call(this, null);
+        } catch (err) {
+          cb.call(this, err);
+        }
       }.bind(this));
     },
 
