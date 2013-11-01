@@ -301,5 +301,19 @@ describe('Utils', function() {
      */
     it("should have defined behavior when sizes are non-integer multiples");
     it("should have defined behavior on zero-box-size elements");
-  });   
+  });
+
+  describe("#id", function() {
+
+    it("should generate random ids", function() {
+      var first = app.utils.id();
+      var second = app.utils.id();
+
+      expect(first).to.not.equal(undefined);
+      expect(second).to.not.equal(undefined);
+      expect(first).to.not.equal(second);
+    });
+
+  });
+
 });

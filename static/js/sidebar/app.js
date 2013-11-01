@@ -56,6 +56,9 @@ var SidebarApp = (function(app, $) {
 
   SidebarApp.prototype._onWorkerReady = function() {
     this.appStatus.set("workerInitialized", true);
+    // XXX Hide or disable the import button at the start and add a callback
+    // here to show it when this completes.
+    this.services.google.initialize();
   };
 
   SidebarApp.prototype._onUserSigninRequested = function(assertion) {

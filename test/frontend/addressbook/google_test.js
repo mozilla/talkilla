@@ -92,6 +92,16 @@ describe("GoogleContacts", function() {
     });
   });
 
+  describe("#initialize", function() {
+    it("should initialize the google api client", function() {
+      window.gapi = fakeGApi;
+      fakeGApi.auth.init = sandbox.spy();
+      new GoogleContacts().initialize();
+
+      sinon.assert.calledOnce(fakeGApi.auth.init);
+    });
+  });
+
   describe("#authorize", function() {
     it("should pass an error if the google api client is unavailable",
       function(done) {
