@@ -8,7 +8,7 @@ var GoogleContacts = (function() {
   var AUTH_COOKIE_TTL = 365 * 10; // in days
   var MAX_RESULTS = 9999; // max number of contacts to fetch
   var config = {
-    // XXX: more official mozilla-owned google app id?
+    // This is a Talkilla specific client id.
     "client_id": "122170353410.apps.googleusercontent.com",
     "scope":     "https://www.google.com/m8/feeds"
   };
