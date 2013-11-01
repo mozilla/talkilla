@@ -15,6 +15,7 @@ SELENIUM_COMMAND_EXECUTOR = os.getenv("SELENIUM_COMMAND_EXECUTOR",
                                       "http://127.0.0.1:4444/wd/hub")
 BASE_APP_URL = "http://localhost:3000"
 
+
 class Driver(WebDriver):
     nick = None
 
@@ -186,7 +187,8 @@ class Driver(WebDriver):
         return self.switchToFrame("//#social-sidebar-browser",
                                   BASE_APP_URL + "/sidebar.html")
 
-    def waitForElement(self, css_selector, timeout=testConfig['DEFAULT_WAIT_TIMEOUT'],
+    def waitForElement(self, css_selector,
+                       timeout=testConfig['DEFAULT_WAIT_TIMEOUT'],
                        visible=None):
         """ Waits for a single DOM element matching the provided CSS selector
             do be available.
@@ -209,7 +211,8 @@ class Driver(WebDriver):
             return elements[0]
         raise NoSuchElementException("No element matching " + css_selector)
 
-    def waitForElements(self, css_selector, timeout=testConfig['DEFAULT_WAIT_TIMEOUT'],
+    def waitForElements(self, css_selector,
+                        timeout=testConfig['DEFAULT_WAIT_TIMEOUT'],
                         visible=None):
         """ Waits for DOM elements matching the provided CSS selector to be
             available.
@@ -242,9 +245,9 @@ class Driver(WebDriver):
         return self.find_elements_by_css_selector(css_selector)
 
     def waitForElementWithPropertyValue(self, css_selector,
-                                        property_name,
-                                        property_value,
-                                        timeout=testConfig['DEFAULT_WAIT_TIMEOUT']):
+                                        property_name, property_value,
+                                        timeout=
+                                        testConfig['DEFAULT_WAIT_TIMEOUT']):
         """ Waits for DOM element matching the provided CSS selector to be
             available and to have the given attribute or property set to
             the given value
