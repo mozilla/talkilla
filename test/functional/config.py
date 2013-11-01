@@ -10,7 +10,7 @@ class TestConfig():
         # Add calculated configuration options
 
         # A little longer to allow for call-setup times etc
-        data['DEFAULT_WAIT_TIMEOUT'] = data['PENDING_CALL_TIMEOUT'] + 1
+        data['DEFAULT_WAIT_TIMEOUT'] = (data['PENDING_CALL_TIMEOUT'] + 1) / 1000
 
         self.data = data
 

@@ -246,7 +246,7 @@
       setTimeout(function() {
         this.call.ignore();
         window.close();
-      }.bind(this), 3000);
+      }.bind(this), app.options.CONVERSATION_IGNORE_DISPLAY_TIME);
     },
 
     /**
@@ -390,7 +390,7 @@
         throw new Error("missing parameter: el");
 
       this.call = options.call;
-      this.call.media.on('local-stream:ready', 
+      this.call.media.on('local-stream:ready',
                          this._playLocalMedia, this);
       this.call.media.on('remote-stream:ready', this._playRemoteMedia, this);
       this.call.media.on('local-stream:terminated',
