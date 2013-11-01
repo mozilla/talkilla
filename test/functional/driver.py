@@ -9,12 +9,11 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.support.ui import WebDriverWait
+from config import testConfig
 
 SELENIUM_COMMAND_EXECUTOR = os.getenv("SELENIUM_COMMAND_EXECUTOR",
                                       "http://127.0.0.1:4444/wd/hub")
 BASE_APP_URL = "http://localhost:3000"
-DEFAULT_WAIT_TIMEOUT = 7
-
 
 class Driver(WebDriver):
     nick = None
@@ -126,7 +125,7 @@ class Driver(WebDriver):
     # We use double the default timeout here as we've seen slow startup times
     # on Travis but we don't want to extend the timeout for everything.
     def switchToFrame(self, locator, expected_url,
-                      timeout=DEFAULT_WAIT_TIMEOUT * 2):
+                      timeout=testConfig['DEFAULT_WAIT_TIMEOUT'] * 2):
         """ Wait for a frame to become available, then switch to it.
 
             Args:
@@ -165,7 +164,7 @@ class Driver(WebDriver):
                 # unnecessary.  yuck.  ideally, Marionette won't have this
                 # problem, and when we switch to it, we'll be able to ditch
                 # this nested wait.  we'll see).
-                wait2 = WebDriverWait(self, DEFAULT_WAIT_TIMEOUT)
+                wait2 = WebDriverWait(self, testConfig['DEFAULT_WAIT_TIMEOUT'])
                 wait2.until(EC.frame_to_be_available_and_switch_to_it(locator))
                 return False
 
@@ -177,7 +176,7 @@ class Driver(WebDriver):
             wait_for_correct_document, message=msg)
         return self
 
-    def switchToChatWindow(self, timeout=DEFAULT_WAIT_TIMEOUT * 2):
+    def switchToChatWindow(self, timeout=testConfig['DEFAULT_WAIT_TIMEOUT']):
         """Switches to the Social API chat window."""
         return self.switchToFrame("//chatbox",
                                   BASE_APP_URL + "/chat.html", timeout=timeout)
@@ -187,7 +186,7 @@ class Driver(WebDriver):
         return self.switchToFrame("//#social-sidebar-browser",
                                   BASE_APP_URL + "/sidebar.html")
 
-    def waitForElement(self, css_selector, timeout=DEFAULT_WAIT_TIMEOUT,
+    def waitForElement(self, css_selector, timeout=testConfig['DEFAULT_WAIT_TIMEOUT'],
                        visible=None):
         """ Waits for a single DOM element matching the provided CSS selector
             do be available.
@@ -210,7 +209,7 @@ class Driver(WebDriver):
             return elements[0]
         raise NoSuchElementException("No element matching " + css_selector)
 
-    def waitForElements(self, css_selector, timeout=DEFAULT_WAIT_TIMEOUT,
+    def waitForElements(self, css_selector, timeout=testConfig['DEFAULT_WAIT_TIMEOUT'],
                         visible=None):
         """ Waits for DOM elements matching the provided CSS selector to be
             available.
@@ -245,7 +244,7 @@ class Driver(WebDriver):
     def waitForElementWithPropertyValue(self, css_selector,
                                         property_name,
                                         property_value,
-                                        timeout=DEFAULT_WAIT_TIMEOUT):
+                                        timeout=testConfig['DEFAULT_WAIT_TIMEOUT']):
         """ Waits for DOM element matching the provided CSS selector to be
             available and to have the given attribute or property set to
             the given value
