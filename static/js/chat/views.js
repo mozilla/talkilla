@@ -243,6 +243,7 @@
       this.$el.addClass("ignored");
       this.$el.find(".actions .btn").addClass("disabled");
 
+      // If the timeout is changed, be aware the unit tests depend on it.
       setTimeout(function() {
         this.call.ignore();
         window.close();
@@ -390,7 +391,7 @@
         throw new Error("missing parameter: el");
 
       this.call = options.call;
-      this.call.media.on('local-stream:ready', 
+      this.call.media.on('local-stream:ready',
                          this._playLocalMedia, this);
       this.call.media.on('remote-stream:ready', this._playRemoteMedia, this);
       this.call.media.on('local-stream:terminated',
