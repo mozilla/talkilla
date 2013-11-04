@@ -1,9 +1,10 @@
 {
   "DEBUG": true,
-  "PENDING_CALL_TIMEOUT": 6000,
+  "PENDING_CALL_TIMEOUT": 4000,
   "FAKE_MEDIA_STREAMS": true,
   "LOG_LEVEL": "error",
   "PERSONA_INCLUDE_URL": "/test/functional/persona.js",
   "SESSION_SECRET": "unguessablesecret",
-  "LONG_POLLING_TIMEOUT": 4000
+  "LONG_POLLING_TIMEOUT": 4000,
+  "CONVERSATION_IGNORE_DISPLAY_TIME": 1000
 }

@@ -6,6 +6,7 @@ import unittest
 import time
 
 from browser_test import MultipleNodeBrowserTest
+from config import testConfig
 
 
 class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
@@ -156,7 +157,8 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
 
         self.larry.switchToChatWindow()
         self.larry.ignoreCall()
-        time.sleep(3)  # The window takes 3 seconds to close itself.
+        # Wait for the ignore to finish and the window to close
+        time.sleep(testConfig['CONVERSATION_IGNORE_DISPLAY_TIME'] / 1000)
         self.assertChatWindowClosed(self.larry)
 
         self.larry.openConversationWith("bob")
