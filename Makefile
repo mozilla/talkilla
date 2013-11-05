@@ -26,16 +26,18 @@ jshint:
 
 .PHONY: mocha
 mocha:
-	@env NODE_ENV=test ./node_modules/mocha/bin/mocha \
-		--reporter spec test/server
+	@env NODE_ENV=test  SESSION_SECRET=unguessable \
+		./node_modules/mocha/bin/mocha --reporter spec test/server
 
 .PHONY: runserver
 runserver:
-	@env NODE_ENV=production PORT=5000 node app.js
+	@env NODE_ENV=production PORT=5000 SESSION_SECRET=${SESSION_SECRET} \
+		node app.js
 
 .PHONY: runserver_dev
 runserver_dev:
-	@env NODE_ENV=development PORT=5000 node app.js
+	@env NODE_ENV=development PORT=5000 SESSION_SECRET=unguessable \
+		node app.js
 
 .PHONY: cover_server
 cover_server:

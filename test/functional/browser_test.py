@@ -224,17 +224,24 @@ class BrowserTest(unittest.TestCase):
             pass
 
 
+# TODO: we should DRY-ify the server startup via python
+# scripts. For now we do that in:
+#   - test/frontend/test_frontend_all.py
+#   - test/functional/browser_test.py
+SERVER_COMMAND = ("node", "app.js")
+SERVER_ENV = os.environ.copy()
+SERVER_ENV.update({"PORT": "3000",
+                   "NO_LOCAL_CONFIG": "true",
+                   "NODE_ENV": "test",
+                   "SESSION_SECRET": "unguessable"})
+
+
 # SingleNodeBrowserTest is used for starting up a single
 # node instance that is used for all tests in a test class.
 class SingleNodeBrowserTest(BrowserTest):
     @classmethod
     def setUpClass(cls):
-        cmd = ("node", "app.js")
-        env = os.environ.copy()
-        env.update({"PORT": "3000",
-                    "NO_LOCAL_CONFIG": "true",
-                    "NODE_ENV": "test"})
-        cls.node_app = subprocess.Popen(cmd, env=env)
+        cls.node_app = subprocess.Popen(SERVER_COMMAND, env=SERVER_ENV)
 
     @classmethod
     def tearDownClass(cls):
@@ -247,12 +254,7 @@ class MultipleNodeBrowserTest(BrowserTest):
     node_app = None
 
     def setUp(self):
-        cmd = ("node", "app.js")
-        env = os.environ.copy()
-        env.update({"PORT": "3000",
-                    "NO_LOCAL_CONFIG": "true",
-                    "NODE_ENV": "test"})
-        self.node_app = subprocess.Popen(cmd, env=env)
+        self.node_app = subprocess.Popen(SERVER_COMMAND, env=SERVER_ENV)
         self.addCleanup(kill_app, self.node_app)
 
     def tearDown(self):
