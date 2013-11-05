@@ -372,7 +372,18 @@
 
   /**
    * Executed when the ICE connection state changes.
-   * @return {Event} event
+   *
+   * Emits the `ice:change` event with the new state name as a parameter, and
+   * one of these depending on the new connection state:
+   * - ice:new
+   * - ice:checking
+   * - ice:connected
+   * - ice:completed
+   * - ice:failed
+   * - ice:disconnected
+   * - ice:closed
+   *
+   * @link http://www.w3.org/TR/webrtc/#h4_rtciceconnectionstate-enum
    */
   WebRTC.prototype._onIceConnectionStateChange = function() {
     this.trigger('ice:' + this.pc.iceConnectionState);

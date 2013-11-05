@@ -9,11 +9,6 @@
     defaults: {workerInitialized: false}
   });
 
-  app.models.Notification = Backbone.Model.extend({
-    defaults: {type:    "default",
-               message: "empty message"}
-  });
-
   app.models.UserSet = Backbone.Collection.extend({
     model: app.models.User
   });
