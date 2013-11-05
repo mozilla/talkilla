@@ -1,7 +1,6 @@
 {
   "processes": [ "app.js" ],
   "env": {
-    "NODE_ENV": "production",
-    "SESSION_SECRET": "if you do not change that, you're gonna have a bad time"
+    "NODE_ENV": "production"
   }
 }
