@@ -270,7 +270,7 @@
       setTimeout(function() {
         this.call.ignore();
         window.close();
-      }.bind(this), 3000);
+      }.bind(this), app.options.CONVERSATION_IGNORE_DISPLAY_TIME);
     },
 
     /**
@@ -422,8 +422,6 @@
                          this._terminateRemoteMedia, this);
 
       this.call.on('change:state', this.render, this);
-
-      this.render();
     },
 
     _playLocalMedia: function(stream) {
@@ -459,10 +457,16 @@
     },
 
     render: function() {
+      // All the show/hide logic is done using the display CSS attribute on
+      // the child .media-display-area div.  This allows $el's display to be
+      // used purely to express layout (i.e. "table-row", as of this writing).
+      // This is all motivated because it's a way to avoid a race between
+      // initial markup layout and JavaScript manipulation of the DOM.
+
       if (this.call.state.current === "ongoing" && this.call.requiresVideo())
-        this.$el.show();
+        this.$el.find(".media-display-area").show();
       else
-        this.$el.hide();
+        this.$el.find(".media-display-area").hide();
     }
   });
 

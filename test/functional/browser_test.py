@@ -6,7 +6,7 @@ import signal
 import subprocess
 import unittest
 import functools
-import pdb
+import ipdb
 import sys
 
 from selenium.common.exceptions import TimeoutException
@@ -32,7 +32,7 @@ def debug_on(*exceptions):
             try:
                 return f(*args, **kwargs)
             except exceptions:
-                pdb.post_mortem(sys.exc_info()[2])
+                ipdb.post_mortem(sys.exc_info()[2])
         return wrapper
     return decorator
 
@@ -209,6 +209,19 @@ class BrowserTest(unittest.TestCase):
         if driver.title != title:
             raise AssertionError(u'Title does not equal "%s"; got "%s"' % (
                 title, driver.title))
+
+    def assertChatWindowOpen(self, driver):
+        try:
+            driver.switchToChatWindow(timeout=1)
+        except TimeoutException:
+            raise AssertionError('The Chat Window is not open')
+
+    def assertChatWindowClosed(self, driver):
+        try:
+            driver.switchToChatWindow(timeout=1)
+            raise AssertionError('The Chat Window is not closed')
+        except TimeoutException:
+            pass
 
 
 # SingleNodeBrowserTest is used for starting up a single

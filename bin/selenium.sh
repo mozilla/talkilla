@@ -1,8 +1,8 @@
 #!/bin/bash
 
-FIREFOX_BZIP2_FILENAME="firefox-27.0a1.en-US.linux-x86_64.tar.bz2"
+FIREFOX_BZIP2_FILENAME="firefox-28.0a1.en-US.linux-x86_64.tar.bz2"
 FIREFOX_BZIP2_URL="http://ftp.mozilla.org/pub/mozilla.org/firefox/nightly/latest-mozilla-central/$FIREFOX_BZIP2_FILENAME"
-SELENIUM_JAR_FILENAME="selenium-server-standalone-2.35.0a.jar"
+SELENIUM_JAR_FILENAME="selenium-server-standalone-2.35.0b.jar"
 SELENIUM_JAR_URL="http://ftp.mozilla.org/pub/mozilla.org/webtools/selenium/socialapi/$SELENIUM_JAR_FILENAME"
 SELENIUM_PID_FILE="/tmp/selenium-server-pid"
 PWD=`pwd`

@@ -18,6 +18,7 @@
     },
     timer: undefined,
     media: undefined,
+    callid: undefined,
 
     /**
      * Call model constructor.
@@ -31,6 +32,7 @@
      */
     initialize: function(attributes, options) {
       this.set(attributes || {});
+      this.callid = app.utils.id();
 
       this.media = options && options.media;
       this.peer = options && options.peer;
@@ -80,6 +82,7 @@
      * - audio: set to true to enable audio
      */
     start: function(constraints) {
+      this.callid = app.utils.id();
       this.set('currentConstraints', constraints);
 
       if (this.media.state.current === 'ongoing')
@@ -102,7 +105,8 @@
       this.media.once("offer-ready", function(offer) {
         this.trigger("send-offer", new app.payloads.Offer({
           peer: this.peer.get("nick"),
-          offer: offer
+          offer: offer,
+          callid: this.callid
         }));
       }, this);
 
@@ -122,6 +126,8 @@
      */
     incoming: function(options) {
       this.set('incomingData', options);
+      this.callid = options.callid;
+
       this.set('currentConstraints', {
         video: !!options.video,
         audio: !!options.audio
@@ -211,7 +217,8 @@
 
       if (sendMsg) {
         this.trigger("send-hangup", new app.payloads.Hangup({
-          peer: this.peer.get("nick")
+          peer: this.peer.get("nick"),
+          callid: this.callid
         }));
       }
     },

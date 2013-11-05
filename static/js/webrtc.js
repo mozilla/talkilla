@@ -181,7 +181,8 @@
    *                           mozRTCIceCandidate.
    */
   WebRTC.prototype.addIceCandidate = function(candidate) {
-    this.pc.addIceCandidate(new mozRTCIceCandidate(candidate));
+    if (candidate)
+      this.pc.addIceCandidate(new mozRTCIceCandidate(candidate));
   };
 
   /**
@@ -395,16 +396,22 @@
    * @event  `ice:candidate-ready` {Object}
    */
   WebRTC.prototype._onIceCandidate = function(event) {
-    // XXX Manually translate this until bug 928304 is incorporated in all
-    // versions we support, i.e. Firefox 27.0a2 onwards.
-    // The last candidate event is a null event, so we don't need to do
-    // anything with that.
-    if (event && event.candidate) {
-      this.trigger('ice:candidate-ready', {
-        candidate: event.candidate.candidate,
-        sdpMid: event.candidate.sdpMid,
-        sdpMLineIndex: event.candidate.sdpMLineIndex
-      });
+    // The last candidate event is a null event, we let this be transmitted
+    // to the SPA, and possibly the other side as this allows the SPA to
+    // reconstruct ICE candidates into the SDP in the case of the SP not
+    // supporting trickle ICE.
+    if (event) {
+      this.trigger('ice:candidate-ready',
+        // XXX Manually convert event.candidate until bug 928304 is
+        // incorporated in all versions we support, i.e. Firefox 27.0a2
+        // onwards. This is due to mozRTCIceCandidate not having supported
+        // serialization previously.
+        event.candidate ? {
+          candidate: event.candidate.candidate,
+          sdpMid: event.candidate.sdpMid,
+          sdpMLineIndex: event.candidate.sdpMLineIndex
+        } : null
+      );
     }
   };
 

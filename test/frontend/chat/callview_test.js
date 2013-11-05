@@ -153,32 +153,46 @@ describe("CallView", function() {
     var callView;
 
     beforeEach(function() {
-      $("#fixtures").append($('<div id="call"><div id="foo"></div></div>'));
+      el = $(['<div id="call" style="display: table-row;">',
+              '  <div class="media-display-area">',
+              '    fake text for :visible',
+              '  </div>',
+              '</div>'].join(''));
+      $("#fixtures").append(el);
+
       callView = new app.views.CallView({el: $("#fixtures #call"), call: call});
     });
 
-    it("should show this widget when a call is ongoing and contains video",
+    it("should show the media-display-view when a call is ongoing and " +
+      "contains video",
       function() {
+        $("#fixtures .media-display-area").css("display", "none");
         sandbox.stub(call, "requiresVideo").returns(true);
         call.state.current = "ongoing";
 
         callView.render();
 
-        expect(callView.$el.is(':visible')).to.equal(true);
+        expect(callView.$el.find(".media-display-area").is(':visible'))
+          .to.equal(true);
       });
 
-    it("should hide this widget when a call is ongoing and has no video",
+    it("should hide the media-display-view when a call is ongoing and " +
+      "has no video",
       function() {
+        $("#fixtures .media-display-area").css("display", "block");
         sandbox.stub(call, "requiresVideo").returns(false);
         call.state.current = "ongoing";
 
         callView.render();
 
-        expect(callView.$el.is(':visible')).to.equal(false);
+        expect(callView.$el.find(".media-display-area").is(':visible'))
+          .to.equal(false);
       });
 
-    it("should hide this widget when a call isn't ongoing and has video",
+    it("should hide the media-display-view when a call isn't ongoing and " +
+      "has video",
       function() {
+        $("#fixtures .media-display-area").css("display", "block");
         sandbox.stub(call, "requiresVideo").returns(true);
 
         var states = ["pending", "incoming", "terminated", "timeout"];
@@ -188,7 +202,8 @@ describe("CallView", function() {
 
           callView.render();
 
-          expect(callView.$el.is(':visible')).to.equal(false);
+          expect(callView.$el.find(".media-display-area").is(':visible'))
+            .to.equal(false);
 
         });
       });
