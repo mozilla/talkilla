@@ -1,4 +1,4 @@
-/*global app, StateMachine, tnetbin */
+/*global app, StateMachine, tnetbin, WebRTC */
 /**
  * ChatApp models and collections.
  */
@@ -115,18 +115,19 @@
 
     /**
      * Starts a call based on an incoming call request
-     * @param {Object} options object containing:
-     *
-     * - constraints: media constraints
-     * - offer:       information for the media object
-     * - upgrade:     is it a connection upgrade?
-     *
-     * Other items may be set according to the requirements for the particular
-     * media.
+     * @param {payloads.Offer} the received offer
      */
-    incoming: function(options) {
+    incoming: function(offer) {
+      // The function call is second, as extend has interesting side-effects
+      // when it tries to update the destination, and breaks tests.
+      var options = _.extend({
+        offer: offer.offer,
+        textChat: !!offer.textChat,
+        upgrade: !!offer.upgrade
+      }, WebRTC.parseOfferConstraints(offer.offer));
+
       this.set('incomingData', options);
-      this.callid = options.callid;
+      this.callid = offer.callid;
 
       this.set('currentConstraints', {
         video: !!options.video,
@@ -161,9 +162,10 @@
       this.state.timeout();
       this.media.terminate();
       this.media.reset();
-      this.trigger("send-timeout", {
-        peer: this.peer.get("nick")
-      });
+      this.trigger("send-timeout", new app.payloads.Hangup({
+        peer: this.peer.get("nick"),
+        callid: this.callid
+      }));
     },
 
     /**
