@@ -26,7 +26,7 @@ jshint:
 
 .PHONY: mocha
 mocha:
-	@env NODE_ENV=test  SESSION_SECRET=unguessable \
+	@env NODE_ENV=test SESSION_SECRET=unguessable \
 		./node_modules/mocha/bin/mocha --reporter spec test/server
 
 .PHONY: runserver
@@ -51,7 +51,7 @@ cover_server:
 .PHONY: selenium_all
 selenium_all:
 	bin/run_selenium_test.sh "python -m unittest discover -v test/frontend" \
-	  "python -m unittest discover -v test/functional"
+		"python -m unittest discover -v test/functional"
 
 .PHONY: selenium
 selenium:

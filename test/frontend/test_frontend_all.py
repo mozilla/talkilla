@@ -17,7 +17,7 @@ class FrontEndSuite(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        # TODO: we should DRY-ify the server startup via python
+        # XXX: we should DRY-ify the server startup via python
         # scripts. For now we do that in:
         #   - test/frontend/test_frontend_all.py
         #   - test/functional/browser_test.py
