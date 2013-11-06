@@ -621,7 +621,7 @@ PortCollection.prototype = {
  * @param {Object} options Options object
  *
  * Available options:
- * - {ContactsDB} contactsDb The collected contacts database
+ * - {ContactsDB} contactsDb        The contacts database
  * - {UserData}          user       The current user object
  * - {CurrentUsers}      users      The object containing current users
  * - {PortCollection}    ports      The port collection object
