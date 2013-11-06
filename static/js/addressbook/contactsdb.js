@@ -3,7 +3,7 @@
 /**
  * Local contacts database powered by indexedDB.
  */
-var CollectedContacts = (function() {
+var ContactsDB = (function() {
   var ON_BLOCKED_MAX_RETRIES = 10;
 
   /**
@@ -16,7 +16,7 @@ var CollectedContacts = (function() {
    * - {String} storename: indexedDB database store name (default: "contacts")
    * - {Number} version: indexedDB database version number (default: 1)
    */
-  function CollectedContacts(options) {
+  function ContactsDB(options) {
     options = options || {};
     this.options = {
       dbname: options.dbname || "TalkillaContacts",
@@ -35,7 +35,7 @@ var CollectedContacts = (function() {
    * - {Error|null} err: Encountered error, if any
    * - {IDBDatabase} db: indexedDB database object
    */
-  CollectedContacts.prototype.load = function(cb) {
+  ContactsDB.prototype.load = function(cb) {
     if (this.db)
       return cb.call(this, null, this.db);
     var request = indexedDB.open(this.options.dbname, this.options.version);
@@ -67,7 +67,7 @@ var CollectedContacts = (function() {
    * - {Error|null} err:    Encountered error, if any
    * - {String}     record: Inserted contact record
    */
-  CollectedContacts.prototype.add = function(record, cb) {
+  ContactsDB.prototype.add = function(record, cb) {
     this.load(function(err) {
       if (err)
         return cb.call(this, err);
@@ -101,7 +101,7 @@ var CollectedContacts = (function() {
    * - {Error|null} err:      Encountered error, if any
    * - {Array}      contacts: Contacts list
    */
-  CollectedContacts.prototype.all = function(cb) {
+  ContactsDB.prototype.all = function(cb) {
     this.load(function(err) {
       if (err)
         return cb.call(this, err);
@@ -124,7 +124,7 @@ var CollectedContacts = (function() {
   /**
    * Closes the indexedDB database.
    */
-  CollectedContacts.prototype.close = function() {
+  ContactsDB.prototype.close = function() {
     if (!this.db)
       return;
     this.db.close();
@@ -139,7 +139,7 @@ var CollectedContacts = (function() {
    * Callback parameters:
    * - {Error|null} err:  Encountered error, if any
    */
-  CollectedContacts.prototype.drop = function(cb) {
+  ContactsDB.prototype.drop = function(cb) {
     var attempt = 0;
     this.close();
     var request = indexedDB.deleteDatabase(this.options.dbname);
@@ -168,7 +168,7 @@ var CollectedContacts = (function() {
    * @param  {IDBDatabase}    db indexedDB database
    * @return {IDBObjectStore}
    */
-  CollectedContacts.prototype._createStore = function(db) {
+  ContactsDB.prototype._createStore = function(db) {
     var store = db.createObjectStore(this.options.storename, {
       keyPath: "username"
     });
@@ -182,10 +182,10 @@ var CollectedContacts = (function() {
    * @param  {String} mode Access mode - "readwrite" or "readonly")
    * @return {IDBObjectStore}
    */
-  CollectedContacts.prototype._getStore = function(mode) {
+  ContactsDB.prototype._getStore = function(mode) {
     return this.db.transaction(this.options.storename, mode)
                   .objectStore(this.options.storename);
   };
 
-  return CollectedContacts;
+  return ContactsDB;
 })();

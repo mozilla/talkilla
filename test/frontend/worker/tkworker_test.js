@@ -1,4 +1,4 @@
-/*global chai, sinon, TkWorker, PortCollection, CollectedContacts, UserData,
+/*global chai, sinon, TkWorker, PortCollection, ContactsDB, UserData,
   browserPort:true */
 
 var expect = chai.expect;
@@ -13,7 +13,7 @@ describe("tkWorker", function() {
     worker = new TkWorker({
       ports: new PortCollection(),
       user: new UserData({}, {}),
-      contactsDb: new CollectedContacts({
+      contactsDb: new ContactsDB({
         dbname: "TalkillaContactsTest"
       })
     });
