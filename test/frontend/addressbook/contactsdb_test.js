@@ -1,14 +1,14 @@
-/*global sinon, chai, CollectedContacts, IDBDatabase, IDBObjectStore */
+/*global sinon, chai, ContactsDB, IDBDatabase, IDBObjectStore */
 /* jshint expr:true */
 
 var expect = chai.expect;
 
-describe("CollectedContacts", function() {
+describe("ContactsDB", function() {
   var sandbox, contactsDb;
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
-    contactsDb = new CollectedContacts({
+    contactsDb = new ContactsDB({
       dbname: "TalkillaContactsTest"
     });
   });
