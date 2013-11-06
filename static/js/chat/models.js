@@ -117,17 +117,17 @@
      * Starts a call based on an incoming call request
      * @param {payloads.Offer} the received offer
      */
-    incoming: function(offer) {
-      // The function call is second, as extend has interesting side-effects
-      // when it tries to update the destination, and breaks tests.
+    incoming: function(offerMsg) {
+      // The order of arguments is important to avoid modifying the
+      // offerMsg and upsetting unit tests
       var options = _.extend({
-        offer: offer.offer,
-        textChat: !!offer.textChat,
-        upgrade: !!offer.upgrade
-      }, WebRTC.parseOfferConstraints(offer.offer));
+        offer: offerMsg.offer,
+        textChat: !!offerMsg.textChat,
+        upgrade: !!offerMsg.upgrade
+      }, WebRTC.parseOfferConstraints(offerMsg.offer));
 
       this.set('incomingData', options);
-      this.callid = offer.callid;
+      this.callid = offerMsg.callid;
 
       this.set('currentConstraints', {
         video: !!options.video,

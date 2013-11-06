@@ -311,7 +311,6 @@ describe("Call Model", function() {
       call.start({});
       call.peer.set("nick", "Mark");
       call.callid = 2;
-      //sandbox.stub(call, "trigger");
     });
 
     it("should change the state from pending to terminated", function() {
@@ -402,7 +401,7 @@ describe("Call Model", function() {
       call.on("send-hangup", function(hangupMsg) {
         expect(hangupMsg instanceof payloads.Hangup).to.equal(true);
         expect(hangupMsg.peer).to.equal("Mark");
-        expect(call.callid).to.equal(2);
+        expect(hangupMsg.callid).to.equal(call.callid);
         done();
       });
 
