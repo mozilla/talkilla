@@ -29,7 +29,7 @@ describe("ContactsDB", function() {
       expect(contactsDb.options).to.include.keys(
         "dbname", "storename", "version");
       expect(contactsDb.options.storename).eql("contacts");
-      expect(contactsDb.options.version).eql(1);
+      expect(contactsDb.options.version).eql(2);
     });
   });
 
@@ -45,8 +45,8 @@ describe("ContactsDB", function() {
     });
 
     it("shouldn't throw if the database is already loaded", function(done) {
-      contactsDb.load(function(db1) {
-        contactsDb.load(function(db2) {
+      contactsDb.load(function(err, db1) {
+        contactsDb.load(function(err, db2) {
           expect(db1).eql(db2);
           done();
         });
@@ -64,6 +64,56 @@ describe("ContactsDB", function() {
       contactsDb.load(function(err) {
         expect(err).eql("load error");
         done();
+      });
+    });
+
+    describe("upgrade", function() {
+      beforeEach(function(done) {
+        // Construct a V1 database
+        var request = indexedDB.open("UpdateContactsV1", 1);
+
+        request.onupgradeneeded = function(event) {
+          // the callback will be called by the onsuccess event handler when the
+          // whole operation is performed
+          var db = event.target.result;
+          var store = db.createObjectStore("contacts", {
+            keyPath: "username"
+          });
+          store.createIndex("username", "username", {unique: true});
+        };
+
+        request.onsuccess = function(event) {
+          var db = event.target.result;
+          // Now close the db.
+          db.close();
+          done();
+        };
+      });
+
+      afterEach(function(done) {
+        sandbox.restore();
+        var request = indexedDB.deleteDatabase("UpdateContactsV1");
+        request.onsuccess = function() {
+          done();
+        };
+      });
+
+      it("should upgrade the database", function(done) {
+        var dbV1 = new ContactsDB({
+          dbname: "UpdateContactsV1"
+        });
+        dbV1.load(function(err, db) {
+          expect(db.version).to.equal(2);
+
+          // Check the new index is available
+          var store = this.db.transaction(this.options.storename, "readonly")
+                          .objectStore(this.options.storename);
+
+          expect(store.indexNames.contains("source")).to.be.equal(true);
+
+          db.close();
+          done();
+        });
       });
     });
   });
@@ -114,6 +164,55 @@ describe("ContactsDB", function() {
       });
       contactsDb.add({username: "foo"}, function(err) {
         expect(err.message).eql("add error");
+        done();
+      });
+    });
+  });
+
+  describe("#addBatch", function() {
+    it("should delete existing contacts for that source", function(done) {
+      // First add a couple of contacts
+      contactsDb.add({username: "florian"}, function() {
+        contactsDb.add({username: "rt", source: "google"}, function() {
+
+          // Now for the real test
+          contactsDb.addBatch([], "google", function(err, result) {
+            expect(err).to.be.a("null");
+            expect(result).eql([]);
+            this.all(function(err, result) {
+              expect(result).eql([{username: "florian"}]);
+              done();
+            });
+          });
+        });
+      });
+    });
+
+    it("should add supplied contacts", function(done) {
+      var contacts = [
+        {username: "rt"},
+        {username: "florian"}
+      ];
+      var expected = [
+        {username: "rt", source: "google"},
+        {username: "florian", source: "google"}
+      ];
+      contactsDb.addBatch(contacts, "google", function(err, result) {
+        expect(err).to.be.a("null");
+        expect(result).eql(contacts);
+        this.all(function(err, result) {
+          expect(result).eql(expected);
+          done();
+        });
+      });
+    });
+
+    it("should pass back any add error", function(done) {
+      sandbox.stub(IDBObjectStore.prototype, "add", function() {
+        throw new Error("add error");
+      });
+      contactsDb.addBatch([{username: "foo"}], "google", function(err) {
+        expect(err).eql("add error");
         done();
       });
     });

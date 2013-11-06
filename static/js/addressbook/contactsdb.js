@@ -1,3 +1,4 @@
+/*global IDBKeyRange */
 /* jshint unused:false */
 
 /**
@@ -21,7 +22,7 @@ var ContactsDB = (function() {
     this.options = {
       dbname: options.dbname || "TalkillaContacts",
       storename: options.storename || "contacts",
-      version: options.version || 1
+      version: options.version || 2
     };
     this.db = undefined;
   }
@@ -48,7 +49,8 @@ var ContactsDB = (function() {
     request.onupgradeneeded = function(event) {
       // the callback will be called by the onsuccess event handler when the
       // whole operation is performed
-      this._createStore(event.target.result);
+      this.db = event.target.result;
+      this._createStore(this.db);
     }.bind(this);
     request.onsuccess = function(event) {
       this.db = event.target.result;
@@ -87,6 +89,73 @@ var ContactsDB = (function() {
           return cb.call(this, err);
         event.preventDefault();
         cb.call(this, null, record);
+      }.bind(this);
+    });
+  };
+
+  ContactsDB.prototype.addBatch = function(contacts, source, cb) {
+    this.load(function(err) {
+      if (err)
+        return cb.call(this, err);
+
+      var store = this._getStore("readwrite");
+      var index = store.index("source");
+
+      // XXX This is a poor man's sync, the idea is to delete all contacts
+      // of the source, and then add the new ones in.
+      // XXX This might be cleaner if we can switch to the indexedDB sync
+      // api for workers at some stage.
+
+      var addIndex = 0;
+
+      // This adds the new contacts, it is called when deleteNext
+      // is finished.
+      function addNext(err) {
+        if (err)
+          return cb.call(this, err);
+
+        if (addIndex === contacts.length)
+          return cb.call(this, null, contacts);
+
+        var contact = contacts[addIndex];
+        addIndex++;
+        contact.source = source;
+
+        this.add(contact, addNext);
+      }
+
+      var cursor;
+      // This handles the cursor for deleting the contacts
+      function deleteNext(err) {
+        // If we've got to the end, start adding new items.
+        if (!cursor)
+          return addNext.call(this);
+
+        // Delete existing contacts
+        if (cursor.value.source !== source)
+          cursor.continue();
+        else {
+          store.delete(cursor.primaryKey).onsuccess = function() {
+            cursor.continue();
+          };
+        }
+      }
+
+      // XXX Frameworkers don't have access to IDBKeyRange, so we
+      // get the full range, and sort through them one-by-one.
+      // When we are on a version that supports it, we can add this
+      // as a parameter: (IDBKeyRange.only(source)
+      var request = index.openCursor();
+
+      request.onsuccess = function(event) {
+        cursor = event.target.result;
+        deleteNext.call(this);
+      }.bind(this);
+
+      request.onerror = function(err) {
+        // XXX We assume the delete has completed, and move onto the add.
+        // This can happen if there were no contacts in the search range.
+        addNext.call(this);
       }.bind(this);
     });
   };
@@ -169,10 +238,17 @@ var ContactsDB = (function() {
    * @return {IDBObjectStore}
    */
   ContactsDB.prototype._createStore = function(db) {
+    // XXX: This isn't really very nice, but it isn't important
+    // to persist contacts at the moment, so until we have good data
+    // that we must do our best to save, we can get away with it.
+    if (db.objectStoreNames.contains(this.options.storename))
+      db.deleteObjectStore(this.options.storename);
+
     var store = db.createObjectStore(this.options.storename, {
       keyPath: "username"
     });
     store.createIndex("username", "username", {unique: true});
+    store.createIndex("source", "source", {unique: false});
     return store;
   };
 
