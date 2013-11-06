@@ -205,6 +205,9 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
 
         self.assertElementVisible(self.larry, "#local-media")
 
+        self.bob.hangupCall()
+        self.assertChatWindowClosed(self.larry)
+
 
 if __name__ == "__main__":
     unittest.main(catchbreak=True)

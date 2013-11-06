@@ -241,7 +241,8 @@
           peer: this.peer.get("nick"),
           offer: offer,
           textChat: false,
-          upgrade: true
+          upgrade: true,
+          callid: this.callid
         }));
       }, this);
 
