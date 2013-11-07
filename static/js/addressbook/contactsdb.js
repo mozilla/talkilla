@@ -116,7 +116,7 @@ var ContactsDB = (function() {
   ContactsDB.prototype.replaceSourceContacts = function(contacts, source, cb) {
     this.load(function(err) {
       if (err)
-        return cb.call(this, err);
+        return cb && cb.call(this, err);
 
       // This gets a transaction that we use throughout the function
       var store = this._getStore("readwrite");
@@ -144,10 +144,10 @@ var ContactsDB = (function() {
       // is finished.
       function addNext(err, record) {
         if (err)
-          return cb.call(this, err);
+          return cb && cb.call(this, err);
 
         if (addIndex === contacts.length)
-          return cb.call(this, null, contacts);
+          return cb && cb.call(this, null, contacts);
 
         var contact = contacts[addIndex];
         addIndex++;
