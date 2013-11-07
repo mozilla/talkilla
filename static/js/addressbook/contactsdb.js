@@ -1,3 +1,4 @@
+/*global IDBKeyRange */
 /* jshint unused:false */
 
 /**
@@ -21,7 +22,7 @@ var ContactsDB = (function() {
     this.options = {
       dbname: options.dbname || "TalkillaContacts",
       storename: options.storename || "contacts",
-      version: options.version || 1
+      version: options.version || 2
     };
     this.db = undefined;
   }
@@ -48,7 +49,8 @@ var ContactsDB = (function() {
     request.onupgradeneeded = function(event) {
       // the callback will be called by the onsuccess event handler when the
       // whole operation is performed
-      this._createStore(event.target.result);
+      this.db = event.target.result;
+      this._createStore(this.db);
     }.bind(this);
     request.onsuccess = function(event) {
       this.db = event.target.result;
@@ -58,7 +60,7 @@ var ContactsDB = (function() {
 
   /**
    * Adds a new contact to the database. Automatically opens the database
-   * connexion if needed.
+   * connection if needed.
    *
    * @param {String}   record Contact record
    * @param {Function} cb     Callback
@@ -88,6 +90,95 @@ var ContactsDB = (function() {
         event.preventDefault();
         cb.call(this, null, record);
       }.bind(this);
+    });
+  };
+
+  /**
+   * Replaces a set of contacts for a specific source.
+   * Automatically opens the database connection if needed.
+   *
+   * XXX This is a poor man's sync, the idea is to delete all
+   * contacts of the source, and then add the new ones in.
+   *
+   * XXX This might be cleaner if we can switch to the indexedDB sync
+   * api for workers at some stage.
+   *
+   * @param {Array}   contacts Array of contact records. The records inside the
+   *                           array are modified to include the source
+   *                           parameter
+   * @param {String}  source   The source of the contacts; may be null
+   * @param {Function} cb     Callback
+   *
+   * Callback parameters:
+   * - {Error|null} err:    Encountered error, if any
+   * - {Array}     contacts: The array of contact records tagged with the source
+   */
+  ContactsDB.prototype.replaceSourceContacts = function(contacts, source, cb) {
+    this.load(function(err) {
+      if (err)
+        return cb && cb.call(this, err);
+
+      // This gets a transaction that we use throughout the function
+      var store = this._getStore("readwrite");
+      var index = store.index("source");
+      var addIndex = 0;
+      var cursor;
+
+      // XXX Frameworkers don't have access to IDBKeyRange, so we
+      // get the full range, and sort through them one-by-one.
+      // When we are on a version that supports it, we can add this
+      // as a parameter: (IDBKeyRange.only(source)
+      var request = index.openCursor();
+
+      request.onsuccess = function(event) {
+        cursor = event.target.result;
+        deleteNext.call(this);
+      }.bind(this);
+
+      request.onerror = function(err) {
+        if (err)
+          cb.call(this, err);
+      }.bind(this);
+
+      // This adds the new contacts, it is called when deleteNext
+      // is finished.
+      function addNext(err, record) {
+        if (err)
+          return cb && cb.call(this, err);
+
+        if (addIndex === contacts.length)
+          return cb && cb.call(this, null, contacts);
+
+        var contact = contacts[addIndex];
+        addIndex++;
+        contact.source = source;
+
+        this.add(contact, addNext);
+      }
+
+      // This handles the cursor for deleting the contacts
+      function deleteNext(err) {
+        // If we've got to the end, start adding new items.
+        if (!cursor)
+          return addNext.call(this);
+
+        // Delete existing contacts
+        if (cursor.value.source !== source)
+          cursor.continue();
+        else {
+          var deleteReq = store.delete(cursor.primaryKey);
+
+          deleteReq.onsuccess = function() {
+            cursor.continue();
+          };
+
+          deleteReq.onerror = function(event) {
+            if (event.target.error)
+              cb.call(this, event.target.error);
+          };
+        }
+      }
+
     });
   };
 
@@ -169,10 +260,17 @@ var ContactsDB = (function() {
    * @return {IDBObjectStore}
    */
   ContactsDB.prototype._createStore = function(db) {
+    // XXX: This isn't really very nice, but it isn't important
+    // to persist contacts at the moment, so until we have good data
+    // that we must do our best to save, we can get away with it.
+    if (db.objectStoreNames.contains(this.options.storename))
+      db.deleteObjectStore(this.options.storename);
+
     var store = db.createObjectStore(this.options.storename, {
       keyPath: "username"
     });
     store.createIndex("username", "username", {unique: true});
+    store.createIndex("source", "source", {unique: false});
     return store;
   };
 

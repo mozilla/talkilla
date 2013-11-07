@@ -89,17 +89,18 @@ describe('handlers', function() {
   });
 
   describe("talkilla.contacts", function() {
-    it("should update current users list with provided contacts", function() {
-      sandbox.stub(tkWorker, "updateContactList");
+    it("should update contacts list with provided contacts", function() {
+      sandbox.stub(tkWorker, "updateContactsFromSource");
       var contacts = [{username: "foo"}, {username: "bar"}];
 
       handlers['talkilla.contacts']({
         topic: "talkilla.contacts",
-        data: {contacts: contacts}
+        data: {contacts: contacts, source: "google"}
       });
 
-      sinon.assert.calledOnce(tkWorker.updateContactList);
-      sinon.assert.calledWithExactly(tkWorker.updateContactList, contacts);
+      sinon.assert.calledOnce(tkWorker.updateContactsFromSource);
+      sinon.assert.calledWithExactly(tkWorker.updateContactsFromSource,
+                                     contacts, "google");
     });
   });
 

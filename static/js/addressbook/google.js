@@ -146,7 +146,10 @@ var GoogleContacts = (function() {
         this.all(function(err, contacts) {
           if (err)
             return this.port.postEvent("talkilla.contacts-error", err);
-          this.port.postEvent("talkilla.contacts", {contacts: contacts});
+          this.port.postEvent("talkilla.contacts", {
+            contacts: contacts,
+            source: "google"
+          });
         }.bind(this));
       }.bind(this));
     },

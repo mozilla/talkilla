@@ -407,7 +407,7 @@ var handlers = {
   // Talkilla events
   'talkilla.contacts': function(event) {
     tkWorker.ports.broadcastDebug('talkilla.contacts', event.data.contacts);
-    tkWorker.updateContactList(event.data.contacts);
+    tkWorker.updateContactsFromSource(event.data.contacts, event.data.source);
   },
 
   'talkilla.login': function(msg) {
@@ -668,6 +668,13 @@ TkWorker.prototype = {
     }.bind(this));
   },
 
+  updateContactsFromSource: function(contacts, source) {
+    this.contactsDb.replaceSourceContacts(contacts, source);
+    // XXX We should potentially source this from contactsDb, but it
+    // is unclear at the moment if it is worth doing that or not.
+    this.updateContactList(contacts);
+  },
+
   /**
    * Updates the current users list with provided contacts.
    *
@@ -690,8 +697,7 @@ tkWorker = new TkWorker({
   users: new CurrentUsers(),
   contactsDb: new ContactsDB({
     dbname: "TalkillaContacts",
-    storename: "contacts",
-    version: 1
+    storename: "contacts"
   })
 });
 
