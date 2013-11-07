@@ -32,7 +32,7 @@ api = {
       }
     };
 
-    var req = https.request(options, function (res) {
+    var req = https.request(options, function(res) {
       var ret = "";
       res.setEncoding('utf8');
 
@@ -87,8 +87,8 @@ api = {
    *
    * This API provides a stream of event via a long polling mechanism.
    * The connection hangs for n seconds as long as there is no events.
-   * If in the meantime there is incoming events, then the API returns
-   * immediately with events as a response.
+   * If in the meantime there are incoming events, then the API returns
+   * immediately with these events as a response.
    *
    * Events received between reconnections are not lost.
    */

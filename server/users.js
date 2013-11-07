@@ -27,9 +27,10 @@ Waiter.prototype.resolve = function(data) {
 function User(nick) {
   this.nick = nick;
 
-  // `this.timeout` represents the current timeout until the user is
-  // considered as disconnected.
+  // `this.timeout` represents the current timeout function until when the
+  // user is considered as disconnected.
   this.timeout = undefined;
+
   // `this.ondisconnect` is the callback called when the user is
   // disconnected (i.e. when the timeout is triggered).
   this.ondisconnect = undefined;
@@ -38,6 +39,7 @@ function User(nick) {
   // is present (i.e. the timeout was not yet triggered) but he
   // receives events between two long-polling connections.
   this.events = [];
+
   // `this.pending` is an object carrying the current pending
   // long-polling timeout and callback.
   // Beware, `this.pending.timeout` and `this.timeout` have different

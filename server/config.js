@@ -2,11 +2,16 @@ var fs = require('fs');
 var path = require('path');
 
 /**
- * Merges two objects
+ * Merges two objects.
  *
- * @param  {String} obj
- * @param  {String} other
- * @return {String}
+ * When conflicting, erases the values in the first object with the values
+ * from the second one.
+ *
+ * Returns the first object (`obj`).
+ *
+ * @param  {Object} obj
+ * @param  {Object} other
+ * @return {Object}
  */
 function merge(obj, other) {
   var keys = Object.keys(other);
@@ -48,6 +53,10 @@ function setupUrls(config) {
 
 /**
  * Retrieves a configuration object from a JSON file.
+ *
+ * If a "local.json" file exists, merge its content with the given file.
+ * You can bypass this "local.json" file by setting up the NO_LOCAL_CONFIG
+ * environment variable.
  *
  * @param  {String}  file       Path to JSON configuration file
  * @return {Object}
