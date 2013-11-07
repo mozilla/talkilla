@@ -113,6 +113,30 @@ describe("tkWorker", function() {
     });
   });
 
+  describe("#updateContactsFromSource", function() {
+    var contacts;
+
+    beforeEach(function() {
+      contacts = [{username: "foo"}];
+      sandbox.stub(worker.contactsDb, "replaceSourceContacts");
+      sandbox.stub(worker.users, "updateContacts");
+    });
+
+    it("should tell the contacts database to replace the contacts", function() {
+      worker.updateContactsFromSource(contacts, "google");
+
+      sinon.assert.calledOnce(worker.contactsDb.replaceSourceContacts);
+    });
+
+    it("should update current users list with contacts", function() {
+      worker.updateContactList(contacts);
+
+      sinon.assert.calledOnce(worker.users.updateContacts);
+      sinon.assert.calledWithExactly(worker.users.updateContacts,
+                                     contacts);
+    });
+  });
+
   describe("#updateContactList", function() {
     it("should update current users list with contacts", function() {
       var contacts = [{username: "foo"}];
