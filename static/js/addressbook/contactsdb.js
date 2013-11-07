@@ -60,7 +60,7 @@ var ContactsDB = (function() {
 
   /**
    * Adds a new contact to the database. Automatically opens the database
-   * connexion if needed.
+   * connection if needed.
    *
    * @param {String}   record Contact record
    * @param {Function} cb     Callback
@@ -93,6 +93,26 @@ var ContactsDB = (function() {
     });
   };
 
+  /**
+   * Replaces a set of contacts for a specific source.
+   * Automatically opens the database connection if needed.
+   *
+   * XXX This is a poor man's sync, the idea is to delete all
+   * contacts of the source, and then add the new ones in.
+   *
+   * XXX This might be cleaner if we can switch to the indexedDB sync
+   * api for workers at some stage.
+   *
+   * @param {Array}   contacts Array of contact records. The records inside the
+   *                           array are modified to include the source
+   *                           parameter
+   * @param {String}  source   The source of the contacts; may be null
+   * @param {Function} cb     Callback
+   *
+   * Callback parameters:
+   * - {Error|null} err:    Encountered error, if any
+   * - {Array}     contacts: The array of contact records tagged with the source
+   */
   ContactsDB.prototype.replaceSourceContacts = function(contacts, source, cb) {
     this.load(function(err) {
       if (err)
@@ -100,46 +120,8 @@ var ContactsDB = (function() {
 
       var store = this._getStore("readwrite");
       var index = store.index("source");
-
-      // XXX This is a poor man's sync, the idea is to delete all contacts
-      // of the source, and then add the new ones in.
-      // XXX This might be cleaner if we can switch to the indexedDB sync
-      // api for workers at some stage.
-
       var addIndex = 0;
-
-      // This adds the new contacts, it is called when deleteNext
-      // is finished.
-      function addNext(err) {
-        if (err)
-          return cb.call(this, err);
-
-        if (addIndex === contacts.length)
-          return cb.call(this, null, contacts);
-
-        var contact = contacts[addIndex];
-        addIndex++;
-        contact.source = source;
-
-        this.add(contact, addNext);
-      }
-
       var cursor;
-      // This handles the cursor for deleting the contacts
-      function deleteNext(err) {
-        // If we've got to the end, start adding new items.
-        if (!cursor)
-          return addNext.call(this);
-
-        // Delete existing contacts
-        if (cursor.value.source !== source)
-          cursor.continue();
-        else {
-          store.delete(cursor.primaryKey).onsuccess = function() {
-            cursor.continue();
-          };
-        }
-      }
 
       // XXX Frameworkers don't have access to IDBKeyRange, so we
       // get the full range, and sort through them one-by-one.
@@ -157,6 +139,39 @@ var ContactsDB = (function() {
         // This can happen if there were no contacts in the search range.
         addNext.call(this);
       }.bind(this);
+
+      // This adds the new contacts, it is called when deleteNext
+      // is finished.
+      function addNext(err, record) {
+        if (err)
+          return cb.call(this, err);
+
+        if (addIndex === contacts.length)
+          return cb.call(this, null, contacts);
+
+        var contact = contacts[addIndex];
+        addIndex++;
+        contact.source = source;
+
+        this.add(contact, addNext);
+      }
+
+      // This handles the cursor for deleting the contacts
+      function deleteNext(err) {
+        // If we've got to the end, start adding new items.
+        if (!cursor)
+          return addNext.call(this);
+
+        // Delete existing contacts
+        if (cursor.value.source !== source)
+          cursor.continue();
+        else {
+          store.delete(cursor.primaryKey).onsuccess = function() {
+            cursor.continue();
+          };
+        }
+      }
+
     });
   };
 

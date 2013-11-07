@@ -205,7 +205,7 @@ describe("ContactsDB", function() {
         });
       });
 
-    it("should add supplied contacts", function(done) {
+    it("should add supplied contacts tagged with their source", function(done) {
       var contacts = [
         {username: "rt"},
         {username: "florian"}
@@ -217,7 +217,8 @@ describe("ContactsDB", function() {
       contactsDb.replaceSourceContacts(contacts, "google",
         function(err, result) {
           expect(err).to.be.a("null");
-          expect(result).eql(contacts);
+          expect(result).eql(expected);
+
           this.all(function(err, result) {
             expect(result).eql(expected);
             done();
