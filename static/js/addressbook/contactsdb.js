@@ -118,6 +118,7 @@ var ContactsDB = (function() {
       if (err)
         return cb.call(this, err);
 
+      // This gets a transaction that we use throughout the function
       var store = this._getStore("readwrite");
       var index = store.index("source");
       var addIndex = 0;
@@ -135,9 +136,8 @@ var ContactsDB = (function() {
       }.bind(this);
 
       request.onerror = function(err) {
-        // XXX We assume the delete has completed, and move onto the add.
-        // This can happen if there were no contacts in the search range.
-        addNext.call(this);
+        if (err)
+          cb.call(this, err);
       }.bind(this);
 
       // This adds the new contacts, it is called when deleteNext
@@ -166,8 +166,15 @@ var ContactsDB = (function() {
         if (cursor.value.source !== source)
           cursor.continue();
         else {
-          store.delete(cursor.primaryKey).onsuccess = function() {
+          var deleteReq = store.delete(cursor.primaryKey);
+
+          deleteReq.onsuccess = function() {
             cursor.continue();
+          };
+
+          deleteReq.onerror = function(event) {
+            if (event.target.error)
+              cb.call(this, event.target.error);
           };
         }
       }
