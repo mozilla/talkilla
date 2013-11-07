@@ -431,12 +431,13 @@ describe("Call Model", function() {
     });
 
     describe("send-offer", function() {
-      var fakeOffer = {peer: "larry", offer: {fake: true}};
+      var fakeOffer = {offer: {fake: true}};
 
       beforeEach(function() {
         call.state.current = 'ongoing';
         call.media = _.extend(media, Backbone.Events);
         peer.set("nick", "larry");
+        call.id = 2;
 
         call.upgrade({});
       });
@@ -445,6 +446,8 @@ describe("Call Model", function() {
         function(done) {
           call.once("send-offer", function(data) {
             expect(data.offer).to.deep.equal(fakeOffer);
+            expect(data.peer).to.equal(peer.get("nick"));
+            expect(data.callid).to.equal(call.callid);
             done();
           });
 
