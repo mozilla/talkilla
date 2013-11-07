@@ -14,6 +14,9 @@ lint: jshint flake8
 	virtualenv -p python2.7 `pwd`/.venv
 	. .venv/bin/activate && pip install -r bin/require.pip
 
+clean:
+	rm -rf .venv node_modules
+
 # flake8 is a python linter
 PYTHON_SOURCES = test/functional/*.py test/frontend/*.py
 .PHONY: flake8
