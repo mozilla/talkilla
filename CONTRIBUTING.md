@@ -28,7 +28,7 @@ Review policy
 * Pull requests that are pair-programmed with at least one committer do not
   require code review, although contributors are encouraged to request it
   if another set of eyes seems important.  Pair-programmed merges should
-  include a sentence like `These commits were paired on by n10k and dmose`.
+  include a sentence like `These commits were paired on by n1k0 and dmose`.
 * Otherwise, pull-requests require code review:
   * If you want a specific reviewer(s), explicitly state in the PR who you
     think the right reviewer(s) are. The patch shouldn't be merged until

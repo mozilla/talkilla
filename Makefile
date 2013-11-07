@@ -11,8 +11,11 @@ lint: jshint flake8
 
 # bootstrap our python virtual environment if it's not there
 .venv:
-	virtualenv `pwd`/.venv
+	virtualenv -p python2.7 `pwd`/.venv
 	. .venv/bin/activate && pip install -r bin/require.pip
+
+clean:
+	rm -rf .venv node_modules
 
 # flake8 is a python linter
 PYTHON_SOURCES = test/functional/*.py test/frontend/*.py

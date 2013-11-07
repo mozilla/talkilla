@@ -14,7 +14,9 @@
    * @param {Object}                   options  Options
    */
   function WebRTC(options) {
+    // pc is for "peer connection"
     this.pc = undefined;
+    // dc is for "data channel"
     this.dc = undefined;
     this._constraints = {};
     this.options = options || {};

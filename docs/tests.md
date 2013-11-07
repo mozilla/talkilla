@@ -65,7 +65,7 @@ Functional Tests
 
 The test files are found in `test/functional/`
 
-You'll need Python 2.7+ and
+You'll need Python 2.7.X (not Python 3.X) and
 [virtualenv](https://pypi.python.org/pypi/virtualenv).
 
     $ cd /path/to/talkilla
