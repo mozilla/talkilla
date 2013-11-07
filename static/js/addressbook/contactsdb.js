@@ -93,7 +93,7 @@ var ContactsDB = (function() {
     });
   };
 
-  ContactsDB.prototype.addBatch = function(contacts, source, cb) {
+  ContactsDB.prototype.replaceSourceContacts = function(contacts, source, cb) {
     this.load(function(err) {
       if (err)
         return cb.call(this, err);

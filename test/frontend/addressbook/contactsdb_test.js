@@ -88,6 +88,10 @@ describe("ContactsDB", function() {
           db.close();
           done();
         };
+
+        request.onerror = function(event) {
+          throw event.target.errorCode;
+        };
       });
 
       afterEach(function(done) {
@@ -95,6 +99,10 @@ describe("ContactsDB", function() {
         var request = indexedDB.deleteDatabase("UpdateContactsV1");
         request.onsuccess = function() {
           done();
+        };
+
+        request.onerror = function(event) {
+          throw event.target.errorCode;
         };
       });
 
@@ -169,24 +177,33 @@ describe("ContactsDB", function() {
     });
   });
 
-  describe("#addBatch", function() {
-    it("should delete existing contacts for that source", function(done) {
-      // First add a couple of contacts
-      contactsDb.add({username: "florian"}, function() {
-        contactsDb.add({username: "rt", source: "google"}, function() {
+  describe("#replaceSourceContacts", function() {
+    it("should delete existing contacts for the specified source",
+      function(done) {
+        // First add a couple of contacts - one with the google source,
+        // one without.
+        contactsDb.add({username: "florian"}, function(err) {
+          if (err)
+            throw err;
+          contactsDb.add({username: "rt", source: "google"}, function(err) {
+            if (err)
+              throw err;
 
-          // Now for the real test
-          contactsDb.addBatch([], "google", function(err, result) {
-            expect(err).to.be.a("null");
-            expect(result).eql([]);
-            this.all(function(err, result) {
-              expect(result).eql([{username: "florian"}]);
-              done();
-            });
+            // Now for the real test
+            contactsDb.replaceSourceContacts([], "google",
+              function(err, result) {
+                expect(err).to.be.a("null");
+                expect(result).eql([]);
+
+                contactsDb.all(function(err, result) {
+                  expect(err).to.be.a("null");
+                  expect(result).eql([{username: "florian"}]);
+                  done();
+                });
+              });
           });
         });
       });
-    });
 
     it("should add supplied contacts", function(done) {
       var contacts = [
@@ -197,24 +214,26 @@ describe("ContactsDB", function() {
         {username: "rt", source: "google"},
         {username: "florian", source: "google"}
       ];
-      contactsDb.addBatch(contacts, "google", function(err, result) {
-        expect(err).to.be.a("null");
-        expect(result).eql(contacts);
-        this.all(function(err, result) {
-          expect(result).eql(expected);
-          done();
+      contactsDb.replaceSourceContacts(contacts, "google",
+        function(err, result) {
+          expect(err).to.be.a("null");
+          expect(result).eql(contacts);
+          this.all(function(err, result) {
+            expect(result).eql(expected);
+            done();
+          });
         });
-      });
     });
 
     it("should pass back any add error", function(done) {
       sandbox.stub(IDBObjectStore.prototype, "add", function() {
         throw new Error("add error");
       });
-      contactsDb.addBatch([{username: "foo"}], "google", function(err) {
-        expect(err).eql("add error");
-        done();
-      });
+      contactsDb.replaceSourceContacts([{username: "foo"}], "google",
+        function(err) {
+          expect(err).eql("add error");
+          done();
+        });
     });
   });
 

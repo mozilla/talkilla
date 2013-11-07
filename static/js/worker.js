@@ -669,7 +669,7 @@ TkWorker.prototype = {
   },
 
   updateContactsFromSource: function(contacts, source) {
-    this.contactsDb.addBatch(contacts, source);
+    this.contactsDb.replaceSourceContacts(contacts, source);
     // XXX We should potentially source this from contactsDb, but it
     // is unclear at the moment if it is worth doing that or not.
     this.updateContactList(contacts);
