@@ -1,4 +1,4 @@
-/*global app, chai, ChatApp, sinon, WebRTC, payloads */
+/*global app, chai, ChatApp, sinon, fixtures, WebRTC, payloads */
 
 /* jshint expr:true */
 var expect = chai.expect;
@@ -6,7 +6,9 @@ var expect = chai.expect;
 describe("ChatApp", function() {
   "use strict";
 
-  var sandbox, chatApp, AppPortStub;
+  this.timeout(5000);
+
+  var sandbox, chatApp, AppPortStub, $$;
   var callData = {peer: "bob", peerPresence: "connected"};
   var incomingCallData = {
     callid: 2,
@@ -28,39 +30,47 @@ describe("ChatApp", function() {
   var fakeAnswer = {type: "answer", sdp: fakeSDP("\nm=video ccc\nm=audio ddd")};
   var fakeDataChannel = {fakeDataChannel: true};
 
-  beforeEach(function() {
-    AppPortStub = _.extend({postEvent: sinon.spy()}, Backbone.Events);
-    sandbox = sinon.sandbox.create();
-    sandbox.stub(window, "AppPort").returns(AppPortStub);
-    sandbox.stub(window, "Audio").returns({
-      play: sandbox.stub(),
-      pause: sandbox.stub()
-    });
+  beforeEach(function(done) {
+    fixtures.path = "../../..";
+    fixtures.load("chat.html", onLoad);
 
-    // mozRTCPeerConnection stub
-    sandbox.stub(window, "mozRTCPeerConnection").returns({
-      close: sandbox.spy(),
-      addStream: sandbox.spy(),
-      createAnswer: function(success) {
-        success(fakeAnswer);
-      },
-      createOffer: function(success) {
-        success(fakeOffer);
-      },
-      setLocalDescription: function(source, success) {
-        success(source);
-      },
-      setRemoteDescription: function(source, success) {
-        success(source);
-      },
-      createDataChannel: function() {
-        fakeDataChannel.send = sandbox.spy();
-        return fakeDataChannel;
-      }
-    });
+    function onLoad() {
+      $$ = fixtures.window().jQuery;
+      AppPortStub = _.extend({postEvent: sinon.spy()}, Backbone.Events);
+      sandbox = sinon.sandbox.create();
+      sandbox.stub(window, "AppPort").returns(AppPortStub);
+      sandbox.stub(window, "Audio").returns({
+        play: sandbox.stub(),
+        pause: sandbox.stub()
+      });
 
-    // This stops us changing the document's title unnecessarily
-    sandbox.stub(app.views.ConversationView.prototype, "initialize");
+      // mozRTCPeerConnection stub
+      sandbox.stub(window, "mozRTCPeerConnection").returns({
+        close: sandbox.spy(),
+        addStream: sandbox.spy(),
+        createAnswer: function(success) {
+          success(fakeAnswer);
+        },
+        createOffer: function(success) {
+          success(fakeOffer);
+        },
+        setLocalDescription: function(source, success) {
+          success(source);
+        },
+        setRemoteDescription: function(source, success) {
+          success(source);
+        },
+        createDataChannel: function() {
+          fakeDataChannel.send = sandbox.spy();
+          return fakeDataChannel;
+        }
+      });
+
+      // This stops us changing the document's title unnecessarily
+      sandbox.stub(app.views.ConversationView.prototype, "initialize");
+
+      done();
+    }
   });
 
   afterEach(function() {
@@ -68,6 +78,7 @@ describe("ChatApp", function() {
     sandbox.restore();
     chatApp = null;
     app.options.DEBUG = false;
+    fixtures.cleanUp();
   });
 
   function assertEventTriggersHandler(event, handler, data) {
@@ -178,9 +189,9 @@ describe("ChatApp", function() {
     var callFixture;
 
     beforeEach(function() {
-      callFixture = $('<div id="call"></div>');
-      $("#fixtures").append(callFixture);
 
+      callFixture = $$("#call").get(0);
+      window.$ = $$;
       sandbox.stub(app.utils, "AudioLibrary").returns({
         play: sandbox.spy(),
         stop: sandbox.spy()
@@ -195,7 +206,7 @@ describe("ChatApp", function() {
     });
 
     afterEach(function() {
-      $("#fixtures").empty();
+      window.$ = jQuery;
     });
 
     it("should have a conversation view" , function() {
