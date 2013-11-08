@@ -64,10 +64,25 @@ var payloads = (function() {
     }
   };
 
+  function SPASpec(data) {
+    this.src = data.src;
+    this.credentials = data.credentials;
+  }
+
+  SPASpec.prototype = {
+    toJSON: function() {
+      return {
+        src: this.src,
+        credentials: this.credentials
+      };
+    }
+  };
+
   return {
     Offer: Offer,
     Answer: Answer,
     Hangup: Hangup,
-    IceCandidate: IceCandidate
+    IceCandidate: IceCandidate,
+    SPASpec: SPASpec
   };
 })();
