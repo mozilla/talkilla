@@ -62,6 +62,13 @@ var SidebarApp = (function(app, $) {
     // XXX Hide or disable the import button at the start and add a callback
     // here to show it when this completes.
     this.services.google.initialize();
+
+    var specs = localStorage.getItem("enabled-spa");
+    specs = specs ? JSON.parse(specs) : [];
+    specs.forEach(function(spec) {
+      this.user.set({nick: spec.credentials.email});
+      this.port.postEvent("talkilla.spa-enable", spec);
+    }.bind(this));
   };
 
   SidebarApp.prototype._onUserSigninRequested = function(assertion) {
@@ -96,6 +103,8 @@ var SidebarApp = (function(app, $) {
       src: "/js/spa/talkilla_worker.js",
       credentials: {email: data.nick}
     });
+    localStorage.setItem("enabled-spa",
+                         JSON.stringify([talkillaSpec.toJSON()]));
 
     this.user.set({nick: data.nick});
     this.port.postEvent("talkilla.spa-enable", talkillaSpec.toJSON());
