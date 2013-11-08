@@ -397,6 +397,7 @@ describe('handlers', function() {
 
         sinon.assert.notCalled(spa.connect);
       });
+
     it("should notify new sidebars only if there's a logged in user",
       function() {
         handlers.postEvent = sinon.spy();
@@ -409,6 +410,33 @@ describe('handlers', function() {
         sinon.assert.calledWith(handlers.postEvent, "talkilla.worker-ready");
       });
 
+  });
+
+  describe.only("talkilla.spa-enable", function() {
+
+    it("should instantiate a new SPA with the given src", function() {
+      var spa = {connect: sinon.spy(), on: function() {}};
+      sandbox.stub(window, "SPA").returns(spa);
+
+      handlers["talkilla.spa-enable"]({
+        data: {src: "/path/to/spa", credentials: "fake credentials"}
+      });
+
+      sinon.assert.calledOnce(SPA);
+      sinon.assert.calledWithExactly(SPA, {src: "/path/to/spa"});
+    });
+
+    it("should connect the created SPA with given credentials", function() {
+      var spa = {connect: sinon.spy(), on: function() {}};
+      sandbox.stub(window, "SPA").returns(spa);
+
+      handlers["talkilla.spa-enable"]({
+        data: {src: "/path/to/spa", credentials: "fake credentials"}
+      });
+
+      sinon.assert.calledOnce(spa.connect);
+      sinon.assert.calledWithExactly(spa.connect, "fake credentials");
+    });
 
   });
 

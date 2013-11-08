@@ -61,17 +61,23 @@ describe("SidebarApp", function() {
       expect(sidebarApp.users).to.be.an.instanceOf(app.models.UserSet);
     });
 
-    it("should ask for the presence state on login success", function() {
-      var sidebarApp = new SidebarApp();
-      var data = {username: "foo"};
-      sidebarApp.port.postEvent.reset();
+    it("should set the user nick and enable the spa on login success",
+      function() {
+        var sidebarApp = new SidebarApp();
+        var data = {nick: "foo"};
+        var spec = new app.payloads.SPASpec({
+          src: "/js/spa/talkilla_worker.js",
+          credentials: {email: "foo"}
+        });
+        sidebarApp.port.postEvent.reset();
 
-      sidebarApp.port.trigger("talkilla.login-success", data);
+        sidebarApp.port.trigger("talkilla.login-success", data);
 
-      sinon.assert.calledOnce(sidebarApp.port.postEvent);
-      sinon.assert.calledWithExactly(
-        sidebarApp.port.postEvent, "talkilla.presence-request");
-    });
+        expect(sidebarApp.user.get("nick")).to.equal("foo");
+        sinon.assert.calledOnce(sidebarApp.port.postEvent);
+        sinon.assert.calledWithExactly(
+          sidebarApp.port.postEvent, "talkilla.spa-enable", spec.toJSON());
+      });
 
     it("should display an error on login failures", function() {
       var sidebarApp = new SidebarApp();
@@ -103,6 +109,19 @@ describe("SidebarApp", function() {
 
       expect(sidebarApp.users).to.have.length.of(0);
     });
+
+    it("should set the user presence and request a presence on spa connection",
+      function() {
+        var sidebarApp = new SidebarApp();
+        sidebarApp.port.postEvent.reset();
+
+        sidebarApp.port.trigger("talkilla.spa-connected");
+
+        expect(sidebarApp.user.get("presence")).to.equal("connected");
+        sinon.assert.calledOnce(sidebarApp.port.postEvent);
+        sinon.assert.calledWithExactly(
+          sidebarApp.port.postEvent, "talkilla.presence-request");
+      });
 
     it("should post talkilla.sidebar-ready to the worker", function() {
       var sidebarApp = new SidebarApp();
@@ -183,27 +202,6 @@ describe("SidebarApp", function() {
           sinon.match.string, 'error');
       });
 
-    });
-
-    describe("signin-requested", function() {
-      it("should send talkilla.login", function() {
-        sidebarApp.user.trigger("signin-requested", "fake assertion");
-
-        sinon.assert.called(sidebarApp.port.postEvent);
-        sinon.assert.calledWithExactly(sidebarApp.port.postEvent,
-                                       "talkilla.login",
-                                       {assertion: "fake assertion"});
-      });
-    });
-
-    describe("signout-requested", function() {
-      it("should send talkilla.logout", function() {
-        sidebarApp.user.trigger("signout-requested");
-
-        sinon.assert.called(sidebarApp.port.postEvent);
-        sinon.assert.calledWithExactly(sidebarApp.port.postEvent,
-                                       "talkilla.logout");
-      });
     });
 
     describe("signout (from user model)", function() {
