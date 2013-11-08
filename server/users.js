@@ -19,6 +19,11 @@ Waiter.prototype.resolve = function(data) {
   this.callback(data);
 };
 
+Waiter.prototype.clear = function() {
+  clearTimeout(this.timeout);
+  this.resolved = true;
+}
+
 /**
  * User class constructor
  *
@@ -45,6 +50,16 @@ function User(nick) {
   // Beware, `this.pending.timeout` and `this.timeout` have different
   // purposes.
   this.pending = undefined;
+
+  this._quickResponse = false;
+}
+
+User.prototype.quickResponse = function() {
+  if (!this._quickResponse)
+    return false;
+
+  this._quickResponse = false;
+  return true;
 }
 
 /**
@@ -118,10 +133,27 @@ User.prototype.toJSON = function() {
  * @param {Function} callback The callback to trigger in case of events.
  *
  */
-User.prototype.waitForEvents = function(callback) {
+User.prototype.waitForEvents = function(req, callback) {
+  // If the connection is closed unexpectedly, then set up the next one
+  // for a quick response, so that we reconnect a client quickly instead
+  // of waiting for the long polling timeout.
+  function handleClose(event) {
+    req.connection.removeListener("close", handleClose.bind(this));
+
+    if (!event) {
+      this.pending.clear();
+      this._quickResponse = true;
+    }
+  }
+  function callbackWrapper() {
+    req.connection.removeListener("close", handleClose.bind(this));
+    callback([]);
+  }
+  req.connection.addListener("close", handleClose.bind(this));
+
   // Setup a timeout with an empty list of events as the default
   // behaviour.
-  this.pending = new Waiter(callback);
+  this.pending = new Waiter(callbackWrapper);
   this.pending.after(config.LONG_POLLING_TIMEOUT, []);
 
   // If there is available events in the queue, resolve the timeout
