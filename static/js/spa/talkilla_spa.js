@@ -27,6 +27,8 @@ var TalkillaSPA = (function() {
     _onServerEvent: function(type, event) {
       if (type === "unauthorized")
         this.port.post("reauth-needed");
+      else if (type === "connected")
+        this.port.post(type, {email: this.email});
       else
         this.port.post(type, event);
     },
@@ -49,7 +51,8 @@ var TalkillaSPA = (function() {
     },
 
     _onConnect: function(credentials) {
-      this.server.connect(credentials);
+      this.email = credentials.email;
+      this.server.connect();
     },
 
     /**

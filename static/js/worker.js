@@ -256,18 +256,17 @@ UserData.prototype = {
 };
 
 function _setupSPA(spa) {
-  spa.on("connected", function() {
+  spa.on("connected", function(data) {
     _autologinPending = false;
+    tkWorker.user.name = data.email;
     tkWorker.user.connected = true;
-    // XXX: we should differentiate login and presence
-    tkWorker.ports.broadcastEvent('talkilla.login-success', {
-      username: tkWorker.user.name
-    });
 
     // XXX Now we're connected, load the contacts database.
     // Really we should do this after successful sign-in or re-connect
     // but we don't have enough info for the worker for that yet
     tkWorker.loadContacts();
+
+    tkWorker.ports.broadcastEvent("talkilla.spa-connected");
   });
 
   spa.on("message", function(label, data) {
@@ -505,7 +504,22 @@ var handlers = {
    */
   'talkilla.ice-candidate': function(event) {
     spa.iceCandidate(new payloads.IceCandidate(event.data));
+  },
+
+  /**
+   * Called to enable a new SPA.
+   *
+   * @param {Object} event.data a data structure representation of a
+   * payloads.SPASpec.
+   */
+  'talkilla.spa-enable': function(event) {
+    var spec = new payloads.SPASpec(event.data);
+    // XXX: For now, we only support one SPA.
+    spa = new SPA({src: spec.src});
+    _setupSPA(spa);
+    spa.connect(spec.credentials);
   }
+
 };
 
 function Port(port) {
@@ -687,9 +701,6 @@ TkWorker.prototype = {
 };
 
 // Main Initialisations
-
-spa = new SPA({src: "/js/spa/talkilla_worker.js"});
-_setupSPA(spa);
 
 tkWorker = new TkWorker({
   ports: new PortCollection(),
