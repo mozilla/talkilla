@@ -412,7 +412,7 @@ describe('handlers', function() {
 
   });
 
-  describe.only("talkilla.spa-enable", function() {
+  describe("talkilla.spa-enable", function() {
 
     it("should instantiate a new SPA with the given src", function() {
       var spa = {connect: sinon.spy(), on: function() {}};

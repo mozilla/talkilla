@@ -1,4 +1,4 @@
-/*global app, AppPort, GoogleContacts, HTTP */
+/*global app, AppPort, GoogleContacts, HTTP, payloads */
 /* jshint unused: false */
 /**
  * Sidebar application.
