@@ -109,8 +109,13 @@ api = {
       // request the presence. We should fix that on the frontend.
       res.send(200, JSON.stringify([]));
       logger.info({type: "connection"});
+    } else if (user.quickResponse()) {
+      // If we've been temporarily disconnected, e.g. network glitch or
+      // reloaded, then the quick response is to reconnect fast.
+      user.touch();
+      res.send(200, JSON.stringify([]));
     } else {
-      user.touch().waitForEvents(function(events) {
+      user.touch().waitForEvents(req, function(events) {
         res.send(200, JSON.stringify(events));
       });
     }
