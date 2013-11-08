@@ -17,11 +17,16 @@ class FrontEndSuite(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        # XXX: we should DRY-ify the server startup via python
+        # scripts. For now we do that in:
+        #   - test/frontend/test_frontend_all.py
+        #   - test/functional/browser_test.py
         cmd = ("node", "app.js")
         env = os.environ.copy()
         env.update({"PORT": "3000",
                     "NO_LOCAL_CONFIG": "true",
-                    "NODE_ENV": "test"})
+                    "NODE_ENV": "test",
+                    "SESSION_SECRET": "unguessable"})
         cls.node_app = subprocess.Popen(cmd, env=env)
         cls.drvr = driver.create()
         cls.drvr.implicitly_wait(20)

@@ -1,11 +1,11 @@
-/* global indexedDB, importScripts, SPA, HTTP, CollectedContacts, CurrentUsers,
+/* global indexedDB, importScripts, SPA, HTTP, ContactsDB, CurrentUsers,
    loadConfig, payloads  */
 /* jshint unused:false */
 
 // XXX: Try to import Backbone only in files that need it (and check
 // if multiple imports cause problems).
 importScripts('../vendor/backbone-events-standalone-0.1.5.js');
-importScripts('/config.js', 'payloads.js', 'addressbook/collected.js');
+importScripts('/config.js', 'payloads.js', 'addressbook/contactsdb.js');
 importScripts('worker/http.js', 'worker/users.js', 'worker/spa.js');
 
 var gConfig = loadConfig();
@@ -407,7 +407,7 @@ var handlers = {
   // Talkilla events
   'talkilla.contacts': function(event) {
     tkWorker.ports.broadcastDebug('talkilla.contacts', event.data.contacts);
-    tkWorker.updateContactList(event.data.contacts);
+    tkWorker.updateContactsFromSource(event.data.contacts, event.data.source);
   },
 
   'talkilla.login': function(msg) {
@@ -621,7 +621,7 @@ PortCollection.prototype = {
  * @param {Object} options Options object
  *
  * Available options:
- * - {CollectedContacts} contactsDb The collected contacts database
+ * - {ContactsDB} contactsDb        The contacts database
  * - {UserData}          user       The current user object
  * - {CurrentUsers}      users      The object containing current users
  * - {PortCollection}    ports      The port collection object
@@ -668,6 +668,13 @@ TkWorker.prototype = {
     }.bind(this));
   },
 
+  updateContactsFromSource: function(contacts, source) {
+    this.contactsDb.replaceSourceContacts(contacts, source);
+    // XXX We should potentially source this from contactsDb, but it
+    // is unclear at the moment if it is worth doing that or not.
+    this.updateContactList(contacts);
+  },
+
   /**
    * Updates the current users list with provided contacts.
    *
@@ -688,10 +695,9 @@ tkWorker = new TkWorker({
   ports: new PortCollection(),
   user: new UserData({}, gConfig),
   users: new CurrentUsers(),
-  contactsDb: new CollectedContacts({
+  contactsDb: new ContactsDB({
     dbname: "TalkillaContacts",
-    storename: "contacts",
-    version: 1
+    storename: "contacts"
   })
 });
 

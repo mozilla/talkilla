@@ -6,6 +6,7 @@ import unittest
 import time
 
 from browser_test import MultipleNodeBrowserTest
+from config import testConfig
 
 
 class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
@@ -100,6 +101,7 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
         self.assertOngoingCall(self.larry)
 
         self.bob.hangupCall()
+        self.assertChatWindowClosed(self.larry)
 
     def test_video_call_timeout(self):
         self.bob.signin()
@@ -112,6 +114,7 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
         self.assertIncomingCall(self.larry)
 
         self.assertCallTimedOut(self.bob)
+        self.assertChatWindowClosed(self.larry)
 
     def test_video_call_timeout_and_retry(self):
         self.bob.signin()
@@ -156,7 +159,8 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
 
         self.larry.switchToChatWindow()
         self.larry.ignoreCall()
-        time.sleep(3)  # The window takes 3 seconds to close itself.
+        # Wait for the ignore to finish and the window to close
+        time.sleep(testConfig['CONVERSATION_IGNORE_DISPLAY_TIME'] / 1000)
         self.assertChatWindowClosed(self.larry)
 
         self.larry.openConversationWith("bob")
@@ -200,6 +204,9 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
         self.bob.acceptCall()
 
         self.assertElementVisible(self.larry, "#local-media")
+
+        self.bob.hangupCall()
+        self.assertChatWindowClosed(self.larry)
 
 
 if __name__ == "__main__":

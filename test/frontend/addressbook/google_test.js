@@ -264,7 +264,7 @@ describe("GoogleContacts", function() {
       sinon.assert.calledOnce(fakePort.postEvent);
       sinon.assert.calledWithExactly(fakePort.postEvent,
                                      "talkilla.contacts",
-                                     {contacts: contacts});
+                                     {contacts: contacts, source: "google"});
     });
 
     it("should notify port with auth errors", function() {

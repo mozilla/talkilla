@@ -9,6 +9,7 @@ describe("ChatApp", function() {
   var sandbox, chatApp, AppPortStub;
   var callData = {peer: "bob", peerPresence: "connected"};
   var incomingCallData = {
+    callid: 2,
     peer: "alice",
     peerPresence: "connected",
     offer: {type: "answer", sdp: "fake"}
@@ -270,7 +271,7 @@ describe("ChatApp", function() {
 
         sinon.assert.calledOnce(chatApp.call.incoming);
         sinon.assert.calledWithMatch(chatApp.call.incoming,
-         {offer: incomingCallData.offer, video: false, audio: false});
+          new app.payloads.Offer(incomingCallData));
       });
 
       it("should play the incoming call sound", function() {
@@ -397,11 +398,13 @@ describe("ChatApp", function() {
 
     describe("#_onSendTimeout", function() {
       it("should post a talkilla.call-hangup event to the worker", function() {
-        chatApp.call.trigger("send-timeout", {peer: "florian"});
+        var fakeHangupMsg = {toJSON: function() {}};
+
+        chatApp.call.trigger("send-timeout", fakeHangupMsg);
 
         sinon.assert.called(chatApp.port.postEvent);
         sinon.assert.calledWith(chatApp.port.postEvent,
-                                "talkilla.call-hangup", {peer: "florian"});
+                                "talkilla.call-hangup");
       });
     });
 

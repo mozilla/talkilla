@@ -1,4 +1,4 @@
-/*global chai, sinon, TkWorker, PortCollection, CollectedContacts, UserData,
+/*global chai, sinon, TkWorker, PortCollection, ContactsDB, UserData,
   browserPort:true */
 
 var expect = chai.expect;
@@ -13,7 +13,7 @@ describe("tkWorker", function() {
     worker = new TkWorker({
       ports: new PortCollection(),
       user: new UserData({}, {}),
-      contactsDb: new CollectedContacts({
+      contactsDb: new ContactsDB({
         dbname: "TalkillaContactsTest"
       })
     });
@@ -110,6 +110,30 @@ describe("tkWorker", function() {
 
       sinon.assert.calledOnce(worker.ports.broadcastError);
       sinon.assert.calledWithExactly(worker.ports.broadcastError, err);
+    });
+  });
+
+  describe("#updateContactsFromSource", function() {
+    var contacts;
+
+    beforeEach(function() {
+      contacts = [{username: "foo"}];
+      sandbox.stub(worker.contactsDb, "replaceSourceContacts");
+      sandbox.stub(worker.users, "updateContacts");
+    });
+
+    it("should tell the contacts database to replace the contacts", function() {
+      worker.updateContactsFromSource(contacts, "google");
+
+      sinon.assert.calledOnce(worker.contactsDb.replaceSourceContacts);
+    });
+
+    it("should update current users list with contacts", function() {
+      worker.updateContactList(contacts);
+
+      sinon.assert.calledOnce(worker.users.updateContacts);
+      sinon.assert.calledWithExactly(worker.users.updateContacts,
+                                     contacts);
     });
   });
 

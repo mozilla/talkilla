@@ -141,18 +141,12 @@ var ChatApp = (function(app, $, Backbone, _) {
     if (!data.upgrade)
       this.peer.set({nick: data.peer, presence: data.peerPresence});
 
-    var options = _.extend(WebRTC.parseOfferConstraints(data.offer), {
-      offer: data.offer,
-      textChat: !!data.textChat,
-      upgrade: !!data.upgrade
-    });
-
     // incoming text chat conversation
     if (data.textChat)
-      return this.textChat.answer(options.offer);
+      return this.textChat.answer(data.offer);
 
     // incoming video/audio call
-    this.call.incoming(options);
+    this.call.incoming(new app.payloads.Offer(data));
     this.audioLibrary.play('incoming');
   };
 
@@ -178,11 +172,18 @@ var ChatApp = (function(app, $, Backbone, _) {
     this.port.postEvent('talkilla.call-answer', answerMsg.toJSON());
   };
 
-  ChatApp.prototype._onSendTimeout = function(data) {
+  /**
+   * Called when a call times out.
+   *
+   * @param {payloads.Hanging} hangupMsg the hangup to send to stop
+   * the call.
+   *
+   */
+  ChatApp.prototype._onSendTimeout = function(hangupMsg) {
     // Let the peer know that the call offer is no longer valid.
     // For this, we send call-hangup, the same as in the case where
     // the user decides to abandon the call attempt.
-    this.port.postEvent('talkilla.call-hangup', data);
+    this.port.postEvent('talkilla.call-hangup', hangupMsg.toJSON());
   };
 
   ChatApp.prototype._onIceCandidateReady = function(candidate) {

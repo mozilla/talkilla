@@ -1,14 +1,14 @@
-/*global sinon, chai, CollectedContacts, IDBDatabase, IDBObjectStore */
+/*global sinon, chai, ContactsDB, IDBDatabase, IDBObjectStore */
 /* jshint expr:true */
 
 var expect = chai.expect;
 
-describe("CollectedContacts", function() {
+describe("ContactsDB", function() {
   var sandbox, contactsDb;
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
-    contactsDb = new CollectedContacts({
+    contactsDb = new ContactsDB({
       dbname: "TalkillaContactsTest"
     });
   });
@@ -29,7 +29,7 @@ describe("CollectedContacts", function() {
       expect(contactsDb.options).to.include.keys(
         "dbname", "storename", "version");
       expect(contactsDb.options.storename).eql("contacts");
-      expect(contactsDb.options.version).eql(1);
+      expect(contactsDb.options.version).eql(2);
     });
   });
 
@@ -45,8 +45,8 @@ describe("CollectedContacts", function() {
     });
 
     it("shouldn't throw if the database is already loaded", function(done) {
-      contactsDb.load(function(db1) {
-        contactsDb.load(function(db2) {
+      contactsDb.load(function(err, db1) {
+        contactsDb.load(function(err, db2) {
           expect(db1).eql(db2);
           done();
         });
@@ -64,6 +64,64 @@ describe("CollectedContacts", function() {
       contactsDb.load(function(err) {
         expect(err).eql("load error");
         done();
+      });
+    });
+
+    describe("upgrade", function() {
+      beforeEach(function(done) {
+        // Construct a V1 database
+        var request = indexedDB.open("UpdateContactsV1", 1);
+
+        request.onupgradeneeded = function(event) {
+          // the callback will be called by the onsuccess event handler when the
+          // whole operation is performed
+          var db = event.target.result;
+          var store = db.createObjectStore("contacts", {
+            keyPath: "username"
+          });
+          store.createIndex("username", "username", {unique: true});
+        };
+
+        request.onsuccess = function(event) {
+          var db = event.target.result;
+          // Now close the db.
+          db.close();
+          done();
+        };
+
+        request.onerror = function(event) {
+          throw event.target.errorCode;
+        };
+      });
+
+      afterEach(function(done) {
+        sandbox.restore();
+        var request = indexedDB.deleteDatabase("UpdateContactsV1");
+        request.onsuccess = function() {
+          done();
+        };
+
+        request.onerror = function(event) {
+          throw event.target.errorCode;
+        };
+      });
+
+      it("should upgrade the database", function(done) {
+        var dbV1 = new ContactsDB({
+          dbname: "UpdateContactsV1"
+        });
+        dbV1.load(function(err, db) {
+          expect(db.version).to.equal(2);
+
+          // Check the new index is available
+          var store = this.db.transaction(this.options.storename, "readonly")
+                          .objectStore(this.options.storename);
+
+          expect(store.indexNames.contains("source")).to.be.equal(true);
+
+          db.close();
+          done();
+        });
       });
     });
   });
@@ -116,6 +174,67 @@ describe("CollectedContacts", function() {
         expect(err.message).eql("add error");
         done();
       });
+    });
+  });
+
+  describe("#replaceSourceContacts", function() {
+    it("should delete existing contacts for the specified source",
+      function(done) {
+        // First add a couple of contacts - one with the google source,
+        // one without.
+        contactsDb.add({username: "florian"}, function(err) {
+          if (err)
+            throw err;
+          contactsDb.add({username: "rt", source: "google"}, function(err) {
+            if (err)
+              throw err;
+
+            // Now for the real test
+            contactsDb.replaceSourceContacts([], "google",
+              function(err, result) {
+                expect(err).to.be.a("null");
+                expect(result).eql([]);
+
+                contactsDb.all(function(err, result) {
+                  expect(err).to.be.a("null");
+                  expect(result).eql([{username: "florian"}]);
+                  done();
+                });
+              });
+          });
+        });
+      });
+
+    it("should add supplied contacts tagged with their source", function(done) {
+      var contacts = [
+        {username: "rt"},
+        {username: "florian"}
+      ];
+      var expected = [
+        {username: "rt", source: "google"},
+        {username: "florian", source: "google"}
+      ];
+      contactsDb.replaceSourceContacts(contacts, "google",
+        function(err, result) {
+          expect(err).to.be.a("null");
+          expect(result).eql(expected);
+
+          this.all(function(err, result) {
+            expect(result).eql(expected);
+            done();
+          });
+        });
+    });
+
+    it("should pass back any add error", function(done) {
+      sandbox.stub(IDBObjectStore.prototype, "add", function() {
+        throw new Error("add error");
+      });
+      contactsDb.replaceSourceContacts([{username: "foo"}], "google",
+        function(err) {
+          expect(err).eql("add error");
+          done();
+        });
     });
   });
 
