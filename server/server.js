@@ -11,7 +11,7 @@ app.use(express.static(__dirname + "/../static"));
 app.use(sessions({
   cookieName: 'talkilla-session',
   requestKey: 'session',
-  secret: process.env.SESSION_SECRET,
+  secret: process.env.SESSION_SECRET || 'random-secret',//In case process.env.SESSION_SECRET is not set , this string is used to hash the sessions .
   duration: 10 * 24 * 60 * 60 * 1000, // 10 days
   cookie: {
     path: '/',
