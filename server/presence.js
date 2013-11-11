@@ -102,12 +102,12 @@ api = {
       user = users.add(nick).get(nick);
       users.get(nick).ondisconnect = function() {
         users.remove(nick);
-        users.present().forEach(function(peer) {
+        users.forEach(function(peer) {
           peer.send("userLeft", nick);
         });
         logger.info({type: "disconnection"});
       };
-      users.present().forEach(function(peer) {
+      users.forEach(function(peer) {
         peer.send("userJoined", nick);
       });
       user.touch();
@@ -221,7 +221,7 @@ api = {
 
     var nick = req.session.email;
     var user = users.get(nick);
-    var presentUsers = users.toJSON(users.present());
+    var presentUsers = users.toJSON();
 
     user.send("users", presentUsers);
     return res.send(204);

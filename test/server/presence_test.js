@@ -198,18 +198,13 @@ describe("presence", function() {
         clock.restore();
       });
 
-      it("should send to all the present users that a new one connected",
-        function() {
+      it("should send to all users that a new user connected", function() {
           var bar = users.add("bar").get("bar");
           var xoo = users.add("xoo").get("xoo");
-          var oof = users.add("oof").get("oof");
           var req = {session: {email: "foo"}};
           var res = {send: function() {}};
-          sandbox.stub(bar, "present").returns(true);
-          sandbox.stub(xoo, "present").returns(true);
           sandbox.stub(bar, "send").returns(true);
           sandbox.stub(xoo, "send").returns(true);
-          sandbox.stub(oof, "send").returns(true);
 
           api.stream(req, res);
 
@@ -217,32 +212,29 @@ describe("presence", function() {
           sinon.assert.calledWith(bar.send, "userJoined", "foo");
           sinon.assert.calledOnce(xoo.send);
           sinon.assert.calledWith(xoo.send, "userJoined", "foo");
-          sinon.assert.notCalled(oof.send);
         });
 
       it("should send an empty list if connecting is specified in the body",
         function(done) {
-          var user = users.add("foo").get("foo");
+          users.add("foo").get("foo");
           var req = {session: {email: "foo"}, body: {firstRequest: true}};
           var res = {send: function(code, data) {
             expect(code).to.equal(200);
             expect(data).to.equal(JSON.stringify([]));
             done();
           }};
-          sandbox.stub(user, "present").returns(true);
 
           api.stream(req, res);
         });
 
       it("should send an empty list of events", function(done) {
-        var user = users.add("foo").get("foo");
+        users.add("foo").get("foo");
         var req = {session: {email: "foo"}};
         var res = {send: function(code, data) {
           expect(code).to.equal(200);
           expect(data).to.equal(JSON.stringify([]));
           done();
         }};
-        sandbox.stub(user, "present").returns(true);
 
         api.stream(req, res);
         clock.tick(config.LONG_POLLING_TIMEOUT * 3);
@@ -257,7 +249,6 @@ describe("presence", function() {
           expect(data).to.equal(JSON.stringify([event]));
           done();
         }};
-        sandbox.stub(user, "present").returns(true);
 
         api.stream(req, res);
         user.send("some", "data");
@@ -291,8 +282,6 @@ describe("presence", function() {
         it("should notify peers that the user left", function() {
           var bar = users.add("bar").get("bar");
           var xoo = users.add("xoo").get("xoo");
-          sandbox.stub(bar, "present").returns(true);
-          sandbox.stub(xoo, "present").returns(true);
           sandbox.stub(bar, "send").returns(true);
           sandbox.stub(xoo, "send").returns(true);
 
@@ -475,16 +464,18 @@ describe("presence", function() {
         foo = users.add("foo").get("foo");
         bar = users.add("bar").get("bar");
 
-        sandbox.stub(users, "present").returns([bar]);
         sandbox.stub(foo, "send");
       });
 
-      it("should send the list of present users to the given user",
+      it("should send the list of connected users to the given user",
         function() {
           api.presenceRequest(req, res);
 
           sinon.assert.calledOnce(foo.send);
-          sinon.assert.calledWithExactly(foo.send, "users", [bar.toJSON()]);
+          sinon.assert.calledWithExactly(foo.send, "users", [
+            foo.toJSON(),
+            bar.toJSON()
+          ]);
         });
 
       it("should return success", function() {

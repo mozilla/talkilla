@@ -211,20 +211,6 @@ Users.prototype.forEach = function(callback) {
 };
 
 /**
- * Retrieve the list of connected users (i.e. having an attached WebSocket)
- * @return {Array} array of users
- */
-Users.prototype.present = function() {
-  return Object.keys(this.users)
-    .filter(function(nick) {
-      return this.users[nick].present();
-    }, this)
-    .map(function(nick) {
-      return this.users[nick];
-    }, this);
-};
-
-/**
  * Transform the collecton into a JSON structure
  *
  * @param {Array} users an optional list of users to process

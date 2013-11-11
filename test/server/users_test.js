@@ -261,26 +261,6 @@ describe("Users", function() {
 
   });
 
-  describe("#present", function() {
-
-    it("should return the list of present users only", function() {
-      var ws = "fake ws";
-
-      expect(users.present().length).to.equal(0);
-
-      // 2 connected users
-      users.add("foo").add("bar");
-      users.forEach(function(user) {
-        user.connect(ws);
-      });
-      // 1 not connected
-      users.add("goo");
-
-      expect(users.present().length).to.equal(2);
-    });
-
-  });
-
   describe("#toJSON", function() {
 
     it("should return a JSON serialisable structure", function() {
@@ -306,8 +286,7 @@ describe("Users", function() {
 
     it("should take the given users as reference", function() {
       users.add("foo").add("bar").add("goo");
-      users.get("foo").connect("fake ws");
-      expect(users.toJSON(users.present())).to.deep.equal([{nick: "foo"}]);
+      expect(users.toJSON([users.get("foo")])).to.deep.equal([{nick: "foo"}]);
     });
 
   });
