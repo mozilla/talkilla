@@ -15,6 +15,7 @@ var https = require("https");
 
 require("../../server/server");
 var presence = require("../../server/presence");
+var User = require("../../server/users").User;
 var logger = require("../../server/logger");
 var config = require('../../server/config').config;
 
@@ -121,15 +122,13 @@ describe("presence", function() {
 
     describe("#signin", function() {
 
-      it("should add a new user to the user list and return the nick",
+      it("should return the nick",
         function(done) {
           var req = {body: {assertion: "fake assertion"}, session: {}};
           var res = {send: sinon.spy()};
           var answer = JSON.stringify({nick: "foo"});
           sandbox.stub(presence.api, "_verifyAssertion", function(a, c) {
             c(null, "foo");
-
-            expect(users.get("foo")).to.not.equal(undefined);
 
             sinon.assert.calledOnce(res.send);
             sinon.assert.calledWithExactly(res.send, 200, answer);
@@ -160,16 +159,28 @@ describe("presence", function() {
 
     describe("#signout", function() {
 
-      it("should remove the user from the user list", function() {
+      it("should disconnect the user", function() {
+        sandbox.stub(User.prototype, "disconnect");
         var req = {session: {email: "foo"}};
         var res = {send: sinon.spy()};
 
         users.add("foo");
         api.signout(req, res);
-        expect(users.get("foo")).to.equal(undefined);
+        sinon.assert.calledOnce(User.prototype.disconnect);
 
         sinon.assert.calledOnce(res.send);
         sinon.assert.calledWith(res.send, 200);
+      });
+
+      it("should return a 400 if the assertion was invalid", function() {
+        sandbox.stub(User.prototype, "disconnect");
+        var req = {session: {email: null}};
+        var res = {send: sinon.spy()};
+
+        api.signout(req, res);
+
+        sinon.assert.calledOnce(res.send);
+        sinon.assert.calledWith(res.send, 400);
       });
 
     });
@@ -187,27 +198,27 @@ describe("presence", function() {
         clock.restore();
       });
 
-      it("should send to all the present users an new one joined", function() {
-        users.add("foo");
-        var bar = users.add("bar").get("bar");
-        var xoo = users.add("xoo").get("xoo");
-        var oof = users.add("oof").get("oof");
-        var req = {session: {email: "foo"}};
-        var res = {send: function() {}};
-        sandbox.stub(bar, "present").returns(true);
-        sandbox.stub(xoo, "present").returns(true);
-        sandbox.stub(bar, "send").returns(true);
-        sandbox.stub(xoo, "send").returns(true);
-        sandbox.stub(oof, "send").returns(true);
+      it("should send to all the present users that a new one connected",
+        function() {
+          var bar = users.add("bar").get("bar");
+          var xoo = users.add("xoo").get("xoo");
+          var oof = users.add("oof").get("oof");
+          var req = {session: {email: "foo"}};
+          var res = {send: function() {}};
+          sandbox.stub(bar, "present").returns(true);
+          sandbox.stub(xoo, "present").returns(true);
+          sandbox.stub(bar, "send").returns(true);
+          sandbox.stub(xoo, "send").returns(true);
+          sandbox.stub(oof, "send").returns(true);
 
-        api.stream(req, res);
+          api.stream(req, res);
 
-        sinon.assert.calledOnce(bar.send);
-        sinon.assert.calledWith(bar.send, "userJoined", "foo");
-        sinon.assert.calledOnce(xoo.send);
-        sinon.assert.calledWith(xoo.send, "userJoined", "foo");
-        sinon.assert.notCalled(oof.send);
-      });
+          sinon.assert.calledOnce(bar.send);
+          sinon.assert.calledWith(bar.send, "userJoined", "foo");
+          sinon.assert.calledOnce(xoo.send);
+          sinon.assert.calledWith(xoo.send, "userJoined", "foo");
+          sinon.assert.notCalled(oof.send);
+        });
 
       it("should send an empty list if connecting is specified in the body",
         function(done) {
@@ -260,6 +271,39 @@ describe("presence", function() {
 
         sinon.assert.calledOnce(res.send);
         sinon.assert.calledWithExactly(res.send, 400);
+      });
+
+      describe("disconnect", function() {
+
+        beforeEach(function() {
+          var req = {session: {email: "foo"}};
+          var res = {send: function() {}};
+
+          api.stream(req, res);
+        });
+
+        it("should remove the user from the list of users", function() {
+          users.get("foo").disconnect();
+
+          expect(users.get("foo")).to.be.equal(undefined);
+        });
+
+        it("should notify peers that the user left", function() {
+          var bar = users.add("bar").get("bar");
+          var xoo = users.add("xoo").get("xoo");
+          sandbox.stub(bar, "present").returns(true);
+          sandbox.stub(xoo, "present").returns(true);
+          sandbox.stub(bar, "send").returns(true);
+          sandbox.stub(xoo, "send").returns(true);
+
+          users.get("foo").disconnect();
+
+          sinon.assert.calledOnce(bar.send);
+          sinon.assert.calledWith(bar.send, "userLeft", "foo");
+          sinon.assert.calledOnce(xoo.send);
+          sinon.assert.calledWith(xoo.send, "userLeft", "foo");
+        });
+
       });
 
     });
