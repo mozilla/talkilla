@@ -43,6 +43,7 @@ var browserDetection = (function ($) {
       "icon64URL": baseUrl + "/img/talkilla64.png",
 
       // at least one of these must be defined
+      "statusURL": baseUrl + "/sidebar.html",
       "sidebarURL": baseUrl + "/sidebar.html",
       "workerURL": baseUrl + "/js/worker.js",
 
