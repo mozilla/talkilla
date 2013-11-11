@@ -186,6 +186,12 @@
 
       var button = this.$('.btn-microphone-mute');
       button.toggleClass('active');
+      var anchor = button.find('a');
+      if (anchor.attr('title') === 'Mute microphone')
+        anchor.attr('title', 'Unmute microphone');
+      else
+        anchor.attr('title', 'Mute microphone');
+
       this.media.setMuteState('local', 'audio', button.hasClass('active'));
     },
 
