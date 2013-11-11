@@ -209,6 +209,20 @@ describe("presence", function() {
         sinon.assert.notCalled(oof.send);
       });
 
+      it("should send an empty list if connecting is specified in the body",
+        function(done) {
+          var user = users.add("foo").get("foo");
+          var req = {session: {email: "foo"}, body: {connecting: true}};
+          var res = {send: function(code, data) {
+            expect(code).to.equal(200);
+            expect(data).to.equal(JSON.stringify([]));
+            done();
+          }};
+          sandbox.stub(user, "present").returns(true);
+
+          api.stream(req, res);
+        });
+
       it("should send an empty list of events", function(done) {
         var user = users.add("foo").get("foo");
         var req = {session: {email: "foo"}};

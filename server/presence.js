@@ -109,6 +109,10 @@ api = {
       // request the presence. We should fix that on the frontend.
       res.send(200, JSON.stringify([]));
       logger.info({type: "connection"});
+    } else if (req.body && req.body.connecting) {
+      user.touch();
+      res.send(200, JSON.stringify([]));
+      logger.info({type: "reconnection"});
     } else {
       user.touch().waitForEvents(function(events) {
         res.send(200, JSON.stringify(events));
