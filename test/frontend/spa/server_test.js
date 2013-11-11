@@ -26,7 +26,7 @@ describe("Server", function() {
 
       sinon.assert.calledOnce(server.http.post);
       sinon.assert.calledWith(server.http.post, "/stream", {
-        connecting: true,
+        firstRequest: true,
         nick: "foo"
       });
     });

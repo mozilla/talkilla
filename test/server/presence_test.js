@@ -212,7 +212,7 @@ describe("presence", function() {
       it("should send an empty list if connecting is specified in the body",
         function(done) {
           var user = users.add("foo").get("foo");
-          var req = {session: {email: "foo"}, body: {connecting: true}};
+          var req = {session: {email: "foo"}, body: {firstRequest: true}};
           var res = {send: function(code, data) {
             expect(code).to.equal(200);
             expect(data).to.equal(JSON.stringify([]));
