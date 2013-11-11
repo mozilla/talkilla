@@ -3,6 +3,11 @@
  */
 .sidebar {
   background: #fdfdfd;
+
+  /* when loaded as a panel, size the panel so that the whole thing
+   * is displayed, not just a scrollable subsection.
+   */
+  overflow: visible;
 }
 
 .sidebar header {
