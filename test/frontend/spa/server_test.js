@@ -25,7 +25,10 @@ describe("Server", function() {
       server.connect({nick: "foo"});
 
       sinon.assert.calledOnce(server.http.post);
-      sinon.assert.calledWith(server.http.post, "/stream", {nick: "foo"});
+      sinon.assert.calledWith(server.http.post, "/stream", {
+        firstRequest: true,
+        nick: "foo"
+      });
     });
 
     it("should trigger a connected event", function(done) {
