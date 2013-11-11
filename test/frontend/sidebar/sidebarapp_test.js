@@ -61,24 +61,6 @@ describe("SidebarApp", function() {
       expect(sidebarApp.users).to.be.an.instanceOf(app.models.UserSet);
     });
 
-    it("should set the user nick and enable the spa on login success",
-      function() {
-        var sidebarApp = new SidebarApp();
-        var data = {nick: "foo"};
-        var spec = new app.payloads.SPASpec({
-          src: "/js/spa/talkilla_worker.js",
-          credentials: {email: "foo"}
-        });
-        sidebarApp.port.postEvent.reset();
-
-        sidebarApp.port.trigger("talkilla.login-success", data);
-
-        expect(sidebarApp.user.get("nick")).to.equal("foo");
-        sinon.assert.calledOnce(sidebarApp.port.postEvent);
-        sinon.assert.calledWithExactly(
-          sidebarApp.port.postEvent, "talkilla.spa-enable", spec.toJSON());
-      });
-
     it("should display an error on login failures", function() {
       var sidebarApp = new SidebarApp();
       var error = "fake login failure";
@@ -109,19 +91,6 @@ describe("SidebarApp", function() {
 
       expect(sidebarApp.users).to.have.length.of(0);
     });
-
-    it("should set the user presence and request a presence on spa connection",
-      function() {
-        var sidebarApp = new SidebarApp();
-        sidebarApp.port.postEvent.reset();
-
-        sidebarApp.port.trigger("talkilla.spa-connected");
-
-        expect(sidebarApp.user.get("presence")).to.equal("connected");
-        sinon.assert.calledOnce(sidebarApp.port.postEvent);
-        sinon.assert.calledWithExactly(
-          sidebarApp.port.postEvent, "talkilla.presence-request");
-      });
 
     it("should post talkilla.sidebar-ready to the worker", function() {
       var sidebarApp = new SidebarApp();
@@ -180,6 +149,61 @@ describe("SidebarApp", function() {
       sidebarApp.user.set("nick", "toto");
 
       sandbox.stub(app.utils, "notifyUI");
+    });
+
+    describe("talkilla.login-success", function() {
+
+      var sidebarApp, data, spec;
+
+      beforeEach(function() {
+        sidebarApp = new SidebarApp();
+        data = {nick: "foo"};
+        spec = new app.payloads.SPASpec({
+          src: "/js/spa/talkilla_worker.js",
+          credentials: {email: "foo"}
+        });
+
+        // Skip the talkilla.sidebar-ready event
+        sidebarApp.port.postEvent.reset();
+      });
+
+      it("should set the user nick", function() {
+        sidebarApp.port.trigger("talkilla.login-success", data);
+        expect(sidebarApp.user.get("nick")).to.equal("foo");
+      });
+
+      it("should ask the worker to enable the spa", function() {
+        sidebarApp.port.trigger("talkilla.login-success", data);
+
+        sinon.assert.calledOnce(sidebarApp.port.postEvent);
+        sinon.assert.calledWithExactly(
+          sidebarApp.port.postEvent, "talkilla.spa-enable", spec.toJSON());
+      });
+
+    });
+
+    describe("talkilla.spa-connected", function() {
+
+      beforeEach(function() {
+        var sidebarApp = new SidebarApp();
+        // Skip the talkilla.sidebar-ready event
+        sidebarApp.port.postEvent.reset();
+      });
+
+      it("should set the user presence", function() {
+        sidebarApp.port.trigger("talkilla.spa-connected");
+        expect(sidebarApp.user.get("presence")).to.equal("connected");
+      });
+
+
+      it("should request the users presence from the server", function() {
+        sidebarApp.port.trigger("talkilla.spa-connected");
+
+        sinon.assert.calledOnce(sidebarApp.port.postEvent);
+        sinon.assert.calledWithExactly(
+          sidebarApp.port.postEvent, "talkilla.presence-request");
+      });
+
     });
 
     describe("talkilla.websocket-error reception", function() {

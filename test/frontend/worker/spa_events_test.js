@@ -26,25 +26,23 @@ describe("SPA events", function() {
 
   describe("`connected` event", function() {
     it("should set the user data as connected", function() {
-      spa.trigger("connected");
+      spa.trigger("connected", {email: "foo"});
 
       expect(tkWorker.user.connected).to.be.equal(true);
     });
 
-    it("should broadcast a `talkilla.login-success` event", function() {
-      tkWorker.user.name = "harvey";
+    it("should broadcast a `talkilla.spa-connected` event", function() {
       sandbox.stub(tkWorker.ports, "broadcastEvent");
 
-      spa.trigger("connected");
+      spa.trigger("connected", {email: "foo"});
 
       sinon.assert.calledOnce(tkWorker.ports.broadcastEvent);
       sinon.assert.calledWithExactly(tkWorker.ports.broadcastEvent,
-                                     "talkilla.login-success",
-                                     {username: "harvey"});
+                                     "talkilla.spa-connected");
     });
 
     it("should load the contacts database", function() {
-      spa.trigger("connected");
+      spa.trigger("connected", {email: "foo"});
 
       sinon.assert.calledOnce(tkWorker.loadContacts);
     });
