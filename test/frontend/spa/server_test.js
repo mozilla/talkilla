@@ -25,7 +25,9 @@ describe("Server", function() {
       server.connect();
 
       sinon.assert.calledOnce(server.http.post);
-      sinon.assert.calledWith(server.http.post, "/stream", {});
+      sinon.assert.calledWith(server.http.post, "/stream", {
+        firstRequest: true
+      });
     });
 
     it("should trigger a connected event", function(done) {
