@@ -41,6 +41,11 @@ runserver:
 	@env NODE_ENV=${NODE_ENV} PORT=5000 SESSION_SECRET=${SESSION_SECRET} \
 		node app.js
 
+.PHONY: runserver_dev
+runserver_dev:
+	@echo "Warning: make runserver_dev is deprecated, use runserver instead"
+	make runserver
+
 .PHONY: cover_server
 cover_server:
 	@env NODE_ENV=test SESSION_SECRET=${SESSION_SECRET}   \
