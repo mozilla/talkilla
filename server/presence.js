@@ -57,17 +57,10 @@ api = {
       if (err)
         return res.send(400, JSON.stringify({error: err}));
 
-      users.add(nick);
-      users.get(nick).ondisconnect = function() {
-        users.present().forEach(function(user) {
-          user.send("userLeft", nick);
-        });
-        logger.info({type: "disconnection"});
-      };
       logger.info({type: "signin"});
 
       req.session.email = nick;
-      res.send(200, JSON.stringify(users.get(nick)));
+      res.send(200, JSON.stringify({nick: nick}));
     });
   },
 
@@ -76,8 +69,17 @@ api = {
       return res.send(400);
 
     var nick = req.session.email;
-    users.get(nick).disconnect();
-    users.remove(nick);
+
+    // Remove the user's session
+    req.session.reset();
+
+    var user = users.get(nick);
+    if (user) {
+      // Disconnecting the user will remove them from the users
+      // list.
+      user.disconnect();
+    }
+
     logger.info({type: "signout"});
     res.send(200, JSON.stringify(true));
   },
@@ -99,9 +101,17 @@ api = {
     var nick = req.session.email;
     var user = users.get(nick);
 
-    if (!user.present()) {
-      users.present().forEach(function(user) {
-        user.send("userJoined", nick);
+    if (!user) {
+      user = users.add(nick).get(nick);
+      users.get(nick).ondisconnect = function() {
+        users.remove(nick);
+        users.forEach(function(peer) {
+          peer.send("userLeft", nick);
+        });
+        logger.info({type: "disconnection"});
+      };
+      users.forEach(function(peer) {
+        peer.send("userJoined", nick);
       });
       user.touch();
       // XXX: Here we force the first long-polling request to return
@@ -214,7 +224,7 @@ api = {
 
     var nick = req.session.email;
     var user = users.get(nick);
-    var presentUsers = users.toJSON(users.present());
+    var presentUsers = users.toJSON();
 
     user.send("users", presentUsers);
     return res.send(204);
