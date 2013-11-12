@@ -62,7 +62,12 @@ app.get('/config.js', api.config);
 app.start = function(serverPort, callback) {
   app.set('users', {});
 
-  server.listen(serverPort, callback);
+  server.listen(serverPort, function() {
+    console.log("Server running in " + process.env.NODE_ENV +
+                " mode on port " + serverPort);
+    if (callback)
+      callback();
+  });
 };
 
 app.shutdown = function(callback) {
