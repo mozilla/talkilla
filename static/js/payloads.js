@@ -16,7 +16,7 @@ var payloads = (function() {
    *
    * Optional attributes:
    *
-   * - {Boolean} textChat, do the call involve text chat?
+   * - {Boolean} textChat, does the call involve text chat?
    * - {Boolean} upgrade, is the call an upgrade?
    *
    */
@@ -52,7 +52,7 @@ var payloads = (function() {
    *
    * Optional attributes:
    *
-   * - {Boolean} textChat, do the call involve text chat?
+   * - {Boolean} textChat, does the call involve text chat?
    *
    */
   function Answer(data) {
@@ -125,7 +125,7 @@ var payloads = (function() {
    *
    * data attributes:
    *
-   * - {String} src, the url from where to load the SPA
+   * - {String} src, the url from which to load the SPA
    * - {Object} credentials, an opaque data structure carrying credentials
    *
    */
