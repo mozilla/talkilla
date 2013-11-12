@@ -161,7 +161,7 @@ describe("presence", function() {
 
       it("should disconnect the user", function() {
         sandbox.stub(User.prototype, "disconnect");
-        var req = {session: {email: "foo"}};
+        var req = {session: {email: "foo", reset: function() {}}};
         var res = {send: sinon.spy()};
 
         users.add("foo");
@@ -170,6 +170,16 @@ describe("presence", function() {
 
         sinon.assert.calledOnce(res.send);
         sinon.assert.calledWith(res.send, 200);
+      });
+
+      it("should reset the user's client session", function() {
+        var req = {session: {email: "foo", reset: sinon.spy()}};
+        var res = {send: function() {} };
+
+        users.add("foo");
+        api.signout(req, res);
+
+        sinon.assert.calledOnce(req.session.reset);
       });
 
       it("should return a 400 if the assertion was invalid", function() {

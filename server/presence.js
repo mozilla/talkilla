@@ -69,6 +69,10 @@ api = {
       return res.send(400);
 
     var nick = req.session.email;
+
+    // Remove the user's authentication
+    req.session.reset();
+
     var user = users.get(nick);
     if (user) {
       // Disconnecting the user will remove them from the users
@@ -77,7 +81,6 @@ api = {
     }
 
     logger.info({type: "signout"});
-    // XXX Forcibly remove/reset the cookie?
     res.send(200, JSON.stringify(true));
   },
 
