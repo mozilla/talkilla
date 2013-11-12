@@ -159,7 +159,7 @@ describe("Text chat views", function() {
     it("should allow the caller to send a first message", function(done) {
       var chatApp = new ChatApp();
       var textChat = chatApp.textChatView.collection;
-      chatApp.port.trigger("talkilla.conversation-open", {
+      chatApp.appPort.trigger("talkilla.conversation-open", {
         peer: "niko",
         user: "jb"
       });

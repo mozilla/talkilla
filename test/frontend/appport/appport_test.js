@@ -26,9 +26,9 @@ describe("AppPort", function() {
   it("should implement Backbone.Events interface", function() {
     var proto = Object.keys(Backbone.Events);
 
-    var port = new AppPort();
+    var appPort = new AppPort();
 
-    expect(Object.getPrototypeOf(port)).to.include.keys(proto);
+    expect(Object.getPrototypeOf(appPort)).to.include.keys(proto);
   });
 
   it("should be able to trigger and subscribe to events", function(done) {
@@ -42,20 +42,20 @@ describe("AppPort", function() {
 
   it("should trigger an event when a message is received by the port",
     function(done) {
-      var port = new AppPort();
+      var appPort = new AppPort();
 
-      port.on("universe", function(data) {
+      appPort.on("universe", function(data) {
         expect(data.answer).to.equal(42);
         done();
       });
 
-      port._port.onmessage({data: {topic: "universe", data: {answer: 42}}});
+      appPort._port.onmessage({data: {topic: "universe", data: {answer: 42}}});
     });
 
   it("should be able to post an event", function() {
-    var port = new AppPort();
+    var appPort = new AppPort();
 
-    port.postEvent("answer", 42);
+    appPort.postEvent("answer", 42);
 
     sinon.assert.calledOnce(postMessageSpy);
     sinon.assert.calledWithExactly(postMessageSpy, {topic: "answer", data: 42});

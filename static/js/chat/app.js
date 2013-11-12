@@ -7,7 +7,7 @@ var ChatApp = (function(app, $, Backbone, _) {
   "use strict";
 
   function ChatApp() {
-    this.port = new AppPort();
+    this.appPort = new AppPort();
     this.user = new app.models.User();
     this.peer = new app.models.User();
 
@@ -81,16 +81,16 @@ var ChatApp = (function(app, $, Backbone, _) {
     this.user.on('signout', this._onUserSignout, this);
 
     // Incoming events
-    this.port.on('talkilla.conversation-open',
+    this.appPort.on('talkilla.conversation-open',
                  this._onConversationOpen, this);
-    this.port.on('talkilla.conversation-incoming',
+    this.appPort.on('talkilla.conversation-incoming',
                  this._onIncomingConversation, this);
-    this.port.on('talkilla.call-establishment',
+    this.appPort.on('talkilla.call-establishment',
                  this._onCallEstablishment, this);
-    this.port.on('talkilla.call-hangup', this._onCallShutdown, this);
-    this.port.on('talkilla.ice-candidate', this._onIceCandidate, this);
-    this.port.on('talkilla.user-joined', this._onUserJoined, this);
-    this.port.on('talkilla.user-left', this._onUserLeft, this);
+    this.appPort.on('talkilla.call-hangup', this._onCallShutdown, this);
+    this.appPort.on('talkilla.ice-candidate', this._onIceCandidate, this);
+    this.appPort.on('talkilla.user-joined', this._onUserJoined, this);
+    this.appPort.on('talkilla.user-left', this._onUserLeft, this);
 
     // Outgoing events
     this.call.on('send-offer', this._onSendOffer, this);
@@ -107,7 +107,7 @@ var ChatApp = (function(app, $, Backbone, _) {
     // Internal events
     window.addEventListener("unload", this._onWindowClose.bind(this));
 
-    this.port.postEvent('talkilla.chat-window-ready', {});
+    this.appPort.postEvent('talkilla.chat-window-ready', {});
 
     this._setupDebugLogging();
   }
@@ -160,7 +160,7 @@ var ChatApp = (function(app, $, Backbone, _) {
    * @param {payloads.Offer} offerMsg the offer to send to initiate the call.
    */
   ChatApp.prototype._onSendOffer = function(offerMsg) {
-    this.port.postEvent('talkilla.call-offer', offerMsg.toJSON());
+    this.appPort.postEvent('talkilla.call-offer', offerMsg.toJSON());
   };
 
   /**
@@ -169,7 +169,7 @@ var ChatApp = (function(app, $, Backbone, _) {
    * @param {payloads.Answer} answerMsg the answer to send to accept the call.
    */
   ChatApp.prototype._onSendAnswer = function(answerMsg) {
-    this.port.postEvent('talkilla.call-answer', answerMsg.toJSON());
+    this.appPort.postEvent('talkilla.call-answer', answerMsg.toJSON());
   };
 
   /**
@@ -183,7 +183,7 @@ var ChatApp = (function(app, $, Backbone, _) {
     // Let the peer know that the call offer is no longer valid.
     // For this, we send call-hangup, the same as in the case where
     // the user decides to abandon the call attempt.
-    this.port.postEvent('talkilla.call-hangup', hangupMsg.toJSON());
+    this.appPort.postEvent('talkilla.call-hangup', hangupMsg.toJSON());
   };
 
   ChatApp.prototype._onIceCandidateReady = function(candidate) {
@@ -191,7 +191,7 @@ var ChatApp = (function(app, $, Backbone, _) {
       peer: this.peer.get("nick"),
       candidate: candidate
     });
-    this.port.postEvent('talkilla.ice-candidate', iceCandidateMsg.toJSON());
+    this.appPort.postEvent('talkilla.ice-candidate', iceCandidateMsg.toJSON());
   };
 
   // Call Hangup
@@ -214,7 +214,7 @@ var ChatApp = (function(app, $, Backbone, _) {
    */
   ChatApp.prototype._onCallHangup = function(hangupMsg) {
     // Send a message as this is this user's call hangup
-    this.port.postEvent('talkilla.call-hangup', hangupMsg.toJSON());
+    this.appPort.postEvent('talkilla.call-hangup', hangupMsg.toJSON());
     window.close();
   };
 
