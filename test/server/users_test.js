@@ -36,7 +36,8 @@ describe("User", function() {
 
     it("should queue the data if no pending timeout is available", function() {
       var event = {topic: "message", data: "some message"};
-      sandbox.stub(user, "present").returns(true);
+      // Pretend there's a timeout, to make the user present.
+      user.timeout = true;
 
       user.send(event.topic, event.data);
 
@@ -57,7 +58,8 @@ describe("User", function() {
     it("should queue the data if the pending timeout has already been resolved",
       function() {
         var event = {topic: "message", data: "some message"};
-        sandbox.stub(user, "present").returns(true);
+        // Pretend there's a timeout, to make the user present.
+        user.timeout = true;
         user.pending = new Waiter();
         user.pending.resolved = true;
 
@@ -67,7 +69,6 @@ describe("User", function() {
       });
 
     it("should log a warning if the user is not present", function() {
-      sandbox.stub(user, "present").returns(false);
       sandbox.stub(logger, "warn");
 
       user.send("message", "some message");

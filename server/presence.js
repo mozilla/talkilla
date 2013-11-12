@@ -70,7 +70,7 @@ api = {
 
     var nick = req.session.email;
 
-    // Remove the user's authentication
+    // Remove the user's session
     req.session.reset();
 
     var user = users.get(nick);

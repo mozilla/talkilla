@@ -61,7 +61,7 @@ User.prototype.send = function(topic, data) {
     // If there is an existing timeout, we resolve it with the
     // provided data.
     this.pending.resolve([event]);
-  else if (this.present())
+  else if (this.timeout)
     // Otherwise, if the user is present, we queue the data.
     this.events.push(event);
   else
@@ -130,13 +130,6 @@ User.prototype.waitForEvents = function(callback) {
     this.pending.resolve(this.events);
     this.events = [];
   }
-};
-
-/**
- * A user is present if he has not been disconnected yet.
- */
-User.prototype.present = function() {
-  return !!this.timeout;
 };
 
 /**
