@@ -18,9 +18,9 @@ Local Development
 
 4. Start the server:
 
-        $ env NODE_ENV=production PORT=5000 node app.js
-        # or alternatively:
         $ make runserver
+        # or alternatively:
+        $ env NODE_ENV=development PORT=5000 SESSION_SECRET=unguessable node app.js
 
 5. In Firefox, set `media.navigator.permission.disabled` to `true`
 

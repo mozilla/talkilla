@@ -1,4 +1,8 @@
 NODE_LOCAL_BIN=./node_modules/.bin
+NODE_ENV?=development # by default we are in development mode
+ifeq ($(shell echo ${NODE_ENV}), development)
+SESSION_SECRET?=unguessable # default secret for development and test mode
+endif
 
 .PHONY: test
 test: lint mocha selenium_all
@@ -29,22 +33,22 @@ jshint:
 
 .PHONY: mocha
 mocha:
-	@env NODE_ENV=test SESSION_SECRET=unguessable \
+	@env NODE_ENV=test SESSION_SECRET=${SESSION_SECRET} \
 		./node_modules/mocha/bin/mocha --reporter spec test/server
 
 .PHONY: runserver
 runserver:
-	@env NODE_ENV=production PORT=5000 SESSION_SECRET=${SESSION_SECRET} \
+	@env NODE_ENV=${NODE_ENV} PORT=5000 SESSION_SECRET=${SESSION_SECRET} \
 		node app.js
 
 .PHONY: runserver_dev
 runserver_dev:
-	@env NODE_ENV=development PORT=5000 SESSION_SECRET=unguessable \
-		node app.js
+	@echo "Warning: make runserver_dev is deprecated, use runserver instead"
+	make runserver
 
 .PHONY: cover_server
 cover_server:
-	@env NODE_ENV=test SESSION_SECRET=unguessable   \
+	@env NODE_ENV=test SESSION_SECRET=${SESSION_SECRET}   \
 		$(NODE_LOCAL_BIN)/istanbul cover        \
 		$(NODE_LOCAL_BIN)/_mocha -- test/server
 	@echo aim your browser at coverage/lcov-report/index.html for details

@@ -75,6 +75,11 @@ function getConfigFromFile(file) {
   return setupUrls(config);
 }
 
+if (!process.env.SESSION_SECRET)
+  throw new Error("Cannot set up sessions without a secret.\n\n" +
+                  "Did you forget to setup the SESSION_SECRET variable?\n" +
+                  "Try to run `make runserver` to solve the problem.\n");
+
 module.exports.merge = merge;
 module.exports.getConfigFromFile = getConfigFromFile;
 module.exports.config =
