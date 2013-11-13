@@ -28,7 +28,9 @@ var TalkillaSPA = (function() {
       if (type === "unauthorized")
         this.port.post("reauth-needed");
       else if (type === "connected")
-        this.port.post(type, {email: this.email});
+        this.port.post(type, {
+          addresses: [{type: "email", value: this.email}]
+        });
       else
         this.port.post(type, event);
     },

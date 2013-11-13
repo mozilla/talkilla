@@ -21,7 +21,10 @@ describe("TalkillaSPA", function() {
 
       sinon.assert.calledOnce(spa.port.post);
       sinon.assert.calledWithExactly(
-        spa.port.post, "connected", {email: "foo"});
+        spa.port.post, "connected", {
+          addresses: [{type: "email", value: "foo"}]
+        }
+      );
     });
 
     it("should post a disconnected event to the port", function() {

@@ -255,7 +255,7 @@ UserData.prototype = {
 
 function _setupSPA(spa) {
   spa.on("connected", function(data) {
-    tkWorker.user.name = data.email;
+    tkWorker.user.name = data.addresses[0].value;
     tkWorker.user.connected = true;
 
     // XXX Now we're connected, load the contacts database.
