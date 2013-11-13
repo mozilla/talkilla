@@ -140,10 +140,14 @@ describe('handlers', function() {
 
   describe("talkilla.spa-enable", function() {
 
-    it("should instantiate a new SPA with the given src", function() {
-      var spa = {connect: sinon.spy(), on: function() {}};
-      sandbox.stub(window, "SPA").returns(spa);
+    var spa;
 
+    beforeEach(function() {
+      spa = {connect: sinon.spy(), on: function() {}};
+      sandbox.stub(window, "SPA").returns(spa);
+    });
+
+    it("should instantiate a new SPA with the given src", function() {
       handlers["talkilla.spa-enable"]({
         data: {src: "/path/to/spa", credentials: "fake credentials"}
       });
@@ -153,9 +157,6 @@ describe('handlers', function() {
     });
 
     it("should connect the created SPA with given credentials", function() {
-      var spa = {connect: sinon.spy(), on: function() {}};
-      sandbox.stub(window, "SPA").returns(spa);
-
       handlers["talkilla.spa-enable"]({
         data: {src: "/path/to/spa", credentials: "fake credentials"}
       });

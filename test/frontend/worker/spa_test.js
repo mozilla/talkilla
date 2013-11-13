@@ -92,12 +92,12 @@ describe("SPA", function() {
 
     it("should send a connect event to the worker", function() {
       spa.worker.postMessage.reset();
-      spa.connect({});
+      spa.connect("fake credentials");
 
       sinon.assert.calledOnce(spa.worker.postMessage);
       sinon.assert.calledWithExactly(spa.worker.postMessage, {
         topic: "connect",
-        data: {}
+        data: "fake credentials"
       });
     });
 

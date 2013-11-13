@@ -148,45 +148,15 @@ describe("SidebarApp", function() {
       sidebarApp = new SidebarApp();
       sidebarApp.user.set("nick", "toto");
 
+      sandbox.stub(sidebarApp.http, "post");
       sandbox.stub(app.utils, "notifyUI");
-    });
-
-    describe("talkilla.login-success", function() {
-
-      var sidebarApp, data, spec;
-
-      beforeEach(function() {
-        sidebarApp = new SidebarApp();
-        data = {nick: "foo"};
-        spec = new app.payloads.SPASpec({
-          src: "/js/spa/talkilla_worker.js",
-          credentials: {email: "foo"}
-        });
-
-        // Skip the talkilla.sidebar-ready event
-        sidebarApp.port.postEvent.reset();
-      });
-
-      it("should set the user nick", function() {
-        sidebarApp.port.trigger("talkilla.login-success", data);
-        expect(sidebarApp.user.get("nick")).to.equal("foo");
-      });
-
-      it("should ask the worker to enable the spa", function() {
-        sidebarApp.port.trigger("talkilla.login-success", data);
-
-        sinon.assert.calledOnce(sidebarApp.port.postEvent);
-        sinon.assert.calledWithExactly(
-          sidebarApp.port.postEvent, "talkilla.spa-enable", spec.toJSON());
-      });
-
     });
 
     describe("talkilla.spa-connected", function() {
 
       beforeEach(function() {
         var sidebarApp = new SidebarApp();
-        // Skip the talkilla.sidebar-ready event
+        // Skipping events triggered in the constructor
         sidebarApp.port.postEvent.reset();
       });
 
@@ -196,13 +166,14 @@ describe("SidebarApp", function() {
       });
 
 
-      it("should request the users presence from the server", function() {
-        sidebarApp.port.trigger("talkilla.spa-connected");
+      it("should request that the spa send presence info for other users",
+        function() {
+          sidebarApp.port.trigger("talkilla.spa-connected");
 
-        sinon.assert.calledOnce(sidebarApp.port.postEvent);
-        sinon.assert.calledWithExactly(
-          sidebarApp.port.postEvent, "talkilla.presence-request");
-      });
+          sinon.assert.calledOnce(sidebarApp.port.postEvent);
+          sinon.assert.calledWithExactly(
+            sidebarApp.port.postEvent, "talkilla.presence-request");
+        });
 
     });
 
