@@ -260,6 +260,13 @@ describe("Call Controls View", function() {
         sinon.assert.calledWithExactly(media.setMuteState,
                                        'local', 'audio', true);
       });
+
+      it('should toggle message on the button', function() {
+        var oldMessage = 'Mute microphone';
+        $('.btn-microphone-mute').find('a').attr('title', oldMessage);
+        callControlsView.outgoingAudioToggle();
+        expect($('.btn-microphone-mute').find('a').attr('title')).to.not.equal(oldMessage);
+      });
     });
 
     describe("#incomingAudioToggle", function() {
