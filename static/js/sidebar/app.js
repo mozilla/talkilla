@@ -39,9 +39,6 @@ var SidebarApp = (function(app, $) {
 
     // port events
     this.port.on('talkilla.users', this._onUserListReceived, this);
-    this.port.on("talkilla.login-success", this._onLoginSuccess, this);
-    this.port.on("talkilla.login-failure", this._onLoginFailure, this);
-    this.port.on("talkilla.logout-success", this._onLogoutSuccess, this);
     this.port.on("talkilla.spa-connected", this._onSPAConnected, this);
     this.port.on("talkilla.error", this._onError, this);
     this.port.on("talkilla.websocket-error", this._onWebSocketError, this);
