@@ -96,7 +96,6 @@ var SidebarApp = (function(app, $) {
     // We are successfuly logged in, we setup the SPA and ask to be
     // connected.
     var talkillaSpec = new payloads.SPASpec({
-      // XXX: this url should be an absolute one
       src: "/js/spa/talkilla_worker.js",
       credentials: {email: data.nick}
     });
