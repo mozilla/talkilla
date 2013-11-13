@@ -7,20 +7,36 @@ var logger   = require('./logger');
 var app      = express();
 
 app.use(express.bodyParser());
+
+var useSSL = config.ROOTURL.indexOf("https") === 0;
+
+var middlewares = {
+  trustProxy: function(secure) {
+    return function(req, resp, next) {
+      if (secure)
+        req.connection.proxySecure = req.secure;
+      next();
+    };
+  }
+};
+
+// Trust the proxy when the connection is over SSL.
+app.set("trust proxy", true);
+app.use(middlewares.trustProxy({secure: useSSL}));
 app.use(express.static(__dirname + "/../static"));
 app.use(sessions({
   cookieName: 'talkilla-session',
   requestKey: 'session',
   secret: process.env.SESSION_SECRET,
   duration: 10 * 24 * 60 * 60 * 1000, // 10 days
+  proxy: true,
   cookie: {
     path: '/',
     maxAge: 10 * 24 * 60 * 60 * 1000, // 10 days
     ephemeral: false, // when true, cookie expires when the browser closes
     httpOnly: true, // when true, cookie is not accessible from javascript
     // when secure is true, the cookie will only be sent over SSL
-    // XXX Temp disabled, as this needs secure/trusted proxy mode enabling
-    secure: false//(config.ROOTURL.indexOf("https") === 0) ? true : false
+    secure: useSSL,
   }
 }));
 app.use(app.router);
@@ -77,3 +93,4 @@ app.shutdown = function(callback) {
 module.exports.app = app;
 module.exports.api = api;
 module.exports.server = server;
+module.exports.middlewares = middlewares;

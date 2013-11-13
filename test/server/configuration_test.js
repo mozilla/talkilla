@@ -9,6 +9,7 @@ var path = require("path");
 var sinon = require("sinon");
 
 var api = require("../../server/server").api;
+var middlewares = require("../../server/server").middlewares;
 var merge = require("../../server/config").merge;
 var config = require("../../server/config");
 
@@ -92,7 +93,6 @@ describe("Server", function() {
   });
 
   describe("api", function() {
-
     var sandbox;
 
     beforeEach(function() {
@@ -122,5 +122,49 @@ describe("Server", function() {
 
     });
 
+  });
+
+  describe("middlewares", function(){
+    var sandbox;
+
+    beforeEach(function() {
+      sandbox = sinon.sandbox.create();
+    });
+
+    afterEach(function() {
+      sandbox.restore();
+    });
+
+    describe("#trustProxy", function() {
+      it("should trust secure proxy when using SSL", function() {
+        var req = {secure: true, connection: {}};
+        var resp = {};
+        var next = sinon.spy();
+        middlewares.trustProxy(true)(req, resp, next);
+
+        expect(req.connection.proxySecure).to.be.equal(true);
+        sinon.assert.calledOnce(next);
+      });
+
+      it("should trust unsecure proxy when using SSL", function() {
+        var req = {secure: false, connection: {}};
+        var resp = {};
+        var next = sinon.spy();
+        middlewares.trustProxy(true)(req, resp, next);
+
+        expect(req.connection.proxySecure).to.be.equal(false);
+        sinon.assert.calledOnce(next);
+      });
+
+      it("should not set connection.proxySecure when no SSL", function() {
+        var req = {secure: true, connection: {}};
+        var resp = {};
+        var next = sinon.spy();
+        middlewares.trustProxy(false)(req, resp, next);
+
+        expect(req.connection).not.to.have.property('proxySecure');
+        sinon.assert.calledOnce(next);
+      });
+    });
   });
 });
