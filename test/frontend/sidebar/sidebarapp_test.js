@@ -127,13 +127,13 @@ describe("SidebarApp", function() {
         var sidebarApp = new SidebarApp();
 
         sidebarApp.port.trigger("talkilla.users", [
-          {nick: "bob"},
-          {nick: "bill"}
+          {nick: "bill"},
+          {nick: "bob"}
         ]);
 
         expect(sidebarApp.users).to.have.length.of(2);
-        expect(sidebarApp.users.at(0).get('nick')).to.equal("bob");
-        expect(sidebarApp.users.at(1).get('nick')).to.equal("bill");
+        expect(sidebarApp.users.at(0).get('nick')).to.equal("bill");
+        expect(sidebarApp.users.at(1).get('nick')).to.equal("bob");
       });
   });
 
