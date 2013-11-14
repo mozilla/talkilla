@@ -9,8 +9,6 @@ importScripts('/config.js', 'payloads.js', 'addressbook/contactsdb.js');
 importScripts('worker/http.js', 'worker/users.js', 'worker/spa.js');
 
 var gConfig = loadConfig();
-var _loginPending = false;
-var _autologinPending = false;
 var browserPort;
 var currentConversation;
 var spa;
@@ -256,18 +254,16 @@ UserData.prototype = {
 };
 
 function _setupSPA(spa) {
-  spa.on("connected", function() {
-    _autologinPending = false;
+  spa.on("connected", function(data) {
+    tkWorker.user.name = data.addresses[0].value;
     tkWorker.user.connected = true;
-    // XXX: we should differentiate login and presence
-    tkWorker.ports.broadcastEvent('talkilla.login-success', {
-      username: tkWorker.user.name
-    });
 
     // XXX Now we're connected, load the contacts database.
     // Really we should do this after successful sign-in or re-connect
     // but we don't have enough info for the worker for that yet
     tkWorker.loadContacts();
+
+    tkWorker.ports.broadcastEvent("talkilla.spa-connected");
   });
 
   spa.on("message", function(label, data) {
@@ -335,8 +331,6 @@ function _setupSPA(spa) {
   });
 
   spa.on("disconnected", function(event) {
-    _autologinPending = false;
-
     // XXX: this will need future work to handle retrying presence connections
     tkWorker.ports.broadcastEvent('talkilla.presence-unavailable', event.code);
 
@@ -344,31 +338,8 @@ function _setupSPA(spa) {
   });
 
   spa.on("reauth-needed", function(event) {
-    _autologinPending = false;
     tkWorker.ports.broadcastEvent('talkilla.reauth-needed');
   });
-}
-
-function _signinCallback(err, responseText) {
-  _loginPending = false;
-  var data = JSON.parse(responseText);
-  if (err)
-    return this.postEvent('talkilla.login-failure', data.error);
-  var username = data.nick;
-  if (username) {
-    tkWorker.user.name = username;
-
-    spa.connect({nick: username});
-    tkWorker.ports.broadcastEvent("talkilla.presence-pending", {});
-  }
-}
-
-function _signoutCallback(err, responseText) {
-  _loginPending = false;
-  if (err)
-    return this.postEvent('talkilla.error', 'Bad signout:' + err);
-
-  tkWorker.closeSession();
 }
 
 var handlers = {
@@ -385,49 +356,15 @@ var handlers = {
     // Save the browserPort
     browserPort = this;
 
-    // Now we're connected request any cookies that we've got saved.
-    browserPort.postEvent('social.cookies-get');
-
     // Don't have it in the main list of ports, as we don't need
     // to broadcast all our talkilla.* messages to the social api.
     tkWorker.ports.remove(this);
-  },
-
-  'social.cookies-get-response': function(event) {
-    var cookies = event.data;
-    cookies.forEach(function(cookie) {
-      if (cookie.name === "nick") {
-        _autologinPending = true;
-        tkWorker.user.name = cookie.value;
-        spa.connect();
-      }
-    });
   },
 
   // Talkilla events
   'talkilla.contacts': function(event) {
     tkWorker.ports.broadcastDebug('talkilla.contacts', event.data.contacts);
     tkWorker.updateContactsFromSource(event.data.contacts, event.data.source);
-  },
-
-  'talkilla.login': function(msg) {
-    if (!msg.data || !msg.data.assertion) {
-      return this.postEvent('talkilla.login-failure', 'no assertion given');
-    }
-    if (_loginPending || _autologinPending)
-      return;
-
-    _loginPending = true;
-    this.postEvent('talkilla.login-pending', null);
-
-    spa.signin(msg.data.assertion, _signinCallback.bind(this));
-  },
-
-  'talkilla.logout': function() {
-    if (!tkWorker.user.name)
-      return;
-
-    spa.signout(_signoutCallback.bind(this));
   },
 
   'talkilla.conversation-open': function(event) {
@@ -448,12 +385,6 @@ var handlers = {
    */
   'talkilla.sidebar-ready': function(event) {
     this.postEvent('talkilla.worker-ready');
-    if (tkWorker.user.name && tkWorker.user.connected) {
-      // If there's currently a logged in user,
-      this.postEvent('talkilla.login-success', {
-        username: tkWorker.user.name
-      });
-    }
   },
 
   /**
@@ -505,7 +436,22 @@ var handlers = {
    */
   'talkilla.ice-candidate': function(event) {
     spa.iceCandidate(new payloads.IceCandidate(event.data));
+  },
+
+  /**
+   * Called to enable a new SPA.
+   *
+   * @param {Object} event.data a data structure representation of a
+   * payloads.SPASpec.
+   */
+  'talkilla.spa-enable': function(event) {
+    var spec = new payloads.SPASpec(event.data);
+    // XXX: For now, we only support one SPA.
+    spa = new SPA({src: spec.src});
+    _setupSPA(spa);
+    spa.connect(spec.credentials);
   }
+
 };
 
 function Port(port) {
@@ -687,9 +633,6 @@ TkWorker.prototype = {
 };
 
 // Main Initialisations
-
-spa = new SPA({src: "/js/spa/talkilla_worker.js"});
-_setupSPA(spa);
 
 tkWorker = new TkWorker({
   ports: new PortCollection(),

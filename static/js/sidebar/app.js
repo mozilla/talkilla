@@ -1,4 +1,4 @@
-/*global app, AppPort, GoogleContacts */
+/*global app, AppPort, GoogleContacts, HTTP, payloads */
 /* jshint unused: false */
 /**
  * Sidebar application.
@@ -8,6 +8,8 @@ var SidebarApp = (function(app, $) {
 
   function SidebarApp(options) {
     options = options || {};
+
+    this.http = new HTTP();
 
     this.appStatus = new app.models.AppStatus();
 
@@ -37,9 +39,7 @@ var SidebarApp = (function(app, $) {
 
     // port events
     this.port.on('talkilla.users', this._onUserListReceived, this);
-    this.port.on("talkilla.login-success", this._onLoginSuccess, this);
-    this.port.on("talkilla.login-failure", this._onLoginFailure, this);
-    this.port.on("talkilla.logout-success", this._onLogoutSuccess, this);
+    this.port.on("talkilla.spa-connected", this._onSPAConnected, this);
     this.port.on("talkilla.error", this._onError, this);
     this.port.on("talkilla.websocket-error", this._onWebSocketError, this);
     this.port.on("talkilla.presence-unavailable",
@@ -59,14 +59,27 @@ var SidebarApp = (function(app, $) {
     // XXX Hide or disable the import button at the start and add a callback
     // here to show it when this completes.
     this.services.google.initialize();
+
+    var specs = localStorage.getItem("enabled-spa");
+    specs = specs ? JSON.parse(specs) : [];
+    specs.forEach(function(data) {
+      var spec = new app.payloads.SPASpec(data);
+      this.user.set({nick: spec.credentials.email});
+      this.port.postEvent("talkilla.spa-enable", spec.toJSON());
+    }.bind(this));
   };
 
   SidebarApp.prototype._onUserSigninRequested = function(assertion) {
-    this.port.postEvent('talkilla.login', {assertion: assertion});
+    this.http.post("/signin", {assertion: assertion}, function(err, response) {
+      if (err)
+        return this._onLoginFailure(err);
+
+      return this._onLoginSuccess(JSON.parse(response));
+    }.bind(this));
   };
 
   SidebarApp.prototype._onUserSignoutRequested = function() {
-    this.port.postEvent('talkilla.logout');
+    this.http.post("/signout", {}, this._onLogoutSuccess.bind(this));
   };
 
   SidebarApp.prototype.openConversation = function(nick) {
@@ -81,9 +94,17 @@ var SidebarApp = (function(app, $) {
   };
 
   SidebarApp.prototype._onLoginSuccess = function(data) {
-    $.cookie('nick', data.username, {expires: 10});
-    this.user.set({nick: data.username, presence: "connected"});
-    this.port.postEvent("talkilla.presence-request");
+    // We are successfuly logged in, we setup the SPA and ask to be
+    // connected.
+    var talkillaSpec = new payloads.SPASpec({
+      src: "/js/spa/talkilla_worker.js",
+      credentials: {email: data.nick}
+    });
+    localStorage.setItem("enabled-spa",
+                         JSON.stringify([talkillaSpec.toJSON()]));
+
+    this.user.set({nick: data.nick});
+    this.port.postEvent("talkilla.spa-enable", talkillaSpec.toJSON());
   };
 
   // XXX a lot of the steps that happen after various types of logouts and
@@ -106,6 +127,11 @@ var SidebarApp = (function(app, $) {
     $.removeCookie('nick');
     this.user.clear();
     this.users.reset();
+  };
+
+  SidebarApp.prototype._onSPAConnected = function() {
+    this.user.set({presence: "connected"});
+    this.port.postEvent("talkilla.presence-request");
   };
 
   SidebarApp.prototype._onError = function(error) {

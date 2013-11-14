@@ -22,12 +22,11 @@ describe("Server", function() {
 
     it("should request a stream", function() {
       sandbox.stub(server.http, "post");
-      server.connect({nick: "foo"});
+      server.connect();
 
       sinon.assert.calledOnce(server.http.post);
       sinon.assert.calledWith(server.http.post, "/stream", {
-        firstRequest: true,
-        nick: "foo"
+        firstRequest: true
       });
     });
 

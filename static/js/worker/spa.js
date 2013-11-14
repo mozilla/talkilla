@@ -52,9 +52,8 @@ var SPA = (function() {
       this.http.post("/signout", {}, callback);
     },
 
-    connect: function() {
-      // XXX: connect should accept credentials here
-      this._send("connect", {});
+    connect: function(credentials) {
+      this._send("connect", credentials);
     },
 
     /**

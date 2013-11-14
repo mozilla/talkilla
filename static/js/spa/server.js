@@ -8,10 +8,8 @@ var Server = (function() {
   }
 
   Server.prototype = {
-    connect: function(credentials) {
-      var data = credentials || {};
-      data.firstRequest = true;
-      this.http.post("/stream", data, function(err, response) {
+    connect: function() {
+      this.http.post("/stream", {firstRequest: true}, function(err, response) {
         if (err === 400)
           return this.trigger("unauthorized", response);
         if (err !== null)

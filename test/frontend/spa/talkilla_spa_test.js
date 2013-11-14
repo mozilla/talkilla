@@ -14,13 +14,17 @@ describe("TalkillaSPA", function() {
   describe("#_onServerEvent", function() {
 
     it("should post a connect event to the port", function() {
-      var event = "fake event";
+      spa.email = "foo";
       sandbox.stub(spa.port, "post");
 
-      spa.server.trigger("connected", event);
+      spa.server.trigger("connected");
 
       sinon.assert.calledOnce(spa.port.post);
-      sinon.assert.calledWithExactly(spa.port.post, "connected", "fake event");
+      sinon.assert.calledWithExactly(
+        spa.port.post, "connected", {
+          addresses: [{type: "email", value: "foo"}]
+        }
+      );
     });
 
     it("should post a disconnected event to the port", function() {
@@ -65,11 +69,12 @@ describe("TalkillaSPA", function() {
     it("should connect to the server", function() {
       sandbox.stub(spa.server, "connect");
 
+      // The Talkilla SPA doesn't need any credentials. This is
+      // handled via cookies.
       spa.port.trigger("connect", {some: "credentials"});
 
       sinon.assert.calledOnce(spa.server.connect);
-      sinon.assert.calledWithExactly(spa.server.connect,
-                                     {some: "credentials"});
+      sinon.assert.calledWithExactly(spa.server.connect);
     });
 
   });
