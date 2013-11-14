@@ -264,7 +264,8 @@ describe("Call Controls View", function() {
         var oldMessage = $('.btn-microphone-mute').find('a').attr('title');
         callControlsView.outgoingAudioToggle();
 
-        expect($('.btn-microphone-mute').find('a').attr('title')).to.not.equal(oldMessage);
+        expect($('.btn-microphone-mute').find('a').attr('title'))
+          .to.not.equal(oldMessage);
       });
     });
 
