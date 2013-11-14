@@ -62,9 +62,10 @@ var SidebarApp = (function(app, $) {
 
     var specs = localStorage.getItem("enabled-spa");
     specs = specs ? JSON.parse(specs) : [];
-    specs.forEach(function(spec) {
+    specs.forEach(function(data) {
+      var spec = new app.payloads.SPASpec(data);
       this.user.set({nick: spec.credentials.email});
-      this.port.postEvent("talkilla.spa-enable", spec);
+      this.port.postEvent("talkilla.spa-enable", spec.toJSON());
     }.bind(this));
   };
 

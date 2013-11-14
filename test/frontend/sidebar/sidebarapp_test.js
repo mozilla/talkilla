@@ -278,5 +278,42 @@ describe("SidebarApp", function() {
       });
     });
 
+    describe("talkilla.worker-ready", function() {
+
+      var specs;
+
+      beforeEach(function() {
+        specs = [
+          new app.payloads.SPASpec({src: "/first-spa", credentials: "cred1"}),
+          new app.payloads.SPASpec({src: "/second-spa", credentials: "cred2"})
+        ];
+        localStorage.setItem("enabled-spa", JSON.stringify(specs));
+        sandbox.stub(sidebarApp.services.google, "initialize");
+        // Skipping events triggered in the constructor
+        sidebarApp.port.postEvent.reset();
+      });
+
+      afterEach(function() {
+        localStorage.removeItem("enabled-spa");
+      });
+
+      it("should initialize the google services", function() {
+        sidebarApp.port.trigger("talkilla.worker-ready");
+
+        sinon.assert.calledOnce(sidebarApp.services.google.initialize);
+      });
+
+      it("should enable all the SPA", function() {
+        sidebarApp.port.trigger("talkilla.worker-ready");
+
+        sinon.assert.calledTwice(sidebarApp.port.postEvent);
+        sinon.assert.calledWith(
+          sidebarApp.port.postEvent, "talkilla.spa-enable", specs[0].toJSON());
+        sinon.assert.calledWith(
+          sidebarApp.port.postEvent, "talkilla.spa-enable", specs[1].toJSON());
+      });
+
+    });
+
   });
 });
