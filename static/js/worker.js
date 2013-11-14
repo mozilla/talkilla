@@ -6,7 +6,7 @@
 // if multiple imports cause problems).
 importScripts('../vendor/backbone-events-standalone-0.1.5.js');
 importScripts('/config.js', 'payloads.js', 'addressbook/contactsdb.js');
-importScripts('worker/http.js', 'worker/users.js', 'worker/spa.js');
+importScripts('/js/http.js', 'worker/users.js', 'worker/spa.js');
 
 var gConfig = loadConfig();
 var browserPort;
