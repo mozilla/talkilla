@@ -100,6 +100,22 @@ describe("GoogleContacts", function() {
 
       sinon.assert.calledOnce(fakeGApi.auth.init);
     });
+
+    it("should not throw if the api fails to initialise", function() {
+      window.gapi = {};
+
+      expect(new GoogleContacts().initialize).to.not.Throw();
+    });
+
+    it("should log an error if the api fails to initialise", function() {
+      sandbox.stub(console, "log");
+      window.gapi = {};
+
+      new GoogleContacts().initialize();
+
+      sinon.assert.calledOnce(console.log);
+      sinon.assert.calledWithMatch(console.log, "failed");
+    });
   });
 
   describe("#authorize", function() {

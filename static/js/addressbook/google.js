@@ -72,7 +72,11 @@ var GoogleContacts = (function() {
 
       // Init the google auth api now, because this needs to be done
       // before any button click for authorization.
-      gapi.auth.init(cb);
+      try {
+        gapi.auth.init(cb);
+      } catch (x) {
+        console.log("Google Contacts API failed to initialize correctly");
+      }
     },
 
     /**
