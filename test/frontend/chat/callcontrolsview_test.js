@@ -6,7 +6,7 @@ describe("Call Controls View", function() {
   "use strict";
   var sandbox, call, media, el;
 
-  before(function() {
+  beforeEach(function() {
     el = $('<ul>' +
            '<li class="btn-video"><a href="#"></a></li>' +
            '<li class="btn-audio"><a href="#"></a></li>' +
@@ -17,9 +17,7 @@ describe("Call Controls View", function() {
     // Just to hide it from the screen.
     $(el).hide();
     $('#fixtures').append(el);
-  });
 
-  beforeEach(function() {
     sandbox = sinon.sandbox.create();
     // XXX This should probably be a mock, but sinon mocks don't seem to want
     // to work with Backbone.
@@ -40,6 +38,7 @@ describe("Call Controls View", function() {
     media = undefined;
     call = undefined;
     sandbox.restore();
+    $('#fixtures').empty();
   });
 
   describe("#initialize", function() {
@@ -259,6 +258,14 @@ describe("Call Controls View", function() {
         sinon.assert.calledOnce(media.setMuteState);
         sinon.assert.calledWithExactly(media.setMuteState,
                                        'local', 'audio', true);
+      });
+
+      it('should toggle message on the button', function() {
+        var oldMessage = $('.btn-microphone-mute').find('a').attr('title');
+        callControlsView.outgoingAudioToggle();
+
+        expect($('.btn-microphone-mute').find('a').attr('title'))
+          .to.not.equal(oldMessage);
       });
     });
 
