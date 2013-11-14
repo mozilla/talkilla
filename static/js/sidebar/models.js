@@ -10,7 +10,10 @@
   });
 
   app.models.UserSet = Backbone.Collection.extend({
-    model: app.models.User
+    model: app.models.User,
+    comparator: function(item) {
+        return item.get('nick').toLowerCase();
+      }
   });
 
   /**
