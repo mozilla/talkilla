@@ -70,7 +70,7 @@ class FrontEndSuite(unittest.TestCase):
         self.check_page(SERVER_PREFIX + "chat/index.html")
 
     def test_port_html(self):
-        self.check_page(SERVER_PREFIX + "port/index.html")
+        self.check_page(SERVER_PREFIX + "appport/index.html")
 
     def test_sidebar_html(self):
         self.check_page(SERVER_PREFIX + "sidebar/index.html")
