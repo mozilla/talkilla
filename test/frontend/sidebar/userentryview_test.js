@@ -8,7 +8,7 @@ describe("UserEntryView", function() {
     // XXX: FIX THAT
     window.sidebarApp = {
       user: new app.models.User(),
-      port: new AppPort()
+      appPort: new AppPort()
     };
     return window.sidebarApp;
   }
