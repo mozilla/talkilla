@@ -21,7 +21,7 @@ var SidebarApp = (function(app, $) {
 
     this.services = {
       google: new GoogleContacts({
-        port: this.appPort            // YYY
+        appPort: this.appPort
       })
     };
 

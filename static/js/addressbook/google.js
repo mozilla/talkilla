@@ -25,13 +25,13 @@ var GoogleContacts = (function() {
    * Constructor.
    *
    * @param {Object} options Options:
-   * - {Port}   port           Social API port
+   * - {AppPort} appPort       AppPort object for communication to the SocialAPI
    * - {String} authCookieName Authentication token cookie name
    * - {String} token          Authentication token
    */
   function GoogleContacts(options) {
     options = options || {};
-    this.port = options.port;
+    this.appPort = options.appPort;
     this.authCookieName = options.authCookieName || AUTH_COOKIE_NAME;
     this.authCookieTTL = options.authCookieTTL || AUTH_COOKIE_TTL;
     this.maxResults = options.maxResults || MAX_RESULTS;
@@ -139,18 +139,18 @@ var GoogleContacts = (function() {
 
     /**
      * Loads contacts from the Google Contacts API and notify current opened
-     * port through the `talkilla.contacts` event.
+     * AppPort through the `talkilla.contacts` event.
      *
      * Emits `talkilla.contacts-error` on any encountered error.
      */
     loadContacts: function() {
       this.authorize(function(err) {
         if (err)
-          return this.port.postEvent("talkilla.contacts-error", err);
+          return this.appPort.postEvent("talkilla.contacts-error", err);
         this.all(function(err, contacts) {
           if (err)
-            return this.port.postEvent("talkilla.contacts-error", err);
-          this.port.postEvent("talkilla.contacts", {
+            return this.appPort.postEvent("talkilla.contacts-error", err);
+          this.appPort.postEvent("talkilla.contacts", {
             contacts: contacts,
             source: "google"
           });

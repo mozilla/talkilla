@@ -43,7 +43,7 @@ describe("SidebarApp", function() {
       sinon.assert.calledOnce(app.views.AppView);
     });
 
-    it("should create a port", function() {
+    it("should create an AppPport", function() {
       var sidebarApp = new SidebarApp();
 
       expect(sidebarApp.appPort).to.be.an.instanceOf(AppPort);
