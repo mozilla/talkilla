@@ -69,7 +69,7 @@ selenium:
 REPEAT_TIMES ?= 10
 REPEAT_TEST ?= -m unittest discover -v test/functional
 selenium-repeat:
-	bin/run_selenium_test.sh bin/repeat_loop.sh $(REPEAT_TIMES) python $(REPEAT_TEST)
+	bin/run_selenium_test.sh "bin/repeat_loop.sh $(REPEAT_TIMES) python $(REPEAT_TEST)"
 
 .PHONY: frontend
 frontend:
