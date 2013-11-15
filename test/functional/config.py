@@ -12,7 +12,7 @@ class TestConfig():
 
         # A little longer to allow for call-setup times etc
         data['DEFAULT_WAIT_TIMEOUT'] = (
-            data['PENDING_CALL_TIMEOUT'] + 2) / 1000
+            data['PENDING_CALL_TIMEOUT'] + 2000) / 1000
 
         self.data = data
 
