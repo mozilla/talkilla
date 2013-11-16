@@ -159,6 +159,20 @@ describe("presence", function() {
 
     describe("#signout", function() {
 
+      it("should send the user's long poll connection a disconnect event",
+        function() {
+          sandbox.stub(User.prototype, "send");
+          var req = {session: {email: "foo", reset: function() {}}};
+          var res = {send: function() {}};
+          users.add("foo");
+
+          api.signout(req, res);
+
+          sinon.assert.calledOnce(User.prototype.send);
+          sinon.assert.calledWithExactly(User.prototype.send,
+            "disconnect", null);
+        });
+
       it("should disconnect the user", function() {
         sandbox.stub(User.prototype, "disconnect");
         var req = {session: {email: "foo", reset: function() {}}};

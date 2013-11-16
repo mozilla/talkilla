@@ -75,6 +75,9 @@ api = {
 
     var user = users.get(nick);
     if (user) {
+      // notify the client
+      user.send("disconnect", null);
+
       // Disconnecting the user will remove them from the users
       // list.
       user.disconnect();
