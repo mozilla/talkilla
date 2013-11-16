@@ -269,19 +269,6 @@ describe("SPA events", function() {
       );
     });
 
-    describe("`reauth-needed event", function() {
-
-      it("should foward the event to all ports", function() {
-        sandbox.stub(tkWorker.ports, "broadcastEvent");
-
-        spa.trigger("reauth-needed");
-
-        sinon.assert.calledOnce(tkWorker.ports.broadcastEvent);
-        sinon.assert.calledWithExactly(
-          tkWorker.ports.broadcastEvent, "talkilla.reauth-needed");
-      });
-
-    });
 
     it("should close current worker session", function() {
       sandbox.stub(tkWorker, "closeSession");
@@ -298,6 +285,20 @@ describe("SPA events", function() {
 
       sinon.assert.calledOnce(tkWorker.contactsDb.close);
     });
+  });
+
+  describe("`reauth-needed event", function() {
+
+    it("should foward the event to all ports", function() {
+      sandbox.stub(tkWorker.ports, "broadcastEvent");
+
+      spa.trigger("reauth-needed");
+
+      sinon.assert.calledOnce(tkWorker.ports.broadcastEvent);
+      sinon.assert.calledWithExactly(
+        tkWorker.ports.broadcastEvent, "talkilla.reauth-needed");
+    });
+
   });
 
 });
