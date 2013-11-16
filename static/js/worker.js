@@ -339,6 +339,7 @@ function _setupSPA(spa) {
 
   spa.on("reauth-needed", function(event) {
     tkWorker.ports.broadcastEvent('talkilla.reauth-needed');
+    tkWorker.closeSession();
   });
 }
 
