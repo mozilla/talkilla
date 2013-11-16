@@ -269,21 +269,12 @@ describe("SPA events", function() {
       );
     });
 
-
     it("should close current worker session", function() {
       sandbox.stub(tkWorker, "closeSession");
 
       spa.trigger("disconnected", {code: 1006});
 
       sinon.assert.calledOnce(tkWorker.closeSession);
-    });
-
-    it("should close the contacts database", function() {
-      sandbox.stub(tkWorker.contactsDb, "close");
-
-      spa.trigger("disconnected", {code: 1000});
-
-      sinon.assert.calledOnce(tkWorker.contactsDb.close);
     });
   });
 
