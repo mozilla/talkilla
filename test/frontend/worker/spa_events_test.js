@@ -269,34 +269,41 @@ describe("SPA events", function() {
       );
     });
 
-    describe("`reauth-needed event", function() {
-
-      it("should foward the event to all ports", function() {
-        sandbox.stub(tkWorker.ports, "broadcastEvent");
-
-        spa.trigger("reauth-needed");
-
-        sinon.assert.calledOnce(tkWorker.ports.broadcastEvent);
-        sinon.assert.calledWithExactly(
-          tkWorker.ports.broadcastEvent, "talkilla.reauth-needed");
-      });
-
-    });
-
-    it("should close current worker session", function() {
+    it("should close the current worker session", function() {
       sandbox.stub(tkWorker, "closeSession");
 
       spa.trigger("disconnected", {code: 1006});
 
       sinon.assert.calledOnce(tkWorker.closeSession);
     });
+  });
 
-    it("should close the contacts database", function() {
-      sandbox.stub(tkWorker.contactsDb, "close");
+  describe("`reauth-needed event", function() {
 
-      spa.trigger("disconnected", {code: 1000});
+    it("should foward the event to all ports", function() {
+      sandbox.stub(tkWorker.ports, "broadcastEvent");
 
-      sinon.assert.calledOnce(tkWorker.contactsDb.close);
+      spa.trigger("reauth-needed");
+
+      // XXX one of the broadcasts is because closeSession
+      // broadcasts "talkilla.logout-success", for someone reason.  No one
+      // current handles that event (conceivably some partner code does,
+      // but I don't see the event documented on the wiki page, so
+      // I'd be surprised. Should verify with folks talking to partners.
+      //
+      // I bet the talkilla.logout-success event wants to be removed, and
+      // this code changed to calledOnce:
+      sinon.assert.calledTwice(tkWorker.ports.broadcastEvent);
+      sinon.assert.calledWithExactly(
+        tkWorker.ports.broadcastEvent, "talkilla.reauth-needed");
+    });
+
+    it("should close the current worker session", function() {
+      sandbox.stub(tkWorker, "closeSession");
+
+      spa.trigger("reauth-needed", {code: 1006});
+
+      sinon.assert.calledOnce(tkWorker.closeSession);
     });
   });
 
