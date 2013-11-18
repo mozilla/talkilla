@@ -27,15 +27,15 @@ describe("TalkillaSPA", function() {
       );
     });
 
-    it("should post a disconnected event to the port", function() {
+    it("should post a network-error event to the port", function() {
       var event = "fake event";
       sandbox.stub(spa.port, "post");
 
-      spa.server.trigger("disconnected", event);
+      spa.server.trigger("network-error", event);
 
       sinon.assert.calledOnce(spa.port.post);
       sinon.assert.calledWithExactly(
-        spa.port.post, "disconnected", "fake event");
+        spa.port.post, "network-error", "fake event");
     });
 
     it("should post a reauth-needed event to the port", function() {

@@ -41,12 +41,12 @@ describe("Server", function() {
       server.connect({nick: "foo"});
     });
 
-    it("should trigger a disconnected event if the request has been aborted",
+    it("should trigger a network-error event if the request has been aborted",
       function(done) {
         sandbox.stub(server.http, "post", function(method, nick, callback) {
           callback(0, "request aborted");
         });
-        server.on("disconnected", function() {
+        server.on("network-error", function() {
           done();
         });
 
@@ -88,12 +88,12 @@ describe("Server", function() {
       sinon.assert.calledWith(server.http.post, "/stream");
     });
 
-    it("should trigger a disconnected event if the request has been aborted",
+    it("should trigger a network-error event if the request has been aborted",
       function(done) {
         sandbox.stub(server.http, "post", function(method, data, callback) {
           callback(0, "request aborted");
         });
-        server.on("disconnected", function() {
+        server.on("network-error", function() {
           done();
         });
         server._longPolling([]);

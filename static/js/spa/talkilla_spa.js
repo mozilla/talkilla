@@ -18,8 +18,8 @@ var TalkillaSPA = (function() {
     this.server.on("connected", this._onServerEvent.bind(this, "connected"));
     this.server.on("unauthorized",
                    this._onServerEvent.bind(this, "unauthorized"));
-    this.server.on("disconnected",
-                   this._onServerEvent.bind(this, "disconnected"));
+    this.server.on("network-error",
+                   this._onServerEvent.bind(this, "network-error"));
     this.server.on("message", this._onServerMessage.bind(this));
   }
 
