@@ -61,7 +61,7 @@ User.prototype.send = function(topic, data) {
     // If there is an existing timeout, we resolve it with the
     // provided data.
     this.pending.resolve([event]);
-  else if (this.present())
+  else if (this.timeout)
     // Otherwise, if the user is present, we queue the data.
     this.events.push(event);
   else
@@ -133,13 +133,6 @@ User.prototype.waitForEvents = function(callback) {
 };
 
 /**
- * A user is present if he has not been disconnected yet.
- */
-User.prototype.present = function() {
-  return !!this.timeout;
-};
-
-/**
  * Users class constructor
  */
 function Users() {
@@ -208,20 +201,6 @@ Users.prototype.forEach = function(callback) {
   Object.keys(this.users).forEach(function(nick) {
     callback(this.users[nick]);
   }, this);
-};
-
-/**
- * Retrieve the list of connected users (i.e. having an attached WebSocket)
- * @return {Array} array of users
- */
-Users.prototype.present = function() {
-  return Object.keys(this.users)
-    .filter(function(nick) {
-      return this.users[nick].present();
-    }, this)
-    .map(function(nick) {
-      return this.users[nick];
-    }, this);
 };
 
 /**
