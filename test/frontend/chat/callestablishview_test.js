@@ -124,6 +124,7 @@ describe('Call Establish View', function() {
       });
 
       sandbox.stub(audioLibrary, "play");
+      sandbox.stub(audioLibrary, "enableLoop");
       sandbox.stub(establishView, "_startTimer");
     });
 
@@ -132,6 +133,13 @@ describe('Call Establish View', function() {
 
       sinon.assert.calledOnce(audioLibrary.play);
       sinon.assert.calledWithExactly(audioLibrary.play, "outgoing");
+    });
+
+    it("should add loop to the audio element", function() {
+      call.trigger("send-offer");
+
+      sinon.assert.calledOnce(audioLibrary.enableLoop);
+      sinon.assert.calledWithExactly(audioLibrary.enableLoop, "outgoing");
     });
 
     it("should start a timer for call timeout", function() {
