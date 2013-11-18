@@ -1,8 +1,6 @@
 /*global chai, sinon, browserPort:true, currentConversation:true,
   SPA, Conversation, tkWorker, _setupSPA, payloads */
 
-/* Needed due to the use of non-camelcase in the websocket topics */
-/* jshint camelcase:false */
 var expect = chai.expect;
 
 describe("SPA events", function() {

@@ -41,7 +41,6 @@ Optional settings are:
 
 - `DEBUG`: to have log messages printed out to the browser console
 - `ROOTURL`: the url to the server (this can also be specified by PUBLIC_URL in the environment)
-- `WSURL`: the url to the [WebSocket](http://www.websocket.org/) server endpoint
 
 Testing
 -------

@@ -172,7 +172,7 @@ Conversation.prototype = {
  * UserData properties:
  *
  * name:      The name of the currently signed-in user.
- * connected: Whether or not the websocket to the server is connected.
+ * connected: Whether or not the user is connected.
  */
 function UserData(initial, config) {
   this._rootURL = config ? config.ROOTURL : '';

@@ -29,7 +29,6 @@ describe("Server", function() {
       var testConfigRoot = path.join('..', 'test', 'data');
       var publicUrl = 'https://example.com';
       // This should match public url, save for the scheme
-      var wsUrl = 'wss://example.com';
 
       afterEach(function() {
         delete process.env.PUBLIC_URL;
@@ -42,15 +41,11 @@ describe("Server", function() {
                                                             'test1.json'));
         expect(testConfig).to.have.property('DEBUG');
         expect(testConfig.DEBUG).to.be.ok;
-        expect(testConfig).to.have.property('WSURL');
-        expect(testConfig.WSURL).to.be.equal('ws://127.0.0.1:5000/');
 
         testConfig = config.getConfigFromFile(path.join(testConfigRoot,
                                                         'test2.json'));
         expect(testConfig).to.have.property('DEBUG');
         expect(testConfig.DEBUG).to.be.not.ok;
-        expect(testConfig).to.have.property('WSURL');
-        expect(testConfig.WSURL).to.be.equal('wss://talkilla.invalid/');
       });
 
       it("should default to localhost", function() {
@@ -60,8 +55,6 @@ describe("Server", function() {
 
         expect(testConfig).to.have.property('ROOTURL');
         expect(testConfig.ROOTURL).to.be.equal('http://localhost:' + PORT);
-        expect(testConfig).to.have.property('WSURL');
-        expect(testConfig.WSURL).to.be.equal('ws://localhost:' + PORT);
       });
 
       it("should use the public url from the environment if defined",
@@ -74,8 +67,6 @@ describe("Server", function() {
 
           expect(testConfig).to.have.property('ROOTURL');
           expect(testConfig.ROOTURL).to.be.equal(publicUrl);
-          expect(testConfig).to.have.property('WSURL');
-          expect(testConfig.WSURL).to.be.equal(wsUrl);
         });
 
       it("should use the root url from the configuration if defined",
@@ -86,8 +77,6 @@ describe("Server", function() {
 
           expect(testConfig).to.have.property('ROOTURL');
           expect(testConfig.ROOTURL).to.be.equal('http://example2.com');
-          expect(testConfig).to.have.property('WSURL');
-          expect(testConfig.WSURL).to.be.equal('ws://example2.com');
         });
     });
   });
