@@ -263,7 +263,7 @@ describe("SPA events", function() {
 
       spa.trigger("disconnected", {code: 1006});
 
-      sinon.assert.calledTwice(tkWorker.ports.broadcastEvent);
+      sinon.assert.calledOnce(tkWorker.ports.broadcastEvent);
       sinon.assert.calledWithExactly(
         tkWorker.ports.broadcastEvent, "talkilla.presence-unavailable", 1006
       );
@@ -285,15 +285,7 @@ describe("SPA events", function() {
 
       spa.trigger("reauth-needed");
 
-      // XXX one of the broadcasts is because closeSession
-      // broadcasts "talkilla.logout-success", for someone reason.  No one
-      // current handles that event (conceivably some partner code does,
-      // but I don't see the event documented on the wiki page, so
-      // I'd be surprised. Should verify with folks talking to partners.
-      //
-      // I bet the talkilla.logout-success event wants to be removed, and
-      // this code changed to calledOnce:
-      sinon.assert.calledTwice(tkWorker.ports.broadcastEvent);
+      sinon.assert.calledOnce(tkWorker.ports.broadcastEvent);
       sinon.assert.calledWithExactly(
         tkWorker.ports.broadcastEvent, "talkilla.reauth-needed");
     });

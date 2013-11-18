@@ -44,14 +44,6 @@ var SPA = (function() {
       this.worker.postMessage({topic: topic, data: data});
     },
 
-    signin: function(assertion, callback) {
-      this.http.post("/signin", {assertion: assertion}, callback);
-    },
-
-    signout: function(callback) {
-      this.http.post("/signout", {}, callback);
-    },
-
     connect: function(credentials) {
       this._send("connect", credentials);
     },

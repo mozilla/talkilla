@@ -590,7 +590,6 @@ TkWorker.prototype = {
     this.user.reset();
     this.users.reset();
     this.contactsDb.close();
-    this.ports.broadcastEvent('talkilla.logout-success', {});
   },
 
   /**
