@@ -327,7 +327,7 @@ function _setupSPA(spa) {
   });
 
   spa.on("error", function(event) {
-    tkWorker.ports.broadcastEvent("talkilla.websocket-error", event);
+    tkWorker.ports.broadcastEvent("talkilla.spa-error", event);
   });
 
   spa.on("disconnected", function(event) {
