@@ -172,7 +172,7 @@ Conversation.prototype = {
  * UserData properties:
  *
  * name:      The name of the currently signed-in user.
- * connected: Whether or not the websocket to the server is connected.
+ * connected: Whether or not the user is connected.
  */
 function UserData(initial, config) {
   this._rootURL = config ? config.ROOTURL : '';
@@ -327,7 +327,7 @@ function _setupSPA(spa) {
   });
 
   spa.on("error", function(event) {
-    tkWorker.ports.broadcastEvent("talkilla.websocket-error", event);
+    tkWorker.ports.broadcastEvent("talkilla.spa-error", event);
   });
 
   spa.on("disconnected", function(event) {
@@ -590,7 +590,6 @@ TkWorker.prototype = {
     this.user.reset();
     this.users.reset();
     this.contactsDb.close();
-    this.ports.broadcastEvent('talkilla.logout-success', {});
   },
 
   /**

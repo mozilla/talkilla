@@ -277,7 +277,6 @@ describe("Users", function() {
       users.add("foo").add("bar").add("goo");
       users.get("foo").connect("fake ws");
 
-      // No WebSocket object
       expect(users.toJSON()).to.deep.equal([
         {nick: "foo"},
         {nick: "bar"},

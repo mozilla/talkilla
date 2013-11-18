@@ -62,32 +62,6 @@ describe("SPA", function() {
 
   });
 
-  describe("#signin", function() {
-
-    it("should send a signin event to the worker", function() {
-      var callback = function() {};
-      spa.signin("fake assertion", callback);
-
-      sinon.assert.calledOnce(spa.http.post);
-      sinon.assert.calledWithExactly(spa.http.post, "/signin", {
-        assertion: "fake assertion"
-      }, callback);
-    });
-
-  });
-
-  describe("#signout", function() {
-
-    it("should send a signout event to the worker", function() {
-      var callback = function() {};
-      spa.signout(callback);
-
-      sinon.assert.calledOnce(spa.http.post);
-      sinon.assert.calledWithExactly(spa.http.post, "/signout", {}, callback);
-    });
-
-  });
-
   describe("#connect", function() {
 
     it("should send a connect event to the worker", function() {

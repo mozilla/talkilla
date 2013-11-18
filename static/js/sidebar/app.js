@@ -41,7 +41,7 @@ var SidebarApp = (function(app, $) {
     this.appPort.on('talkilla.users', this._onUserListReceived, this);
     this.appPort.on("talkilla.spa-connected", this._onSPAConnected, this);
     this.appPort.on("talkilla.error", this._onError, this);
-    this.appPort.on("talkilla.websocket-error", this._onWebSocketError, this);
+    this.appPort.on("talkilla.spa-error", this._onSPAError, this);
     this.appPort.on("talkilla.presence-unavailable",
                  this._onPresenceUnavailable, this);
     this.appPort.on("talkilla.chat-window-ready",
@@ -139,8 +139,8 @@ var SidebarApp = (function(app, $) {
       error, 'error');
   };
 
-  SidebarApp.prototype._onWebSocketError = function(error) {
-    app.utils.notifyUI('Error while communicating with the WebSocket server: ' +
+  SidebarApp.prototype._onSPAError = function(error) {
+    app.utils.notifyUI('Error while communicating with the Server: ' +
       error, 'error');
     this.user.clear();
   };

@@ -146,11 +146,12 @@ describe("SidebarApp", function() {
 
     });
 
-    describe("talkilla.websocket-error reception", function() {
+    describe("talkilla.spa-error", function() {
+
       it("should call clear() on the user model", function() {
         sandbox.stub(sidebarApp.user, "clear");
 
-        sidebarApp.appPort.trigger("talkilla.websocket-error");
+        sidebarApp.appPort.trigger("talkilla.spa-error");
 
         sinon.assert.calledOnce(sidebarApp.user.clear);
         sinon.assert.calledWithExactly(sidebarApp.user.clear);
@@ -158,8 +159,7 @@ describe("SidebarApp", function() {
 
 
       it("should notify the user of an error", function() {
-
-        sidebarApp.appPort.trigger("talkilla.websocket-error");
+        sidebarApp.appPort.trigger("talkilla.spa-error");
 
         sinon.assert.calledOnce(app.utils.notifyUI);
         sinon.assert.calledWithExactly(app.utils.notifyUI,

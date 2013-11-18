@@ -51,14 +51,6 @@ describe("tkWorker", function() {
 
       sinon.assert.calledOnce(worker.contactsDb.close);
     });
-
-    it("should broadcast the talkilla.logout-success event", function() {
-      sandbox.stub(worker.ports, "broadcastEvent");
-
-      worker.closeSession();
-
-      sinon.assert.calledOnce(worker.ports.broadcastEvent);
-    });
   });
 
   describe("#loadContacts", function() {
