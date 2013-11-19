@@ -47,7 +47,6 @@ var SidebarApp = (function(app, $) {
     this.appPort.on("talkilla.chat-window-ready",
                  this._onChatWindowReady, this);
     this.appPort.on("talkilla.worker-ready", this._onWorkerReady, this);
-    this.appPort.on('talkilla.reauth-needed', this._onReauthNeeded, this);
 
     this.appPort.postEvent("talkilla.sidebar-ready");
 
@@ -166,10 +165,6 @@ var SidebarApp = (function(app, $) {
 
   SidebarApp.prototype._onUserListReceived = function(users) {
     this.users.reset(users);
-  };
-
-  SidebarApp.prototype._onReauthNeeded = function() {
-    app.utils.notifyUI("You need to sign in", "error");
   };
 
   SidebarApp.prototype._setupDebugLogging = function() {
