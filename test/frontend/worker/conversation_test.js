@@ -1,15 +1,17 @@
 /*global expect, sinon, currentConversation:true, browserPort:true,
-  Conversation, tkWorker */
+  Conversation, SPA, tkWorker */
 /* jshint expr:true */
 
 describe("Conversation", function() {
-  var sandbox;
+  var sandbox, spa;
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
     browserPort = {
       postEvent: sandbox.spy()
     };
+    sandbox.stub(window, "Worker").returns({postMessage: sinon.spy()});
+    spa = new SPA({src: "example.com"});
   });
 
   afterEach(function() {
@@ -24,13 +26,13 @@ describe("Conversation", function() {
         peer: "florian"
       };
 
-      currentConversation = new Conversation(context);
+      currentConversation = new Conversation(context, spa);
 
       expect(currentConversation.context).to.deep.equal(context);
     });
 
     it("should ask the browser to open a chat window", function() {
-      currentConversation = new Conversation({});
+      currentConversation = new Conversation({}, spa);
 
       sinon.assert.calledOnce(browserPort.postEvent);
       sinon.assert.calledWithExactly(browserPort.postEvent,
@@ -61,7 +63,7 @@ describe("Conversation", function() {
     });
 
     it("should store the port", function() {
-      currentConversation = new Conversation(context);
+      currentConversation = new Conversation(context, spa);
 
       currentConversation.windowOpened(port);
 
@@ -69,7 +71,7 @@ describe("Conversation", function() {
     });
 
     it("should post a talkilla.login-success event", function() {
-      currentConversation = new Conversation(context);
+      currentConversation = new Conversation(context, spa);
 
       currentConversation.windowOpened(port);
 
@@ -80,7 +82,7 @@ describe("Conversation", function() {
 
     it("should post a talkilla.conversation-open event for a " +
        "non-incoming call", function() {
-        currentConversation = new Conversation(context);
+        currentConversation = new Conversation(context, spa);
 
         currentConversation.windowOpened(port);
 
@@ -94,7 +96,7 @@ describe("Conversation", function() {
        "incoming call",
       function() {
         context.offer = {sdp: "fake"};
-        currentConversation = new Conversation(context);
+        currentConversation = new Conversation(context, spa);
 
         currentConversation.windowOpened(port);
 
@@ -106,7 +108,7 @@ describe("Conversation", function() {
       });
 
     it("should store the contact", function() {
-        currentConversation = new Conversation(context);
+        currentConversation = new Conversation(context, spa);
 
         currentConversation.windowOpened(port);
 
@@ -114,7 +116,7 @@ describe("Conversation", function() {
       });
 
     it("should send peer presence information", function() {
-      currentConversation = new Conversation(context);
+      currentConversation = new Conversation(context, spa);
 
       currentConversation.windowOpened(port);
 
@@ -126,7 +128,7 @@ describe("Conversation", function() {
 
     it("should send any outstanding messages when the port is opened",
       function() {
-        currentConversation = new Conversation({});
+        currentConversation = new Conversation({}, spa);
         var messages = [
           {topic: "talkilla.ice-candidate", context: { candidate: "dummy1" }},
           {
@@ -168,7 +170,7 @@ describe("Conversation", function() {
 
       tkWorker.users.set("florian", { presence: "connected" });
 
-      currentConversation = new Conversation(initContext);
+      currentConversation = new Conversation(initContext, spa);
       currentConversation.windowOpened(port);
     });
 
@@ -249,7 +251,7 @@ describe("Conversation", function() {
 
   describe("#callAccepted", function() {
     beforeEach(function() {
-      currentConversation = new Conversation({});
+      currentConversation = new Conversation({}, spa);
       currentConversation.port = {
         postEvent: sandbox.spy()
       };
@@ -257,21 +259,21 @@ describe("Conversation", function() {
 
     it("should post a talkilla.call-establishment message to the " +
        "conversation window", function() {
-      var data = {
+      var context = {
         peer: "nicolas",
         offer: { sdp: "fake" }
       };
-      currentConversation.callAccepted(data);
+      currentConversation.callAccepted(context);
 
       sinon.assert.calledOnce(currentConversation.port.postEvent);
       sinon.assert.calledWith(currentConversation.port.postEvent,
-        "talkilla.call-establishment", data);
+        "talkilla.call-establishment", context);
     });
   });
 
   describe("#callHangup" , function() {
     beforeEach(function() {
-      currentConversation = new Conversation({});
+      currentConversation = new Conversation({}, spa);
       currentConversation.port = {
         postEvent: sandbox.spy()
       };
@@ -297,7 +299,7 @@ describe("Conversation", function() {
       context = {
         candidate: "dummy"
       };
-      currentConversation = new Conversation({});
+      currentConversation = new Conversation({}, spa);
       currentConversation.port = {
         postEvent: sandbox.spy()
       };

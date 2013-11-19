@@ -11,6 +11,8 @@ importScripts('/js/http.js', 'worker/users.js', 'worker/spa.js');
 var gConfig = loadConfig();
 var browserPort;
 var currentConversation;
+// XXX This should definitely not be exposed globally as we'll need
+// to support multiple SPAs in a near future.
 var spa;
 // XXX Initialised at end of file whilst we move everything
 // into it.
@@ -27,16 +29,18 @@ var tkWorker;
  * at the appropriate time.
  *
  * @param {Object|undefined}  context  Initial context
+ * @param {SPA} spa: the SPA wrapper instance.
  *
  * context properties:
  *
  * - {String} peer: The id of the peer this conversation window is for.
  * - {Object} offer: optional data for incoming calls.
  */
-function Conversation(context) {
+function Conversation(context, spa) {
   this.context = context;
   this.port = undefined;
   this.messageQueue = [];
+  this.capabilities = this.context.capabilities = spa.capabilities;
 
   browserPort.postEvent('social.request-chat', 'chat.html');
 }
@@ -255,10 +259,16 @@ UserData.prototype = {
   }
 };
 
+/**
+ * Setups a SPA.
+ *
+ * @param {SPA} spa SPA container.
+ */
 function _setupSPA(spa) {
   spa.on("connected", function(data) {
     tkWorker.user.name = data.addresses[0].value;
     tkWorker.user.connected = true;
+    this.capabilities = data.capabilities;
 
     // XXX Now we're connected, load the contacts database.
     // Really we should do this after successful sign-in or re-connect
@@ -311,7 +321,7 @@ function _setupSPA(spa) {
       return;
     }
 
-    currentConversation = new Conversation(offerMsg.toJSON());
+    currentConversation = new Conversation(offerMsg, spa);
   });
 
   spa.on("answer", function(answerMsg) {
@@ -372,8 +382,9 @@ var handlers = {
 
   'talkilla.conversation-open': function(event) {
     // XXX Temporarily work around to only allow one call at a time.
+    var offerMsg = event.data;
     if (!currentConversation)
-      currentConversation = new Conversation(event.data);
+      currentConversation = new Conversation(offerMsg, spa);
   },
 
   'talkilla.chat-window-ready': function() {

@@ -42,7 +42,7 @@ describe('handlers', function() {
 
     it("should clear the current conversation on receiving " +
        "social.port-closing for the conversation port", function() {
-        currentConversation = new Conversation();
+        currentConversation = new Conversation({}, spa);
         currentConversation.port = port;
 
         handlers['social.port-closing'].bind(port)();

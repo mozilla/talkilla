@@ -174,7 +174,7 @@ describe("SPA events", function() {
           offer: "fake offer",
           peer: "alice"
         });
-        currentConversation = new Conversation({peer: "florian"});
+        currentConversation = new Conversation({peer: "florian"}, spa);
         sandbox.stub(currentConversation, "handleIncomingCall");
 
         spa.trigger("offer", offerMsg);
