@@ -330,7 +330,7 @@ function _setupSPA(spa) {
     tkWorker.ports.broadcastEvent("talkilla.spa-error", event);
   });
 
-  spa.on("disconnected", function(event) {
+  spa.on("network-error", function(event) {
     // XXX: this will need future work to handle retrying presence connections
     tkWorker.ports.broadcastEvent('talkilla.presence-unavailable', event.code);
 

@@ -248,9 +248,9 @@ describe("SPA events", function() {
     });
   });
 
-  describe("`disconnected` event", function() {
+  describe("`network-error` event", function() {
     it("should set the user data as disconnected", function() {
-      spa.trigger("disconnected", {code: 1006});
+      spa.trigger("network-error", {code: 1006});
 
       expect(tkWorker.user.connected).to.be.equal(false);
     });
@@ -259,7 +259,7 @@ describe("SPA events", function() {
       tkWorker.user.name = "harvey";
       sandbox.stub(tkWorker.ports, "broadcastEvent");
 
-      spa.trigger("disconnected", {code: 1006});
+      spa.trigger("network-error", {code: 1006});
 
       sinon.assert.calledOnce(tkWorker.ports.broadcastEvent);
       sinon.assert.calledWithExactly(
@@ -270,7 +270,7 @@ describe("SPA events", function() {
     it("should close the current worker session", function() {
       sandbox.stub(tkWorker, "closeSession");
 
-      spa.trigger("disconnected", {code: 1006});
+      spa.trigger("network-error", {code: 1006});
 
       sinon.assert.calledOnce(tkWorker.closeSession);
     });
