@@ -44,7 +44,7 @@ var browserDetection = (function ($) {
 
       // at least one of these must be defined
       "statusURL": baseUrl + "/sidebar.html",
-      "sidebarURL": baseUrl + "/sidebar.html",
+      //"sidebarURL": baseUrl + "/sidebar.html",
       "workerURL": baseUrl + "/js/worker.js",
 
       // should be available for display purposes
