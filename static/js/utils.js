@@ -65,6 +65,17 @@
   };
 
   /**
+   * Enables loop to one or more registered sounds.
+   * @param {*args} list of registered sounds to play
+   */
+  AudioLibrary.prototype.enableLoop = function() {
+    [].slice.call(arguments).forEach(function(name) {
+      if (name in this.sounds)
+        this.sounds[name].loop = true;
+    }.bind(this));
+  };
+
+  /**
    * Logs any passed argument(s) to the browser console if `app.DEBUG` is true.
    */
   app.utils.log = function() {

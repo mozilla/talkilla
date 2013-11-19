@@ -345,6 +345,7 @@
 
     _onSendOffer: function() {
       this.audioLibrary.play('outgoing');
+      this.audioLibrary.enableLoop('outgoing');
       this._startTimer({timeout: app.options.PENDING_CALL_TIMEOUT});
     },
 
