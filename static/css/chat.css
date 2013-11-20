@@ -16,8 +16,11 @@ body {
      display:table-row; */
   border-collapse: collapse;
 
-  width: 100%;      /* display: table seems to make this required */
-  min-width: 258px; /* Social API chat window default width - borders */
+  /* display: table seems to make this required */
+  width: 100%;
+
+  /* Social API chat window default width - borders */
+  min-width: calc(260px - 2px);
 }
 
 /**
