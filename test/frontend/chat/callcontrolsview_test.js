@@ -287,6 +287,14 @@ describe("Call Controls View", function() {
         sinon.assert.calledWithExactly(media.setMuteState,
                                        'remote', 'audio', true);
       });
+
+      it('should toggle message on the button', function() {
+        var oldMessage = $('.btn-speaker-mute').find('a').attr('title');
+        callControlsView.incomingAudioToggle();
+
+        expect($('.btn-speaker-mute').find('a').attr('title'))
+          .to.not.equal(oldMessage);
+      });
     });
   });
 
