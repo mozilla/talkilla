@@ -17,7 +17,7 @@ body {
   border-collapse: collapse;
 
   width: 100%;      /* display: table seems to make this required */
-  min-width: 260px; /* Social API chat window default width */
+  min-width: 258px; /* Social API chat window default width - borders */
 }
 
 /**
@@ -119,6 +119,20 @@ body {
 
 .btn-speaker-mute.active a {
   background: url(../img/speaker.png);
+}
+
+#call-controls .controls li.btn-gear {
+  float: right;
+  border-left: 1px solid #D6D6D6;
+  border-right: none;
+}
+
+.btn-gear a {
+  background: url(../img/gear_default.png);
+}
+
+.btn-gear a:active {
+  background: url(../img/gear_clicked.png);
 }
 
 /* Notifications */
