@@ -255,6 +255,15 @@
      */
     requiresVideo: function() {
       return this.get('currentConstraints').video;
+    },
+
+    /**
+     * Checks if the passed capabilities are all supported by the Call SPA.
+     * @return {Boolean}
+     */
+    supports: function() {
+      return arguments.length === _.intersection(
+        arguments, this.get("capabilities")).length;
     }
   });
 

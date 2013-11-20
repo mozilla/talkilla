@@ -469,4 +469,23 @@ describe("Call Model", function() {
       expect(call.requiresVideo()).to.equal(false);
     });
   });
+
+  describe("#supports", function() {
+    it("should check that an SPA supports a single capability", function() {
+      call.set('capabilities', ["move", "call"]);
+      expect(call.supports("move")).eql(true);
+      expect(call.supports("call")).eql(true);
+    });
+
+    it("should check that an SPA supports multiple capabilities", function() {
+      call.set('capabilities', ["move", "call"]);
+      expect(call.supports("move", "call")).eql(true);
+    });
+
+    it("should check that an SPA doesn't support some capabilities",
+       function() {
+      call.set('capabilities', ["move", "call"]);
+      expect(call.supports("move", "bar")).eql(false);
+    });
+  });
 });
