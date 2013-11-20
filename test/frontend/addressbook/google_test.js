@@ -46,7 +46,7 @@ describe("GoogleContacts", function() {
     $.removeCookie("tktest");
     sandbox = sinon.sandbox.create();
     fakeAppPort = {
-      postEvent: sandbox.spy()
+      post: sandbox.spy()
     };
   });
 
@@ -278,8 +278,8 @@ describe("GoogleContacts", function() {
 
       new GoogleContacts({appPort: fakeAppPort}).loadContacts();
 
-      sinon.assert.calledOnce(fakeAppPort.postEvent);
-      sinon.assert.calledWithExactly(fakeAppPort.postEvent,
+      sinon.assert.calledOnce(fakeAppPort.post);
+      sinon.assert.calledWithExactly(fakeAppPort.post,
                                      "talkilla.contacts",
                                      {contacts: contacts, source: "google"});
     });
@@ -292,7 +292,7 @@ describe("GoogleContacts", function() {
 
       new GoogleContacts({appPort: fakeAppPort}).loadContacts();
 
-      sinon.assert.calledWithExactly(fakeAppPort.postEvent,
+      sinon.assert.calledWithExactly(fakeAppPort.post,
                                      "talkilla.contacts-error",
                                      error);
     });

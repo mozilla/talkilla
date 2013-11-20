@@ -20,7 +20,7 @@ describe("SidebarApp", function() {
     window.navigator.id = {watch: sinon.spy(), logout: sinon.spy()};
 
     sandbox.stub(app.views, "AppView");
-    sandbox.stub(AppPort.prototype, "postEvent");
+    sandbox.stub(AppPort.prototype, "post");
   });
 
   afterEach(function() {
@@ -64,8 +64,8 @@ describe("SidebarApp", function() {
     it("should post talkilla.sidebar-ready to the worker", function() {
       var sidebarApp = new SidebarApp();
 
-      sinon.assert.calledOnce(sidebarApp.appPort.postEvent);
-      sinon.assert.calledWithExactly(sidebarApp.appPort.postEvent,
+      sinon.assert.calledOnce(sidebarApp.appPort.post);
+      sinon.assert.calledWithExactly(sidebarApp.appPort.post,
                                      "talkilla.sidebar-ready");
     });
 
@@ -101,9 +101,9 @@ describe("SidebarApp", function() {
 
       sidebarApp.openConversation("jb");
 
-      sinon.assert.called(sidebarApp.appPort.postEvent,
+      sinon.assert.called(sidebarApp.appPort.post,
                           "talkilla.conversation-open");
-      sinon.assert.calledWithExactly(sidebarApp.appPort.postEvent,
+      sinon.assert.calledWithExactly(sidebarApp.appPort.post,
                                      "talkilla.conversation-open",
                                      {user: "toto", peer: "jb"});
     });
@@ -126,7 +126,7 @@ describe("SidebarApp", function() {
       beforeEach(function() {
         var sidebarApp = new SidebarApp();
         // Skipping events triggered in the constructor
-        sidebarApp.appPort.postEvent.reset();
+        sidebarApp.appPort.post.reset();
       });
 
       it("should set the user presence", function() {
@@ -139,9 +139,9 @@ describe("SidebarApp", function() {
         function() {
           sidebarApp.appPort.trigger("talkilla.spa-connected");
 
-          sinon.assert.calledOnce(sidebarApp.appPort.postEvent);
+          sinon.assert.calledOnce(sidebarApp.appPort.post);
           sinon.assert.calledWithExactly(
-            sidebarApp.appPort.postEvent, "talkilla.presence-request");
+            sidebarApp.appPort.post, "talkilla.presence-request");
         });
 
     });
@@ -194,13 +194,13 @@ describe("SidebarApp", function() {
           expect(path).to.equal("/signin");
           callback(null, JSON.stringify({nick: "foo"}));
         });
-        sidebarApp.appPort.postEvent.reset();
+        sidebarApp.appPort.post.reset();
 
         sidebarApp.user.trigger("signin-requested", "fake assertion");
 
-        sinon.assert.calledOnce(sidebarApp.appPort.postEvent);
+        sinon.assert.calledOnce(sidebarApp.appPort.post);
         sinon.assert.calledWithExactly(
-          sidebarApp.appPort.postEvent, "talkilla.spa-enable", spec.toJSON());
+          sidebarApp.appPort.post, "talkilla.spa-enable", spec.toJSON());
       });
 
       it("should logout the user if the signin failed", function() {
@@ -290,7 +290,7 @@ describe("SidebarApp", function() {
         localStorage.setItem("enabled-spa", JSON.stringify(specs));
         sandbox.stub(sidebarApp.services.google, "initialize");
         // Skipping events triggered in the constructor
-        sidebarApp.appPort.postEvent.reset();
+        sidebarApp.appPort.post.reset();
       });
 
       afterEach(function() {
@@ -306,12 +306,12 @@ describe("SidebarApp", function() {
       it("should enable all the SPA", function() {
         sidebarApp.appPort.trigger("talkilla.worker-ready");
 
-        sinon.assert.calledTwice(sidebarApp.appPort.postEvent);
+        sinon.assert.calledTwice(sidebarApp.appPort.post);
         sinon.assert.calledWith(
-          sidebarApp.appPort.postEvent, "talkilla.spa-enable",
+          sidebarApp.appPort.post, "talkilla.spa-enable",
           specs[0].toJSON());
         sinon.assert.calledWith(
-          sidebarApp.appPort.postEvent, "talkilla.spa-enable",
+          sidebarApp.appPort.post, "talkilla.spa-enable",
           specs[1].toJSON());
       });
 
