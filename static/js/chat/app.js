@@ -10,6 +10,7 @@ var ChatApp = (function(app, $, Backbone, _) {
     this.appPort = new AppPort();
     this.user = new app.models.User();
     this.peer = new app.models.User();
+    this.capabilities = [];
 
     // Audio library
     this.audioLibrary = new app.utils.AudioLibrary({
@@ -113,10 +114,16 @@ var ChatApp = (function(app, $, Backbone, _) {
   }
 
   // Outgoing calls
-  ChatApp.prototype._onConversationOpen = function(data) {
-    this.user.set({nick: data.user});
+
+  /**
+   * Listens to the `talkilla.conversation-open` event.
+   * @param  {Object} context Conversation context object.
+   */
+  ChatApp.prototype._onConversationOpen = function(context) {
+    this.capabilities = context.capabilities;
+    this.user.set({nick: context.user});
     this.peer
-        .set({nick: data.peer, presence: data.peerPresence}, {silent: true})
+        .set({nick: context.peer, presence: context.peerPresence}, {silent: true})
         .trigger('change:nick', this.peer) // force triggering change event
         .trigger('change:presence', this.peer);
   };
@@ -135,18 +142,19 @@ var ChatApp = (function(app, $, Backbone, _) {
   };
 
   // Incoming calls
-  ChatApp.prototype._onIncomingConversation = function(data) {
-    this.user.set({nick: data.user});
+  ChatApp.prototype._onIncomingConversation = function(context) {
+    this.capabilities = context.capabilities;
+    this.user.set({nick: context.user});
 
-    if (!data.upgrade)
-      this.peer.set({nick: data.peer, presence: data.peerPresence});
+    if (!context.upgrade)
+      this.peer.set({nick: context.peer, presence: context.peerPresence});
 
     // incoming text chat conversation
-    if (data.textChat)
-      return this.textChat.answer(data.offer);
+    if (context.textChat)
+      return this.textChat.answer(context.offer);
 
     // incoming video/audio call
-    this.call.incoming(new app.payloads.Offer(data));
+    this.call.incoming(new app.payloads.Offer(context));
     this.audioLibrary.play('incoming');
   };
 
