@@ -48,7 +48,7 @@ var SidebarApp = (function(app, $) {
                  this._onChatWindowReady, this);
     this.appPort.on("talkilla.worker-ready", this._onWorkerReady, this);
 
-    this.appPort.postEvent("talkilla.sidebar-ready");
+    this.appPort.post("talkilla.sidebar-ready");
 
     this._setupDebugLogging();
   }
@@ -64,7 +64,7 @@ var SidebarApp = (function(app, $) {
     specs.forEach(function(data) {
       var spec = new app.payloads.SPASpec(data);
       this.user.set({nick: spec.credentials.email});
-      this.appPort.postEvent("talkilla.spa-enable", spec.toJSON());
+      this.appPort.post("talkilla.spa-enable", spec.toJSON());
     }.bind(this));
   };
 
@@ -82,14 +82,14 @@ var SidebarApp = (function(app, $) {
   };
 
   SidebarApp.prototype.openConversation = function(nick) {
-    this.appPort.postEvent('talkilla.conversation-open', {
+    this.appPort.post('talkilla.conversation-open', {
       user: this.user.get('nick'),
       peer: nick
     });
   };
 
   SidebarApp.prototype._onChatWindowReady = function() {
-    this.appPort.postEvent('talkilla.user-nick', {nick: this.user.get('nick')});
+    this.appPort.post('talkilla.user-nick', {nick: this.user.get('nick')});
   };
 
   SidebarApp.prototype._onLoginSuccess = function(data) {
@@ -103,7 +103,7 @@ var SidebarApp = (function(app, $) {
                          JSON.stringify([talkillaSpec.toJSON()]));
 
     this.user.set({nick: data.nick});
-    this.appPort.postEvent("talkilla.spa-enable", talkillaSpec.toJSON());
+    this.appPort.post("talkilla.spa-enable", talkillaSpec.toJSON());
   };
 
   // XXX a lot of the steps that happen after various types of logouts and
@@ -130,7 +130,7 @@ var SidebarApp = (function(app, $) {
 
   SidebarApp.prototype._onSPAConnected = function() {
     this.user.set({presence: "connected"});
-    this.appPort.postEvent("talkilla.presence-request");
+    this.appPort.post("talkilla.presence-request");
   };
 
   SidebarApp.prototype._onError = function(error) {

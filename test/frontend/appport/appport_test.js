@@ -55,7 +55,7 @@ describe("AppPort", function() {
   it("should be able to post an event", function() {
     var appPort = new AppPort();
 
-    appPort.postEvent("answer", 42);
+    appPort.post("answer", 42);
 
     sinon.assert.calledOnce(postMessageSpy);
     sinon.assert.calledWithExactly(postMessageSpy, {topic: "answer", data: 42});

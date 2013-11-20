@@ -29,7 +29,7 @@ describe("ChatApp", function() {
   var fakeDataChannel = {fakeDataChannel: true};
 
   beforeEach(function() {
-    AppPortStub = _.extend({postEvent: sinon.spy()}, Backbone.Events);
+    AppPortStub = _.extend({post: sinon.spy()}, Backbone.Events);
     sandbox = sinon.sandbox.create();
     sandbox.stub(window, "AppPort").returns(AppPortStub);
     sandbox.stub(window, "Audio").returns({
@@ -146,8 +146,8 @@ describe("ChatApp", function() {
   it("should post talkilla.chat-window-ready to the worker", function() {
       chatApp = new ChatApp();
 
-      sinon.assert.calledOnce(chatApp.appPort.postEvent);
-      sinon.assert.calledWithExactly(chatApp.appPort.postEvent,
+      sinon.assert.calledOnce(chatApp.appPort.post);
+      sinon.assert.calledWithExactly(chatApp.appPort.post,
         "talkilla.chat-window-ready", {});
     });
 
@@ -357,8 +357,8 @@ describe("ChatApp", function() {
 
         chatApp._onCallHangup(fakeHangupMsg);
 
-        sinon.assert.called(chatApp.appPort.postEvent);
-        sinon.assert.calledWith(chatApp.appPort.postEvent,
+        sinon.assert.called(chatApp.appPort.post);
+        sinon.assert.calledWith(chatApp.appPort.post,
                                 "talkilla.call-hangup");
         sinon.assert.called(window.close);
       });
@@ -374,8 +374,8 @@ describe("ChatApp", function() {
           });
           chatApp._onSendOffer(offerMsg);
 
-          sinon.assert.called(chatApp.appPort.postEvent);
-          sinon.assert.calledWith(chatApp.appPort.postEvent,
+          sinon.assert.called(chatApp.appPort.post);
+          sinon.assert.calledWith(chatApp.appPort.post,
                                   "talkilla.call-offer");
         });
     });
@@ -390,8 +390,8 @@ describe("ChatApp", function() {
 
           chatApp._onSendAnswer(answerMsg);
 
-          sinon.assert.called(chatApp.appPort.postEvent);
-          sinon.assert.calledWith(chatApp.appPort.postEvent,
+          sinon.assert.called(chatApp.appPort.post);
+          sinon.assert.calledWith(chatApp.appPort.post,
                                   "talkilla.call-answer");
         });
     });
@@ -402,8 +402,8 @@ describe("ChatApp", function() {
 
         chatApp.call.trigger("send-timeout", fakeHangupMsg);
 
-        sinon.assert.called(chatApp.appPort.postEvent);
-        sinon.assert.calledWith(chatApp.appPort.postEvent,
+        sinon.assert.called(chatApp.appPort.post);
+        sinon.assert.calledWith(chatApp.appPort.post,
                                 "talkilla.call-hangup");
       });
     });
@@ -440,8 +440,8 @@ describe("ChatApp", function() {
 
           chatApp.webrtc.trigger("ice:candidate-ready", "dummy");
 
-          sinon.assert.called(AppPortStub.postEvent);
-          sinon.assert.calledWith(AppPortStub.postEvent,
+          sinon.assert.called(AppPortStub.post);
+          sinon.assert.calledWith(AppPortStub.post,
                                   "talkilla.ice-candidate",
                                   iceCandidateMsg.toJSON());
         });

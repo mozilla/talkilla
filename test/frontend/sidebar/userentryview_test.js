@@ -25,7 +25,7 @@ describe("UserEntryView", function() {
       }
     };
 
-    sandbox.stub(AppPort.prototype, "postEvent");
+    sandbox.stub(AppPort.prototype, "post");
 
     sidebarApp = createFakeSidebarApp();
     sidebarApp.openConversation = sandbox.spy();

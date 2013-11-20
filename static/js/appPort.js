@@ -13,7 +13,7 @@
   }
   exports.AppPort = AppPort;
 
-  AppPort.prototype.postEvent = function(topic, data) {
+  AppPort.prototype.post = function(topic, data) {
     this._port.postMessage({topic: topic, data: data});
   };
 

@@ -146,11 +146,11 @@ var GoogleContacts = (function() {
     loadContacts: function() {
       this.authorize(function(err) {
         if (err)
-          return this.appPort.postEvent("talkilla.contacts-error", err);
+          return this.appPort.post("talkilla.contacts-error", err);
         this.all(function(err, contacts) {
           if (err)
-            return this.appPort.postEvent("talkilla.contacts-error", err);
-          this.appPort.postEvent("talkilla.contacts", {
+            return this.appPort.post("talkilla.contacts-error", err);
+          this.appPort.post("talkilla.contacts", {
             contacts: contacts,
             source: "google"
           });
