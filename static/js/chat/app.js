@@ -10,7 +10,6 @@ var ChatApp = (function(app, $, Backbone, _) {
     this.appPort = new AppPort();
     this.user = new app.models.User();
     this.peer = new app.models.User();
-    this.capabilities = [];
 
     // Audio library
     this.audioLibrary = new app.utils.AudioLibrary({
@@ -117,13 +116,14 @@ var ChatApp = (function(app, $, Backbone, _) {
 
   /**
    * Listens to the `talkilla.conversation-open` event.
-   * @param  {Object} context Conversation context object.
+   * @param {Object} context Conversation context object.
    */
   ChatApp.prototype._onConversationOpen = function(context) {
-    this.capabilities = context.capabilities;
+    this.call.set({capabilities: context.capabilities});
     this.user.set({nick: context.user});
     this.peer
-        .set({nick: context.peer, presence: context.peerPresence}, {silent: true})
+        .set({nick: context.peer, presence: context.peerPresence},
+             {silent: true})
         .trigger('change:nick', this.peer) // force triggering change event
         .trigger('change:presence', this.peer);
   };
@@ -143,7 +143,7 @@ var ChatApp = (function(app, $, Backbone, _) {
 
   // Incoming calls
   ChatApp.prototype._onIncomingConversation = function(context) {
-    this.capabilities = context.capabilities;
+    this.call.set({capabilities: context.capabilities});
     this.user.set({nick: context.user});
 
     if (!context.upgrade)

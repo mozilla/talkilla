@@ -441,7 +441,8 @@ describe("ChatApp", function() {
           function(done) {
             var chatApp = new ChatApp();
             chatApp.appPort.on("talkilla.conversation-open", function() {
-              expect(chatApp.capabilities).eql(callData.capabilities);
+              expect(chatApp.call.get("capabilities"))
+                .eql(callData.capabilities);
               done();
             }).trigger("talkilla.conversation-open", callData);
           });
@@ -452,7 +453,7 @@ describe("ChatApp", function() {
           function(done) {
             var chatApp = new ChatApp();
             chatApp.appPort.on("talkilla.conversation-incoming", function() {
-              expect(incomingCallData.capabilities)
+              expect(chatApp.call.get("capabilities"))
                 .eql(incomingCallData.capabilities);
               done();
             }).trigger("talkilla.conversation-incoming", incomingCallData);
