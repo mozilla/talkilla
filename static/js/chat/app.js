@@ -173,7 +173,7 @@ var ChatApp = (function(app, $, Backbone, _) {
    * @param {payloads.Offer} offerMsg the offer to send to initiate the call.
    */
   ChatApp.prototype._onSendOffer = function(offerMsg) {
-    this.appPort.post('talkilla.call-offer', offerMsg.toJSON());
+    this.appPort.post('talkilla.call-offer', offerMsg);
   };
 
   /**
@@ -182,7 +182,7 @@ var ChatApp = (function(app, $, Backbone, _) {
    * @param {payloads.Answer} answerMsg the answer to send to accept the call.
    */
   ChatApp.prototype._onSendAnswer = function(answerMsg) {
-    this.appPort.post('talkilla.call-answer', answerMsg.toJSON());
+    this.appPort.post('talkilla.call-answer', answerMsg);
   };
 
   /**
@@ -196,15 +196,20 @@ var ChatApp = (function(app, $, Backbone, _) {
     // Let the peer know that the call offer is no longer valid.
     // For this, we send call-hangup, the same as in the case where
     // the user decides to abandon the call attempt.
-    this.appPort.post('talkilla.call-hangup', hangupMsg.toJSON());
+    this.appPort.post('talkilla.call-hangup', hangupMsg);
   };
 
+  /**
+   * Called to send an ice candidate to the peer.
+   *
+   * @param {mozRTCIceCandidate} The ICE Candidate to send.
+   */
   ChatApp.prototype._onIceCandidateReady = function(candidate) {
     var iceCandidateMsg = new app.payloads.IceCandidate({
       peer: this.peer.get("nick"),
       candidate: candidate
     });
-    this.appPort.post('talkilla.ice-candidate', iceCandidateMsg.toJSON());
+    this.appPort.post('talkilla.ice-candidate', iceCandidateMsg);
   };
 
   // Call Hangup
@@ -227,7 +232,7 @@ var ChatApp = (function(app, $, Backbone, _) {
    */
   ChatApp.prototype._onCallHangup = function(hangupMsg) {
     // Send a message as this is this user's call hangup
-    this.appPort.post('talkilla.call-hangup', hangupMsg.toJSON());
+    this.appPort.post('talkilla.call-hangup', hangupMsg);
     window.close();
   };
 

@@ -94,7 +94,7 @@ describe("SPA", function() {
       sinon.assert.calledOnce(spa.worker.postMessage);
       sinon.assert.calledWithExactly(spa.worker.postMessage, {
         topic: "offer",
-        data: offerMsg.toJSON()
+        data: offerMsg
       });
     });
 
@@ -113,7 +113,7 @@ describe("SPA", function() {
       sinon.assert.calledOnce(spa.worker.postMessage);
       sinon.assert.calledWithExactly(spa.worker.postMessage, {
         topic: "answer",
-        data: answerMsg.toJSON()
+        data: answerMsg
       });
     });
 
@@ -128,7 +128,7 @@ describe("SPA", function() {
       sinon.assert.calledOnce(spa.worker.postMessage);
       sinon.assert.calledWithExactly(spa.worker.postMessage, {
         topic: "hangup",
-        data: hangupMsg.toJSON()
+        data: hangupMsg
       });
     });
 
@@ -146,10 +146,7 @@ describe("SPA", function() {
       sinon.assert.calledOnce(spa.worker.postMessage);
       sinon.assert.calledWithExactly(spa.worker.postMessage, {
         topic: "ice:candidate",
-        data: {
-          peer: "lloyd",
-          candidate: "dummy"
-        }
+        data: iceCandidateMsg
       });
     });
   });

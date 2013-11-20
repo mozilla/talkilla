@@ -181,7 +181,7 @@ describe("SPA events", function() {
 
         sinon.assert.calledOnce(currentConversation.handleIncomingCall);
         sinon.assert.calledWith(currentConversation.handleIncomingCall,
-                                offerMsg.toJSON());
+                                offerMsg);
       });
   });
 
@@ -201,7 +201,7 @@ describe("SPA events", function() {
 
       sinon.assert.calledOnce(currentConversation.callAccepted);
       sinon.assert.calledWithExactly(
-        currentConversation.callAccepted, answerMsg.toJSON());
+        currentConversation.callAccepted, answerMsg);
     });
 
   });
@@ -221,7 +221,7 @@ describe("SPA events", function() {
 
       sinon.assert.calledOnce(currentConversation.callHangup);
       sinon.assert.calledWithExactly(
-        currentConversation.callHangup, hangupMsg.toJSON());
+        currentConversation.callHangup, hangupMsg);
     });
   });
 
@@ -244,7 +244,7 @@ describe("SPA events", function() {
 
       sinon.assert.calledOnce(currentConversation.iceCandidate);
       sinon.assert.calledWithExactly(
-        currentConversation.iceCandidate, iceCandidateMsg.toJSON());
+        currentConversation.iceCandidate, iceCandidateMsg);
     });
   });
 

@@ -474,7 +474,7 @@ describe("ChatApp", function() {
           sinon.assert.called(AppPortStub.post);
           sinon.assert.calledWith(AppPortStub.post,
                                   "talkilla.ice-candidate",
-                                  iceCandidateMsg.toJSON());
+                                  iceCandidateMsg);
         });
       });
 

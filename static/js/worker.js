@@ -313,7 +313,7 @@ function _setupSPA(spa) {
     if (currentConversation) {
       // If the currentConversation window can handle the incoming call
       // data (e.g. peer matches) then just handle it.
-      if (currentConversation.handleIncomingCall(offerMsg.toJSON()))
+      if (currentConversation.handleIncomingCall(offerMsg))
         return;
 
       // XXX currently, we can't handle more than one conversation
@@ -325,17 +325,17 @@ function _setupSPA(spa) {
   });
 
   spa.on("answer", function(answerMsg) {
-    currentConversation.callAccepted(answerMsg.toJSON());
+    currentConversation.callAccepted(answerMsg);
   });
 
   spa.on("hangup", function(hangupMsg) {
     if (currentConversation)
-      currentConversation.callHangup(hangupMsg.toJSON());
+      currentConversation.callHangup(hangupMsg);
   });
 
   spa.on("ice:candidate", function(iceCandidateMsg) {
     if (currentConversation)
-      currentConversation.iceCandidate(iceCandidateMsg.toJSON());
+      currentConversation.iceCandidate(iceCandidateMsg);
   });
 
   spa.on("error", function(event) {
