@@ -106,6 +106,8 @@ describe("Text chat views", function() {
       peer = new app.models.User();
 
       user.set({nick: "niko"});
+
+      localStorage.removeItem('notFirstMessage');
     });
 
     afterEach(function() {
@@ -188,6 +190,25 @@ describe("Text chat views", function() {
         sinon.assert.callCount(textChat.add, 0);
       });
 
+    describe("#initialize", function() {
+      it("should have placeholder for the first message", function() {
+        var view = new app.views.TextChatView({
+          call: new app.models.Call(),
+          collection: new app.models.TextChat([], {
+            media: media,
+            user: user,
+            peer: peer
+          })
+        });
+
+        view.render();
+
+        expect(view.$('form input[name="message"]').attr('placeholder'))
+              .to.equal('Type something to start chatting');
+
+      });
+    });
+
     describe("#render", function() {
       var textChatView, textChat, blob;
 
@@ -219,6 +240,17 @@ describe("Text chat views", function() {
         textChatView.render();
 
         sinon.assert.calledOnce(app.views.FileTransferView.prototype.render);
+      });
+
+      it("should not have placeholder text after first message", function() {
+
+        //send a test mesage
+        $('#textchat [name="message"]').val("plop");
+        $("#textchat form").trigger("submit");
+
+        expect(textChatView.$('form input[name="message"]').attr('placeholder'))
+              .to.equal(undefined);
+
       });
     });
   });
