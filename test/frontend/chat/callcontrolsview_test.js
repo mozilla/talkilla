@@ -261,11 +261,11 @@ describe("Call Controls View", function() {
       });
 
       it('should toggle message on the button', function() {
-        var oldMessage = $('.btn-microphone-mute').find('a').attr('title');
+        var aElement = $('.btn-microphone-mute a');
+        var oldMessage = aElement.attr('title');
         callControlsView.outgoingAudioToggle();
 
-        expect($('.btn-microphone-mute').find('a').attr('title'))
-          .to.not.equal(oldMessage);
+        expect(aElement.attr('title')).to.not.equal(oldMessage);
       });
     });
 
@@ -289,11 +289,11 @@ describe("Call Controls View", function() {
       });
 
       it('should toggle message on the button', function() {
-        var oldMessage = $('.btn-speaker-mute').find('a').attr('title');
+        var aElement = $('.btn-speaker-mute a');
+        var oldMessage = aElement.attr('title');
         callControlsView.incomingAudioToggle();
 
-        expect($('.btn-speaker-mute').find('a').attr('title'))
-          .to.not.equal(oldMessage);
+        expect(aElement.attr('title')).to.not.equal(oldMessage);
       });
     });
   });
