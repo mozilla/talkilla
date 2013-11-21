@@ -8,7 +8,7 @@ describe("TalkillaSPA", function() {
     sandbox = sinon.sandbox.create();
     port = new SPAPort();
     server = new Server();
-    spa = new TalkillaSPA(port, server, ["call", "move"]);
+    spa = new TalkillaSPA(port, server, {capabilities: ["call", "move"]});
   });
 
   describe("#constructor", function() {

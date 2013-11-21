@@ -2,11 +2,11 @@
 /* jshint unused:false */
 
 var TalkillaSPA = (function() {
-  function TalkillaSPA(port, server, capabilities) {
+  function TalkillaSPA(port, server, options) {
     this.port = port;
     this.server = server;
     this.credentials = undefined;
-    this.capabilities = capabilities || ["call"];
+    this.capabilities = options && options.capabilities || ["call"];
 
     this.port.on("connect", this._onConnect.bind(this));
 
