@@ -187,6 +187,7 @@ describe("SidebarApp", function() {
 
       it("should ask the worker to enable the spa", function() {
         var spec = new app.payloads.SPASpec({
+          name: "TalkillaSPA",
           src: "/js/spa/talkilla_worker.js",
           credentials: {email: "foo"}
         });
