@@ -47,6 +47,8 @@ var SidebarApp = (function(app, $) {
     this.appPort.on("talkilla.chat-window-ready",
                  this._onChatWindowReady, this);
     this.appPort.on("talkilla.worker-ready", this._onWorkerReady, this);
+    this.appPort.on("social.user-profile", this._onUserProfile, this);
+    this.appPort.on('talkilla.reauth-needed', this._onReauthNeeded, this);
 
     this.appPort.post("talkilla.sidebar-ready");
 
@@ -63,9 +65,12 @@ var SidebarApp = (function(app, $) {
     specs = specs ? JSON.parse(specs) : [];
     specs.forEach(function(data) {
       var spec = new app.payloads.SPASpec(data);
-      this.user.set({nick: spec.credentials.email});
-      this.appPort.post("talkilla.spa-enable", spec.toJSON());
+      this.appPort.postEvent("talkilla.spa-enable", spec.toJSON());
     }.bind(this));
+  };
+
+  SidebarApp.prototype._onUserProfile = function(userData) {
+    this.user.set({nick: userData.userName});
   };
 
   SidebarApp.prototype._onUserSigninRequested = function(assertion) {

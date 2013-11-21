@@ -250,6 +250,7 @@ UserData.prototype = {
     };
 
     browserPort.postEvent('social.user-profile', userData);
+    tkWorker.ports.broadcastEvent('social.user-profile', userData);
   }
 };
 
