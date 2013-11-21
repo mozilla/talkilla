@@ -13,7 +13,6 @@ var TalkillaSPA = (function() {
     this.port.on("answer", this._onCallAnswer.bind(this));
     this.port.on("hangup", this._onCallHangup.bind(this));
     this.port.on("ice:candidate", this._onIceCandidate.bind(this));
-    this.port.on("presence:request", this._onPresenceRequest.bind(this));
 
     this.server.on("connected", this._onServerEvent.bind(this, "connected"));
     this.server.on("unauthorized",
@@ -55,6 +54,7 @@ var TalkillaSPA = (function() {
     _onConnect: function(credentials) {
       this.email = credentials.email;
       this.server.connect();
+      this.server.presenceRequest();
     },
 
     /**
@@ -99,10 +99,6 @@ var TalkillaSPA = (function() {
     _onIceCandidate: function(iceCandidateData) {
       var iceCandidateMsg = new payloads.IceCandidate(iceCandidateData);
       this.server.iceCandidate(iceCandidateMsg);
-    },
-
-    _onPresenceRequest: function() {
-      this.server.presenceRequest();
     }
   };
 

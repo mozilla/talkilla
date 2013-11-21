@@ -134,16 +134,6 @@ describe("SidebarApp", function() {
         expect(sidebarApp.user.get("presence")).to.equal("connected");
       });
 
-
-      it("should request that the spa send presence info for other users",
-        function() {
-          sidebarApp.appPort.trigger("talkilla.spa-connected");
-
-          sinon.assert.calledOnce(sidebarApp.appPort.post);
-          sinon.assert.calledWithExactly(
-            sidebarApp.appPort.post, "talkilla.presence-request");
-        });
-
     });
 
     describe("talkilla.spa-error", function() {

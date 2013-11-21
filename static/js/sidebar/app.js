@@ -131,7 +131,6 @@ var SidebarApp = (function(app, $) {
 
   SidebarApp.prototype._onSPAConnected = function() {
     this.user.set({presence: "connected"});
-    this.appPort.post("talkilla.presence-request");
   };
 
   SidebarApp.prototype._onError = function(error) {

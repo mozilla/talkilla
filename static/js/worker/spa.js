@@ -86,10 +86,6 @@ var SPA = (function() {
      */
     iceCandidate: function(iceCandidateMsg) {
       this._send("ice:candidate", iceCandidateMsg.toJSON());
-    },
-
-    presenceRequest: function() {
-      this._send("presence:request");
     }
   };
 
