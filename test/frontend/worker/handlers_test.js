@@ -167,6 +167,18 @@ describe('handlers', function() {
 
   });
 
+  describe("talkilla.initiate-move", function() {
+    it("should notify the SPA a call moving is initiated", function() {
+      sandbox.stub(spa, "initiateMove");
+      var moveMsg = new payloads.Move({peer: "chuck", callid: 42});
+
+      handlers["talkilla.initiate-move"]({data: moveMsg});
+
+      sinon.assert.calledOnce(spa.initiateMove);
+      sinon.assert.calledWithExactly(spa.initiateMove, moveMsg);
+    });
+  });
+
   describe("talkilla.presence-request", function () {
     beforeEach(function() {
       tkWorker.user = new UserData();

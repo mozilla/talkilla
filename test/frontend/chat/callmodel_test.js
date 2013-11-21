@@ -409,6 +409,22 @@ describe("Call Model", function() {
     });
   });
 
+  describe("#move", function() {
+    it("should trigger an initiate-move event", function(done) {
+      call.peer.set("nick", "alexis");
+      call.callid = 1337;
+
+      call.on("initiate-move", function(moveMsg) {
+        expect(moveMsg instanceof payloads.Move).to.equal(true);
+        expect(moveMsg.peer).to.equal("alexis");
+        expect(moveMsg.callid).to.equal(call.callid);
+        done();
+      });
+
+      call.move();
+    });
+  });
+
   describe("#upgrade", function() {
     it("should change the state from ready to pending", function() {
       call.state.current = 'ongoing';

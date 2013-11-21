@@ -140,7 +140,8 @@
       'click .btn-audio a': 'audioCall',
       'click .btn-hangup a': 'hangup',
       'click .btn-microphone-mute a': 'outgoingAudioToggle',
-      'click .btn-speaker-mute a': 'incomingAudioToggle'
+      'click .btn-speaker-mute a': 'incomingAudioToggle',
+      'click .btn-call-move a': 'initiateCallMove'
     },
 
     initialize: function(options) {
@@ -201,6 +202,13 @@
       var button = this.$('.btn-speaker-mute');
       button.toggleClass('active');
       this.media.setMuteState('remote', 'audio', button.hasClass('active'));
+    },
+
+    initiateCallMove: function(event){
+      if (event)
+        event.preventDefault();
+      
+      this.call.move();
     },
 
     _callPending: function() {

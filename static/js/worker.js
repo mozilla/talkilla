@@ -464,8 +464,11 @@ var handlers = {
     spa = new SPA({src: spec.src});
     _setupSPA(spa);
     spa.connect(spec.credentials);
-  }
+  },
 
+  'talkilla.initiate-move': function(event) {
+    spa.initiateMove(new payloads.Move(event.data));
+  }
 };
 
 function Port(port) {

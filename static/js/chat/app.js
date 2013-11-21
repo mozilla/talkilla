@@ -100,6 +100,7 @@ var ChatApp = (function(app, $, Backbone, _) {
     this.call.on('send-timeout', this._onSendTimeout, this);
     this.call.on('send-hangup', this._onCallHangup, this);
     this.call.on('transition:accept', this._onCallAccepted, this);
+    this.call.on('initiate-move', this._onInitiateMove, this);
     // As we can get ice candidates for calls or text chats, just get this
     // straight from the media model.
     this.webrtc.on('ice:candidate-ready', this._onIceCandidateReady, this);
@@ -130,6 +131,10 @@ var ChatApp = (function(app, $, Backbone, _) {
 
   ChatApp.prototype._onCallAccepted = function() {
     this.audioLibrary.stop('incoming');
+  };
+
+  ChatApp.prototype._onInitiateMove = function(moveMsg) {
+    this.appPort.postEvent('talkilla.initiate-move', moveMsg.toJSON());
   };
 
   ChatApp.prototype._onCallEstablishment = function(data) {

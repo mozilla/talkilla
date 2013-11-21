@@ -289,6 +289,16 @@ describe("Call Controls View", function() {
                                        'remote', 'audio', true);
       });
     });
+
+    describe("#initiateCallMove", function() {
+      it('should move current call', function() {
+        sandbox.stub(call, "move");
+
+        callControlsView.initiateCallMove();
+
+        sinon.assert.calledOnce(call.move);
+      });
+    });
   });
 
   describe("Call State Handling", function() {

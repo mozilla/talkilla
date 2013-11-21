@@ -98,6 +98,10 @@ var SPA = (function() {
 
     presenceRequest: function() {
       this._send("presence:request");
+    },
+
+    initiateMove: function(moveMsg) {
+      this._send("initiate-move", moveMsg.toJSON());
     }
   };
 

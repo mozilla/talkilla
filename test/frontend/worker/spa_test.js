@@ -152,6 +152,19 @@ describe("SPA", function() {
         }
       });
     });
+  });
 
+  describe("#initiateMove", function() {
+    it("should send call move information to the server", function() {
+      var moveMsg = new payloads.Move({peer: "jean-claude", callid: 42});
+
+      spa.initiateMove(moveMsg);
+
+      sinon.assert.calledOnce(spa.worker.postMessage);
+      sinon.assert.calledWithExactly(spa.worker.postMessage, {
+        topic: "initiate-move",
+        data: moveMsg.toJSON()
+      });
+    });
   });
 });

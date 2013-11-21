@@ -506,6 +506,23 @@ describe("ChatApp", function() {
           sinon.assert.calledWith(chatApp.call.hangup);
         });
       });
+
+      describe("initiate-move", function() {
+        it("should post a talkilla.initiate-move message to the worker.",
+          function() {
+          var moveMsg = new payloads.Move({
+            peer: "lloyd",
+            callid: 42
+          });
+
+          chatApp.call.trigger("initiate-move", moveMsg);
+
+          sinon.assert.called(AppPortStub.postEvent);
+          sinon.assert.calledWith(AppPortStub.postEvent,
+                                  "talkilla.initiate-move",
+                                  moveMsg.toJSON());
+        });
+      });
     });
 
     describe("Object events listeners", function() {

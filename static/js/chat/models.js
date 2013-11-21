@@ -225,6 +225,13 @@
       }
     },
 
+    move: function() {
+      this.trigger("initiate-move", new app.payloads.Move({
+        peer: this.peer.get("nick"),
+        callid: this.callid
+      }));
+    },
+
     /**
      * Upgrades ongoing call with new media constraints.
      *
