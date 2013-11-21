@@ -321,7 +321,7 @@ function _setupSPA(spa) {
       return;
     }
 
-    currentConversation = new Conversation(offerMsg, spa);
+    currentConversation = new Conversation(offerMsg.toJSON(), spa);
   });
 
   spa.on("answer", function(answerMsg) {
