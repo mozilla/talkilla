@@ -450,6 +450,16 @@ var handlers = {
       _setupSPA(spa);
       spa.connect(spec.credentials);
     });
+  },
+
+  /**
+   * Called to disable an installed SPA.
+   *
+   * @param {String} event.data the name of the SPA to disable.
+   */
+  'talkilla.spa-disable': function(event) {
+    // XXX: For now, we only support one SPA
+    tkWorker.spaDb.drop();
   }
 
 };

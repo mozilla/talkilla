@@ -119,7 +119,7 @@ var SidebarApp = (function(app, $) {
   };
 
   SidebarApp.prototype._onLogoutSuccess = function() {
-    $.removeCookie('nick');
+    this.port.postEvent("talkilla.spa-disable", "TalkillaSPA");
     this.user.clear();
     this.users.reset();
   };
