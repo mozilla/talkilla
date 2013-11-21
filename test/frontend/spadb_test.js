@@ -1,4 +1,6 @@
-/*global chai, app, sinon */
+/*global sinon, chai, SPADB, IDBDatabase, IDBObjectStore */
+/* jshint expr:true */
+
 var expect = chai.expect;
 
 describe("SPADB", function() {
@@ -8,14 +10,16 @@ describe("SPADB", function() {
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
-    spadb = new SPADB();
+    spadb = new SPADB({
+      dbname: "EnabledSPATest"
+    });
   });
 
   afterEach(function(done) {
-    sandbox.restore();
     spadb.drop(function() {
       done();
     });
+    sandbox.restore();
   });
 
 

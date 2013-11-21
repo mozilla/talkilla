@@ -1,11 +1,15 @@
+/* jshint unused:false */
+
 var SPADB = (function() {
+  var ON_BLOCKED_MAX_RETRIES = 10;
+
   function SPADB(options) {
     options = options || {};
     this.options = {
       dbname: options.dbname       || "EnabledSPA",
       storename: options.storename || "specs",
       version: options.version     || 2
-    }
+    };
 
     this.db = undefined;
   }

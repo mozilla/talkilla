@@ -164,17 +164,6 @@ describe("SidebarApp", function() {
         sidebarApp.http.post.restore();
       });
 
-      it("should set the user nick", function() {
-        sandbox.stub(sidebarApp.http, "post", function(path, data, callback) {
-          expect(path).to.equal("/signin");
-          callback(null, JSON.stringify({nick: "foo"}));
-        });
-
-        sidebarApp.user.trigger("signin-requested", "fake assertion");
-
-        expect(sidebarApp.user.get("nick")).to.equal("foo");
-      });
-
       it("should ask the worker to enable the spa", function() {
         var spec = new app.payloads.SPASpec({
           name: "TalkillaSPA",
@@ -274,18 +263,7 @@ describe("SidebarApp", function() {
       var specs;
 
       beforeEach(function() {
-        specs = [
-          new app.payloads.SPASpec({src: "/first-spa", credentials: "cred1"}),
-          new app.payloads.SPASpec({src: "/second-spa", credentials: "cred2"})
-        ];
-        localStorage.setItem("enabled-spa", JSON.stringify(specs));
         sandbox.stub(sidebarApp.services.google, "initialize");
-        // Skipping events triggered in the constructor
-        sidebarApp.appPort.post.reset();
-      });
-
-      afterEach(function() {
-        localStorage.removeItem("enabled-spa");
       });
 
       it("should initialize the google services", function() {
@@ -294,16 +272,22 @@ describe("SidebarApp", function() {
         sinon.assert.calledOnce(sidebarApp.services.google.initialize);
       });
 
-      it("should enable all the SPA", function() {
-        sidebarApp.appPort.trigger("talkilla.worker-ready");
+    });
 
-        sinon.assert.calledTwice(sidebarApp.appPort.post);
-        sinon.assert.calledWith(
-          sidebarApp.appPort.post, "talkilla.spa-enable",
-          specs[0].toJSON());
-        sinon.assert.calledWith(
-          sidebarApp.appPort.post, "talkilla.spa-enable",
-          specs[1].toJSON());
+    describe("social.user-profile", function() {
+
+      it("should set the user's nick", function() {
+        var userData = {
+          iconURL: "fake icon url",
+          portrait: "fake portrait",
+          userName: "foo",
+          displayName: "fake display name",
+          profileURL: "fake profile url"
+        };
+
+        sidebarApp.port.trigger("social.user-profile", userData);
+
+        expect(sidebarApp.user.get("nick")).to.equal("foo");
       });
 
     });
