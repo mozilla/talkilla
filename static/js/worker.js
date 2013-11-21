@@ -1,12 +1,12 @@
-/* global indexedDB, importScripts, SPA, HTTP, ContactsDB, CurrentUsers,
-   loadConfig, payloads  */
+/* global indexedDB, importScripts, SPA, HTTP, ContactsDB, SPADB,
+   CurrentUsers, loadConfig, payloads  */
 /* jshint unused:false */
 
 // XXX: Try to import Backbone only in files that need it (and check
 // if multiple imports cause problems).
 importScripts('../vendor/backbone-events-standalone-0.1.5.js');
 importScripts('/config.js', 'payloads.js', 'addressbook/contactsdb.js');
-importScripts('/js/http.js', 'worker/users.js', 'worker/spa.js');
+importScripts('spadb.js', '/js/http.js', 'worker/users.js', 'worker/spa.js');
 
 var gConfig = loadConfig();
 var browserPort;
@@ -577,6 +577,7 @@ function TkWorker(options) {
   // XXX Move all globals into this constructor and create them here.
   options = options || {};
   this.contactsDb = options.contactsDb;
+  this.spaDb = options.spaDb;
   this.user = options.user;
   this.users = options.users || new CurrentUsers();
   this.ports = options.ports;
@@ -590,6 +591,7 @@ TkWorker.prototype = {
     this.user.reset();
     this.users.reset();
     this.contactsDb.close();
+    this.spaDb.close();
   },
 
   /**
@@ -629,6 +631,23 @@ TkWorker.prototype = {
   updateContactList: function(contacts) {
     this.users.updateContacts(contacts);
     this.ports.broadcastEvent("talkilla.users", this.users.toArray());
+  },
+
+  loadSPA: function(callback) {
+    this.spaDb.all(function(err, specs) {
+      tkWorker.ports.broadcastDebug("loaded specs", specs);
+      specs.forEach(function(specData) {
+        var spec = new payloads.SPASpec(specData);
+
+        // XXX: For now, we only support one SPA.
+        spa = new SPA({src: spec.src});
+        _setupSPA(spa);
+        spa.connect(spec.credentials);
+
+        if (callback)
+          callback();
+      });
+    });
   }
 };
 
@@ -641,6 +660,10 @@ tkWorker = new TkWorker({
   contactsDb: new ContactsDB({
     dbname: "TalkillaContacts",
     storename: "contacts"
+  }),
+  spaDb: new SPADB({
+    dbname: "EnabledSPA",
+    storename: "enabled-spa"
   })
 });
 
