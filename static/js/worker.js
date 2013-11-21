@@ -96,7 +96,7 @@ Conversation.prototype = {
    * Returns true if this conversation window is for the specified
    * peer and the incoming call data is passed to that window.
    *
-   * @param peer The id of the peer to compare with.
+   * @param Object context The incoming conversation context
    */
   handleIncomingCall: function(context) {
     tkWorker.ports.broadcastDebug('handle incoming call', context);

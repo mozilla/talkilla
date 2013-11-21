@@ -517,8 +517,8 @@ describe("ChatApp", function() {
 
           chatApp.call.trigger("initiate-move", moveMsg);
 
-          sinon.assert.called(AppPortStub.postEvent);
-          sinon.assert.calledWith(AppPortStub.postEvent,
+          sinon.assert.called(AppPortStub.post);
+          sinon.assert.calledWith(AppPortStub.post,
                                   "talkilla.initiate-move",
                                   moveMsg.toJSON());
         });
