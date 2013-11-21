@@ -7,12 +7,17 @@ describe("ChatApp", function() {
   "use strict";
 
   var sandbox, chatApp, AppPortStub;
-  var callData = {peer: "bob", peerPresence: "connected"};
+  var callData = {
+    peer: "bob",
+    peerPresence: "connected",
+    capabilities: ["call", "move"]
+  };
   var incomingCallData = {
     callid: 2,
     peer: "alice",
     peerPresence: "connected",
-    offer: {type: "answer", sdp: "fake"}
+    offer: {type: "answer", sdp: "fake"},
+    capabilities: ["call", "move"]
   };
 
   function fakeSDP(str) {
@@ -429,6 +434,32 @@ describe("ChatApp", function() {
     });
 
     describe("Events", function() {
+
+      // XXX: Other event listener tests should be migrated to this formalism.
+      describe("talkilla.conversation-open", function() {
+        it("should set SPA capabilities from outgoing conversation context",
+          function(done) {
+            var chatApp = new ChatApp();
+            chatApp.appPort.on("talkilla.conversation-open", function() {
+              expect(chatApp.call.get("capabilities"))
+                .eql(callData.capabilities);
+              done();
+            }).trigger("talkilla.conversation-open", callData);
+          });
+      });
+
+      describe("talkilla.conversation-incoming", function() {
+        it("should set SPA capabilities from incoming conversation context",
+          function(done) {
+            var chatApp = new ChatApp();
+            chatApp.appPort.on("talkilla.conversation-incoming", function() {
+              expect(chatApp.call.get("capabilities"))
+                .eql(incomingCallData.capabilities);
+              done();
+            }).trigger("talkilla.conversation-incoming", incomingCallData);
+          });
+      });
+
       describe("ice:candidate-ready", function() {
         it("should post a talkilla:ice-candidate message to the worker",
           function() {
@@ -473,6 +504,23 @@ describe("ChatApp", function() {
 
           sinon.assert.called(chatApp.call.hangup);
           sinon.assert.calledWith(chatApp.call.hangup);
+        });
+      });
+
+      describe("initiate-move", function() {
+        it("should post a talkilla.initiate-move message to the worker.",
+          function() {
+          var moveMsg = new payloads.Move({
+            peer: "lloyd",
+            callid: 42
+          });
+
+          chatApp.call.trigger("initiate-move", moveMsg);
+
+          sinon.assert.called(AppPortStub.post);
+          sinon.assert.calledWith(AppPortStub.post,
+                                  "talkilla.initiate-move",
+                                  moveMsg.toJSON());
         });
       });
     });

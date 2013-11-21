@@ -8,7 +8,15 @@ describe("TalkillaSPA", function() {
     sandbox = sinon.sandbox.create();
     port = new SPAPort();
     server = new Server();
-    spa = new TalkillaSPA(port, server);
+    spa = new TalkillaSPA(port, server, {capabilities: ["call", "move"]});
+  });
+
+  describe("#constructor", function() {
+    it("should accept capabilities", function() {
+      expect(spa.capabilities).to.be.a("array");
+      expect(spa.capabilities).eql(["call", "move"]);
+    });
+
   });
 
   describe("#_onServerEvent", function() {
@@ -22,7 +30,8 @@ describe("TalkillaSPA", function() {
       sinon.assert.calledOnce(spa.port.post);
       sinon.assert.calledWithExactly(
         spa.port.post, "connected", {
-          addresses: [{type: "email", value: "foo"}]
+          addresses: [{type: "email", value: "foo"}],
+          capabilities: ["call", "move"]
         }
       );
     });

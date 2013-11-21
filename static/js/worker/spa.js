@@ -1,6 +1,11 @@
 /* global importScripts, BackboneEvents, HTTP, payloads */
 /* jshint unused:false */
 
+/**
+ * SPA container.
+ *
+ * Wraps a SPA in a sub worker.
+ */
 var SPA = (function() {
   function SPA(options) {
     if (!options || !options.src)
@@ -9,6 +14,9 @@ var SPA = (function() {
     this.worker = new Worker(options.src);
     this.worker.onmessage = this._onMessage.bind(this);
     this.http = new HTTP();
+
+    // XXX Possibly expose a configuration object for storing SPA settings.
+    this.capabilities = [];
   }
 
   SPA.prototype = {
@@ -90,6 +98,10 @@ var SPA = (function() {
 
     presenceRequest: function() {
       this._send("presence:request");
+    },
+
+    initiateMove: function(moveMsg) {
+      this._send("initiate-move", moveMsg.toJSON());
     }
   };
 
