@@ -113,6 +113,10 @@ class Driver(WebDriver):
                     .childNodes[0].click();
         """)
 
+    def closeConversationWindow(self):
+        """ Close a conversation Window """
+        self.detectWindowClose("window.close()")
+
     def sendChatMessage(self, message):
         """ Sends a text chat message.
 

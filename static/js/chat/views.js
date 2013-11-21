@@ -548,6 +548,11 @@
       this.call.on('state:to:ongoing state:to:timeout', this.show, this);
 
       this.collection.on('add', this.render, this);
+
+      if (this._firstMessage()) {
+        var $input = this.$('form input[name="message"]');
+        $input.attr('placeholder', 'Type something to start chatting');
+      }
     },
 
     hide: function() {
@@ -567,6 +572,11 @@
         return;
 
       $input.val('');
+
+      if (this._firstMessage()) {
+        $input.removeAttr('placeholder');
+        localStorage.setItem('notFirstMessage', true);
+      }
 
       this.collection.add(new app.models.TextChatEntry({
         nick: this.collection.user.get("nick"),
@@ -592,6 +602,12 @@
       ul.scrollTop = ul.scrollTopMax;
 
       return this;
+    },
+
+    _firstMessage: function() {
+      var notFirstMessage = localStorage.getItem('notFirstMessage');
+      notFirstMessage = notFirstMessage ? JSON.parse(notFirstMessage) : false;
+      return !notFirstMessage;
     }
   });
 })(app, Backbone, _, jQuery);
