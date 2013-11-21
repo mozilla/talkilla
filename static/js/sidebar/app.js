@@ -60,13 +60,6 @@ var SidebarApp = (function(app, $) {
     // XXX Hide or disable the import button at the start and add a callback
     // here to show it when this completes.
     this.services.google.initialize();
-
-    var specs = localStorage.getItem("enabled-spa");
-    specs = specs ? JSON.parse(specs) : [];
-    specs.forEach(function(data) {
-      var spec = new app.payloads.SPASpec(data);
-      this.appPort.postEvent("talkilla.spa-enable", spec.toJSON());
-    }.bind(this));
   };
 
   SidebarApp.prototype._onUserProfile = function(userData) {
@@ -105,11 +98,8 @@ var SidebarApp = (function(app, $) {
       src: "/js/spa/talkilla_worker.js",
       credentials: {email: data.nick}
     });
-    localStorage.setItem("enabled-spa",
-                         JSON.stringify([talkillaSpec.toJSON()]));
 
-    this.user.set({nick: data.nick});
-    this.appPort.post("talkilla.spa-enable", talkillaSpec.toJSON());
+    this.appPort.postEvent("talkilla.spa-enable", talkillaSpec.toJSON());
   };
 
   // XXX a lot of the steps that happen after various types of logouts and

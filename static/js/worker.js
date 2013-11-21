@@ -387,15 +387,11 @@ var handlers = {
    */
   'talkilla.sidebar-ready': function(event) {
     this.postEvent('talkilla.worker-ready');
-  },
-
-  /**
-   * Called when the sidebar request the initial presence state.
-   */
-  'talkilla.presence-request': function(event) {
-    var users = tkWorker.users.toArray();
-    spa.presenceRequest();
-    this.postEvent('talkilla.users', users);
+    if (spa) {
+      tkWorker.user.send();
+      this.postEvent('talkilla.users', tkWorker.users.toArray());
+      this.postEvent("talkilla.spa-connected");
+    }
   },
 
   /**
@@ -448,10 +444,12 @@ var handlers = {
    */
   'talkilla.spa-enable': function(event) {
     var spec = new payloads.SPASpec(event.data);
-    // XXX: For now, we only support one SPA.
-    spa = new SPA({src: spec.src});
-    _setupSPA(spa);
-    spa.connect(spec.credentials);
+    tkWorker.spaDb.add(spec, function(err) {
+      // XXX: For now, we only support one SPA.
+      spa = new SPA({src: spec.src});
+      _setupSPA(spa);
+      spa.connect(spec.credentials);
+    });
   }
 
 };
@@ -667,6 +665,7 @@ tkWorker = new TkWorker({
     storename: "enabled-spa"
   })
 });
+tkWorker.loadSPA();
 
 function onconnect(event) {
   tkWorker.ports.add(new Port(event.ports[0]));
