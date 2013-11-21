@@ -99,7 +99,7 @@ var SidebarApp = (function(app, $) {
       credentials: {email: data.nick}
     });
 
-    this.appPort.postEvent("talkilla.spa-enable", talkillaSpec.toJSON());
+    this.appPort.post("talkilla.spa-enable", talkillaSpec.toJSON());
   };
 
   // XXX a lot of the steps that happen after various types of logouts and
@@ -119,7 +119,7 @@ var SidebarApp = (function(app, $) {
   };
 
   SidebarApp.prototype._onLogoutSuccess = function() {
-    this.port.postEvent("talkilla.spa-disable", "TalkillaSPA");
+    this.appPort.post("talkilla.spa-disable", "TalkillaSPA");
     this.user.clear();
     this.users.reset();
   };

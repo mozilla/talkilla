@@ -260,8 +260,6 @@ describe("SidebarApp", function() {
 
     describe("talkilla.worker-ready", function() {
 
-      var specs;
-
       beforeEach(function() {
         sandbox.stub(sidebarApp.services.google, "initialize");
       });
@@ -285,7 +283,7 @@ describe("SidebarApp", function() {
           profileURL: "fake profile url"
         };
 
-        sidebarApp.port.trigger("social.user-profile", userData);
+        sidebarApp.appPort.trigger("social.user-profile", userData);
 
         expect(sidebarApp.user.get("nick")).to.equal("foo");
       });
