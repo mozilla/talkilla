@@ -201,6 +201,13 @@
 
       var button = this.$('.btn-speaker-mute');
       button.toggleClass('active');
+
+      var anchor = button.find('a');
+      if (button.hasClass('active'))
+        anchor.attr('title', "Unmute peer's audio");
+      else
+        anchor.attr('title', "Mute peer's audio");
+
       this.media.setMuteState('remote', 'audio', button.hasClass('active'));
     },
 
