@@ -30,7 +30,7 @@ var tkWorker;
  *
  * @param {SPA} spa: the SPA wrapper instance.
  * @param {String} peer: the Peer for the conversation
- * @param {payloads.offer} offer: Optional, the offer message for an
+ * @param {payloads.Offer} offer: Optional, the offer message for an
  *                                incoming conversation
  *
  * context properties:
