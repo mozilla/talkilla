@@ -47,9 +47,6 @@ var SPA = (function() {
     },
 
     _send: function(topic, data) {
-      // TODO: check the type of data and if it's a payload (like
-      // payloads.Offer) call toJSON on it. The SPA interface should
-      // not send custom objects.
       this.worker.postMessage({topic: topic, data: data});
     },
 
@@ -64,7 +61,7 @@ var SPA = (function() {
      * call.
      */
     callOffer: function(offerMsg) {
-      this._send("offer", offerMsg.toJSON());
+      this._send("offer", offerMsg);
     },
 
     /**
@@ -74,7 +71,7 @@ var SPA = (function() {
      * a call.
      */
     callAnswer: function(answerMsg) {
-      this._send("answer", answerMsg.toJSON());
+      this._send("answer", answerMsg);
     },
 
     /**
@@ -84,7 +81,7 @@ var SPA = (function() {
      * call.
      */
     callHangup: function(hangupMsg) {
-      this._send("hangup", hangupMsg.toJSON());
+      this._send("hangup", hangupMsg);
     },
 
     /**
@@ -94,7 +91,7 @@ var SPA = (function() {
      * payload to update the available ICE candidates.
      */
     iceCandidate: function(iceCandidateMsg) {
-      this._send("ice:candidate", iceCandidateMsg.toJSON());
+      this._send("ice:candidate", iceCandidateMsg);
     },
 
     presenceRequest: function() {

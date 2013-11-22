@@ -28,19 +28,25 @@ var tkWorker;
  * a single conversation window, and these will need to be changed
  * at the appropriate time.
  *
- * @param {Object|undefined}  context  Initial context
  * @param {SPA} spa: the SPA wrapper instance.
+ * @param {String} peer: the Peer for the conversation
+ * @param {payloads.Offer} offer: Optional, the offer message for an
+ *                                incoming conversation
  *
  * context properties:
  *
  * - {String} peer: The id of the peer this conversation window is for.
  * - {Object} offer: optional data for incoming calls.
  */
-function Conversation(context, spa) {
-  this.context = context;
+function Conversation(spa, peer, offer) {
+  this.peer = peer;
   this.port = undefined;
+  this.capabilities = spa.capabilities;
+
+  // offer and messageQueue are temporary stores
+  // until the window has been opened.
+  this.offer = offer;
   this.messageQueue = [];
-  this.capabilities = this.context.capabilities = spa.capabilities;
 
   browserPort.postEvent('social.request-chat', 'chat.html');
 }
@@ -55,34 +61,33 @@ Conversation.prototype = {
   windowOpened: function(port) {
     this.port = port;
 
-    if (tkWorker.user.name) {
-      // If there's currenty a logged in user,
-      port.postEvent('talkilla.login-success', {
-        username: tkWorker.user.name
-      });
-      this.context.user = tkWorker.user.name;
-    }
-
-    tkWorker.contactsDb.add({username: this.context.peer}, function(err) {
+    // For collected contacts
+    tkWorker.contactsDb.add({username: this.peer}, function(err) {
       if (err)
         tkWorker.ports.broadcastError(err);
     });
 
-    // retrieve peer presence information
-    this.context.peerPresence = tkWorker.users.getPresence(this.context.peer);
+    var msg = {
+      capabilities: this.capabilities,
+      peer: this.peer,
+      peerPresence: tkWorker.users.getPresence(this.peer),
+      user: tkWorker.user.name
+    };
 
-    if (this.context.offer) {
+    if (this.offer) {
       // We don't want to send a duplicate incoming message if one has
       // already been queued.
       var msgQueued = this.messageQueue.some(function(message) {
         return message.topic === "talkilla.conversation-incoming";
       });
 
-      if (!msgQueued)
-        this.port.postEvent("talkilla.conversation-incoming", this.context);
+      if (!msgQueued) {
+        msg.offer = this.offer;
+        this.port.postEvent("talkilla.conversation-incoming", msg);
+      }
     }
     else
-      this.port.postEvent("talkilla.conversation-open", this.context);
+      this.port.postEvent("talkilla.conversation-open", msg);
 
     // Now send any queued messages
     this.messageQueue.forEach(function(message) {
@@ -96,25 +101,22 @@ Conversation.prototype = {
    * Returns true if this conversation window is for the specified
    * peer and the incoming call data is passed to that window.
    *
-   * @param Object context The incoming conversation context
+   * @param {payloads.offer} offer: the offer message for an
+   *                                incoming conversation
    */
-  handleIncomingCall: function(context) {
-    tkWorker.ports.broadcastDebug('handle incoming call', context);
+  handleIncomingCall: function(offer) {
+    tkWorker.ports.broadcastDebug('handle incoming call', offer);
 
-    if (this.context.peer !== context.peer)
+    if (this.peer !== offer.peer)
       return false;
 
-    if (tkWorker.user)
-      context.user = tkWorker.user.name;
-
-    // XXX We should merge the context with the existing one.
-    this.context = context;
-    this.context.capabilities = this.capabilities;
-
-    // retrieve peer presence information
-    this.context.peerPresence = tkWorker.users.getPresence(this.context.peer);
-
-    this._sendMessage("talkilla.conversation-incoming", this.context);
+    this._sendMessage("talkilla.conversation-incoming", {
+      capabilities: this.capabilities,
+      peer: this.peer,
+      peerPresence: tkWorker.users.getPresence(this.peer),
+      offer: offer,
+      user: tkWorker.user.name
+    });
 
     return true;
   },
@@ -313,7 +315,7 @@ function _setupSPA(spa) {
     if (currentConversation) {
       // If the currentConversation window can handle the incoming call
       // data (e.g. peer matches) then just handle it.
-      if (currentConversation.handleIncomingCall(offerMsg.toJSON()))
+      if (currentConversation.handleIncomingCall(offerMsg))
         return;
 
       // XXX currently, we can't handle more than one conversation
@@ -321,21 +323,21 @@ function _setupSPA(spa) {
       return;
     }
 
-    currentConversation = new Conversation(offerMsg.toJSON(), spa);
+    currentConversation = new Conversation(spa, offerMsg.peer, offerMsg);
   });
 
   spa.on("answer", function(answerMsg) {
-    currentConversation.callAccepted(answerMsg.toJSON());
+    currentConversation.callAccepted(answerMsg);
   });
 
   spa.on("hangup", function(hangupMsg) {
     if (currentConversation)
-      currentConversation.callHangup(hangupMsg.toJSON());
+      currentConversation.callHangup(hangupMsg);
   });
 
   spa.on("ice:candidate", function(iceCandidateMsg) {
     if (currentConversation)
-      currentConversation.iceCandidate(iceCandidateMsg.toJSON());
+      currentConversation.iceCandidate(iceCandidateMsg);
   });
 
   spa.on("move-accept", function(moveAcceptMsg) {
@@ -387,9 +389,8 @@ var handlers = {
 
   'talkilla.conversation-open': function(event) {
     // XXX Temporarily work around to only allow one call at a time.
-    var offerMsg = event.data;
     if (!currentConversation)
-      currentConversation = new Conversation(offerMsg, spa);
+      currentConversation = new Conversation(spa, event.data.peer);
   },
 
   'talkilla.chat-window-ready': function() {

@@ -97,7 +97,6 @@ describe("SidebarApp", function() {
   describe("#openConversation", function() {
     it("should post the talkilla.conversation-open event", function() {
       var sidebarApp = new SidebarApp();
-      sidebarApp.user.set("nick", "toto");
 
       sidebarApp.openConversation("jb");
 
@@ -105,7 +104,7 @@ describe("SidebarApp", function() {
                           "talkilla.conversation-open");
       sinon.assert.calledWithExactly(sidebarApp.appPort.post,
                                      "talkilla.conversation-open",
-                                     {user: "toto", peer: "jb"});
+                                     {peer: "jb"});
     });
   });
 
@@ -200,7 +199,7 @@ describe("SidebarApp", function() {
 
         sinon.assert.calledOnce(sidebarApp.appPort.post);
         sinon.assert.calledWithExactly(
-          sidebarApp.appPort.post, "talkilla.spa-enable", spec.toJSON());
+          sidebarApp.appPort.post, "talkilla.spa-enable", spec);
       });
 
       it("should logout the user if the signin failed", function() {
@@ -309,10 +308,10 @@ describe("SidebarApp", function() {
         sinon.assert.calledTwice(sidebarApp.appPort.post);
         sinon.assert.calledWith(
           sidebarApp.appPort.post, "talkilla.spa-enable",
-          specs[0].toJSON());
+          specs[0]);
         sinon.assert.calledWith(
           sidebarApp.appPort.post, "talkilla.spa-enable",
-          specs[1].toJSON());
+          specs[1]);
       });
 
     });
