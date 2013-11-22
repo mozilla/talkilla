@@ -84,16 +84,31 @@ body {
   margin: 0;
 }
 
-#call-controls .controls li {
+#call-controls .controls > li {
   border-right: 1px solid #d6d6d6;
   float: left;
 }
 
-#call-controls .controls li a {
+#call-controls .controls > li > a {
   display: block;
   height: 16px;
   width: 16px;
   margin: 4px;
+}
+
+/* override some bootstrap defaults to make it fit local style */
+.dropdown-menu {
+  border-radius: 0;
+  padding: 5px 1ch; /* add left and right padding */
+  background-clip: border-box;
+
+  margin: -2px 0 0; /* occlude a bit of the menu bar to make 3d-look better */
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2); /* make the 3-d look subtler */
+
+  border-right: 0; /* make this border appear collapsed with the sidebar edge */
+
+  font-size: 90%;
+  min-width: 0;
 }
 
 .btn-video a {
@@ -127,15 +142,23 @@ body {
 #call-controls .controls li.btn-gear {
   float: right;
   border-left: 1px solid #D6D6D6;
+  border-right: none;    /* XXX get for free?  or is this unnecessary */
+
+  z-index: 1001; /* in front of .dropdown-menu z-index */
+}
+
+#call-controls .controls li.btn-gear > ul > li {
   border-right: none;
 }
 
-.btn-gear a {
+.btn-gear > a {
   background: url(../img/gear_default.png);
+  margin-bottom: 3px;
 }
 
-.btn-gear a:active {
+.btn-gear > a:active {
   background: url(../img/gear_clicked.png);
+  margin-bottom: 3px;
 }
 
 /* Notifications */
