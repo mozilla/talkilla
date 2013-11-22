@@ -191,8 +191,6 @@ describe('handlers', function() {
 
   });
 
-  });
-
   describe("talkilla.initiate-move", function() {
     it("should notify the SPA a call moving is initiated", function() {
       sandbox.stub(spa, "initiateMove");
