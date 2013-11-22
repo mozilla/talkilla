@@ -523,6 +523,33 @@ describe("ChatApp", function() {
                                   moveMsg.toJSON());
         });
       });
+
+      describe("talkilla.move-accept", function() {
+        it("should hangup current call if matching its callid", function() {
+          sandbox.stub(chatApp.call, "hangup");
+          chatApp.call.callid = 42;
+
+          chatApp.appPort.trigger("talkilla.move-accept", {
+            peer: "lloyd",
+            callid: 42
+          });
+
+          sinon.assert.calledOnce(chatApp.call.hangup);
+          sinon.assert.calledWithExactly(chatApp.call.hangup, false);
+        });
+
+        it("shouldn't hangup current call if callid doesn't match", function() {
+          sandbox.stub(chatApp.call, "hangup");
+          chatApp.call.callid = 1337;
+
+          chatApp.appPort.trigger("talkilla.move-accept", {
+            peer: "lloyd",
+            callid: 42
+          });
+
+          sinon.assert.notCalled(chatApp.call.hangup);
+        });
+      });
     });
 
     describe("Object events listeners", function() {
