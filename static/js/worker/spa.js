@@ -25,7 +25,7 @@ var SPA = (function() {
       var topic = event.data.topic;
       var data = event.data.data;
 
-      var mapping = {
+      var topicPayloads = {
         "offer": payloads.Offer,
         "answer": payloads.Answer,
         "hangup": payloads.Hangup,
@@ -37,9 +37,9 @@ var SPA = (function() {
         data = data.shift();
         this.trigger("message", type, data);
         this.trigger("message:" + type, data);
-      } else if (topic in mapping) {
-        var Constructor = mapping[topic];
-        this.trigger(topic, new Constructor(data));
+      } else if (topic in topicPayloads) {
+        var Payload = topicPayloads[topic];
+        this.trigger(topic, new Payload(data));
       } else {
         this.trigger(topic, data);
       }
