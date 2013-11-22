@@ -1,6 +1,11 @@
 /* global importScripts, BackboneEvents, HTTP, payloads */
 /* jshint unused:false */
 
+/**
+ * SPA container.
+ *
+ * Wraps a SPA in a sub worker.
+ */
 var SPA = (function() {
   function SPA(options) {
     if (!options || !options.src)
@@ -9,6 +14,9 @@ var SPA = (function() {
     this.worker = new Worker(options.src);
     this.worker.onmessage = this._onMessage.bind(this);
     this.http = new HTTP();
+
+    // XXX Possibly expose a configuration object for storing SPA settings.
+    this.capabilities = [];
   }
 
   SPA.prototype = {
@@ -17,11 +25,12 @@ var SPA = (function() {
       var topic = event.data.topic;
       var data = event.data.data;
 
-      var mapping = {
+      var topicPayloads = {
         "offer": payloads.Offer,
         "answer": payloads.Answer,
         "hangup": payloads.Hangup,
-        "ice:candidate": payloads.IceCandidate
+        "ice:candidate": payloads.IceCandidate,
+        "move-accept": payloads.MoveAccept
       };
 
       if (topic === "message") {
@@ -29,9 +38,9 @@ var SPA = (function() {
         data = data.shift();
         this.trigger("message", type, data);
         this.trigger("message:" + type, data);
-      } else if (topic in mapping) {
-        var Constructor = mapping[topic];
-        this.trigger(topic, new Constructor(data));
+      } else if (topic in topicPayloads) {
+        var Payload = topicPayloads[topic];
+        this.trigger(topic, new Payload(data));
       } else {
         this.trigger(topic, data);
       }
@@ -86,6 +95,10 @@ var SPA = (function() {
      */
     iceCandidate: function(iceCandidateMsg) {
       this._send("ice:candidate", iceCandidateMsg.toJSON());
+    },
+
+    initiateMove: function(moveMsg) {
+      this._send("initiate-move", moveMsg.toJSON());
     }
   };
 

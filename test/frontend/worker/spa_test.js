@@ -5,15 +5,18 @@ describe("SPA", function() {
   var sandbox, worker, spa;
 
   beforeEach(function() {
+    // Stub the js Worker API so we don't actually instanciate one.
     worker = {postMessage: sinon.spy()};
     sandbox = sinon.sandbox.create();
     sandbox.stub(window, "Worker").returns(worker);
+
     spa = new SPA({src: "example.com"});
     sandbox.stub(spa.http, "post");
   });
 
   afterEach(function() {
     sandbox.restore();
+    spa = undefined;
   });
 
   describe("constructor", function() {
@@ -26,6 +29,10 @@ describe("SPA", function() {
     it("should throw an error if the src option is missing", function() {
       function shouldExplode() { new SPA(); }
       expect(shouldExplode).to.Throw(Error, /missing parameter: src/);
+    });
+
+    it("should define default capabilities", function() {
+      expect(spa.capabilities).eql([]);
     });
 
   });
@@ -145,6 +152,19 @@ describe("SPA", function() {
         }
       });
     });
+  });
 
+  describe("#initiateMove", function() {
+    it("should send call move information to the server", function() {
+      var moveMsg = new payloads.Move({peer: "jean-claude", callid: 42});
+
+      spa.initiateMove(moveMsg);
+
+      sinon.assert.calledOnce(spa.worker.postMessage);
+      sinon.assert.calledWithExactly(spa.worker.postMessage, {
+        topic: "initiate-move",
+        data: moveMsg.toJSON()
+      });
+    });
   });
 });

@@ -174,7 +174,7 @@ describe("SPA events", function() {
           offer: "fake offer",
           peer: "alice"
         });
-        currentConversation = new Conversation({peer: "florian"});
+        currentConversation = new Conversation({peer: "florian"}, spa);
         sandbox.stub(currentConversation, "handleIncomingCall");
 
         spa.trigger("offer", offerMsg);
@@ -245,6 +245,23 @@ describe("SPA events", function() {
       sinon.assert.calledOnce(currentConversation.iceCandidate);
       sinon.assert.calledWithExactly(
         currentConversation.iceCandidate, iceCandidateMsg.toJSON());
+    });
+  });
+
+  describe("`move-accept` event", function() {
+    it("should broadcast a `talkilla.move-accept` event", function() {
+      sandbox.stub(tkWorker.ports, "broadcastEvent");
+      var moveAcceptMsg = new payloads.MoveAccept({
+        peer: "frank",
+        callid: 42
+      });
+
+      spa.trigger("move-accept", moveAcceptMsg);
+
+      sinon.assert.calledOnce(tkWorker.ports.broadcastEvent);
+      sinon.assert.calledWithExactly(tkWorker.ports.broadcastEvent,
+                                     "talkilla.move-accept",
+                                     moveAcceptMsg.toJSON());
     });
   });
 

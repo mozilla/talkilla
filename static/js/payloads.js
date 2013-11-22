@@ -94,6 +94,50 @@ var payloads = (function() {
   };
 
   /**
+   * Move payload.
+   *
+   * @param {Object} data
+   *
+   * data attributes:
+   *
+   * - {Integer} callid, the id of the call being initiated
+   * - {String} peer, the user to call
+   *
+   */
+  function Move(data) {
+    this.callid = data.callid;
+    this.peer = data.peer;
+  }
+
+  Move.prototype = {
+    toJSON: function() {
+      return {peer: this.peer, callid: this.callid};
+    }
+  };
+
+  /**
+   * Move accept payload.
+   *
+   * @param {Object} data
+   *
+   * data attributes:
+   *
+   * - {Integer} callid, the id of the call being initiated
+   * - {String} peer, the user to call
+   *
+   */
+  function MoveAccept(data) {
+    this.callid = data.callid;
+    this.peer = data.peer;
+  }
+
+  MoveAccept.prototype = {
+    toJSON: function() {
+      return {peer: this.peer, callid: this.callid};
+    }
+  };
+
+  /**
    * IceCandidate payload.
    *
    * @param {Object} data
@@ -150,6 +194,8 @@ var payloads = (function() {
     Answer: Answer,
     Hangup: Hangup,
     IceCandidate: IceCandidate,
-    SPASpec: SPASpec
+    SPASpec: SPASpec,
+    Move: Move,
+    MoveAccept: MoveAccept
   };
 })();

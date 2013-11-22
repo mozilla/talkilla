@@ -140,7 +140,8 @@
       'click .btn-audio a': 'audioCall',
       'click .btn-hangup a': 'hangup',
       'click .btn-microphone-mute a': 'outgoingAudioToggle',
-      'click .btn-speaker-mute a': 'incomingAudioToggle'
+      'click .btn-speaker-mute a': 'incomingAudioToggle',
+      'click .btn-call-move a': 'initiateCallMove'
     },
 
     initialize: function(options) {
@@ -157,10 +158,8 @@
 
       this.call.on('state:to:pending state:to:incoming',
                    this._callPending, this);
-      this.call.on('state:to:ongoing',
-                   this._callOngoing, this);
-      this.call.on('state:to:terminated',
-                   this._callInactive, this);
+      this.call.on('state:to:ongoing', this._callOngoing, this);
+      this.call.on('state:to:terminated', this._callInactive, this);
     },
 
     videoCall: function(event) {
@@ -202,7 +201,21 @@
 
       var button = this.$('.btn-speaker-mute');
       button.toggleClass('active');
+
+      var anchor = button.find('a');
+      if (button.hasClass('active'))
+        anchor.attr('title', "Unmute peer's audio");
+      else
+        anchor.attr('title', "Mute peer's audio");
+
       this.media.setMuteState('remote', 'audio', button.hasClass('active'));
+    },
+
+    initiateCallMove: function(event){
+      if (event)
+        event.preventDefault();
+      
+      this.call.move();
     },
 
     _callPending: function() {
@@ -216,6 +229,10 @@
       this.$('.btn-hangup').show();
       this.$('.btn-microphone-mute').show();
       this.$('.btn-speaker-mute').show();
+
+      // If the SPA supports it, display the call-move button.
+      if (this.call.supports("move"))
+        this.$('.btn-call-move').show();
     },
 
     _callInactive: function() {
@@ -225,6 +242,7 @@
       this.$('.btn-hangup').hide();
       this.$('.btn-microphone-mute').hide();
       this.$('.btn-speaker-mute').hide();
+      this.$('.btn-call-move').hide();
     }
   });
 

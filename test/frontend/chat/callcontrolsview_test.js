@@ -8,11 +8,12 @@ describe("Call Controls View", function() {
 
   beforeEach(function() {
     el = $('<ul>' +
-           '<li class="btn-video"><a href="#"></a></li>' +
-           '<li class="btn-audio"><a href="#"></a></li>' +
-           '<li class="btn-hangup"><a href="#"></a></li>' +
-           '<li class="btn-microphone-mute"><a href="#"></a></li>' +
-           '<li class="btn-speaker-mute"><a href="#"></a></li>' +
+           '  <li class="btn-video"><a href="#"></a></li>' +
+           '  <li class="btn-audio"><a href="#"></a></li>' +
+           '  <li class="btn-hangup"><a href="#"></a></li>' +
+           '  <li class="btn-microphone-mute"><a href="#"></a></li>' +
+           '  <li class="btn-speaker-mute"><a href="#"></a></li>' +
+           '  <li class="btn-call-move"><a href="#"></a></li>' +
            '</ul>');
     // Just to hide it from the screen.
     $(el).hide();
@@ -261,11 +262,11 @@ describe("Call Controls View", function() {
       });
 
       it('should toggle message on the button', function() {
-        var oldMessage = $('.btn-microphone-mute').find('a').attr('title');
+        var aElement = $('.btn-microphone-mute a');
+        var oldMessage = aElement.attr('title');
         callControlsView.outgoingAudioToggle();
 
-        expect($('.btn-microphone-mute').find('a').attr('title'))
-          .to.not.equal(oldMessage);
+        expect(aElement.attr('title')).to.not.equal(oldMessage);
       });
     });
 
@@ -287,6 +288,24 @@ describe("Call Controls View", function() {
         sinon.assert.calledWithExactly(media.setMuteState,
                                        'remote', 'audio', true);
       });
+
+      it('should toggle message on the button', function() {
+        var aElement = $('.btn-speaker-mute a');
+        var oldMessage = aElement.attr('title');
+        callControlsView.incomingAudioToggle();
+
+        expect(aElement.attr('title')).to.not.equal(oldMessage);
+      });
+    });
+
+    describe("#initiateCallMove", function() {
+      it('should move current call', function() {
+        sandbox.stub(call, "move");
+
+        callControlsView.initiateCallMove();
+
+        sinon.assert.calledOnce(call.move);
+      });
     });
   });
 
@@ -294,9 +313,10 @@ describe("Call Controls View", function() {
     var callControlsView;
 
     beforeEach(function() {
-      sandbox.stub(app.views.CallControlsView.prototype, "initialize");
       callControlsView = new app.views.CallControlsView({
-        el: el
+        el: el,
+        call: call,
+        media: media
       });
     });
 
@@ -382,6 +402,37 @@ describe("Call Controls View", function() {
 
         expect(callControlsView.$el.is(":visible")).to.be.equal(false);
       });
+    });
+
+    describe("state:to:ongoing", function() {
+      it("should show a call move button if capability is supported",
+        function() {
+          var $button = callControlsView.$(".btn-call-move").hide();
+
+          call.set("capabilities", ["move"]).trigger("state:to:ongoing");
+
+          expect($button.is(":visible")).eql(true);
+        });
+
+      it("shouldn't show a call move button if the capability isn't supported",
+        function() {
+          var $button = callControlsView.$(".btn-call-move").hide();
+
+          call.set("capabilities", []).trigger("state:to:ongoing");
+
+          expect($button.is(":visible")).eql(false);
+        });
+    });
+
+    describe("state:to:terminated", function() {
+      it("should show a call move button when the call is terminated",
+        function() {
+          var $button = callControlsView.$(".btn-call-move").show();
+
+          call.trigger("state:to:terminated");
+
+          expect($button.is(":visible")).eql(false);
+        });
     });
   });
 

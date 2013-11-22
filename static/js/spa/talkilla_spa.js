@@ -2,10 +2,11 @@
 /* jshint unused:false */
 
 var TalkillaSPA = (function() {
-  function TalkillaSPA(port, server) {
+  function TalkillaSPA(port, server, options) {
     this.port = port;
     this.server = server;
     this.credentials = undefined;
+    this.capabilities = options && options.capabilities || ["call"];
 
     this.port.on("connect", this._onConnect.bind(this));
 
@@ -28,7 +29,8 @@ var TalkillaSPA = (function() {
         this.port.post("reauth-needed");
       else if (type === "connected") {
         this.port.post(type, {
-          addresses: [{type: "email", value: this.email}]
+          addresses: [{type: "email", value: this.email}],
+          capabilities: this.capabilities
         });
         this.server.presenceRequest();
       }

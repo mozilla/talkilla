@@ -91,6 +91,7 @@ var ChatApp = (function(app, $, Backbone, _) {
     this.appPort.on('talkilla.ice-candidate', this._onIceCandidate, this);
     this.appPort.on('talkilla.user-joined', this._onUserJoined, this);
     this.appPort.on('talkilla.user-left', this._onUserLeft, this);
+    this.appPort.on('talkilla.move-accept', this._onMoveAccept, this);
 
     // Outgoing events
     this.call.on('send-offer', this._onSendOffer, this);
@@ -100,6 +101,7 @@ var ChatApp = (function(app, $, Backbone, _) {
     this.call.on('send-timeout', this._onSendTimeout, this);
     this.call.on('send-hangup', this._onCallHangup, this);
     this.call.on('transition:accept', this._onCallAccepted, this);
+    this.call.on('initiate-move', this._onInitiateMove, this);
     // As we can get ice candidates for calls or text chats, just get this
     // straight from the media model.
     this.webrtc.on('ice:candidate-ready', this._onIceCandidateReady, this);
@@ -113,16 +115,27 @@ var ChatApp = (function(app, $, Backbone, _) {
   }
 
   // Outgoing calls
-  ChatApp.prototype._onConversationOpen = function(data) {
-    this.user.set({nick: data.user});
+
+  /**
+   * Listens to the `talkilla.conversation-open` event.
+   * @param {Object} context Conversation context object.
+   */
+  ChatApp.prototype._onConversationOpen = function(context) {
+    this.call.set({capabilities: context.capabilities});
+    this.user.set({nick: context.user});
     this.peer
-        .set({nick: data.peer, presence: data.peerPresence}, {silent: true})
+        .set({nick: context.peer, presence: context.peerPresence},
+             {silent: true})
         .trigger('change:nick', this.peer) // force triggering change event
         .trigger('change:presence', this.peer);
   };
 
   ChatApp.prototype._onCallAccepted = function() {
     this.audioLibrary.stop('incoming');
+  };
+
+  ChatApp.prototype._onInitiateMove = function(moveMsg) {
+    this.appPort.post('talkilla.initiate-move', moveMsg.toJSON());
   };
 
   ChatApp.prototype._onCallEstablishment = function(data) {
@@ -135,18 +148,19 @@ var ChatApp = (function(app, $, Backbone, _) {
   };
 
   // Incoming calls
-  ChatApp.prototype._onIncomingConversation = function(data) {
-    this.user.set({nick: data.user});
+  ChatApp.prototype._onIncomingConversation = function(context) {
+    this.call.set({capabilities: context.capabilities});
+    this.user.set({nick: context.user});
 
-    if (!data.upgrade)
-      this.peer.set({nick: data.peer, presence: data.peerPresence});
+    if (!context.upgrade)
+      this.peer.set({nick: context.peer, presence: context.peerPresence});
 
     // incoming text chat conversation
-    if (data.textChat)
-      return this.textChat.answer(data.offer);
+    if (context.textChat)
+      return this.textChat.answer(context.offer);
 
     // incoming video/audio call
-    this.call.incoming(new app.payloads.Offer(data));
+    this.call.incoming(new app.payloads.Offer(context));
     this.audioLibrary.play('incoming');
   };
 
@@ -192,6 +206,11 @@ var ChatApp = (function(app, $, Backbone, _) {
       candidate: candidate
     });
     this.appPort.post('talkilla.ice-candidate', iceCandidateMsg.toJSON());
+  };
+
+  ChatApp.prototype._onMoveAccept = function(msg) {
+    if (msg.callid === this.call.callid)
+      this.call.hangup(false);
   };
 
   // Call Hangup
