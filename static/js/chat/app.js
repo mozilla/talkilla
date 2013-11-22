@@ -120,11 +120,11 @@ var ChatApp = (function(app, $, Backbone, _) {
    * Listens to the `talkilla.conversation-open` event.
    * @param {Object} context Conversation context object.
    */
-  ChatApp.prototype._onConversationOpen = function(context) {
-    this.call.set({capabilities: context.capabilities});
-    this.user.set({nick: context.user});
+  ChatApp.prototype._onConversationOpen = function(msg) {
+    this.call.set({capabilities: msg.capabilities});
+    this.user.set({nick: msg.user});
     this.peer
-        .set({nick: context.peer, presence: context.peerPresence},
+        .set({nick: msg.peer, presence: msg.peerPresence},
              {silent: true})
         .trigger('change:nick', this.peer) // force triggering change event
         .trigger('change:presence', this.peer);
@@ -148,19 +148,19 @@ var ChatApp = (function(app, $, Backbone, _) {
   };
 
   // Incoming calls
-  ChatApp.prototype._onIncomingConversation = function(context) {
-    this.call.set({capabilities: context.capabilities});
-    this.user.set({nick: context.user});
+  ChatApp.prototype._onIncomingConversation = function(msg) {
+    this.call.set({capabilities: msg.capabilities});
+    this.user.set({nick: msg.user});
 
-    if (!context.upgrade)
-      this.peer.set({nick: context.peer, presence: context.peerPresence});
+    if (!msg.offer.upgrade)
+      this.peer.set({nick: msg.peer, presence: msg.peerPresence});
 
     // incoming text chat conversation
-    if (context.textChat)
-      return this.textChat.answer(context.offer);
+    if (msg.offer.textChat)
+      return this.textChat.answer(msg.offer.offer);
 
     // incoming video/audio call
-    this.call.incoming(new app.payloads.Offer(context));
+    this.call.incoming(new app.payloads.Offer(msg.offer));
     this.audioLibrary.play('incoming');
   };
 
@@ -174,7 +174,7 @@ var ChatApp = (function(app, $, Backbone, _) {
    * @param {payloads.Offer} offerMsg the offer to send to initiate the call.
    */
   ChatApp.prototype._onSendOffer = function(offerMsg) {
-    this.appPort.post('talkilla.call-offer', offerMsg.toJSON());
+    this.appPort.post('talkilla.call-offer', offerMsg);
   };
 
   /**
@@ -183,7 +183,7 @@ var ChatApp = (function(app, $, Backbone, _) {
    * @param {payloads.Answer} answerMsg the answer to send to accept the call.
    */
   ChatApp.prototype._onSendAnswer = function(answerMsg) {
-    this.appPort.post('talkilla.call-answer', answerMsg.toJSON());
+    this.appPort.post('talkilla.call-answer', answerMsg);
   };
 
   /**
@@ -197,15 +197,20 @@ var ChatApp = (function(app, $, Backbone, _) {
     // Let the peer know that the call offer is no longer valid.
     // For this, we send call-hangup, the same as in the case where
     // the user decides to abandon the call attempt.
-    this.appPort.post('talkilla.call-hangup', hangupMsg.toJSON());
+    this.appPort.post('talkilla.call-hangup', hangupMsg);
   };
 
+  /**
+   * Called to send an ice candidate to the peer.
+   *
+   * @param {mozRTCIceCandidate} The ICE Candidate to send.
+   */
   ChatApp.prototype._onIceCandidateReady = function(candidate) {
     var iceCandidateMsg = new app.payloads.IceCandidate({
       peer: this.peer.get("nick"),
       candidate: candidate
     });
-    this.appPort.post('talkilla.ice-candidate', iceCandidateMsg.toJSON());
+    this.appPort.post('talkilla.ice-candidate', iceCandidateMsg);
   };
 
   ChatApp.prototype._onMoveAccept = function(msg) {
@@ -233,7 +238,7 @@ var ChatApp = (function(app, $, Backbone, _) {
    */
   ChatApp.prototype._onCallHangup = function(hangupMsg) {
     // Send a message as this is this user's call hangup
-    this.appPort.post('talkilla.call-hangup', hangupMsg.toJSON());
+    this.appPort.post('talkilla.call-hangup', hangupMsg);
     window.close();
   };
 

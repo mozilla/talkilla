@@ -81,7 +81,6 @@ var SidebarApp = (function(app, $) {
 
   SidebarApp.prototype.openConversation = function(nick) {
     this.appPort.post('talkilla.conversation-open', {
-      user: this.user.get('nick'),
       peer: nick
     });
   };
@@ -99,7 +98,7 @@ var SidebarApp = (function(app, $) {
       credentials: {email: data.nick}
     });
 
-    this.appPort.post("talkilla.spa-enable", talkillaSpec.toJSON());
+    this.appPort.post("talkilla.spa-enable", talkillaSpec);
   };
 
   // XXX a lot of the steps that happen after various types of logouts and

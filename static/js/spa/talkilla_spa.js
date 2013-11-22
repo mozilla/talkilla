@@ -43,14 +43,14 @@ var TalkillaSPA = (function() {
       // documented SPA interface. We have to update the server to
       // reflect these events.
       if (type === "offer")
-        this.port.post("offer", (new payloads.Offer(event)).toJSON());
+        this.port.post("offer", (new payloads.Offer(event)));
       else if (type === "answer")
-        this.port.post("answer", (new payloads.Answer(event)).toJSON());
+        this.port.post("answer", (new payloads.Answer(event)));
       else if (type === "hangup")
-        this.port.post("hangup", (new payloads.Hangup(event)).toJSON());
+        this.port.post("hangup", (new payloads.Hangup(event)));
       else if (type === "ice:candidate")
         this.port.post("ice:candidate",
-                       (new payloads.IceCandidate(event)).toJSON());
+                       (new payloads.IceCandidate(event)));
       else
         this.port.post("message", [type, event]);
     },
