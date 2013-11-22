@@ -61,7 +61,7 @@ var SPADB = (function() {
   };
 
   /**
-   * Adds a new contact to the database. Automatically opens the
+   * Adds a new SPA to the database. Automatically opens the
    * database connection if needed.
    *
    * @param {payloads.SPASpec} record: SPASpec record
@@ -79,14 +79,14 @@ var SPADB = (function() {
       try {
         request = this._getStore("readwrite").add(record);
       } catch (err) {
-        return cb.call(this, err && err.message || "Unable to collect contact");
+        return cb.call(this, err && err.message || "Unable to collect SPA");
       }
       request.onsuccess = function() {
         cb.call(this, null, record);
       }.bind(this);
       request.onerror = function(event) {
         var err = event.target.error;
-        // ignore constraint error when a contact already exists in the db
+        // ignore constraint error when a SPA already exists in the db
         if (err.name !== "ConstraintError")
           return cb.call(this, err);
         event.preventDefault();
@@ -157,14 +157,14 @@ var SPADB = (function() {
   };
 
   /**
-   * Creates the object store for contacts.
+   * Creates the object store for SPA.
    *
    * @param  {IDBDatabase} db indexedDB database
    * @return {IDBObjectStore}
    */
   SPADB.prototype._createStore = function(db) {
     // XXX: This isn't really very nice, but it isn't important
-    // to persist contacts at the moment, so until we have good data
+    // to persist SPA at the moment, so until we have good data
     // that we must do our best to save, we can get away with it.
     if (db.objectStoreNames.contains(this.options.storename))
       db.deleteObjectStore(this.options.storename);
@@ -179,7 +179,7 @@ var SPADB = (function() {
   };
 
   /**
-   * Retrieve current contact object store.
+   * Retrieve current SPA object store.
    *
    * @param  {String} mode Access mode - "readwrite" or "readonly")
    * @return {IDBObjectStore}
