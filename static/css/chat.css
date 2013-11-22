@@ -89,6 +89,13 @@ body {
   float: left;
 }
 
+/* put btn-gear on the right and make compensating border changes */
+#call-controls .controls > li.btn-gear {
+  float: right;
+  border-left: 1px solid #D6D6D6;
+  border-right: none;
+}
+
 #call-controls .controls > li > a {
   display: block;
   height: 16px;
@@ -137,12 +144,6 @@ body {
 
 .btn-speaker-mute.active a {
   background: url(../img/speaker.png);
-}
-
-#call-controls .controls li.btn-gear {
-  float: right;
-  border-left: 1px solid #D6D6D6;
-  border-right: none;
 }
 
 .btn-gear > a {
