@@ -78,6 +78,22 @@ describe("User", function() {
     });
   });
 
+  describe("#clearPending", function() {
+    it("should not throw if there are no pending events", function() {
+      expect(user.clearPending).not.to.Throw();
+    });
+
+    it("should clear the pending event", function() {
+      user.pending = { clear: sinon.spy() };
+      var pendingSpy = user.pending.clear;
+
+      user.clearPending();
+
+      sinon.assert.calledOnce(pendingSpy);
+      expect(user.pending).to.be.undefined;
+    });
+  });
+
   describe("#waitForEvents", function() {
     var clock;
 
@@ -277,7 +293,6 @@ describe("Users", function() {
       users.add("foo").add("bar").add("goo");
       users.get("foo").connect("fake ws");
 
-      // No WebSocket object
       expect(users.toJSON()).to.deep.equal([
         {nick: "foo"},
         {nick: "bar"},

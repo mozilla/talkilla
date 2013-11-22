@@ -193,6 +193,21 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
         self.larry.signout()
         self.assertConversationPresenceIconShows(self.bob, "disconnected")
 
+    def test_message_placeholder(self):
+        self.larry.signin()
+        self.bob.signin()
+
+        self.bob.openConversationWith("larry")
+        self.assertMessagePlaceholderEquals(self.bob,
+                                            "Type something to start chatting")
+
+        self.bob.sendChatMessage("wazza")
+        self.assertMessagePlaceholderEquals(self.bob, "")
+
+        self.bob.closeConversationWindow()
+        self.bob.openConversationWith("larry")
+        self.assertMessagePlaceholderEquals(self.bob, "")
+
     def test_local_video_visible_to_call_upgrader(self):
         self.bob.signin()
         self.larry.signin()

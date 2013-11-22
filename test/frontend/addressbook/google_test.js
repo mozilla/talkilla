@@ -4,7 +4,7 @@
 var expect = chai.expect;
 
 describe("GoogleContacts", function() {
-  var sandbox, fakePort, fakeGApi, sampleFeed;
+  var sandbox, fakeAppPort, fakeGApi, sampleFeed;
 
   function caller(cb) {
     cb();
@@ -45,8 +45,8 @@ describe("GoogleContacts", function() {
   beforeEach(function() {
     $.removeCookie("tktest");
     sandbox = sinon.sandbox.create();
-    fakePort = {
-      postEvent: sandbox.spy()
+    fakeAppPort = {
+      post: sandbox.spy()
     };
   });
 
@@ -60,8 +60,9 @@ describe("GoogleContacts", function() {
       expect(new GoogleContacts()).to.be.a("object");
     });
 
-    it("should accept a port option", function() {
-      expect(new GoogleContacts({port: fakePort}).port).eql(fakePort);
+    it("should accept an appPort option", function() {
+      expect(new GoogleContacts({appPort: fakeAppPort}).appPort)
+        .eql(fakeAppPort);
     });
 
     it("should accept a token option", function() {
@@ -72,13 +73,13 @@ describe("GoogleContacts", function() {
       expect(new GoogleContacts({maxResults: 1337}).maxResults).eql(1337);
     });
 
-    it("should accept a authCookieName option", function() {
+    it("should accept an authCookieName option", function() {
       expect(new GoogleContacts({
         authCookieName: "plop"
       }).authCookieName).eql("plop");
     });
 
-    it("should accept a authCookieTTL option", function() {
+    it("should accept an authCookieTTL option", function() {
       expect(new GoogleContacts({
         authCookieTTL: 42
       }).authCookieTTL).eql(42);
@@ -99,6 +100,22 @@ describe("GoogleContacts", function() {
       new GoogleContacts().initialize();
 
       sinon.assert.calledOnce(fakeGApi.auth.init);
+    });
+
+    it("should not throw if the api fails to initialise", function() {
+      window.gapi = {};
+
+      expect(new GoogleContacts().initialize).to.not.Throw();
+    });
+
+    it("should log an error if the api fails to initialise", function() {
+      sandbox.stub(console, "log");
+      window.gapi = {};
+
+      new GoogleContacts().initialize();
+
+      sinon.assert.calledOnce(console.log);
+      sinon.assert.calledWithMatch(console.log, "failed");
     });
   });
 
@@ -252,30 +269,30 @@ describe("GoogleContacts", function() {
   });
 
   describe("#loadContacts", function() {
-    it("should notify port with retrieved list of contacts", function() {
+    it("should notify appPort with retrieved list of contacts", function() {
       var contacts = [{username: "foo"}, {username: "bar"}];
       sandbox.stub(GoogleContacts.prototype, "authorize", caller);
       sandbox.stub(GoogleContacts.prototype, "all", function(cb) {
         cb(null, contacts);
       });
 
-      new GoogleContacts({port: fakePort}).loadContacts();
+      new GoogleContacts({appPort: fakeAppPort}).loadContacts();
 
-      sinon.assert.calledOnce(fakePort.postEvent);
-      sinon.assert.calledWithExactly(fakePort.postEvent,
+      sinon.assert.calledOnce(fakeAppPort.post);
+      sinon.assert.calledWithExactly(fakeAppPort.post,
                                      "talkilla.contacts",
                                      {contacts: contacts, source: "google"});
     });
 
-    it("should notify port with auth errors", function() {
+    it("should notify appPort with auth errors", function() {
       var error = new Error("auth error");
       sandbox.stub(GoogleContacts.prototype, "authorize", function(cb) {
         cb(error);
       });
 
-      new GoogleContacts({port: fakePort}).loadContacts();
+      new GoogleContacts({appPort: fakeAppPort}).loadContacts();
 
-      sinon.assert.calledWithExactly(fakePort.postEvent,
+      sinon.assert.calledWithExactly(fakeAppPort.post,
                                      "talkilla.contacts-error",
                                      error);
     });

@@ -225,6 +225,13 @@
       }
     },
 
+    move: function() {
+      this.trigger("initiate-move", new app.payloads.Move({
+        peer: this.peer.get("nick"),
+        callid: this.callid
+      }));
+    },
+
     /**
      * Upgrades ongoing call with new media constraints.
      *
@@ -255,6 +262,15 @@
      */
     requiresVideo: function() {
       return this.get('currentConstraints').video;
+    },
+
+    /**
+     * Checks if the passed capabilities are all supported by the Call SPA.
+     * @return {Boolean}
+     */
+    supports: function() {
+      return arguments.length === _.intersection(
+        arguments, this.get("capabilities")).length;
     }
   });
 

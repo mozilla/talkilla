@@ -23,18 +23,14 @@ function merge(obj, other) {
 }
 
 /**
- * Sets up root and websocket urls on a configuration object.
+ * Sets up root urls on a configuration object.
  *
  * The general rules for ROOTURL are:
  * - Use the ROOTURL from the config, or
  * - Use the PUBLIC_URL specified in the environment, or
  * - Use localhost with the serverPort.
  *
- * For WSURL:
- * - Use the WSURL from the config, or
- * - Replace the "http" from ROOTURL with "ws" (this also handles https -> wss).
- *
- * @param  {Object} config     The configuration object to modify
+ * @param  {Object} config The configuration object to modify
  * @return {Object}
  */
 function setupUrls(config) {
@@ -44,10 +40,6 @@ function setupUrls(config) {
                    process.env.PUBLIC_URL ||
                    "http://localhost:" + port;
 
-  // Now replace the scheme on the url with what we need for the websocket.
-  // This assumes the url starts with http, if you want anything else, you're on
-  // your own.
-  config.WSURL = config.WSURL || "ws" + config.ROOTURL.substr(4);
   return config;
 }
 

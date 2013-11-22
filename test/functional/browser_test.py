@@ -61,6 +61,17 @@ class BrowserTest(unittest.TestCase):
             raise AssertionError(u'Chat message containing "%s" not found; %s'
                                  % (message, err))
 
+    def assertMessagePlaceholderEquals(self, driver, text):
+        driver.switchToChatWindow()
+        css_selector = "#textchat form input[name='message']"
+
+        try:
+            self.assertElementAttributeEquals(driver, css_selector,
+                                              'placeholder', text)
+        except AssertionError, err:
+            raise AssertionError(u'Message box doesnt have placeholder; %s'
+                                 % (err))
+
     @classmethod
     def assertCallMediaPlaying(cls, driver):
         # the spec defines playing to be not paused
@@ -84,6 +95,16 @@ class BrowserTest(unittest.TestCase):
         if not text in element_text:
             raise AssertionError(u"%s inner text does not contain %s" % (
                 css_selector, text))
+
+    def assertElementAttributeEquals(self, driver, css_selector, attr,
+                                     text, visible=None):
+        element_attr = driver.waitForElement(css_selector,
+                                             visible=visible
+                                             ).get_attribute(attr)
+
+        if not element_attr == text:
+            raise AssertionError(u"%s attribute %s doesnt not equal %s" % (
+                css_selector, attr, text))
 
     def assertElementTextEquals(self, driver, css_selector, text,
                                 visible=None):

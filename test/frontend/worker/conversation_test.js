@@ -1,15 +1,17 @@
 /*global expect, sinon, currentConversation:true, browserPort:true,
-  Conversation, tkWorker */
+  Conversation, SPA, tkWorker */
 /* jshint expr:true */
 
 describe("Conversation", function() {
-  var sandbox;
+  var sandbox, spa;
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
     browserPort = {
       postEvent: sandbox.spy()
     };
+    sandbox.stub(window, "Worker").returns({postMessage: sinon.spy()});
+    spa = new SPA({src: "example.com"});
   });
 
   afterEach(function() {
@@ -19,18 +21,23 @@ describe("Conversation", function() {
   });
 
   describe("initialize", function() {
-    it("should store the initial data", function() {
-      var data = {
-        peer: "florian"
+    it("should store the peer", function() {
+      currentConversation = new Conversation(spa, "florian");
+
+      expect(currentConversation.peer).to.deep.equal("florian");
+    });
+
+    it("should store the offer", function() {
+      var offer = {
+        offer: { sdp: "fake" }
       };
+      currentConversation = new Conversation(spa, "florian", offer);
 
-      currentConversation = new Conversation(data);
-
-      expect(currentConversation.data).to.deep.equal(data);
+      expect(currentConversation.offer).to.deep.equal(offer);
     });
 
     it("should ask the browser to open a chat window", function() {
-      currentConversation = new Conversation({});
+      currentConversation = new Conversation({}, spa);
 
       sinon.assert.calledOnce(browserPort.postEvent);
       sinon.assert.calledWithExactly(browserPort.postEvent,
@@ -39,19 +46,21 @@ describe("Conversation", function() {
   });
 
   describe("#windowOpened", function() {
-    var port, data;
+    var port, offer, peer;
 
     beforeEach(function() {
       // Avoid touching the contacts db which we haven't initialized.
       sandbox.stub(tkWorker.contactsDb, "add");
-      tkWorker.user.name = "romain";
-      tkWorker.users.set("florian", { presence: "connected" });
       port = {
         postEvent: sandbox.spy()
       };
-      data = {
-        peer: "florian"
+
+      offer = {
+        offer: {sdp: "fake"}
       };
+      tkWorker.user.name = "romain";
+      peer = "florian";
+      tkWorker.users.set("florian", { presence: "connected" });
     });
 
     afterEach(function() {
@@ -61,77 +70,114 @@ describe("Conversation", function() {
     });
 
     it("should store the port", function() {
-      currentConversation = new Conversation(data);
+      currentConversation = new Conversation(spa, peer);
 
       currentConversation.windowOpened(port);
 
       expect(currentConversation.port).to.be.equal(port);
     });
 
-    it("should post a talkilla.login-success event", function() {
-      currentConversation = new Conversation(data);
-
-      currentConversation.windowOpened(port);
-
-      sinon.assert.called(port.postEvent);
-      sinon.assert.calledWith(port.postEvent, "talkilla.login-success",
-        {username: "romain"});
-    });
-
     it("should post a talkilla.conversation-open event for a " +
        "non-incoming call", function() {
-        currentConversation = new Conversation(data);
+        currentConversation = new Conversation(spa, peer);
 
         currentConversation.windowOpened(port);
 
-        sinon.assert.called(port.postEvent);
+        sinon.assert.calledOnce(port.postEvent);
         sinon.assert.calledWith(port.postEvent,
-                                "talkilla.conversation-open",
-                                data);
+          "talkilla.conversation-open", {
+          capabilities: [],
+          peer: peer,
+          peerPresence: "connected",
+          user: tkWorker.user.name
+        });
       });
 
     it("should post a talkilla.conversation-incoming event for an " +
        "incoming call",
       function() {
-        data.offer = {sdp: "fake"};
-        currentConversation = new Conversation(data);
+        currentConversation = new Conversation(spa, peer, offer);
 
         currentConversation.windowOpened(port);
 
-        sinon.assert.called(port.postEvent);
+        sinon.assert.calledOnce(port.postEvent);
         sinon.assert.calledWith(port.postEvent,
-                                "talkilla.conversation-incoming",
-                                data);
+          "talkilla.conversation-incoming", {
+          capabilities: [],
+          peer: peer,
+          peerPresence: "connected",
+          offer: offer,
+          user: tkWorker.user.name
+        });
+
+      });
+
+    it("should not update talkilla.conversation-incoming event if it " +
+       "is already queued",
+      function() {
+        currentConversation = new Conversation(spa, peer, offer);
+
+        currentConversation.messageQueue.push({
+          topic: "talkilla.conversation-incoming",
+          data: {
+            capabilities: [],
+            peer: peer,
+            peerPresence: "disconnected",
+            offer: offer,
+            user: tkWorker.user.name
+          }
+        });
+
+        // This will try and insert presence as connected if it
+        // fails
+        currentConversation.windowOpened(port);
+
+        sinon.assert.calledOnce(port.postEvent);
+        sinon.assert.calledWith(port.postEvent,
+          "talkilla.conversation-incoming", {
+          capabilities: [],
+          peer: peer,
+          peerPresence: "disconnected",
+          offer: offer,
+          user: tkWorker.user.name
+        });
 
       });
 
     it("should store the contact", function() {
-        currentConversation = new Conversation(data);
+        currentConversation = new Conversation(spa, peer);
 
         currentConversation.windowOpened(port);
 
         sinon.assert.calledOnce(tkWorker.contactsDb.add);
+        sinon.assert.calledWith(tkWorker.contactsDb.add, {username: peer});
       });
 
     it("should send peer presence information", function() {
-      currentConversation = new Conversation(data);
+      tkWorker.users.set("florian", { presence: "disconnected" });
+
+      currentConversation = new Conversation(spa, peer);
 
       currentConversation.windowOpened(port);
 
-      sinon.assert.called(port.postEvent);
+      sinon.assert.calledOnce(port.postEvent);
       sinon.assert.calledWithMatch(port.postEvent,
-                                   "talkilla.conversation-open",
-                                   {peerPresence: "connected"});
+        "talkilla.conversation-open", {
+        capabilities: [],
+        peer: peer,
+        peerPresence: "disconnected",
+        user: tkWorker.user.name
+      });
     });
 
     it("should send any outstanding messages when the port is opened",
       function() {
-        currentConversation = new Conversation({});
+        currentConversation = new Conversation({}, spa);
         var messages = [
-          {topic: "talkilla.ice-candidate", data: { candidate: "dummy1" }},
+          {topic: "talkilla.ice-candidate", context: { candidate: "dummy1" }},
           {
             topic: "talkilla.conversation-incoming",
-            data: {
+            context: {
               offer: { sdp: "fake" },
               peer: "florian"
             }
@@ -153,7 +199,7 @@ describe("Conversation", function() {
   });
 
   describe("#handleIncomingCall", function() {
-    var port, initData;
+    var port, peer, offer;
 
     beforeEach(function() {
       // Avoid touching the contacts db which we haven't initialized.
@@ -162,13 +208,15 @@ describe("Conversation", function() {
       port = {
         postEvent: sandbox.spy()
       };
-      initData = {
-        peer: "florian"
+      peer = "florian";
+      offer = {
+        peer: peer,
+        offer: {sdp: "fake"}
       };
 
-      tkWorker.users.set("florian", { presence: "connected" });
+      tkWorker.users.set(peer, { presence: "connected" });
 
-      currentConversation = new Conversation(initData);
+      currentConversation = new Conversation(spa, peer);
       currentConversation.windowOpened(port);
     });
 
@@ -180,76 +228,70 @@ describe("Conversation", function() {
 
     it("should return false if the conversation is not for the peer",
       function() {
-        var data = {
-          peer: "jb"
-        };
-
-        var result = currentConversation.handleIncomingCall(data);
+        offer.peer = "alexis";
+        var result = currentConversation.handleIncomingCall(offer);
 
         expect(result).to.be.equal(false);
       });
 
     it("should return true if the conversation is for the peer",
       function() {
-        var result = currentConversation.handleIncomingCall(initData);
+        var result = currentConversation.handleIncomingCall(offer);
 
         expect(result).to.be.equal(true);
       });
 
     it("should post a talkilla.conversation-incoming event for an " +
        "incoming call", function() {
-        var incomingData = {
-          offer: {
-            sdp: "fake"
-          },
-          peer: "florian"
-        };
-
-        currentConversation.handleIncomingCall(incomingData);
+        currentConversation.handleIncomingCall(offer);
 
         sinon.assert.called(port.postEvent);
         sinon.assert.calledWith(port.postEvent,
-                                "talkilla.conversation-incoming",
-                                incomingData);
+          "talkilla.conversation-incoming", {
+          capabilities: [],
+          peer: peer,
+          peerPresence: "connected",
+          offer: offer,
+          user: tkWorker.user.name
+        });
       });
 
     it("should send peer presence information", function() {
-      var incomingData = {
-        offer: {
-          sdp: "fake"
-        },
-        peer: "florian"
-      };
+      tkWorker.users.set(peer, { presence: "disconnected" });
 
-      currentConversation.handleIncomingCall(incomingData);
+      currentConversation.handleIncomingCall(offer);
 
       sinon.assert.called(port.postEvent);
       sinon.assert.calledWithMatch(port.postEvent,
-                                   "talkilla.conversation-incoming",
-                                   {peerPresence: "connected"});
+          "talkilla.conversation-incoming", {
+          capabilities: [],
+          peer: peer,
+          peerPresence: "disconnected",
+          offer: offer,
+          user: tkWorker.user.name
+        });
     });
 
     it("should store the messages if the port is not open", function() {
       currentConversation.port = undefined;
-      var incomingData = {
-        offer: {
-          sdp: "fake"
-        },
-        peer: "florian"
-      };
-
-      currentConversation.handleIncomingCall(incomingData);
+      currentConversation.handleIncomingCall(offer);
 
       expect(currentConversation.messageQueue[0].topic)
         .to.equal("talkilla.conversation-incoming");
       expect(currentConversation.messageQueue[0].data)
-        .to.deep.equal(incomingData);
+        .to.deep.equal({
+          capabilities: [],
+          peer: peer,
+          peerPresence: "connected",
+          offer: offer,
+          user: tkWorker.user.name
+        });
     });
   });
 
   describe("#callAccepted", function() {
     beforeEach(function() {
-      currentConversation = new Conversation({});
+      currentConversation = new Conversation({}, spa);
       currentConversation.port = {
         postEvent: sandbox.spy()
       };
@@ -257,21 +299,21 @@ describe("Conversation", function() {
 
     it("should post a talkilla.call-establishment message to the " +
        "conversation window", function() {
-      var data = {
+      var context = {
         peer: "nicolas",
         offer: { sdp: "fake" }
       };
-      currentConversation.callAccepted(data);
+      currentConversation.callAccepted(context);
 
       sinon.assert.calledOnce(currentConversation.port.postEvent);
       sinon.assert.calledWith(currentConversation.port.postEvent,
-        "talkilla.call-establishment", data);
+        "talkilla.call-establishment", context);
     });
   });
 
   describe("#callHangup" , function() {
     beforeEach(function() {
-      currentConversation = new Conversation({});
+      currentConversation = new Conversation({}, spa);
       currentConversation.port = {
         postEvent: sandbox.spy()
       };
@@ -279,25 +321,25 @@ describe("Conversation", function() {
 
     it("should post a talkilla.call-hangup to the conversation window",
        function() {
-      var data = {
+      var context = {
         peer: "nicolas"
       };
-      currentConversation.callHangup(data);
+      currentConversation.callHangup(context);
 
       sinon.assert.calledOnce(currentConversation.port.postEvent);
       sinon.assert.calledWith(currentConversation.port.postEvent,
-        "talkilla.call-hangup", data);
+        "talkilla.call-hangup", context);
     });
   });
 
   describe("#iceCandidate", function() {
-    var data;
+    var context;
 
     beforeEach(function() {
-      data = {
+      context = {
         candidate: "dummy"
       };
-      currentConversation = new Conversation({});
+      currentConversation = new Conversation({}, spa);
       currentConversation.port = {
         postEvent: sandbox.spy()
       };
@@ -305,23 +347,23 @@ describe("Conversation", function() {
 
     it("should post talkilla.ice-candidate to the conversation window",
       function() {
-        currentConversation.iceCandidate(data);
+        currentConversation.iceCandidate(context);
 
         sinon.assert.calledOnce(currentConversation.port.postEvent);
         sinon.assert.calledWithExactly(currentConversation.port.postEvent,
-          "talkilla.ice-candidate", data);
+          "talkilla.ice-candidate", context);
       });
 
     it("should store the ice candidate message if the port is not open",
       function() {
         currentConversation.port = undefined;
 
-        currentConversation.iceCandidate(data);
+        currentConversation.iceCandidate(context);
 
         expect(currentConversation.messageQueue[0].topic)
           .to.equal("talkilla.ice-candidate");
         expect(currentConversation.messageQueue[0].data)
-          .to.deep.equal(data);
+          .to.deep.equal(context);
       });
   });
 });

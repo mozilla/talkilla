@@ -2,10 +2,11 @@
 /* jshint unused:false */
 
 var TalkillaSPA = (function() {
-  function TalkillaSPA(port, server) {
+  function TalkillaSPA(port, server, options) {
     this.port = port;
     this.server = server;
     this.credentials = undefined;
+    this.capabilities = options && options.capabilities || ["call"];
 
     this.port.on("connect", this._onConnect.bind(this));
 
@@ -13,13 +14,12 @@ var TalkillaSPA = (function() {
     this.port.on("answer", this._onCallAnswer.bind(this));
     this.port.on("hangup", this._onCallHangup.bind(this));
     this.port.on("ice:candidate", this._onIceCandidate.bind(this));
-    this.port.on("presence:request", this._onPresenceRequest.bind(this));
 
     this.server.on("connected", this._onServerEvent.bind(this, "connected"));
     this.server.on("unauthorized",
                    this._onServerEvent.bind(this, "unauthorized"));
-    this.server.on("disconnected",
-                   this._onServerEvent.bind(this, "disconnected"));
+    this.server.on("network-error",
+                   this._onServerEvent.bind(this, "network-error"));
     this.server.on("message", this._onServerMessage.bind(this));
   }
 
@@ -27,6 +27,13 @@ var TalkillaSPA = (function() {
     _onServerEvent: function(type, event) {
       if (type === "unauthorized")
         this.port.post("reauth-needed");
+      else if (type === "connected") {
+        this.port.post(type, {
+          addresses: [{type: "email", value: this.email}],
+          capabilities: this.capabilities
+        });
+        this.server.presenceRequest();
+      }
       else
         this.port.post(type, event);
     },
@@ -36,20 +43,21 @@ var TalkillaSPA = (function() {
       // documented SPA interface. We have to update the server to
       // reflect these events.
       if (type === "offer")
-        this.port.post("offer", (new payloads.Offer(event)).toJSON());
+        this.port.post("offer", (new payloads.Offer(event)));
       else if (type === "answer")
-        this.port.post("answer", (new payloads.Answer(event)).toJSON());
+        this.port.post("answer", (new payloads.Answer(event)));
       else if (type === "hangup")
-        this.port.post("hangup", (new payloads.Hangup(event)).toJSON());
+        this.port.post("hangup", (new payloads.Hangup(event)));
       else if (type === "ice:candidate")
         this.port.post("ice:candidate",
-                       (new payloads.IceCandidate(event)).toJSON());
+                       (new payloads.IceCandidate(event)));
       else
         this.port.post("message", [type, event]);
     },
 
     _onConnect: function(credentials) {
-      this.server.connect(credentials);
+      this.email = credentials.email;
+      this.server.connect();
     },
 
     /**
@@ -94,10 +102,6 @@ var TalkillaSPA = (function() {
     _onIceCandidate: function(iceCandidateData) {
       var iceCandidateMsg = new payloads.IceCandidate(iceCandidateData);
       this.server.iceCandidate(iceCandidateMsg);
-    },
-
-    _onPresenceRequest: function() {
-      this.server.presenceRequest();
     }
   };
 

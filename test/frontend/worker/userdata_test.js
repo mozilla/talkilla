@@ -1,4 +1,4 @@
-/*global chai, sinon, UserData, browserPort:true */
+/*global chai, sinon, UserData, browserPort:true, tkWorker */
 
 var expect = chai.expect;
 
@@ -118,7 +118,7 @@ describe('UserData', function() {
       userData = undefined;
     });
 
-    it("should send a social.user-profile message", function () {
+    it("should send a social.user-profile event to the browser", function () {
       userData.send();
       sinon.assert.calledOnce(browserPort.postEvent);
 
@@ -129,6 +129,16 @@ describe('UserData', function() {
         .equal('http://fake/img/default-avatar.png');
       expect(data.iconURL).to.be.equal('http://fake/img/talkilla16.png');
       expect(data.profileURL).to.be.equal('http://fake/user.html');
+    });
+
+    it("should send a social.user-profile event to the sidebar", function () {
+      var userNameMatcher = sinon.match({userName: "jb"});
+      sandbox.stub(tkWorker.ports, "broadcastEvent");
+      userData.send();
+
+      sinon.assert.calledOnce(tkWorker.ports.broadcastEvent);
+      sinon.assert.calledWithExactly(
+        tkWorker.ports.broadcastEvent, "social.user-profile", userNameMatcher);
     });
 
     it("should send an online image url if connected", function() {

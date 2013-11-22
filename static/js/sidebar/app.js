@@ -1,4 +1,4 @@
-/*global app, AppPort, GoogleContacts */
+/*global app, AppPort, GoogleContacts, HTTP, payloads */
 /* jshint unused: false */
 /**
  * Sidebar application.
@@ -9,9 +9,11 @@ var SidebarApp = (function(app, $) {
   function SidebarApp(options) {
     options = options || {};
 
+    this.http = new HTTP();
+
     this.appStatus = new app.models.AppStatus();
 
-    this.port = new AppPort();
+    this.appPort = new AppPort();
 
     this.user = new app.models.CurrentUser();
 
@@ -19,7 +21,7 @@ var SidebarApp = (function(app, $) {
 
     this.services = {
       google: new GoogleContacts({
-        port: this.port
+        appPort: this.appPort
       })
     };
 
@@ -36,20 +38,19 @@ var SidebarApp = (function(app, $) {
     this.user.on("signout-requested", this._onUserSignoutRequested, this);
 
     // port events
-    this.port.on('talkilla.users', this._onUserListReceived, this);
-    this.port.on("talkilla.login-success", this._onLoginSuccess, this);
-    this.port.on("talkilla.login-failure", this._onLoginFailure, this);
-    this.port.on("talkilla.logout-success", this._onLogoutSuccess, this);
-    this.port.on("talkilla.error", this._onError, this);
-    this.port.on("talkilla.websocket-error", this._onWebSocketError, this);
-    this.port.on("talkilla.presence-unavailable",
+    this.appPort.on('talkilla.users', this._onUserListReceived, this);
+    this.appPort.on("talkilla.spa-connected", this._onSPAConnected, this);
+    this.appPort.on("talkilla.error", this._onError, this);
+    this.appPort.on("talkilla.spa-error", this._onSPAError, this);
+    this.appPort.on("talkilla.presence-unavailable",
                  this._onPresenceUnavailable, this);
-    this.port.on("talkilla.chat-window-ready",
+    this.appPort.on("talkilla.chat-window-ready",
                  this._onChatWindowReady, this);
-    this.port.on("talkilla.worker-ready", this._onWorkerReady, this);
-    this.port.on('talkilla.reauth-needed', this._onReauthNeeded, this);
+    this.appPort.on("talkilla.worker-ready", this._onWorkerReady, this);
+    this.appPort.on("social.user-profile", this._onUserProfile, this);
+    this.appPort.on('talkilla.reauth-needed', this._onReauthNeeded, this);
 
-    this.port.postEvent("talkilla.sidebar-ready");
+    this.appPort.post("talkilla.sidebar-ready");
 
     this._setupDebugLogging();
   }
@@ -61,29 +62,43 @@ var SidebarApp = (function(app, $) {
     this.services.google.initialize();
   };
 
+  SidebarApp.prototype._onUserProfile = function(userData) {
+    this.user.set({nick: userData.userName});
+  };
+
   SidebarApp.prototype._onUserSigninRequested = function(assertion) {
-    this.port.postEvent('talkilla.login', {assertion: assertion});
+    this.http.post("/signin", {assertion: assertion}, function(err, response) {
+      if (err)
+        return this._onLoginFailure(err);
+
+      return this._onLoginSuccess(JSON.parse(response));
+    }.bind(this));
   };
 
   SidebarApp.prototype._onUserSignoutRequested = function() {
-    this.port.postEvent('talkilla.logout');
+    this.http.post("/signout", {}, this._onLogoutSuccess.bind(this));
   };
 
   SidebarApp.prototype.openConversation = function(nick) {
-    this.port.postEvent('talkilla.conversation-open', {
-      user: this.user.get('nick'),
+    this.appPort.post('talkilla.conversation-open', {
       peer: nick
     });
   };
 
   SidebarApp.prototype._onChatWindowReady = function() {
-    this.port.postEvent('talkilla.user-nick', {nick: this.user.get('nick')});
+    this.appPort.post('talkilla.user-nick', {nick: this.user.get('nick')});
   };
 
   SidebarApp.prototype._onLoginSuccess = function(data) {
-    $.cookie('nick', data.username, {expires: 10});
-    this.user.set({nick: data.username, presence: "connected"});
-    this.port.postEvent("talkilla.presence-request");
+    // We are successfuly logged in, we setup the SPA and ask to be
+    // connected.
+    var talkillaSpec = new payloads.SPASpec({
+      name: "TalkillaSPA",
+      src: "/js/spa/talkilla_worker.js",
+      credentials: {email: data.nick}
+    });
+
+    this.appPort.post("talkilla.spa-enable", talkillaSpec);
   };
 
   // XXX a lot of the steps that happen after various types of logouts and
@@ -103,9 +118,13 @@ var SidebarApp = (function(app, $) {
   };
 
   SidebarApp.prototype._onLogoutSuccess = function() {
-    $.removeCookie('nick');
+    this.appPort.post("talkilla.spa-disable", "TalkillaSPA");
     this.user.clear();
     this.users.reset();
+  };
+
+  SidebarApp.prototype._onSPAConnected = function() {
+    this.user.set({presence: "connected"});
   };
 
   SidebarApp.prototype._onError = function(error) {
@@ -113,8 +132,8 @@ var SidebarApp = (function(app, $) {
       error, 'error');
   };
 
-  SidebarApp.prototype._onWebSocketError = function(error) {
-    app.utils.notifyUI('Error while communicating with the WebSocket server: ' +
+  SidebarApp.prototype._onSPAError = function(error) {
+    app.utils.notifyUI('Error while communicating with the Server: ' +
       error, 'error');
     this.user.clear();
   };
@@ -142,16 +161,12 @@ var SidebarApp = (function(app, $) {
     this.users.reset(users);
   };
 
-  SidebarApp.prototype._onReauthNeeded = function() {
-    app.utils.notifyUI("You need to sign in", "error");
-  };
-
   SidebarApp.prototype._setupDebugLogging = function() {
     if (!app.options.DEBUG)
       return;
 
     // worker port events logging
-    this.port.on('talkilla.debug', function(event) {
+    this.appPort.on('talkilla.debug', function(event) {
       console.log('worker event', event.label, event.data);
     });
   };

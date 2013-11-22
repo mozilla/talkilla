@@ -140,7 +140,8 @@
       'click .btn-audio a': 'audioCall',
       'click .btn-hangup a': 'hangup',
       'click .btn-microphone-mute a': 'outgoingAudioToggle',
-      'click .btn-speaker-mute a': 'incomingAudioToggle'
+      'click .btn-speaker-mute a': 'incomingAudioToggle',
+      'click .btn-call-move a': 'initiateCallMove'
     },
 
     initialize: function(options) {
@@ -157,10 +158,8 @@
 
       this.call.on('state:to:pending state:to:incoming',
                    this._callPending, this);
-      this.call.on('state:to:ongoing',
-                   this._callOngoing, this);
-      this.call.on('state:to:terminated',
-                   this._callInactive, this);
+      this.call.on('state:to:ongoing', this._callOngoing, this);
+      this.call.on('state:to:terminated', this._callInactive, this);
     },
 
     videoCall: function(event) {
@@ -186,6 +185,13 @@
 
       var button = this.$('.btn-microphone-mute');
       button.toggleClass('active');
+
+      var anchor = button.find('a');
+      if (button.hasClass('active'))
+        anchor.attr('title', 'Unmute microphone');
+      else
+        anchor.attr('title', 'Mute microphone');
+
       this.media.setMuteState('local', 'audio', button.hasClass('active'));
     },
 
@@ -195,7 +201,21 @@
 
       var button = this.$('.btn-speaker-mute');
       button.toggleClass('active');
+
+      var anchor = button.find('a');
+      if (button.hasClass('active'))
+        anchor.attr('title', "Unmute peer's audio");
+      else
+        anchor.attr('title', "Mute peer's audio");
+
       this.media.setMuteState('remote', 'audio', button.hasClass('active'));
+    },
+
+    initiateCallMove: function(event){
+      if (event)
+        event.preventDefault();
+      
+      this.call.move();
     },
 
     _callPending: function() {
@@ -209,6 +229,10 @@
       this.$('.btn-hangup').show();
       this.$('.btn-microphone-mute').show();
       this.$('.btn-speaker-mute').show();
+
+      // If the SPA supports it, display the call-move button.
+      if (this.call.supports("move"))
+        this.$('.btn-call-move').show();
     },
 
     _callInactive: function() {
@@ -218,6 +242,7 @@
       this.$('.btn-hangup').hide();
       this.$('.btn-microphone-mute').hide();
       this.$('.btn-speaker-mute').hide();
+      this.$('.btn-call-move').hide();
     }
   });
 
@@ -338,6 +363,7 @@
 
     _onSendOffer: function() {
       this.audioLibrary.play('outgoing');
+      this.audioLibrary.enableLoop('outgoing');
       this._startTimer({timeout: app.options.PENDING_CALL_TIMEOUT});
     },
 
@@ -540,6 +566,11 @@
       this.call.on('state:to:ongoing state:to:timeout', this.show, this);
 
       this.collection.on('add', this.render, this);
+
+      if (this._firstMessage()) {
+        var $input = this.$('form input[name="message"]');
+        $input.attr('placeholder', 'Type something to start chatting');
+      }
     },
 
     hide: function() {
@@ -559,6 +590,11 @@
         return;
 
       $input.val('');
+
+      if (this._firstMessage()) {
+        $input.removeAttr('placeholder');
+        localStorage.setItem('notFirstMessage', true);
+      }
 
       this.collection.add(new app.models.TextChatEntry({
         nick: this.collection.user.get("nick"),
@@ -584,6 +620,12 @@
       ul.scrollTop = ul.scrollTopMax;
 
       return this;
+    },
+
+    _firstMessage: function() {
+      var notFirstMessage = localStorage.getItem('notFirstMessage');
+      notFirstMessage = notFirstMessage ? JSON.parse(notFirstMessage) : false;
+      return !notFirstMessage;
     }
   });
 })(app, Backbone, _, jQuery);

@@ -8,7 +8,7 @@ describe("UserEntryView", function() {
     // XXX: FIX THAT
     window.sidebarApp = {
       user: new app.models.User(),
-      port: new AppPort()
+      appPort: new AppPort()
     };
     return window.sidebarApp;
   }
@@ -25,7 +25,7 @@ describe("UserEntryView", function() {
       }
     };
 
-    sandbox.stub(AppPort.prototype, "postEvent");
+    sandbox.stub(AppPort.prototype, "post");
 
     sidebarApp = createFakeSidebarApp();
     sidebarApp.openConversation = sandbox.spy();

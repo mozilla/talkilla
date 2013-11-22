@@ -159,6 +159,20 @@ describe("presence", function() {
 
     describe("#signout", function() {
 
+      it("should send the user's long poll connection a disconnect event",
+        function() {
+          sandbox.stub(User.prototype, "send");
+          var req = {session: {email: "foo", reset: function() {}}};
+          var res = {send: function() {}};
+          users.add("foo");
+
+          api.signout(req, res);
+
+          sinon.assert.calledOnce(User.prototype.send);
+          sinon.assert.calledWithExactly(User.prototype.send,
+            "disconnect", null);
+        });
+
       it("should disconnect the user", function() {
         sandbox.stub(User.prototype, "disconnect");
         var req = {session: {email: "foo", reset: function() {}}};
@@ -224,13 +238,27 @@ describe("presence", function() {
           sinon.assert.calledWith(xoo.send, "userJoined", "foo");
         });
 
-      it("should send an empty list if connecting is specified in the body",
+      it("should send an empty list if firstRequest is specified in the body",
         function(done) {
           users.add("foo").get("foo");
           var req = {session: {email: "foo"}, body: {firstRequest: true}};
           var res = {send: function(code, data) {
             expect(code).to.equal(200);
             expect(data).to.equal(JSON.stringify([]));
+            done();
+          }};
+
+          api.stream(req, res);
+        });
+
+      it("should send clear and pending waits on the user if firstRequest is " +
+         "specified in the body", function(done) {
+          var user = users.add("foo").get("foo");
+          sandbox.stub(user, "clearPending").returns(user);
+
+          var req = {session: {email: "foo"}, body: {firstRequest: true}};
+          var res = {send: function() {
+            sinon.assert.calledOnce(user.clearPending);
             done();
           }};
 

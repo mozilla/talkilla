@@ -1,8 +1,6 @@
 /*global chai, sinon, browserPort:true, currentConversation:true,
   SPA, Conversation, tkWorker, _setupSPA, payloads */
 
-/* Needed due to the use of non-camelcase in the websocket topics */
-/* jshint camelcase:false */
 var expect = chai.expect;
 
 describe("SPA events", function() {
@@ -25,26 +23,26 @@ describe("SPA events", function() {
   });
 
   describe("`connected` event", function() {
+    var data = {addresses: [{type: "email", value: "foo"}]};
+
     it("should set the user data as connected", function() {
-      spa.trigger("connected");
+      spa.trigger("connected", data);
 
       expect(tkWorker.user.connected).to.be.equal(true);
     });
 
-    it("should broadcast a `talkilla.login-success` event", function() {
-      tkWorker.user.name = "harvey";
+    it("should broadcast a `talkilla.spa-connected` event", function() {
       sandbox.stub(tkWorker.ports, "broadcastEvent");
 
-      spa.trigger("connected");
+      spa.trigger("connected", data);
 
       sinon.assert.calledOnce(tkWorker.ports.broadcastEvent);
       sinon.assert.calledWithExactly(tkWorker.ports.broadcastEvent,
-                                     "talkilla.login-success",
-                                     {username: "harvey"});
+                                     "talkilla.spa-connected");
     });
 
     it("should load the contacts database", function() {
-      spa.trigger("connected");
+      spa.trigger("connected", data);
 
       sinon.assert.calledOnce(tkWorker.loadContacts);
     });
@@ -176,14 +174,14 @@ describe("SPA events", function() {
           offer: "fake offer",
           peer: "alice"
         });
-        currentConversation = new Conversation({peer: "florian"});
+        currentConversation = new Conversation({peer: "florian"}, spa);
         sandbox.stub(currentConversation, "handleIncomingCall");
 
         spa.trigger("offer", offerMsg);
 
         sinon.assert.calledOnce(currentConversation.handleIncomingCall);
         sinon.assert.calledWith(currentConversation.handleIncomingCall,
-                                offerMsg.toJSON());
+                                offerMsg);
       });
   });
 
@@ -203,7 +201,7 @@ describe("SPA events", function() {
 
       sinon.assert.calledOnce(currentConversation.callAccepted);
       sinon.assert.calledWithExactly(
-        currentConversation.callAccepted, answerMsg.toJSON());
+        currentConversation.callAccepted, answerMsg);
     });
 
   });
@@ -223,7 +221,7 @@ describe("SPA events", function() {
 
       sinon.assert.calledOnce(currentConversation.callHangup);
       sinon.assert.calledWithExactly(
-        currentConversation.callHangup, hangupMsg.toJSON());
+        currentConversation.callHangup, hangupMsg);
     });
   });
 
@@ -246,13 +244,30 @@ describe("SPA events", function() {
 
       sinon.assert.calledOnce(currentConversation.iceCandidate);
       sinon.assert.calledWithExactly(
-        currentConversation.iceCandidate, iceCandidateMsg.toJSON());
+        currentConversation.iceCandidate, iceCandidateMsg);
     });
   });
 
-  describe("`disconnected` event", function() {
+  describe("`move-accept` event", function() {
+    it("should broadcast a `talkilla.move-accept` event", function() {
+      sandbox.stub(tkWorker.ports, "broadcastEvent");
+      var moveAcceptMsg = new payloads.MoveAccept({
+        peer: "frank",
+        callid: 42
+      });
+
+      spa.trigger("move-accept", moveAcceptMsg);
+
+      sinon.assert.calledOnce(tkWorker.ports.broadcastEvent);
+      sinon.assert.calledWithExactly(tkWorker.ports.broadcastEvent,
+                                     "talkilla.move-accept",
+                                     moveAcceptMsg.toJSON());
+    });
+  });
+
+  describe("`network-error` event", function() {
     it("should set the user data as disconnected", function() {
-      spa.trigger("disconnected", {code: 1006});
+      spa.trigger("network-error", {code: 1006});
 
       expect(tkWorker.user.connected).to.be.equal(false);
     });
@@ -261,42 +276,41 @@ describe("SPA events", function() {
       tkWorker.user.name = "harvey";
       sandbox.stub(tkWorker.ports, "broadcastEvent");
 
-      spa.trigger("disconnected", {code: 1006});
+      spa.trigger("network-error", {code: 1006});
 
-      sinon.assert.calledTwice(tkWorker.ports.broadcastEvent);
+      sinon.assert.calledOnce(tkWorker.ports.broadcastEvent);
       sinon.assert.calledWithExactly(
         tkWorker.ports.broadcastEvent, "talkilla.presence-unavailable", 1006
       );
     });
 
-    describe("`reauth-needed event", function() {
-
-      it("should foward the event to all ports", function() {
-        sandbox.stub(tkWorker.ports, "broadcastEvent");
-
-        spa.trigger("reauth-needed");
-
-        sinon.assert.calledOnce(tkWorker.ports.broadcastEvent);
-        sinon.assert.calledWithExactly(
-          tkWorker.ports.broadcastEvent, "talkilla.reauth-needed");
-      });
-
-    });
-
-    it("should close current worker session", function() {
+    it("should close the current worker session", function() {
       sandbox.stub(tkWorker, "closeSession");
 
-      spa.trigger("disconnected", {code: 1006});
+      spa.trigger("network-error", {code: 1006});
 
       sinon.assert.calledOnce(tkWorker.closeSession);
     });
+  });
 
-    it("should close the contacts database", function() {
-      sandbox.stub(tkWorker.contactsDb, "close");
+  describe("`reauth-needed event", function() {
 
-      spa.trigger("disconnected", {code: 1000});
+    it("should foward the event to all ports", function() {
+      sandbox.stub(tkWorker.ports, "broadcastEvent");
 
-      sinon.assert.calledOnce(tkWorker.contactsDb.close);
+      spa.trigger("reauth-needed");
+
+      sinon.assert.calledOnce(tkWorker.ports.broadcastEvent);
+      sinon.assert.calledWithExactly(
+        tkWorker.ports.broadcastEvent, "talkilla.reauth-needed");
+    });
+
+    it("should close the current worker session", function() {
+      sandbox.stub(tkWorker, "closeSession");
+
+      spa.trigger("reauth-needed", {code: 1006});
+
+      sinon.assert.calledOnce(tkWorker.closeSession);
     });
   });
 

@@ -409,6 +409,22 @@ describe("Call Model", function() {
     });
   });
 
+  describe("#move", function() {
+    it("should trigger an initiate-move event", function(done) {
+      call.peer.set("nick", "alexis");
+      call.callid = 1337;
+
+      call.on("initiate-move", function(moveMsg) {
+        expect(moveMsg instanceof payloads.Move).to.equal(true);
+        expect(moveMsg.peer).to.equal("alexis");
+        expect(moveMsg.callid).to.equal(call.callid);
+        done();
+      });
+
+      call.move();
+    });
+  });
+
   describe("#upgrade", function() {
     it("should change the state from ready to pending", function() {
       call.state.current = 'ongoing';
@@ -467,6 +483,25 @@ describe("Call Model", function() {
       call.set('currentConstraints', {video: false, audio: true});
 
       expect(call.requiresVideo()).to.equal(false);
+    });
+  });
+
+  describe("#supports", function() {
+    it("should check that an SPA supports a single capability", function() {
+      call.set('capabilities', ["move", "call"]);
+      expect(call.supports("move")).eql(true);
+      expect(call.supports("call")).eql(true);
+    });
+
+    it("should check that an SPA supports multiple capabilities", function() {
+      call.set('capabilities', ["move", "call"]);
+      expect(call.supports("move", "call")).eql(true);
+    });
+
+    it("should check that an SPA doesn't support some capabilities",
+       function() {
+      call.set('capabilities', ["move", "call"]);
+      expect(call.supports("move", "bar")).eql(false);
     });
   });
 });

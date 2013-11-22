@@ -75,6 +75,9 @@ api = {
 
     var user = users.get(nick);
     if (user) {
+      // notify the client
+      user.send("disconnect", null);
+
       // Disconnecting the user will remove them from the users
       // list.
       user.disconnect();
@@ -120,7 +123,7 @@ api = {
       res.send(200, JSON.stringify([]));
       logger.info({type: "connection"});
     } else if (req.body && req.body.firstRequest) {
-      user.touch();
+      user.clearPending().touch();
       res.send(200, JSON.stringify([]));
       logger.info({type: "reconnection"});
     } else {
