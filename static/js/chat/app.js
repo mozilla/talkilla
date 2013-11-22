@@ -119,11 +119,11 @@ var ChatApp = (function(app, $, Backbone, _) {
    * Listens to the `talkilla.conversation-open` event.
    * @param {Object} context Conversation context object.
    */
-  ChatApp.prototype._onConversationOpen = function(context) {
-    this.call.set({capabilities: context.capabilities});
-    this.user.set({nick: context.user});
+  ChatApp.prototype._onConversationOpen = function(msg) {
+    this.call.set({capabilities: msg.capabilities});
+    this.user.set({nick: msg.user});
     this.peer
-        .set({nick: context.peer, presence: context.peerPresence},
+        .set({nick: msg.peer, presence: msg.peerPresence},
              {silent: true})
         .trigger('change:nick', this.peer) // force triggering change event
         .trigger('change:presence', this.peer);
@@ -147,19 +147,19 @@ var ChatApp = (function(app, $, Backbone, _) {
   };
 
   // Incoming calls
-  ChatApp.prototype._onIncomingConversation = function(context) {
-    this.call.set({capabilities: context.capabilities});
-    this.user.set({nick: context.user});
+  ChatApp.prototype._onIncomingConversation = function(msg) {
+    this.call.set({capabilities: msg.capabilities});
+    this.user.set({nick: msg.user});
 
-    if (!context.upgrade)
-      this.peer.set({nick: context.peer, presence: context.peerPresence});
+    if (!msg.offer.upgrade)
+      this.peer.set({nick: msg.peer, presence: msg.peerPresence});
 
     // incoming text chat conversation
-    if (context.textChat)
-      return this.textChat.answer(context.offer);
+    if (msg.offer.textChat)
+      return this.textChat.answer(msg.offer.offer);
 
     // incoming video/audio call
-    this.call.incoming(new app.payloads.Offer(context));
+    this.call.incoming(new app.payloads.Offer(msg.offer));
     this.audioLibrary.play('incoming');
   };
 

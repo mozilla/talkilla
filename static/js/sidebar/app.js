@@ -83,7 +83,6 @@ var SidebarApp = (function(app, $) {
 
   SidebarApp.prototype.openConversation = function(nick) {
     this.appPort.post('talkilla.conversation-open', {
-      user: this.user.get('nick'),
       peer: nick
     });
   };

@@ -6,20 +6,12 @@ var expect = chai.expect;
 describe("ChatApp", function() {
   "use strict";
 
-  var sandbox, chatApp, AppPortStub;
+  var sandbox, chatApp, AppPortStub, incomingCallData;
   var callData = {
+    capabilities: ["call", "move"],
     peer: "bob",
-    peerPresence: "connected",
-    capabilities: ["call", "move"]
+    peerPresence: "connected"
   };
-  var incomingCallData = {
-    callid: 2,
-    peer: "alice",
-    peerPresence: "connected",
-    offer: {type: "answer", sdp: "fake"},
-    capabilities: ["call", "move"]
-  };
-
   function fakeSDP(str) {
     return {
       str: str,
@@ -35,6 +27,18 @@ describe("ChatApp", function() {
 
   beforeEach(function() {
     AppPortStub = _.extend({post: sinon.spy()}, Backbone.Events);
+
+    incomingCallData = {
+      capabilities: ["call", "move"],
+      peer: "alice",
+      peerPresence: "connected",
+      offer: {
+        callid: 2,
+        peer: "alice",
+        offer: {type: "answer", sdp: "fake"}
+      },
+      user: "bob"
+    };
     sandbox = sinon.sandbox.create();
     sandbox.stub(window, "AppPort").returns(AppPortStub);
     sandbox.stub(window, "Audio").returns({
@@ -257,14 +261,10 @@ describe("ChatApp", function() {
       });
 
       it("should not set the peer if upgrading a call", function() {
-        var incomingCallDataUpgrade = {
-          peer: "alice",
-          upgrade: true,
-          offer: {type: "answer", sdp: "fake"}
-        };
+        incomingCallData.offer.upgrade = true;
 
         chatApp.peer.set({nick: "bob"});
-        chatApp._onIncomingConversation(incomingCallDataUpgrade);
+        chatApp._onIncomingConversation(incomingCallData);
 
         expect(chatApp.peer.get("nick")).to.equal("bob");
       });
@@ -276,7 +276,7 @@ describe("ChatApp", function() {
 
         sinon.assert.calledOnce(chatApp.call.incoming);
         sinon.assert.calledWithMatch(chatApp.call.incoming,
-          new app.payloads.Offer(incomingCallData));
+          new app.payloads.Offer(incomingCallData.offer));
       });
 
       it("should play the incoming call sound", function() {

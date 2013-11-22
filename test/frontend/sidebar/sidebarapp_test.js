@@ -97,7 +97,6 @@ describe("SidebarApp", function() {
   describe("#openConversation", function() {
     it("should post the talkilla.conversation-open event", function() {
       var sidebarApp = new SidebarApp();
-      sidebarApp.user.set("nick", "toto");
 
       sidebarApp.openConversation("jb");
 
@@ -105,7 +104,7 @@ describe("SidebarApp", function() {
                           "talkilla.conversation-open");
       sinon.assert.calledWithExactly(sidebarApp.appPort.post,
                                      "talkilla.conversation-open",
-                                     {user: "toto", peer: "jb"});
+                                     {peer: "jb"});
     });
   });
 
