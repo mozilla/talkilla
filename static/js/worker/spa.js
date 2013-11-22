@@ -94,10 +94,6 @@ var SPA = (function() {
       this._send("ice:candidate", iceCandidateMsg);
     },
 
-    presenceRequest: function() {
-      this._send("presence:request");
-    },
-
     initiateMove: function(moveMsg) {
       this._send("initiate-move", moveMsg.toJSON());
     }

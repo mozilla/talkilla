@@ -47,6 +47,8 @@ var SidebarApp = (function(app, $) {
     this.appPort.on("talkilla.chat-window-ready",
                  this._onChatWindowReady, this);
     this.appPort.on("talkilla.worker-ready", this._onWorkerReady, this);
+    this.appPort.on("social.user-profile", this._onUserProfile, this);
+    this.appPort.on('talkilla.reauth-needed', this._onReauthNeeded, this);
 
     this.appPort.post("talkilla.sidebar-ready");
 
@@ -58,14 +60,10 @@ var SidebarApp = (function(app, $) {
     // XXX Hide or disable the import button at the start and add a callback
     // here to show it when this completes.
     this.services.google.initialize();
+  };
 
-    var specs = localStorage.getItem("enabled-spa");
-    specs = specs ? JSON.parse(specs) : [];
-    specs.forEach(function(data) {
-      var spec = new app.payloads.SPASpec(data);
-      this.user.set({nick: spec.credentials.email});
-      this.appPort.post("talkilla.spa-enable", spec);
-    }.bind(this));
+  SidebarApp.prototype._onUserProfile = function(userData) {
+    this.user.set({nick: userData.userName});
   };
 
   SidebarApp.prototype._onUserSigninRequested = function(assertion) {
@@ -95,13 +93,11 @@ var SidebarApp = (function(app, $) {
     // We are successfuly logged in, we setup the SPA and ask to be
     // connected.
     var talkillaSpec = new payloads.SPASpec({
+      name: "TalkillaSPA",
       src: "/js/spa/talkilla_worker.js",
       credentials: {email: data.nick}
     });
-    localStorage.setItem("enabled-spa",
-                         JSON.stringify([talkillaSpec]));
 
-    this.user.set({nick: data.nick});
     this.appPort.post("talkilla.spa-enable", talkillaSpec);
   };
 
@@ -122,14 +118,13 @@ var SidebarApp = (function(app, $) {
   };
 
   SidebarApp.prototype._onLogoutSuccess = function() {
-    $.removeCookie('nick');
+    this.appPort.post("talkilla.spa-disable", "TalkillaSPA");
     this.user.clear();
     this.users.reset();
   };
 
   SidebarApp.prototype._onSPAConnected = function() {
     this.user.set({presence: "connected"});
-    this.appPort.post("talkilla.presence-request");
   };
 
   SidebarApp.prototype._onError = function(error) {

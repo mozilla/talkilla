@@ -14,7 +14,6 @@ var TalkillaSPA = (function() {
     this.port.on("answer", this._onCallAnswer.bind(this));
     this.port.on("hangup", this._onCallHangup.bind(this));
     this.port.on("ice:candidate", this._onIceCandidate.bind(this));
-    this.port.on("presence:request", this._onPresenceRequest.bind(this));
 
     this.server.on("connected", this._onServerEvent.bind(this, "connected"));
     this.server.on("unauthorized",
@@ -28,11 +27,13 @@ var TalkillaSPA = (function() {
     _onServerEvent: function(type, event) {
       if (type === "unauthorized")
         this.port.post("reauth-needed");
-      else if (type === "connected")
+      else if (type === "connected") {
         this.port.post(type, {
           addresses: [{type: "email", value: this.email}],
           capabilities: this.capabilities
         });
+        this.server.presenceRequest();
+      }
       else
         this.port.post(type, event);
     },
@@ -101,10 +102,6 @@ var TalkillaSPA = (function() {
     _onIceCandidate: function(iceCandidateData) {
       var iceCandidateMsg = new payloads.IceCandidate(iceCandidateData);
       this.server.iceCandidate(iceCandidateMsg);
-    },
-
-    _onPresenceRequest: function() {
-      this.server.presenceRequest();
     }
   };
 

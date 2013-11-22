@@ -1,12 +1,12 @@
-/* global indexedDB, importScripts, SPA, HTTP, ContactsDB, CurrentUsers,
-   loadConfig, payloads  */
+/* global indexedDB, importScripts, SPA, HTTP, ContactsDB, SPADB,
+   CurrentUsers, loadConfig, payloads  */
 /* jshint unused:false */
 
 // XXX: Try to import Backbone only in files that need it (and check
 // if multiple imports cause problems).
 importScripts('../vendor/backbone-events-standalone-0.1.5.js');
 importScripts('/config.js', 'payloads.js', 'addressbook/contactsdb.js');
-importScripts('/js/http.js', 'worker/users.js', 'worker/spa.js');
+importScripts('spadb.js', '/js/http.js', 'worker/users.js', 'worker/spa.js');
 
 var gConfig = loadConfig();
 var browserPort;
@@ -258,6 +258,7 @@ UserData.prototype = {
     };
 
     browserPort.postEvent('social.user-profile', userData);
+    tkWorker.ports.broadcastEvent('social.user-profile', userData);
   }
 };
 
@@ -405,15 +406,11 @@ var handlers = {
    */
   'talkilla.sidebar-ready': function(event) {
     this.postEvent('talkilla.worker-ready');
-  },
-
-  /**
-   * Called when the sidebar request the initial presence state.
-   */
-  'talkilla.presence-request': function(event) {
-    var users = tkWorker.users.toArray();
-    spa.presenceRequest();
-    this.postEvent('talkilla.users', users);
+    if (spa) {
+      tkWorker.user.send();
+      this.postEvent("talkilla.spa-connected");
+      this.postEvent('talkilla.users', tkWorker.users.toArray());
+    }
   },
 
   /**
@@ -466,10 +463,22 @@ var handlers = {
    */
   'talkilla.spa-enable': function(event) {
     var spec = new payloads.SPASpec(event.data);
-    // XXX: For now, we only support one SPA.
-    spa = new SPA({src: spec.src});
-    _setupSPA(spa);
-    spa.connect(spec.credentials);
+    tkWorker.spaDb.add(spec, function(err) {
+      // XXX: For now, we only support one SPA.
+      spa = new SPA({src: spec.src});
+      _setupSPA(spa);
+      spa.connect(spec.credentials);
+    });
+  },
+
+  /**
+   * Called to disable an installed SPA.
+   *
+   * @param {String} event.data the name of the SPA to disable.
+   */
+  'talkilla.spa-disable': function(event) {
+    // XXX: For now, we only support one SPA
+    tkWorker.spaDb.drop();
   },
 
   'talkilla.initiate-move': function(event) {
@@ -599,6 +608,7 @@ function TkWorker(options) {
   // XXX Move all globals into this constructor and create them here.
   options = options || {};
   this.contactsDb = options.contactsDb;
+  this.spaDb = options.spaDb;
   this.user = options.user;
   this.users = options.users || new CurrentUsers();
   this.ports = options.ports;
@@ -612,6 +622,7 @@ TkWorker.prototype = {
     this.user.reset();
     this.users.reset();
     this.contactsDb.close();
+    this.spaDb.close();
   },
 
   /**
@@ -651,6 +662,23 @@ TkWorker.prototype = {
   updateContactList: function(contacts) {
     this.users.updateContacts(contacts);
     this.ports.broadcastEvent("talkilla.users", this.users.toArray());
+  },
+
+  loadSPA: function(callback) {
+    this.spaDb.all(function(err, specs) {
+      tkWorker.ports.broadcastDebug("loaded specs", specs);
+      specs.forEach(function(specData) {
+        var spec = new payloads.SPASpec(specData);
+
+        // XXX: For now, we only support one SPA.
+        spa = new SPA({src: spec.src});
+        _setupSPA(spa);
+        spa.connect(spec.credentials);
+
+        if (callback)
+          callback();
+      });
+    });
   }
 };
 
@@ -663,8 +691,13 @@ tkWorker = new TkWorker({
   contactsDb: new ContactsDB({
     dbname: "TalkillaContacts",
     storename: "contacts"
+  }),
+  spaDb: new SPADB({
+    dbname: "EnabledSPA",
+    storename: "enabled-spa"
   })
 });
+tkWorker.loadSPA();
 
 function onconnect(event) {
   tkWorker.ports.add(new Port(event.ports[0]));

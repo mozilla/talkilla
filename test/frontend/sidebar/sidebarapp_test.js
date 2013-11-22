@@ -133,16 +133,6 @@ describe("SidebarApp", function() {
         expect(sidebarApp.user.get("presence")).to.equal("connected");
       });
 
-
-      it("should request that the spa send presence info for other users",
-        function() {
-          sidebarApp.appPort.trigger("talkilla.spa-connected");
-
-          sinon.assert.calledOnce(sidebarApp.appPort.post);
-          sinon.assert.calledWithExactly(
-            sidebarApp.appPort.post, "talkilla.presence-request");
-        });
-
     });
 
     describe("talkilla.spa-error", function() {
@@ -173,19 +163,9 @@ describe("SidebarApp", function() {
         sidebarApp.http.post.restore();
       });
 
-      it("should set the user nick", function() {
-        sandbox.stub(sidebarApp.http, "post", function(path, data, callback) {
-          expect(path).to.equal("/signin");
-          callback(null, JSON.stringify({nick: "foo"}));
-        });
-
-        sidebarApp.user.trigger("signin-requested", "fake assertion");
-
-        expect(sidebarApp.user.get("nick")).to.equal("foo");
-      });
-
       it("should ask the worker to enable the spa", function() {
         var spec = new app.payloads.SPASpec({
+          name: "TalkillaSPA",
           src: "/js/spa/talkilla_worker.js",
           credentials: {email: "foo"}
         });
@@ -279,21 +259,8 @@ describe("SidebarApp", function() {
 
     describe("talkilla.worker-ready", function() {
 
-      var specs;
-
       beforeEach(function() {
-        specs = [
-          new app.payloads.SPASpec({src: "/first-spa", credentials: "cred1"}),
-          new app.payloads.SPASpec({src: "/second-spa", credentials: "cred2"})
-        ];
-        localStorage.setItem("enabled-spa", JSON.stringify(specs));
         sandbox.stub(sidebarApp.services.google, "initialize");
-        // Skipping events triggered in the constructor
-        sidebarApp.appPort.post.reset();
-      });
-
-      afterEach(function() {
-        localStorage.removeItem("enabled-spa");
       });
 
       it("should initialize the google services", function() {
@@ -302,16 +269,22 @@ describe("SidebarApp", function() {
         sinon.assert.calledOnce(sidebarApp.services.google.initialize);
       });
 
-      it("should enable all the SPA", function() {
-        sidebarApp.appPort.trigger("talkilla.worker-ready");
+    });
 
-        sinon.assert.calledTwice(sidebarApp.appPort.post);
-        sinon.assert.calledWith(
-          sidebarApp.appPort.post, "talkilla.spa-enable",
-          specs[0]);
-        sinon.assert.calledWith(
-          sidebarApp.appPort.post, "talkilla.spa-enable",
-          specs[1]);
+    describe("social.user-profile", function() {
+
+      it("should set the user's nick", function() {
+        var userData = {
+          iconURL: "fake icon url",
+          portrait: "fake portrait",
+          userName: "foo",
+          displayName: "fake display name",
+          profileURL: "fake profile url"
+        };
+
+        sidebarApp.appPort.trigger("social.user-profile", userData);
+
+        expect(sidebarApp.user.get("nick")).to.equal("foo");
       });
 
     });

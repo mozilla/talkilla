@@ -123,7 +123,7 @@ api = {
       res.send(200, JSON.stringify([]));
       logger.info({type: "connection"});
     } else if (req.body && req.body.firstRequest) {
-      user.touch();
+      user.clearPending().touch();
       res.send(200, JSON.stringify([]));
       logger.info({type: "reconnection"});
     } else {

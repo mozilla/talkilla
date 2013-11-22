@@ -174,6 +174,7 @@ var payloads = (function() {
    *
    */
   function SPASpec(data) {
+    this.name = data.name;
     this.src = data.src;
     this.credentials = data.credentials;
   }
@@ -181,6 +182,7 @@ var payloads = (function() {
   SPASpec.prototype = {
     toJSON: function() {
       return {
+        name: this.name,
         src: this.src,
         credentials: this.credentials
       };
