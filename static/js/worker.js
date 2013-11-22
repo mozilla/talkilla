@@ -338,6 +338,11 @@ function _setupSPA(spa) {
       currentConversation.iceCandidate(iceCandidateMsg.toJSON());
   });
 
+  spa.on("move-accept", function(moveAcceptMsg) {
+    tkWorker.ports.broadcastEvent("talkilla.move-accept",
+                                  moveAcceptMsg.toJSON());
+  });
+
   spa.on("error", function(event) {
     tkWorker.ports.broadcastEvent("talkilla.spa-error", event);
   });

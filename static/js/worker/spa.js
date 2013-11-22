@@ -29,7 +29,8 @@ var SPA = (function() {
         "offer": payloads.Offer,
         "answer": payloads.Answer,
         "hangup": payloads.Hangup,
-        "ice:candidate": payloads.IceCandidate
+        "ice:candidate": payloads.IceCandidate,
+        "move-accept": payloads.MoveAccept
       };
 
       if (topic === "message") {

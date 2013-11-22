@@ -248,6 +248,23 @@ describe("SPA events", function() {
     });
   });
 
+  describe("`move-accept` event", function() {
+    it("should broadcast a `talkilla.move-accept` event", function() {
+      sandbox.stub(tkWorker.ports, "broadcastEvent");
+      var moveAcceptMsg = new payloads.MoveAccept({
+        peer: "frank",
+        callid: 42
+      });
+
+      spa.trigger("move-accept", moveAcceptMsg);
+
+      sinon.assert.calledOnce(tkWorker.ports.broadcastEvent);
+      sinon.assert.calledWithExactly(tkWorker.ports.broadcastEvent,
+                                     "talkilla.move-accept",
+                                     moveAcceptMsg.toJSON());
+    });
+  });
+
   describe("`network-error` event", function() {
     it("should set the user data as disconnected", function() {
       spa.trigger("network-error", {code: 1006});
