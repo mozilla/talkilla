@@ -389,8 +389,8 @@ var handlers = {
     this.postEvent('talkilla.worker-ready');
     if (spa) {
       tkWorker.user.send();
-      this.postEvent('talkilla.users', tkWorker.users.toArray());
       this.postEvent("talkilla.spa-connected");
+      this.postEvent('talkilla.users', tkWorker.users.toArray());
     }
   },
 
