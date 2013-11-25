@@ -92,6 +92,8 @@ var ChatApp = (function(app, $, Backbone, _) {
     this.appPort.on('talkilla.user-joined', this._onUserJoined, this);
     this.appPort.on('talkilla.user-left', this._onUserLeft, this);
     this.appPort.on('talkilla.move-accept', this._onMoveAccept, this);
+    this.appPort.on('talkilla.hold', this._onHold, this);
+    this.appPort.on('talkilla.resume', this._onResume, this);
 
     // Outgoing events
     this.call.on('send-offer', this._onSendOffer, this);
@@ -216,6 +218,16 @@ var ChatApp = (function(app, $, Backbone, _) {
   ChatApp.prototype._onMoveAccept = function(msg) {
     if (msg.callid === this.call.callid)
       this.call.hangup(false);
+  };
+
+  ChatApp.prototype._onHold = function(msg) {
+    if (msg.callid === this.call.callid)
+      this.call.hold();
+  };
+
+  ChatApp.prototype._onResume = function(msg) {
+    if (msg.callid === this.call.callid)
+      this.call.resume();
   };
 
   // Call Hangup

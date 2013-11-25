@@ -60,6 +60,13 @@
           {name: 'ignore',    from: 'incoming',  to: 'terminated'},
           {name: 'complete',  from: 'pending',   to: 'ongoing'},
 
+          // Call actions
+          // For call hold, it is expected that there may be a future
+          // attribute for which side of the connection initiated the
+          // hold. For now, we only support hold for an incoming request.
+          {name: 'hold', from: 'ongoing', to: 'hold'},
+          {name: 'resume', from: 'hold', to: 'ongoing'},
+
           // Call hangup
           {name: 'hangup',    from: '*',         to: 'terminated'}
         ],
@@ -230,6 +237,26 @@
         peer: this.peer.get("nick"),
         callid: this.callid
       }));
+    },
+
+    /**
+     * Used to place a call on hold.
+     */
+    hold: function() {
+      this.state.hold();
+      // XXX Whilst we don't have session renegotiation which would
+      // remove the streams, we must mute the outgoing audio & video.
+      this.media.mute('local', 'both', true);
+    },
+
+    /**
+     * Used to resume a call.
+     */
+    resume: function() {
+      this.state.resume();
+      // XXX Whilst we don't have session renegotiation which would
+      // add the streams, we must unmute the outgoing audio & video.
+      this.media.mute('local', 'both', false);
     },
 
     /**

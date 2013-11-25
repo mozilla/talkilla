@@ -20,8 +20,9 @@ describe("Call Model", function() {
       upgrade: sandbox.spy(),
       terminate: sandbox.spy(),
       reset: sandbox.spy(),
-      on: sandbox.stub(),
-      once: sandbox.stub()
+      on: sandbox.spy(),
+      once: sandbox.spy(),
+      mute: sandbox.spy()
     };
 
     peer = new app.models.User();
@@ -422,6 +423,38 @@ describe("Call Model", function() {
       });
 
       call.move();
+    });
+  });
+
+  describe("#hold", function() {
+    it("should change the state from ongoing to hold", function() {
+      call.state.current = 'ongoing';
+      call.hold();
+      expect(call.state.current).to.equal('hold');
+    });
+
+    it("should mute the local streams", function() {
+      call.state.current = 'ongoing';
+      call.hold();
+
+      sinon.assert.calledOnce(media.mute);
+      sinon.assert.calledWith(media.mute, 'local', 'both', true);
+    });
+  });
+
+  describe("#resume", function() {
+    it("should change the state from hold to ongoing", function() {
+      call.state.current = 'hold';
+      call.resume();
+      expect(call.state.current).to.equal('ongoing');
+    });
+
+    it("should mute the local streams", function() {
+      call.state.current = 'hold';
+      call.resume();
+
+      sinon.assert.calledOnce(media.mute);
+      sinon.assert.calledWith(media.mute, 'local', 'both', false);
     });
   });
 

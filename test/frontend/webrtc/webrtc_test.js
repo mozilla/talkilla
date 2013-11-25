@@ -584,6 +584,13 @@ describe("WebRTC", function() {
         expect(videoStreamTrack.enabled).to.be.equal(false);
       });
 
+      it("should set the mute status for all local tracks", function() {
+        webrtc.setMuteState('local', 'both', true);
+
+        expect(audioStreamTrack.enabled).to.be.equal(false);
+        expect(videoStreamTrack.enabled).to.be.equal(false);
+      });
+
       it("should set the mute status for remote audio tracks", function() {
         webrtc.setMuteState('remote', 'audio', true);
 
@@ -595,6 +602,13 @@ describe("WebRTC", function() {
         webrtc.setMuteState('remote', 'video', true);
 
         expect(audioStreamTrack.enabled).to.be.equal(true);
+        expect(videoStreamTrack.enabled).to.be.equal(false);
+      });
+
+      it("should set the mute status for all remote tracks", function() {
+        webrtc.setMuteState('remote', 'both', true);
+
+        expect(audioStreamTrack.enabled).to.be.equal(false);
         expect(videoStreamTrack.enabled).to.be.equal(false);
       });
     });

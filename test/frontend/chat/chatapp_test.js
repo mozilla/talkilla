@@ -550,6 +550,58 @@ describe("ChatApp", function() {
           sinon.assert.notCalled(chatApp.call.hangup);
         });
       });
+
+      describe("talkilla.hold", function() {
+        it("should put the call on hold if matching its callid", function() {
+          sandbox.stub(chatApp.call, "hold");
+          chatApp.call.callid = 42;
+
+          chatApp.appPort.trigger("talkilla.hold", {
+            peer: "lloyd",
+            callid: 42
+          });
+
+          sinon.assert.calledOnce(chatApp.call.hold);
+        });
+
+        it("shouldn't put the call on hold if callid doesn't match", function() {
+          sandbox.stub(chatApp.call, "hold");
+          chatApp.call.callid = 1337;
+
+          chatApp.appPort.trigger("talkilla.hold", {
+            peer: "lloyd",
+            callid: 42
+          });
+
+          sinon.assert.notCalled(chatApp.call.hold);
+        });
+      });
+
+      describe("talkilla.resume", function() {
+        it("should put the call on resume if matching its callid", function() {
+          sandbox.stub(chatApp.call, "resume");
+          chatApp.call.callid = 42;
+
+          chatApp.appPort.trigger("talkilla.resume", {
+            peer: "lloyd",
+            callid: 42
+          });
+
+          sinon.assert.calledOnce(chatApp.call.resume);
+        });
+
+        it("shouldn't put the call on resume if callid doesn't match", function() {
+          sandbox.stub(chatApp.call, "resume");
+          chatApp.call.callid = 1337;
+
+          chatApp.appPort.trigger("talkilla.resume", {
+            peer: "lloyd",
+            callid: 42
+          });
+
+          sinon.assert.notCalled(chatApp.call.resume);
+        });
+      });
     });
 
     describe("Object events listeners", function() {
