@@ -30,7 +30,9 @@ var SPA = (function() {
         "answer": payloads.Answer,
         "hangup": payloads.Hangup,
         "ice:candidate": payloads.IceCandidate,
-        "move-accept": payloads.MoveAccept
+        "move-accept": payloads.MoveAccept,
+        "hold": payloads.Hold,
+        "resume": payloads.Resume
       };
 
       if (topic === "message") {

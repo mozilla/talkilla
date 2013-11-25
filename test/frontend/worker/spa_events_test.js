@@ -225,6 +225,44 @@ describe("SPA events", function() {
     });
   });
 
+  describe("`hold` event", function() {
+    beforeEach(function() {
+      currentConversation = {
+        hold: function() {}
+      };
+    });
+
+    it("should call hold on the conversation", function() {
+      var holdMsg = new payloads.Hold({peer: "bar"});
+      sandbox.stub(currentConversation, "hold");
+
+      spa.trigger("hold", holdMsg);
+
+      sinon.assert.calledOnce(currentConversation.hold);
+      sinon.assert.calledWithExactly(
+        currentConversation.hold, holdMsg);
+    });
+  });
+
+  describe("`resume` event", function() {
+    beforeEach(function() {
+      currentConversation = {
+        resume: function() {}
+      };
+    });
+
+    it("should call resume on the conversation", function() {
+      var resumeMsg = new payloads.Resume({peer: "bar", media: {video: true}});
+      sandbox.stub(currentConversation, "resume");
+
+      spa.trigger("resume", resumeMsg);
+
+      sinon.assert.calledOnce(currentConversation.resume);
+      sinon.assert.calledWithExactly(
+        currentConversation.resume, resumeMsg);
+    });
+  });
+
   describe("`ice:candidate` event", function() {
     beforeEach(function() {
       currentConversation = {

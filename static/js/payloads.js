@@ -138,6 +138,51 @@ var payloads = (function() {
   };
 
   /**
+   * Hold payload.
+   *
+   * @param {Object} data
+   *
+   * data attributes:
+   *
+   * - {Integer} callid, the id of the call being initiated
+   * - {String} peer, the user to call
+   *
+   */
+  function Hold(data) {
+    this.callid = data.callid;
+    this.peer = data.peer;
+  }
+
+  Hold.prototype = {
+    toJSON: function() {
+      return {peer: this.peer, callid: this.callid};
+    }
+  };
+
+  /**
+   * Resume payload.
+   *
+   * @param {Object} data
+   *
+   * data attributes:
+   *
+   * - {Integer} callid, the id of the call being initiated
+   * - {String} peer, the user to call
+   *
+   */
+  function Resume(data) {
+    this.callid = data.callid;
+    this.peer = data.peer;
+    this.media = { video: data.media.video };
+  }
+
+  Resume.prototype = {
+    toJSON: function() {
+      return {peer: this.peer, callid: this.callid, media: { video: this.media.video }};
+    }
+  };
+
+  /**
    * IceCandidate payload.
    *
    * @param {Object} data
@@ -193,6 +238,8 @@ var payloads = (function() {
     Offer: Offer,
     Answer: Answer,
     Hangup: Hangup,
+    Hold: Hold,
+    Resume: Resume,
     IceCandidate: IceCandidate,
     SPASpec: SPASpec,
     Move: Move,
