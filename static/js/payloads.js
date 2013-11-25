@@ -178,7 +178,9 @@ var payloads = (function() {
 
   Resume.prototype = {
     toJSON: function() {
-      return {peer: this.peer, callid: this.callid, media: { video: this.media.video }};
+      return {peer: this.peer, callid: this.callid, media: {
+        video: this.media.video
+      }};
     }
   };
 

@@ -472,7 +472,8 @@ describe("ConversationView", function() {
       view.call.trigger('state:to:hold');
 
       expect($("#fixtures .alert")).to.have.length.of(1);
-      expect($("#fixtures .alert").text()).to.match(/hardfire has placed you on hold/);
+      expect($("#fixtures .alert").text()).to
+        .match(/hardfire has placed you on hold/);
     });
 
     it("should display a resume notification", function() {
