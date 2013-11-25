@@ -52,17 +52,32 @@
         this._notify.bind(this, "The call was disconnected."));
       this.call.media.on('ice:new ice:checking ice:connected ice:completed',
         this._clearNotification, this);
+      this.call.on('state:to:hold', function () {
+        this._notify(this.peer.get("nick") + " has placed you on hold");
+      }, this);
+
+      this.call.on('change:state', function(to, from) {
+        if (to === 'ongoing' && from === 'hold')
+          this._notify(this.peer.get("nick") + " is back!", 5000);
+      }, this);
     },
 
     _clearNotification: function() {
       if (!this.notification)
         return;
       this.notification.clear();
+      if (this.timeout) {
+        clearTimeout(this.timeout);
+        delete this.timeout;
+      }
       this.$('#notifications').empty();
     },
 
-    _notify: function(message) {
+    _notify: function(message, timeout) {
       this._clearNotification();
+      if (timeout) {
+        this.timeout = setTimeout(this._clearNotification.bind(this), timeout);
+      }
       this.notification = new app.views.NotificationView({
         model: new app.models.Notification({message: message})
       });
@@ -214,7 +229,7 @@
     initiateCallMove: function(event){
       if (event)
         event.preventDefault();
-      
+
       this.call.move();
     },
 

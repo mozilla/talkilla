@@ -246,7 +246,7 @@
       this.state.hold();
       // XXX Whilst we don't have session renegotiation which would
       // remove the streams, we must mute the outgoing audio & video.
-      this.media.mute('local', 'both', true);
+      this.media.setMuteState('local', 'both', true);
     },
 
     /**
@@ -256,7 +256,7 @@
       this.state.resume();
       // XXX Whilst we don't have session renegotiation which would
       // add the streams, we must unmute the outgoing audio & video.
-      this.media.mute('local', 'both', false);
+      this.media.setMuteState('local', 'both', false);
     },
 
     /**

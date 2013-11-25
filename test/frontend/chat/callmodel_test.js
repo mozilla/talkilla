@@ -22,7 +22,7 @@ describe("Call Model", function() {
       reset: sandbox.spy(),
       on: sandbox.spy(),
       once: sandbox.spy(),
-      mute: sandbox.spy()
+      setMuteState: sandbox.spy()
     };
 
     peer = new app.models.User();
@@ -437,8 +437,8 @@ describe("Call Model", function() {
       call.state.current = 'ongoing';
       call.hold();
 
-      sinon.assert.calledOnce(media.mute);
-      sinon.assert.calledWith(media.mute, 'local', 'both', true);
+      sinon.assert.calledOnce(media.setMuteState);
+      sinon.assert.calledWith(media.setMuteState, 'local', 'both', true);
     });
   });
 
@@ -453,8 +453,8 @@ describe("Call Model", function() {
       call.state.current = 'hold';
       call.resume();
 
-      sinon.assert.calledOnce(media.mute);
-      sinon.assert.calledWith(media.mute, 'local', 'both', false);
+      sinon.assert.calledOnce(media.setMuteState);
+      sinon.assert.calledWith(media.setMuteState, 'local', 'both', false);
     });
   });
 
