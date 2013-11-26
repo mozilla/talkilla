@@ -25,9 +25,6 @@
      * Persona as a session provider.
      */
     initialize: function() {
-      navigator.id.watch({
-        onlogin: this._onSignin.bind(this)
-      });
       app.models.User.prototype.initialize.apply(this, arguments);
     },
 

@@ -34,7 +34,6 @@ var SidebarApp = (function(app, $) {
 
     // user events
     this.user.on("signout", this._onUserSignout, this);
-    this.user.on("signin-requested", this._onUserSigninRequested, this);
     this.user.on("signout-requested", this._onUserSignoutRequested, this);
 
     // port events
@@ -49,6 +48,7 @@ var SidebarApp = (function(app, $) {
     this.appPort.on("talkilla.worker-ready", this._onWorkerReady, this);
     this.appPort.on("social.user-profile", this._onUserProfile, this);
     this.appPort.on('talkilla.reauth-needed', this._onReauthNeeded, this);
+    window.addEventListener("message", this._onSPASetup.bind(this), false);
 
     this.appPort.post("talkilla.sidebar-ready");
 
@@ -89,15 +89,17 @@ var SidebarApp = (function(app, $) {
     this.appPort.post('talkilla.user-nick', {nick: this.user.get('nick')});
   };
 
-  SidebarApp.prototype._onLoginSuccess = function(data) {
-    // We are successfuly logged in, we setup the SPA and ask to be
-    // connected.
-    var talkillaSpec = new payloads.SPASpec({
-      name: "TalkillaSPA",
-      src: "/js/spa/talkilla_worker.js",
-      credentials: {email: data.nick}
-    });
+  SidebarApp.prototype._onSPASetup = function(event) {
+    // We verify enabling the SPA comes from the same origin.
+    // XXX: in the future, this will not be always true.
+    if (event.origin !== window.location.origin)
+      return;
 
+    event = JSON.parse(event.data);
+    if (event.topic !== "talkilla.spa-enable")
+      return;
+
+    var talkillaSpec = new app.payloads.SPASpec(event.data);
     this.appPort.post("talkilla.spa-enable", talkillaSpec);
   };
 
