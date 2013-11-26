@@ -697,8 +697,10 @@ tkWorker = new TkWorker({
     storename: "enabled-spa"
   })
 });
-tkWorker.loadSPA();
 
 function onconnect(event) {
   tkWorker.ports.add(new Port(event.ports[0]));
+
+  // Now we're set up load the spa info
+  tkWorker.loadSPA();
 }
