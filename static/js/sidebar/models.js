@@ -29,25 +29,6 @@
     },
 
     /**
-     * Called when the user is signed in via persona.
-     *
-     * @param personaAssertion The assertion from persona to verify the user on
-     *                         the user
-     */
-    _onSignin: function(personaAssertion) {
-      if (!this.isLoggedIn())
-        this.trigger('signin-requested', personaAssertion);
-    },
-
-    /**
-     * Authenticate a user via persona.
-     */
-    signin: function() {
-      if (!this.isLoggedIn())
-        navigator.id.request();
-    },
-
-    /**
      * Sign out a user.
      */
     signout: function() {

@@ -140,18 +140,6 @@ describe("LoginView", function() {
       window.sidebarApp = undefined;
     });
 
-    describe("#signin", function() {
-
-      it("should call sign in on the user model", function() {
-        sandbox.stub(loginView.user, "signin");
-
-        loginView.signin(clickEvent);
-
-        sinon.assert.calledOnce(loginView.user.signin);
-      });
-
-    });
-
     describe("#signout", function() {
 
       it("should call sign out on the user model", function() {

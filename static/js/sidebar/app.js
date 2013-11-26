@@ -66,15 +66,6 @@ var SidebarApp = (function(app, $) {
     this.user.set({nick: userData.userName});
   };
 
-  SidebarApp.prototype._onUserSigninRequested = function(assertion) {
-    this.http.post("/signin", {assertion: assertion}, function(err, response) {
-      if (err)
-        return this._onLoginFailure(err);
-
-      return this._onLoginSuccess(JSON.parse(response));
-    }.bind(this));
-  };
-
   SidebarApp.prototype._onUserSignoutRequested = function() {
     this.http.post("/signout", {}, this._onLogoutSuccess.bind(this));
   };
@@ -112,12 +103,6 @@ var SidebarApp = (function(app, $) {
   // However, I suspect the factoring is going to be meaningfully effected by
   // our efforts to retry connections much of the time, so it probably makes
   // sense to do it as part of that card.
-
-  SidebarApp.prototype._onLoginFailure = function(error) {
-    app.utils.notifyUI('Failed to login while communicating with the server: ' +
-      error, 'error');
-    navigator.id.logout();
-  };
 
   SidebarApp.prototype._onLogoutSuccess = function() {
     this.appPort.post("talkilla.spa-disable", "TalkillaSPA");
