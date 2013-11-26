@@ -468,36 +468,62 @@ describe("ConversationView", function() {
       view = null;
     });
 
-    it("should display hold notification", function() {
-      view.call.trigger('state:to:hold');
+    describe("hold", function() {
+      it("should display hold notification", function() {
+        view.call.trigger('state:to:hold');
 
-      expect($("#fixtures .alert")).to.have.length.of(1);
-      expect($("#fixtures .alert").text()).to
-        .match(/hardfire has placed you on hold/);
+        expect($("#fixtures .alert")).to.have.length.of(1);
+        expect($("#fixtures .alert").text()).to
+          .match(/hardfire has placed you on hold/);
+      });
+
+      it("should disable the has-video class for video calls", function() {
+        view.call.trigger('state:to:hold');
+
+        expect($("#fixtures").hasClass("has-video")).to.equal(false);
+      });
     });
 
-    it("should display a resume notification", function() {
-      view.call.trigger('change:state', 'ongoing', 'hold');
+    describe("resume", function() {
+      it("should display a resume notification", function() {
+        view.call.trigger('change:state', 'ongoing', 'hold');
 
-      expect($("#fixtures .alert")).to.have.length.of(1);
-      expect($("#fixtures .alert").text()).to.match(/hardfire is back/);
-    });
+        expect($("#fixtures .alert")).to.have.length.of(1);
+        expect($("#fixtures .alert").text()).to.match(/hardfire is back/);
+      });
 
-    it("should clear the resume notification after a timeout", function() {
-      view.call.trigger('change:state', 'ongoing', 'hold');
+      it("should clear the resume notification after a timeout", function() {
+        view.call.trigger('change:state', 'ongoing', 'hold');
 
-      sinon.assert.calledOnce(window.setTimeout);
+        sinon.assert.calledOnce(window.setTimeout);
 
-      // Now check the arguments
-      var args = window.setTimeout.args[0];
+        // Now check the arguments
+        var args = window.setTimeout.args[0];
 
-      // args[1] is the second argument to setTimeout, i.e. the timeout
-      expect(args[1]).to.be.equal(5000);
+        // args[1] is the second argument to setTimeout, i.e. the timeout
+        expect(args[1]).to.be.equal(5000);
 
-      // args[0] is the first argument to setTimeout, i.e. the callback
-      args[0]();
+        // args[0] is the first argument to setTimeout, i.e. the callback
+        args[0]();
 
-      expect($("#fixtures .alert")).to.have.length.of(0);
+        expect($("#fixtures .alert")).to.have.length.of(0);
+      });
+
+      it("should enable the has-video class for video calls", function() {
+        sandbox.stub(view.call, "requiresVideo").returns(true);
+
+        view.call.trigger('change:state', 'ongoing', 'hold');
+
+        expect($("#fixtures").hasClass("has-video")).to.equal(true);
+      });
+
+      it("should disable the has-video class for audio calls", function() {
+        sandbox.stub(view.call, "requiresVideo").returns(false);
+
+        view.call.trigger('change:state', 'ongoing', 'hold');
+
+        expect($("#fixtures").hasClass("has-video")).to.equal(false);
+      });
     });
   });
 });
