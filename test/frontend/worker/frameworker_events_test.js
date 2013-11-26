@@ -3,8 +3,9 @@
 var expect = chai.expect;
 
 describe("Frame Worker Events", function() {
+  "use strict";
+
   describe("#onconnect", function() {
-    "use strict";
     var sandbox, event, ports, oldPorts;
 
     beforeEach(function() {
