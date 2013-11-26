@@ -449,7 +449,7 @@ describe("ConversationView", function() {
   });
 
   describe("Call Hold state change events", function() {
-    var view;
+    var view, clock;
 
     beforeEach(function() {
       view = new app.views.ConversationView({
@@ -461,10 +461,11 @@ describe("ConversationView", function() {
       });
 
       peer.set("nick", "hardfire");
-      sandbox.stub(window, "setTimeout");
+      clock = sinon.useFakeTimers();
     });
 
     afterEach(function() {
+      clock.restore();
       view = null;
     });
 
@@ -494,17 +495,7 @@ describe("ConversationView", function() {
 
       it("should clear the resume notification after a timeout", function() {
         view.call.trigger('change:state', 'ongoing', 'hold');
-
-        sinon.assert.calledOnce(window.setTimeout);
-
-        // Now check the arguments
-        var args = window.setTimeout.args[0];
-
-        // args[1] is the second argument to setTimeout, i.e. the timeout
-        expect(args[1]).to.be.equal(5000);
-
-        // args[0] is the first argument to setTimeout, i.e. the callback
-        args[0]();
+        clock.tick(5100);
 
         expect($("#fixtures .alert")).to.have.length.of(0);
       });
