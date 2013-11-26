@@ -69,12 +69,8 @@
   <script>
     $(function() {
       var config = loadConfig();
-      $.getScript(config.PERSONA_INCLUDE_URL).done(function() {
-        $.getScript("vendor/persona-goldilocks-api-0.0.1.js").done(function() {
-          app.start(config);
-          window.sidebarApp = new SidebarApp();
-        });
-     });
+      app.start(config);
+      window.sidebarApp = new SidebarApp();
     });
   </script>
 </body>

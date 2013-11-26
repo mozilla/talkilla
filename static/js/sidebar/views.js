@@ -251,7 +251,9 @@
      */
     signin: function(event) {
       event.preventDefault();
-      var iframe = $("<iframe>").attr("src", "/talkilla-spa.html");
+      var iframe = $("<iframe>")
+        .attr("src", "/talkilla-spa-setup.html")
+        .attr("name", "spa-setup");
       this.$("#signin").parent().append(iframe);
     },
 
