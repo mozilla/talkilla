@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Talkilla SPA Setup</title>
+</head>
+<body>
+  <a href="#" id="signin" class="hide">
+    <img src="/img/persona_sign_in_blue.png" alt="Sign in with Persona">
+  </a>
+  <script src="/config.js"></script>
+  <script src="vendor/jquery-1.9.1.js"></script>
+  <script src="js/http.js"></script>
+  <script src="js/payloads.js"></script>
+  <script src="js/spa/talkilla_spa_setup.js"></script>
+  <script>
+    $(function() {
+      var config = loadConfig();
+      $.getScript(config.PERSONA_INCLUDE_URL).done(function() {
+        $.getScript("vendor/persona-goldilocks-api-0.0.1.js").done(function() {
+          var setup = new TalkillaSPASetup();
+          document.getElementById("signin")
+            .addEventListener("click", function(event) {
+              event.preventDefault();
+              navigator.id.request();
+            });
+        });
+     });
+    });
+  </script>
+</body>
+</html>
+
