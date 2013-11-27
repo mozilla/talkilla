@@ -253,7 +253,7 @@
    * @param {String}  type  The type of stream to mute, values are
    *                        'local' or 'remote'
    * @param {String}  media The type of media stream to mute, values are
-   *                        'audio' or 'video'
+   *                        'audio', 'video' or 'both'
    * @param {Boolean} mute  True to mute the stream, false to unmute
    */
   WebRTC.prototype.setMuteState = function(type, media, mute) {
@@ -275,6 +275,10 @@
         stream.getAudioTracks().forEach(muteTrack, this);
       else if (media === 'video')
         stream.getVideoTracks().forEach(muteTrack, this);
+      else if (media === 'both') {
+        stream.getAudioTracks().forEach(muteTrack, this);
+        stream.getVideoTracks().forEach(muteTrack, this);
+      }
     }, this);
   };
 

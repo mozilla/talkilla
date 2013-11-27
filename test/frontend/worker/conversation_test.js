@@ -311,6 +311,69 @@ describe("Conversation", function() {
     });
   });
 
+  describe("#hold" , function() {
+    beforeEach(function() {
+      currentConversation = new Conversation({}, spa);
+      currentConversation.port = {
+        postEvent: sandbox.spy()
+      };
+    });
+
+    it("should post a talkilla.hold to the conversation window",
+       function() {
+      var holdMsg = {
+        peer: "nicolas"
+      };
+      currentConversation.hold(holdMsg);
+
+      sinon.assert.calledOnce(currentConversation.port.postEvent);
+      sinon.assert.calledWith(currentConversation.port.postEvent,
+        "talkilla.hold", holdMsg);
+    });
+  });
+
+  describe("#resume" , function() {
+    beforeEach(function() {
+      currentConversation = new Conversation({}, spa);
+      currentConversation.port = {
+        postEvent: sandbox.spy()
+      };
+    });
+
+    it("should post a talkilla.resume to the conversation window",
+       function() {
+      var resumeMsg = {
+        peer: "nicolas"
+      };
+      currentConversation.resume(resumeMsg);
+
+      sinon.assert.calledOnce(currentConversation.port.postEvent);
+      sinon.assert.calledWith(currentConversation.port.postEvent,
+        "talkilla.resume", resumeMsg);
+    });
+  });
+
+  describe("#callHangup" , function() {
+    beforeEach(function() {
+      currentConversation = new Conversation({}, spa);
+      currentConversation.port = {
+        postEvent: sandbox.spy()
+      };
+    });
+
+    it("should post a talkilla.call-hangup to the conversation window",
+       function() {
+      var context = {
+        peer: "nicolas"
+      };
+      currentConversation.callHangup(context);
+
+      sinon.assert.calledOnce(currentConversation.port.postEvent);
+      sinon.assert.calledWith(currentConversation.port.postEvent,
+        "talkilla.call-hangup", context);
+    });
+  });
+
   describe("#callHangup" , function() {
     beforeEach(function() {
       currentConversation = new Conversation({}, spa);

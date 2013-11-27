@@ -148,6 +148,30 @@ Conversation.prototype = {
 
   /**
    * Call to tell the conversation window that the call has been
+   * put on hold by the peer
+   *
+   * @param {payloads.Hold} The hold message for the conversation
+   */
+  hold: function(data) {
+    tkWorker.ports.broadcastDebug('hold', data);
+    this.port.postEvent('talkilla.hold', data);
+  },
+
+
+  /**
+   * Call to tell the conversation window that the call has been
+   * resumed by the peer.
+   *
+   * @param {payloads.Resume} The resume message for the conversation
+   */
+  resume: function(data) {
+    tkWorker.ports.broadcastDebug('resume', data);
+    this.port.postEvent('talkilla.resume', data);
+  },
+
+
+  /**
+   * Call to tell the conversation window that the call has been
    * hungup by the peer.
    *
    * @param data The data associated with the call. Consisting of:
@@ -328,7 +352,8 @@ function _setupSPA(spa) {
   });
 
   spa.on("answer", function(answerMsg) {
-    currentConversation.callAccepted(answerMsg);
+    if (currentConversation)
+      currentConversation.callAccepted(answerMsg);
   });
 
   spa.on("hangup", function(hangupMsg) {
@@ -339,6 +364,16 @@ function _setupSPA(spa) {
   spa.on("ice:candidate", function(iceCandidateMsg) {
     if (currentConversation)
       currentConversation.iceCandidate(iceCandidateMsg);
+  });
+
+  spa.on("hold", function(holdMsg) {
+    if (currentConversation)
+      currentConversation.hold(holdMsg);
+  });
+
+  spa.on("resume", function(resumeMsg) {
+    if (currentConversation)
+      currentConversation.resume(resumeMsg);
   });
 
   spa.on("move-accept", function(moveAcceptMsg) {
