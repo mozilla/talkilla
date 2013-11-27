@@ -415,6 +415,8 @@ var handlers = {
     // Don't have it in the main list of ports, as we don't need
     // to broadcast all our talkilla.* messages to the social api.
     tkWorker.ports.remove(this);
+
+    tkWorker.initialize();
   },
 
   // Talkilla events
@@ -651,6 +653,19 @@ function TkWorker(options) {
 
 TkWorker.prototype = {
   /**
+   * Initializes the worker
+   *
+   * @param {Object} options Options object
+   *
+   * Available options:
+   * - {
+   */
+  initialize: function() {
+    // Now we're set up load the spa info
+    this.loadSPAs();
+  },
+
+  /**
    * Closes current user session.
    */
   closeSession: function() {
@@ -699,7 +714,7 @@ TkWorker.prototype = {
     this.ports.broadcastEvent("talkilla.users", this.users.toArray());
   },
 
-  loadSPA: function(callback) {
+  loadSPAs: function(callback) {
     this.spaDb.all(function(err, specs) {
       tkWorker.ports.broadcastDebug("loaded specs", specs);
       specs.forEach(function(specData) {
@@ -732,7 +747,6 @@ tkWorker = new TkWorker({
     storename: "enabled-spa"
   })
 });
-tkWorker.loadSPA();
 
 function onconnect(event) {
   tkWorker.ports.add(new Port(event.ports[0]));
