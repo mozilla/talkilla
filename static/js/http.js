@@ -1,6 +1,8 @@
 /* jshint unused:false */
 
 var HTTP = (function() {
+  "use strict";
+
   function HTTP() {}
 
   /**

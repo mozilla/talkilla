@@ -1,6 +1,7 @@
 /*global expect, sinon, currentConversation:true, browserPort:true,
   Conversation, SPA, tkWorker */
 /* jshint expr:true */
+"use strict";
 
 describe("Conversation", function() {
   var sandbox, spa;

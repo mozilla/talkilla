@@ -1,5 +1,6 @@
 /* global sinon, SPAPort, Server, TalkillaSPA, expect */
 /* jshint unused:false */
+"use strict";
 
 describe("TalkillaSPA", function() {
   var sandbox, port, server, spa;

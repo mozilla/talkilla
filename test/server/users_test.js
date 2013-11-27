@@ -1,4 +1,5 @@
 /* jshint expr:true */
+"use strict";
 
 var chai = require("chai");
 var expect = chai.expect;
@@ -80,7 +81,7 @@ describe("User", function() {
 
   describe("#clearPending", function() {
     it("should not throw if there are no pending events", function() {
-      expect(user.clearPending).not.to.Throw();
+      expect(user.clearPending.bind(user)).not.to.Throw();
     });
 
     it("should clear the pending event", function() {

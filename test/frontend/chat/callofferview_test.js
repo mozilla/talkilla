@@ -1,10 +1,10 @@
 /*global app, chai, sinon */
-
 /* jshint expr:true */
+"use strict";
+
 var expect = chai.expect;
 
 describe('Call Offer View', function() {
-  "use strict";
   var media, sandbox, call;
 
   beforeEach(function() {

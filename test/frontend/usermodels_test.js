@@ -1,9 +1,9 @@
 /*global chai, app, sinon */
+"use strict";
+
 var expect = chai.expect;
 
 describe("app.models", function() {
-  "use strict";
-
   describe("app.models.User", function() {
 
     it("should be initialized with a sensible defaults object", function() {

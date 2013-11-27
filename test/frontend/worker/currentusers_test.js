@@ -1,5 +1,6 @@
 /*global chai, CurrentUsers */
 /* jshint expr:true */
+"use strict";
 
 var expect = chai.expect;
 

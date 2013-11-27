@@ -1,4 +1,5 @@
 /* jshint expr:true */
+"use strict";
 
 process.env.NO_LOCAL_CONFIG = true;
 process.env.PORT = 3000;

@@ -1,4 +1,5 @@
 /* global sinon, SPAPort, expect */
+"use strict";
 
 describe("SPAPort", function() {
   var port;

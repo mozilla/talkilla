@@ -1,5 +1,6 @@
 /* global importScripts, SPAPort, Server, TalkillaSPA */
 /* jshint unused:false */
+"use strict";
 
 importScripts('../../vendor/backbone-events-standalone-0.1.5.js');
 importScripts('/js/http.js');

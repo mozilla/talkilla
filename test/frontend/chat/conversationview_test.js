@@ -1,8 +1,9 @@
 /*global app, chai, sinon */
+"use strict";
+
 var expect = chai.expect;
 
 describe("ConversationView", function() {
-  "use strict";
   var sandbox, call, textChat, oldtitle, user, peer;
 
   beforeEach(function() {

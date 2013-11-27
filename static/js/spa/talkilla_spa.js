@@ -2,6 +2,8 @@
 /* jshint unused:false */
 
 var TalkillaSPA = (function() {
+  "use strict";
+
   function TalkillaSPA(port, server, options) {
     this.port = port;
     this.server = server;

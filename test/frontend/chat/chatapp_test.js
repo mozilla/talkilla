@@ -1,11 +1,10 @@
 /*global app, chai, ChatApp, sinon, WebRTC, payloads */
-
 /* jshint expr:true */
+"use strict";
+
 var expect = chai.expect;
 
 describe("ChatApp", function() {
-  "use strict";
-
   var sandbox, chatApp, AppPortStub, incomingCallData;
   var callData = {
     capabilities: ["call", "move"],

@@ -1,11 +1,10 @@
 /*global sinon, chai, SPADB, IDBDatabase, IDBObjectStore */
 /* jshint expr:true */
+"use strict";
 
 var expect = chai.expect;
 
 describe("SPADB", function() {
-  "use strict";
-
   var sandbox, spadb;
 
   beforeEach(function() {

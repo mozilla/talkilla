@@ -7,6 +7,8 @@
  * Wraps a SPA in a sub worker.
  */
 var SPA = (function() {
+  "use strict";
+
   function SPA(options) {
     if (!options || !options.src)
       throw new Error("missing parameter: src");

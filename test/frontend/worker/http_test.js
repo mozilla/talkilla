@@ -1,7 +1,7 @@
 /*global sinon, HTTP */
+"use strict";
 
 describe('HTTP', function() {
-  "use strict";
   var sandbox, http, xhr, request;
 
   beforeEach(function () {
