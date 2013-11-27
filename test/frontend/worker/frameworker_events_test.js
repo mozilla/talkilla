@@ -1,12 +1,12 @@
-/*global chai, sinon, PortCollection, tkWorker, onconnect */
+/*global chai, sinon, PortCollection, tkWorker:true, TkWorker, onconnect */
+"use strict";
 
 var expect = chai.expect;
 
 describe("Frame Worker Events", function() {
-  "use strict";
 
   describe("#onconnect", function() {
-    var sandbox, event, ports, oldPorts;
+    var sandbox, event, oldTkWorker;
 
     beforeEach(function() {
       sandbox = sinon.sandbox.create();
@@ -15,28 +15,21 @@ describe("Frame Worker Events", function() {
         ports: [{_portid: 1}]
       };
 
-      ports = new PortCollection();
-      oldPorts = tkWorker.ports;
-      tkWorker.ports = ports;
-
-      sandbox.stub(tkWorker, "loadSPA");
+      oldTkWorker = tkWorker;
+      tkWorker = new TkWorker({
+        ports: new PortCollection()
+      });
     });
 
     afterEach(function() {
-      tkWorker.ports = oldPorts;
+      tkWorker = oldTkWorker;
       sandbox.restore();
     });
 
     it("should add the port to the tkWorker ports", function () {
       onconnect(event);
 
-      expect(ports.find(1).id).to.equal(1);
-    });
-
-    it("should load the SPA details", function() {
-      onconnect(event);
-
-      sinon.assert.calledOnce(tkWorker.loadSPA);
+      expect(tkWorker.ports.find(1).id).to.equal(1);
     });
   });
 });
