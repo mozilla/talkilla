@@ -1,4 +1,6 @@
 /* global payloads */
+"use strict";
+
 /**
  * Talkilla application object. The global exposed object is mostly a namespace
  * container.

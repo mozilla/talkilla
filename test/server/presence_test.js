@@ -1,4 +1,5 @@
 /* jshint expr:true */
+"use strict";
 
 /* The intent is for this to only add unit tests to this file going forward.
  *

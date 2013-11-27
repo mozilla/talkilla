@@ -1,5 +1,6 @@
 /* global Server */
 /* global describe, beforeEach, afterEach, sinon, it, expect, payloads */
+"use strict";
 
 describe("Server", function() {
   var sandbox, server;

@@ -1,7 +1,7 @@
 /*global chai, sinon, UserData, browserPort:true, tkWorker */
+"use strict";
 
 var expect = chai.expect;
-
 
 describe('UserData', function() {
   var sandbox;

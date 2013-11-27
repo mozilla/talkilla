@@ -2,6 +2,8 @@
 /* jshint unused:false */
 
 var Server = (function() {
+  "use strict";
+
   function Server(options) {
     this.options = options;
     this.http = new HTTP();

@@ -1,9 +1,9 @@
 /*global chai, app, sinon */
+"use strict";
+
 var expect = chai.expect;
 
 describe("app.views", function() {
-  "use strict";
-
   var sandbox;
 
   describe("app.views.Notification", function() {

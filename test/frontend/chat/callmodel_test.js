@@ -1,11 +1,10 @@
 /*global app, chai, sinon, payloads, WebRTC */
 /* jshint expr:true */
+"use strict";
 
 var expect = chai.expect;
 
 describe("Call Model", function() {
-  "use strict";
-
   var sandbox, call, media, peer, callData;
 
   beforeEach(function() {

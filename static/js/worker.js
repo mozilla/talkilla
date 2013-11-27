@@ -1,6 +1,7 @@
 /* global indexedDB, importScripts, SPA, HTTP, ContactsDB, SPADB,
    CurrentUsers, loadConfig, payloads  */
 /* jshint unused:false */
+"use strict";
 
 // XXX: Try to import Backbone only in files that need it (and check
 // if multiple imports cause problems).

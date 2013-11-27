@@ -1,4 +1,5 @@
 /*global app, sinon */
+"use strict";
 
 describe("NotificationsView", function() {
   var sandbox, user, notificationsView;

@@ -1,6 +1,7 @@
 /*global chai, sinon, Port, handlers, currentConversation:true, UserData,
   browserPort:true, tkWorker, Conversation, SPA, spa:true, payloads */
 /* jshint expr:true */
+"use strict";
 
 var expect = chai.expect;
 

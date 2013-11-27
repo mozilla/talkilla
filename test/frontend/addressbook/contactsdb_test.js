@@ -1,5 +1,6 @@
 /*global sinon, chai, ContactsDB, IDBDatabase, IDBObjectStore */
 /* jshint expr:true */
+"use strict";
 
 var expect = chai.expect;
 

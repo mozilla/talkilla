@@ -1,5 +1,6 @@
 /*global chai, sinon, Port, PortCollection */
 /* jshint expr:true */
+"use strict";
 
 var expect = chai.expect;
 
