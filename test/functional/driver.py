@@ -75,7 +75,6 @@ class Driver(WebDriver):
         # at the wrong time, or not fully loaded.
         self.waitForElement("#signin", visible=True)
         self.add_cookie({"name": "test email", "value": self.nick})
-        self.clickElement("#signin")
         self.switch_to_frame("spa-setup")
         self.waitForElement("#talkilla-signin", visible=True)
         self.clickElement("#talkilla-signin")
