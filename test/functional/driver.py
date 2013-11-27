@@ -77,6 +77,7 @@ class Driver(WebDriver):
         self.add_cookie({"name": "test email", "value": self.nick})
         self.clickElement("#signin")
         self.switch_to_frame("spa-setup")
+        self.waitForElement("#talkilla-signin", visible=True)
         self.clickElement("#talkilla-signin")
         # Ensure we've completed logging in before proceeding
         self.switchToSidebar()

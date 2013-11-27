@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <title>Talkilla SPA Setup</title>
+  <link rel="stylesheet" media="all" href="/css/common.css">
 </head>
 <body>
   <a href="#" id="talkilla-signin" class="hide">
@@ -20,11 +21,12 @@
       $.getScript(config.PERSONA_INCLUDE_URL).done(function() {
         $.getScript("vendor/persona-goldilocks-api-0.0.1.js").done(function() {
           var setup = new TalkillaSPASetup();
-          document.getElementById("talkilla-signin")
-            .addEventListener("click", function(event) {
-              event.preventDefault();
-              navigator.id.request();
-            });
+          var signin = document.getElementById("talkilla-signin");
+          signin.addEventListener("click", function(event) {
+            event.preventDefault();
+            navigator.id.request();
+          });
+          signin.className = ""; // Remove the hide class
         });
      });
     });
