@@ -24,7 +24,6 @@ var payloads = (function() {
     this.callid   = data.callid;
     this.peer     = data.peer;
     this.offer    = data.offer;
-    this.textChat = data.textChat || false;
     this.upgrade  = data.upgrade  || false;
   }
 
@@ -34,7 +33,6 @@ var payloads = (function() {
         callid: this.callid,
         peer: this.peer,
         offer: this.offer,
-        textChat: this.textChat,
         upgrade: this.upgrade
       };
     }
@@ -58,15 +56,13 @@ var payloads = (function() {
   function Answer(data) {
     this.peer     = data.peer;
     this.answer   = data.answer;
-    this.textChat = data.textChat || false;
   }
 
   Answer.prototype = {
     toJSON: function() {
       return {
         peer: this.peer,
-        answer: this.answer,
-        textChat: this.textChat
+        answer: this.answer
       };
     }
   };

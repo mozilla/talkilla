@@ -129,9 +129,8 @@
       // offerMsg and upsetting unit tests
       var options = _.extend({
         offer: offerMsg.offer,
-        textChat: !!offerMsg.textChat,
         upgrade: !!offerMsg.upgrade
-      }, WebRTC.parseOfferConstraints(offerMsg.offer));
+      }, new WebRTC.SDP(offerMsg.offer.sdp).constraints);
 
       this.set('incomingData', options);
       this.callid = offerMsg.callid;
@@ -274,7 +273,6 @@
         this.trigger("send-offer", new app.payloads.Offer({
           peer: this.peer.get("nick"),
           offer: offer,
-          textChat: false,
           upgrade: true,
           callid: this.callid
         }));
@@ -510,8 +508,7 @@
       this.media.once("offer-ready", function(offer) {
         this.trigger("send-offer", new app.payloads.Offer({
           peer: this.peer.get("nick"),
-          offer: offer,
-          textChat: true
+          offer: offer
         }));
       }, this);
 
@@ -522,8 +519,7 @@
       this.media.once("answer-ready", function(answer) {
         this.trigger("send-answer", new app.payloads.Answer({
           peer: this.peer.get("nick"),
-          answer: answer,
-          textChat: true
+          answer: answer
         }));
       }, this);
 
