@@ -446,12 +446,45 @@ describe("Call Model", function() {
       expect(call.state.current).to.equal('ongoing');
     });
 
-    it("should mute the local streams", function() {
+    it("should unmute the local streams for video calls when video is " +
+      "specified", function() {
+        call.state.current = 'hold';
+        call.set('currentConstraints', {
+          video: true,
+          audio: true
+        });
+
+        call.resume(true);
+
+        sinon.assert.calledOnce(media.setMuteState);
+        sinon.assert.calledWith(media.setMuteState, 'local', 'both', false);
+      });
+
+    it("should unmute only the audio stream for video calls when video is " +
+      "not specified", function() {
+        call.state.current = 'hold';
+        call.set('currentConstraints', {
+          video: true,
+          audio: true
+        });
+
+        call.resume(false);
+
+        sinon.assert.calledOnce(media.setMuteState);
+        sinon.assert.calledWith(media.setMuteState, 'local', 'audio', false);
+      });
+
+    it("should unmute only the audio stream for audio calls", function() {
       call.state.current = 'hold';
-      call.resume();
+      call.set('currentConstraints', {
+        video: false,
+        audio: true
+      });
+
+      call.resume(true);
 
       sinon.assert.calledOnce(media.setMuteState);
-      sinon.assert.calledWith(media.setMuteState, 'local', 'both', false);
+      sinon.assert.calledWith(media.setMuteState, 'local', 'audio', false);
     });
   });
 

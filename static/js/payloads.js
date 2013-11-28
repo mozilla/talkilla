@@ -164,7 +164,9 @@ var payloads = (function() {
    *
    * - {Integer} callid, the id of the call being initiated
    * - {String} peer, the user to call
-   *
+   * - {Object} media An object containing one item, video which
+   *                  is a boolean and should be set to true to
+   *                  resume with video
    */
   function Resume(data) {
     this.callid = data.callid;

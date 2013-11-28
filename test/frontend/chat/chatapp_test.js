@@ -581,19 +581,23 @@ describe("ChatApp", function() {
       });
 
       describe("talkilla.resume", function() {
-        it("should put the call on resume if matching its callid", function() {
+        it("should resume the call if matching its callid", function() {
           sandbox.stub(chatApp.call, "resume");
           chatApp.call.callid = 42;
 
           chatApp.appPort.trigger("talkilla.resume", {
             peer: "lloyd",
-            callid: 42
+            callid: 42,
+            media: {
+              video: true
+            }
           });
 
           sinon.assert.calledOnce(chatApp.call.resume);
+          sinon.assert.calledWithExactly(chatApp.call.resume, true);
         });
 
-        it("shouldn't put the call on resume if callid doesn't match",
+        it("shouldn't put resume the call if callid doesn't match",
           function() {
             sandbox.stub(chatApp.call, "resume");
             chatApp.call.callid = 1337;

@@ -231,7 +231,7 @@ var ChatApp = (function(app, $, Backbone, _) {
 
   ChatApp.prototype._onResume = function(msg) {
     if (msg.callid === this.call.callid)
-      this.call.resume();
+      this.call.resume(msg.media.video);
   };
 
   // Call Hangup

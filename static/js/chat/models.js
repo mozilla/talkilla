@@ -250,12 +250,28 @@
 
     /**
      * Used to resume a call.
+     *
+     * @param {Boolean} video set to true to re-enable the video
+     *                        if it was previously enabled.
      */
-    resume: function() {
-      this.state.resume();
+    resume: function(video) {
       // XXX Whilst we don't have session renegotiation which would
       // add the streams, we must unmute the outgoing audio & video.
-      this.media.setMuteState('local', 'both', false);
+      if (!this.requiresVideo())
+        this.media.setMuteState('local', 'audio', false);
+      else {
+        if (!video) {
+          var constraints = this.get('currentConstraints');
+          constraints.video = false;
+          this.set('currentConstraints', constraints);
+
+          this.media.setMuteState('local', 'audio', false);
+        }
+        else
+          this.media.setMuteState('local', 'both', false);
+      }
+
+      this.state.resume();
     },
 
     /**
