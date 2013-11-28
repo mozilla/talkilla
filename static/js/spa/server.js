@@ -11,24 +11,28 @@ var Server = (function() {
 
   Server.prototype = {
     connect: function() {
-      this.http.post("/stream", {firstRequest: true}, function(err, response) {
-        if (err === 400)
-          return this.trigger("unauthorized", response);
-        if (err !== null)
-          return this.trigger("network-error", response);
+      // XXX Timeout value to depend on LONG_POLLING_TIMEOUT.
+      this.http.post("/stream", {firstRequest: true, timeout: 21000},
+        function(err, response) {
+          if (err === 400)
+            return this.trigger("unauthorized", response);
+          if (err !== null)
+            return this.trigger("network-error", response);
 
-        this.trigger("connected");
-        this._longPolling(JSON.parse(response));
-      }.bind(this));
+          this.trigger("connected");
+          this._longPolling(JSON.parse(response));
+        }.bind(this));
     },
 
     _longPolling: function(events) {
+
       events.forEach(function(event) {
         this.trigger("message", event.topic, event.data);
         this.trigger("message:" + event.topic, event.data);
       }.bind(this));
 
-      this.http.post("/stream", {}, function(err, response) {
+      // XXX Timeout value to depend on LONG_POLLING_TIMEOUT.
+      this.http.post("/stream", {timeout: 21000}, function(err, response) {
         if (err === 400)
           return this.trigger("unauthorized", response);
         if (err !== null)

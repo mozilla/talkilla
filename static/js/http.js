@@ -33,6 +33,11 @@ var HTTP = (function() {
 
     xhr.open(method || 'GET', url, true);
     xhr.setRequestHeader("Content-Type", "application/json");
+    if (data.timeout) {
+      xhr.timeout = data.timeout;
+      xhr.ontimeout = xhr.onerror;
+    }
+
     xhr.send(JSON.stringify(data));
   };
 

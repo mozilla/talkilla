@@ -27,7 +27,8 @@ describe("Server", function() {
 
       sinon.assert.calledOnce(server.http.post);
       sinon.assert.calledWith(server.http.post, "/stream", {
-        firstRequest: true
+        firstRequest: true,
+        timeout: 21000,
       });
     });
 
