@@ -81,8 +81,10 @@ var SidebarApp = (function(app, $) {
   };
 
   SidebarApp.prototype._onSPASetup = function(event) {
-    // We verify enabling the SPA comes from the same origin.
-    // XXX: in the future, this will not be always true.
+    // This handler is attached to any message the window receives.
+    // This is why we exclude messages not coming from the setup page
+    // (i.e. the same origin for now).
+    // XXX: in the future, the setup page could be on a different origin.
     if (event.origin !== window.location.origin)
       return;
 
