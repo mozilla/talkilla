@@ -1,4 +1,5 @@
 /* global sinon, app */
+"use strict";
 
 describe("CurrentUser Model", function() {
   var sandbox, browserIdHandlers, currentUser;

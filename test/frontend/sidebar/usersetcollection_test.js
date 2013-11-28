@@ -1,9 +1,9 @@
 /*global app, chai */
+"use strict";
 
 var expect = chai.expect;
 
 describe("UserSet Collection", function() {
-  "use strict";
 
   it("should order nick by default", function() {
     var collection = new app.models.UserSet();

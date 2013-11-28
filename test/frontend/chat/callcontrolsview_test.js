@@ -1,9 +1,9 @@
 /*global app, chai, sinon */
+"use strict";
 
 var expect = chai.expect;
 
 describe("Call Controls View", function() {
-  "use strict";
   var sandbox, call, media, el;
 
   beforeEach(function() {

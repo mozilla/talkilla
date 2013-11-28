@@ -1,10 +1,10 @@
 /*global chai, sinon, TkWorker, PortCollection, SPA, ContactsDB, SPADB,
   UserData, browserPort:true */
+"use strict";
 
 var expect = chai.expect;
 
 describe("tkWorker", function() {
-  "use strict";
   var sandbox, worker;
 
   beforeEach(function () {
@@ -27,6 +27,16 @@ describe("tkWorker", function() {
     browserPort = undefined;
     worker.contactsDb.drop(function() {
       done();
+    });
+  });
+
+  describe("#initialize", function() {
+    it("should load the SPAs", function() {
+      sandbox.stub(worker, "loadSPAs");
+
+      worker.initialize();
+
+      sinon.assert.calledOnce(worker.loadSPAs);
     });
   });
 
@@ -158,7 +168,7 @@ describe("tkWorker", function() {
     });
   });
 
-  describe("#loadSPA", function() {
+  describe("#loadSPAs", function() {
 
     var spa;
 
@@ -182,7 +192,7 @@ describe("tkWorker", function() {
     });
 
     it("should instantiate a new SPA with the given src", function(done) {
-      worker.loadSPA(function() {
+      worker.loadSPAs(function() {
         sinon.assert.calledOnce(SPA);
         sinon.assert.calledWithExactly(SPA, {src: "/path/to/spa"});
         done();
@@ -191,7 +201,7 @@ describe("tkWorker", function() {
 
     it("should connect the created SPA with given credentials",
       function(done) {
-        worker.loadSPA(function() {
+        worker.loadSPAs(function() {
           sinon.assert.calledOnce(spa.connect);
           sinon.assert.calledWithExactly(spa.connect, "fake credentials");
           done();

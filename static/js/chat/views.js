@@ -38,11 +38,22 @@
       this.peer.on('change:presence', this._onPeerPresenceChanged, this);
 
       // Media streams
-      this.call.media.on('local-stream:ready remote-stream:ready', function() {
-        if (this.call.requiresVideo())
-          this.$el.addClass('has-video');
-        else
-          this.$el.removeClass('has-video');
+      // Note: some of this logic is reflected in CallView#render for displaying
+      // the .media-display-area.
+      this.call.media.on('local-stream:ready remote-stream:ready',
+        this._updateHasVideo, this);
+
+      // Call hold and resume
+      this.call.on('state:to:hold', function () {
+        this._notify(this.peer.get("nick") + " has placed you on hold");
+        this.$el.removeClass('has-video');
+      }, this);
+
+      this.call.on('change:state', function(to, from) {
+        if (to === 'ongoing' && from === 'hold') {
+          this._notify(this.peer.get("nick") + " is back!", 5000);
+          this._updateHasVideo();
+        }
       }, this);
 
       // ICE connection state changes
@@ -54,15 +65,29 @@
         this._clearNotification, this);
     },
 
+    _updateHasVideo: function() {
+      if (this.call.requiresVideo())
+        this.$el.addClass('has-video');
+      else
+        this.$el.removeClass('has-video');
+    },
+
     _clearNotification: function() {
       if (!this.notification)
         return;
       this.notification.clear();
+      if (this.timeout) {
+        clearTimeout(this.timeout);
+        delete this.timeout;
+      }
       this.$('#notifications').empty();
     },
 
-    _notify: function(message) {
+    _notify: function(message, timeout) {
       this._clearNotification();
+      if (timeout) {
+        this.timeout = setTimeout(this._clearNotification.bind(this), timeout);
+      }
       this.notification = new app.views.NotificationView({
         model: new app.models.Notification({message: message})
       });
@@ -214,7 +239,7 @@
     initiateCallMove: function(event){
       if (event)
         event.preventDefault();
-      
+
       this.call.move();
     },
 
@@ -489,6 +514,9 @@
       // This is all motivated because it's a way to avoid a race between
       // initial markup layout and JavaScript manipulation of the DOM.
 
+      // Note: some of this logic is reflected/extended in
+      // ConversationView#initialize with the setting of the .has-video on
+      // the main html element for css purposes.
       if (this.call.state.current === "ongoing" && this.call.requiresVideo())
         this.$el.find(".media-display-area").show();
       else

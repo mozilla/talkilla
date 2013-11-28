@@ -7,6 +7,8 @@
  * Wraps a SPA in a sub worker.
  */
 var SPA = (function() {
+  "use strict";
+
   function SPA(options) {
     if (!options || !options.src)
       throw new Error("missing parameter: src");
@@ -30,7 +32,9 @@ var SPA = (function() {
         "answer": payloads.Answer,
         "hangup": payloads.Hangup,
         "ice:candidate": payloads.IceCandidate,
-        "move-accept": payloads.MoveAccept
+        "move-accept": payloads.MoveAccept,
+        "hold": payloads.Hold,
+        "resume": payloads.Resume
       };
 
       if (topic === "message") {

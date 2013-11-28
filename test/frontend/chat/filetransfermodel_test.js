@@ -1,10 +1,10 @@
 /*global app, chai, sinon */
-
 /* jshint expr:true */
+"use strict";
+
 var expect = chai.expect;
 
 describe("FileTransfer Model", function() {
-
   var sandbox, transfer, incomingTransfer, blob;
 
   beforeEach(function() {

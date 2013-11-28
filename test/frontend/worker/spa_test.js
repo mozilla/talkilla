@@ -1,5 +1,6 @@
 /* global sinon, SPA, expect, payloads */
 /* jshint unused:false */
+"use strict";
 
 describe("SPA", function() {
   var sandbox, worker, spa;

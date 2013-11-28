@@ -1,8 +1,9 @@
 /*global app, chai, sinon */
+"use strict";
+
 var expect = chai.expect;
 
 describe("ConversationView", function() {
-  "use strict";
   var sandbox, call, textChat, oldtitle, user, peer;
 
   beforeEach(function() {
@@ -39,8 +40,6 @@ describe("ConversationView", function() {
       user: user,
       peer: peer
     });
-
-    sandbox.stub(call, "on");
   });
 
   afterEach(function() {
@@ -450,4 +449,73 @@ describe("ConversationView", function() {
     });
   });
 
+  describe("Call Hold state change events", function() {
+    var view, clock;
+
+    beforeEach(function() {
+      view = new app.views.ConversationView({
+        call: call,
+        peer: peer,
+        user: user,
+        textChat: textChat,
+        el: '#fixtures'
+      });
+
+      peer.set("nick", "hardfire");
+      clock = sinon.useFakeTimers();
+    });
+
+    afterEach(function() {
+      clock.restore();
+      view = null;
+    });
+
+    describe("hold", function() {
+      it("should display hold notification", function() {
+        view.call.trigger('state:to:hold');
+
+        expect($("#fixtures .alert")).to.have.length.of(1);
+        expect($("#fixtures .alert").text()).to
+          .match(/hardfire has placed you on hold/);
+      });
+
+      it("should disable the has-video class for video calls", function() {
+        view.call.trigger('state:to:hold');
+
+        expect($("#fixtures").hasClass("has-video")).to.equal(false);
+      });
+    });
+
+    describe("resume", function() {
+      it("should display a resume notification", function() {
+        view.call.trigger('change:state', 'ongoing', 'hold');
+
+        expect($("#fixtures .alert")).to.have.length.of(1);
+        expect($("#fixtures .alert").text()).to.match(/hardfire is back/);
+      });
+
+      it("should clear the resume notification after a timeout", function() {
+        view.call.trigger('change:state', 'ongoing', 'hold');
+        clock.tick(5100);
+
+        expect($("#fixtures .alert")).to.have.length.of(0);
+      });
+
+      it("should enable the has-video class for video calls", function() {
+        sandbox.stub(view.call, "requiresVideo").returns(true);
+
+        view.call.trigger('change:state', 'ongoing', 'hold');
+
+        expect($("#fixtures").hasClass("has-video")).to.equal(true);
+      });
+
+      it("should disable the has-video class for audio calls", function() {
+        sandbox.stub(view.call, "requiresVideo").returns(false);
+
+        view.call.trigger('change:state', 'ongoing', 'hold');
+
+        expect($("#fixtures").hasClass("has-video")).to.equal(false);
+      });
+    });
+  });
 });

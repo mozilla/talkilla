@@ -1,5 +1,6 @@
 /* global Server */
 /* global describe, beforeEach, afterEach, sinon, it, expect, payloads */
+"use strict";
 
 describe("Server", function() {
   var sandbox, server;
@@ -26,7 +27,8 @@ describe("Server", function() {
 
       sinon.assert.calledOnce(server.http.post);
       sinon.assert.calledWith(server.http.post, "/stream", {
-        firstRequest: true
+        firstRequest: true,
+        timeout: 21000,
       });
     });
 

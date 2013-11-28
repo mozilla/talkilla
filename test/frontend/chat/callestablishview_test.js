@@ -1,10 +1,10 @@
 /*global app, chai, sinon, WebRTC */
-
 /* jshint expr:true */
+"use strict";
+
 var expect = chai.expect;
 
 describe('Call Establish View', function() {
-  "use strict";
   var media, sandbox, call, peer, audioLibrary;
 
   beforeEach(function() {

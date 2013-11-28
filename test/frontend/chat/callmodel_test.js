@@ -1,11 +1,10 @@
 /*global app, chai, sinon, payloads, WebRTC */
 /* jshint expr:true */
+"use strict";
 
 var expect = chai.expect;
 
 describe("Call Model", function() {
-  "use strict";
-
   var sandbox, call, media, peer, callData;
 
   beforeEach(function() {
@@ -20,8 +19,9 @@ describe("Call Model", function() {
       upgrade: sandbox.spy(),
       terminate: sandbox.spy(),
       reset: sandbox.spy(),
-      on: sandbox.stub(),
-      once: sandbox.stub()
+      on: sandbox.spy(),
+      once: sandbox.spy(),
+      setMuteState: sandbox.spy()
     };
 
     peer = new app.models.User();
@@ -35,7 +35,6 @@ describe("Call Model", function() {
       },
       callid: 2,
       peer: "bob",
-      textChat: true,
       upgrade: false
     });
   });
@@ -215,7 +214,7 @@ describe("Call Model", function() {
 
     it("should store the parsed constraints", function() {
       var constraints = {video: false, audio: true};
-      sandbox.stub(WebRTC, "parseOfferConstraints").returns(constraints);
+      sandbox.stub(WebRTC, "SDP").returns({constraints: constraints});
 
       call.incoming(callData);
 
@@ -226,7 +225,6 @@ describe("Call Model", function() {
       call.incoming(callData);
 
       expect(call.get("incomingData").offer).to.equal(callData.offer);
-      expect(call.get("incomingData").textChat).to.equal(callData.textChat);
       expect(call.get("incomingData").upgrade).to.equal(callData.upgrade);
     });
 
@@ -422,6 +420,38 @@ describe("Call Model", function() {
       });
 
       call.move();
+    });
+  });
+
+  describe("#hold", function() {
+    it("should change the state from ongoing to hold", function() {
+      call.state.current = 'ongoing';
+      call.hold();
+      expect(call.state.current).to.equal('hold');
+    });
+
+    it("should mute the local streams", function() {
+      call.state.current = 'ongoing';
+      call.hold();
+
+      sinon.assert.calledOnce(media.setMuteState);
+      sinon.assert.calledWith(media.setMuteState, 'local', 'both', true);
+    });
+  });
+
+  describe("#resume", function() {
+    it("should change the state from hold to ongoing", function() {
+      call.state.current = 'hold';
+      call.resume();
+      expect(call.state.current).to.equal('ongoing');
+    });
+
+    it("should mute the local streams", function() {
+      call.state.current = 'hold';
+      call.resume();
+
+      sinon.assert.calledOnce(media.setMuteState);
+      sinon.assert.calledWith(media.setMuteState, 'local', 'both', false);
     });
   });
 

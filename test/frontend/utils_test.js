@@ -1,8 +1,9 @@
 /*global app, chai, sinon */
+"use strict";
+
 var expect = chai.expect;
 
 describe('Utils', function() {
-  "use strict";
   var sandbox;
 
   beforeEach(function() {

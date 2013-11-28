@@ -1,4 +1,5 @@
 /*global app, sinon, AppPort */
+"use strict";
 
 describe("UserEntryView", function() {
   var sandbox, sidebarApp;

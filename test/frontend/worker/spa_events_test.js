@@ -1,5 +1,6 @@
 /*global chai, sinon, browserPort:true, currentConversation:true,
   SPA, Conversation, tkWorker, _setupSPA, payloads */
+"use strict";
 
 var expect = chai.expect;
 
@@ -222,6 +223,44 @@ describe("SPA events", function() {
       sinon.assert.calledOnce(currentConversation.callHangup);
       sinon.assert.calledWithExactly(
         currentConversation.callHangup, hangupMsg);
+    });
+  });
+
+  describe("`hold` event", function() {
+    beforeEach(function() {
+      currentConversation = {
+        hold: function() {}
+      };
+    });
+
+    it("should call hold on the conversation", function() {
+      var holdMsg = new payloads.Hold({peer: "bar"});
+      sandbox.stub(currentConversation, "hold");
+
+      spa.trigger("hold", holdMsg);
+
+      sinon.assert.calledOnce(currentConversation.hold);
+      sinon.assert.calledWithExactly(
+        currentConversation.hold, holdMsg);
+    });
+  });
+
+  describe("`resume` event", function() {
+    beforeEach(function() {
+      currentConversation = {
+        resume: function() {}
+      };
+    });
+
+    it("should call resume on the conversation", function() {
+      var resumeMsg = new payloads.Resume({peer: "bar", media: {video: true}});
+      sandbox.stub(currentConversation, "resume");
+
+      spa.trigger("resume", resumeMsg);
+
+      sinon.assert.calledOnce(currentConversation.resume);
+      sinon.assert.calledWithExactly(
+        currentConversation.resume, resumeMsg);
     });
   });
 

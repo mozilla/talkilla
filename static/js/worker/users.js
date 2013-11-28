@@ -1,5 +1,7 @@
 /* jshint unused:false */
 var CurrentUsers = (function() {
+  "use strict";
+
   /**
    * Represents current users list.
    */

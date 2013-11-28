@@ -1,11 +1,10 @@
 /*global app, chai, sinon, ChatApp, WebRTC */
-
 /* jshint expr:true */
+"use strict";
+
 var expect = chai.expect;
 
 describe("Text chat views", function() {
-  "use strict";
-
   function fakeSDP(str) {
     return {
       str: str,

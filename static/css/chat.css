@@ -16,8 +16,11 @@ body {
      display:table-row; */
   border-collapse: collapse;
 
-  width: 100%;      /* display: table seems to make this required */
-  min-width: 260px; /* Social API chat window default width */
+  /* display: table seems to make this required */
+  width: 100%;
+
+  /* Social API chat window default width - borders */
+  min-width: calc(260px - 2px);
 }
 
 /**
@@ -81,16 +84,38 @@ body {
   margin: 0;
 }
 
-#call-controls .controls li {
+#call-controls .controls > li {
   border-right: 1px solid #d6d6d6;
   float: left;
 }
 
-#call-controls .controls li a {
+/* put btn-gear on the right and make compensating border changes */
+#call-controls .controls > li.btn-gear {
+  float: right;
+  border-left: 1px solid #D6D6D6;
+  border-right: none;
+}
+
+#call-controls .controls > li > a {
   display: block;
   height: 16px;
   width: 16px;
   margin: 4px;
+}
+
+/* override some bootstrap defaults to make things fit local style */
+.dropdown-menu {
+  border-radius: 0;
+  padding: 5px 1ch; /* add left and right padding */
+  background-clip: border-box;
+
+  margin: -2px 0 0; /* occlude a bit of the menu bar to make 3d look better */
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2); /* make the 3d look subtler */
+
+  border-right: 0; /* make this border appear collapsed with the sidebar edge */
+
+  font-size: 90%;
+  min-width: 0;
 }
 
 .btn-video a {
@@ -119,6 +144,14 @@ body {
 
 .btn-speaker-mute.active a {
   background: url(../img/speaker.png);
+}
+
+.btn-gear > a {
+  background: url(../img/gear_default.png);
+}
+
+.btn-gear > a:active {
+  background: url(../img/gear_clicked.png);
 }
 
 /* Notifications */

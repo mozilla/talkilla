@@ -1,28 +1,18 @@
 /*global app, chai, ChatApp, sinon, WebRTC, payloads */
-
 /* jshint expr:true */
+"use strict";
+
 var expect = chai.expect;
 
 describe("ChatApp", function() {
-  "use strict";
-
   var sandbox, chatApp, AppPortStub, incomingCallData;
   var callData = {
     capabilities: ["call", "move"],
     peer: "bob",
     peerPresence: "connected"
   };
-  function fakeSDP(str) {
-    return {
-      str: str,
-      contains: function(what) {
-        return this.str.indexOf(what) !== -1;
-      }
-    };
-  }
-
-  var fakeOffer = {type: "offer", sdp: fakeSDP("\nm=video aaa\nm=audio bbb")};
-  var fakeAnswer = {type: "answer", sdp: fakeSDP("\nm=video ccc\nm=audio ddd")};
+  var fakeOffer = {type: "offer", sdp: "\nm=video aaa\nm=audio bbb"};
+  var fakeAnswer = {type: "answer", sdp: "\nm=video ccc\nm=audio ddd"};
   var fakeDataChannel = {fakeDataChannel: true};
 
   beforeEach(function() {
@@ -298,18 +288,30 @@ describe("ChatApp", function() {
     });
 
     describe("#_onCallEstablishment", function() {
-      var answer;
-
-      beforeEach(function() {
-        answer = {answer: "fake"};
+      it("should set a call as established", function() {
+        var answerMessage = {answer: fakeAnswer};
         sandbox.stub(chatApp.call, "establish");
-      });
 
-      it("should set the call as established", function() {
-        chatApp._onCallEstablishment(answer);
+        chatApp._onCallEstablishment(answerMessage);
 
         sinon.assert.calledOnce(chatApp.call.establish);
-        sinon.assert.calledWithExactly(chatApp.call.establish, answer);
+        sinon.assert.calledWithExactly(chatApp.call.establish, answerMessage);
+      });
+
+      it("should set a text chat conversation as established", function() {
+        var answerMessage = {
+          answer: {
+            type: "answer",
+            sdp: "\na=sctpmap:2 webrtc-datachannel 16"
+          }
+        };
+        sandbox.stub(chatApp.textChat, "establish");
+
+        chatApp._onCallEstablishment(answerMessage);
+
+        sinon.assert.calledOnce(chatApp.textChat.establish);
+        sinon.assert.calledWithExactly(chatApp.textChat.establish,
+                                       answerMessage.answer);
       });
     });
 
@@ -549,6 +551,60 @@ describe("ChatApp", function() {
 
           sinon.assert.notCalled(chatApp.call.hangup);
         });
+      });
+
+      describe("talkilla.hold", function() {
+        it("should put the call on hold if matching its callid", function() {
+          sandbox.stub(chatApp.call, "hold");
+          chatApp.call.callid = 42;
+
+          chatApp.appPort.trigger("talkilla.hold", {
+            peer: "lloyd",
+            callid: 42
+          });
+
+          sinon.assert.calledOnce(chatApp.call.hold);
+        });
+
+        it("shouldn't put the call on hold if callid doesn't match",
+          function() {
+            sandbox.stub(chatApp.call, "hold");
+            chatApp.call.callid = 1337;
+
+            chatApp.appPort.trigger("talkilla.hold", {
+              peer: "lloyd",
+              callid: 42
+            });
+
+            sinon.assert.notCalled(chatApp.call.hold);
+          });
+      });
+
+      describe("talkilla.resume", function() {
+        it("should put the call on resume if matching its callid", function() {
+          sandbox.stub(chatApp.call, "resume");
+          chatApp.call.callid = 42;
+
+          chatApp.appPort.trigger("talkilla.resume", {
+            peer: "lloyd",
+            callid: 42
+          });
+
+          sinon.assert.calledOnce(chatApp.call.resume);
+        });
+
+        it("shouldn't put the call on resume if callid doesn't match",
+          function() {
+            sandbox.stub(chatApp.call, "resume");
+            chatApp.call.callid = 1337;
+
+            chatApp.appPort.trigger("talkilla.resume", {
+              peer: "lloyd",
+              callid: 42
+            });
+
+            sinon.assert.notCalled(chatApp.call.resume);
+          });
       });
     });
 

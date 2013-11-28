@@ -2,6 +2,8 @@
 /* jshint unused:false */
 
 var SPAPort = (function(globalScope) {
+  "use strict";
+
   function Port() {
     globalScope.onmessage = this._onMessage.bind(this);
   }

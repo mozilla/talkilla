@@ -1,6 +1,7 @@
 /* global indexedDB, importScripts, SPA, HTTP, ContactsDB, SPADB,
    CurrentUsers, loadConfig, payloads  */
 /* jshint unused:false */
+"use strict";
 
 // XXX: Try to import Backbone only in files that need it (and check
 // if multiple imports cause problems).
@@ -145,6 +146,30 @@ Conversation.prototype = {
     tkWorker.ports.broadcastDebug('conversation accepted', data);
     this.port.postEvent('talkilla.call-establishment', data);
   },
+
+  /**
+   * Call to tell the conversation window that the call has been
+   * put on hold by the peer
+   *
+   * @param {payloads.Hold} The hold message for the conversation
+   */
+  hold: function(data) {
+    tkWorker.ports.broadcastDebug('hold', data);
+    this.port.postEvent('talkilla.hold', data);
+  },
+
+
+  /**
+   * Call to tell the conversation window that the call has been
+   * resumed by the peer.
+   *
+   * @param {payloads.Resume} The resume message for the conversation
+   */
+  resume: function(data) {
+    tkWorker.ports.broadcastDebug('resume', data);
+    this.port.postEvent('talkilla.resume', data);
+  },
+
 
   /**
    * Call to tell the conversation window that the call has been
@@ -328,7 +353,8 @@ function _setupSPA(spa) {
   });
 
   spa.on("answer", function(answerMsg) {
-    currentConversation.callAccepted(answerMsg);
+    if (currentConversation)
+      currentConversation.callAccepted(answerMsg);
   });
 
   spa.on("hangup", function(hangupMsg) {
@@ -339,6 +365,16 @@ function _setupSPA(spa) {
   spa.on("ice:candidate", function(iceCandidateMsg) {
     if (currentConversation)
       currentConversation.iceCandidate(iceCandidateMsg);
+  });
+
+  spa.on("hold", function(holdMsg) {
+    if (currentConversation)
+      currentConversation.hold(holdMsg);
+  });
+
+  spa.on("resume", function(resumeMsg) {
+    if (currentConversation)
+      currentConversation.resume(resumeMsg);
   });
 
   spa.on("move-accept", function(moveAcceptMsg) {
@@ -380,6 +416,8 @@ var handlers = {
     // Don't have it in the main list of ports, as we don't need
     // to broadcast all our talkilla.* messages to the social api.
     tkWorker.ports.remove(this);
+
+    tkWorker.initialize();
   },
 
   // Talkilla events
@@ -616,6 +654,19 @@ function TkWorker(options) {
 
 TkWorker.prototype = {
   /**
+   * Initializes the worker
+   *
+   * @param {Object} options Options object
+   *
+   * Available options:
+   * - {
+   */
+  initialize: function() {
+    // Now we're set up load the spa info
+    this.loadSPAs();
+  },
+
+  /**
    * Closes current user session.
    */
   closeSession: function() {
@@ -664,7 +715,7 @@ TkWorker.prototype = {
     this.ports.broadcastEvent("talkilla.users", this.users.toArray());
   },
 
-  loadSPA: function(callback) {
+  loadSPAs: function(callback) {
     this.spaDb.all(function(err, specs) {
       tkWorker.ports.broadcastDebug("loaded specs", specs);
       specs.forEach(function(specData) {
@@ -697,7 +748,6 @@ tkWorker = new TkWorker({
     storename: "enabled-spa"
   })
 });
-tkWorker.loadSPA();
 
 function onconnect(event) {
   tkWorker.ports.add(new Port(event.ports[0]));

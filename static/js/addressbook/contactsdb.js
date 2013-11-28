@@ -5,6 +5,8 @@
  * Local contacts database powered by indexedDB.
  */
 var ContactsDB = (function() {
+  "use strict";
+
   var ON_BLOCKED_MAX_RETRIES = 10;
 
   /**
@@ -142,7 +144,9 @@ var ContactsDB = (function() {
 
       // This adds the new contacts, it is called when deleteNext
       // is finished.
+      // It should always be called in the 'this' context of the object
       function addNext(err, record) {
+        /*jshint validthis:true */
         if (err)
           return cb && cb.call(this, err);
 
@@ -154,10 +158,13 @@ var ContactsDB = (function() {
         contact.source = source;
 
         this.add(contact, addNext);
+        return null;
       }
 
       // This handles the cursor for deleting the contacts
+      // It should always be called in the 'this' context of the object
       function deleteNext(err) {
+        /*jshint validthis:true */
         // If we've got to the end, start adding new items.
         if (!cursor)
           return addNext.call(this);

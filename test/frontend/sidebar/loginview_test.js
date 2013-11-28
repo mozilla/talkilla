@@ -1,4 +1,5 @@
 /*global app, chai, sinon */
+"use strict";
 
 var expect = chai.expect;
 
