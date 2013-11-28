@@ -38,6 +38,12 @@ describe("AppView", function() {
           new app.views.AppView({user: {}, appStatus: []});
         }).to.Throw(/users/);
       });
+
+      it("should require a spa parameter", function() {
+        expect(function() {
+          new app.views.AppView({user: {}, appStatus: []});
+        }).to.Throw(/spa/);
+      });
     });
 
     describe("constructed properties", function() {

@@ -19,6 +19,8 @@
         throw new Error("missing parameter: users");
       if (!options.appStatus)
         throw new Error("missing parameter: appStatus");
+      if (!options.spa)
+        throw new Error("missing parameter: spa");
 
       this.notifications = new app.views.NotificationsView({
         user: options.user
@@ -38,12 +40,20 @@
         user: options.user,
         service: options.services && options.services.google
       });
+
+      this.spa = options.spa;
+      this.spa.on("change:capabilities", function (capabilities) {
+        if (_.contains(capabilities, "pstn-call")){
+          this.$("#pstn-dialin").show();
+        }
+      });
     },
 
     render: function() {
       this.login.render();
       this.users.render();
       this.importButton.render();
+      this.spa.render();
       return this;
     }
   });

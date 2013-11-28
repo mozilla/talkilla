@@ -10,14 +10,12 @@ var SidebarApp = (function(app, $) {
     options = options || {};
 
     this.http = new HTTP();
-
-    this.appStatus = new app.models.AppStatus();
-
     this.appPort = new AppPort();
 
+    this.appStatus = new app.models.AppStatus();
     this.user = new app.models.CurrentUser();
-
     this.users = new app.models.UserSet();
+    this.spa = new app.models.SPA();
 
     this.services = {
       google: new GoogleContacts({
@@ -29,7 +27,8 @@ var SidebarApp = (function(app, $) {
       appStatus: this.appStatus,
       user: this.user,
       users: this.users,
-      services: this.services
+      services: this.services,
+      spa: this.spa
     });
 
     // user events

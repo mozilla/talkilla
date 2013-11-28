@@ -16,6 +16,8 @@
       }
   });
 
+  app.models.SPA = Backbone.Model.extend({});
+
   /**
    * This models the currently signed-in user.
    */

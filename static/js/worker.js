@@ -298,7 +298,8 @@ function _setupSPA(spa) {
     // but we don't have enough info for the worker for that yet
     tkWorker.loadContacts();
 
-    tkWorker.ports.broadcastEvent("talkilla.spa-connected");
+    tkWorker.ports.broadcastEvent("talkilla.spa-connected",
+      {"capabilities": data.capabilities});
   });
 
   spa.on("message", function(label, data) {
@@ -441,7 +442,8 @@ var handlers = {
     this.postEvent('talkilla.worker-ready');
     if (spa) {
       tkWorker.user.send();
-      this.postEvent("talkilla.spa-connected");
+      this.postEvent("talkilla.spa-connected",
+                     {capabilities: spa.capabilities});
       this.postEvent('talkilla.users', tkWorker.users.toArray());
     }
   },
