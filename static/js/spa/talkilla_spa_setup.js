@@ -2,6 +2,8 @@
 /* jshint unused: false */
 
 var TalkillaSPASetup = (function(globalScope) {
+  "use strict";
+
   function IframePort() {
     this.allowedTargetOrigins = "*";
   }

@@ -1,6 +1,8 @@
 /*global sinon, TalkillaSPASetup, payloads */
 
 describe("TalkillaSPASetup", function() {
+  "use strict";
+
   var sandbox, browserIdHandlers, setup;
 
   beforeEach(function() {
