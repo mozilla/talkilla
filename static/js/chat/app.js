@@ -141,8 +141,10 @@ var ChatApp = (function(app, $, Backbone, _) {
   };
 
   ChatApp.prototype._onCallEstablishment = function(data) {
+    var sdp = new WebRTC.SDP(data.answer.sdp);
+
     // text chat conversation
-    if (data.textChat)
+    if (sdp.only("datachannel"))
       return this.textChat.establish(data.answer);
 
     // video/audio call
@@ -151,6 +153,8 @@ var ChatApp = (function(app, $, Backbone, _) {
 
   // Incoming calls
   ChatApp.prototype._onIncomingConversation = function(msg) {
+    var sdp = new WebRTC.SDP(msg.offer.offer.sdp);
+
     this.call.set({capabilities: msg.capabilities});
     this.user.set({nick: msg.user});
 
@@ -158,7 +162,7 @@ var ChatApp = (function(app, $, Backbone, _) {
       this.peer.set({nick: msg.peer, presence: msg.peerPresence});
 
     // incoming text chat conversation
-    if (msg.offer.textChat)
+    if (sdp.only("datachannel"))
       return this.textChat.answer(msg.offer.offer);
 
     // incoming video/audio call

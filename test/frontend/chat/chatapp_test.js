@@ -11,17 +11,8 @@ describe("ChatApp", function() {
     peer: "bob",
     peerPresence: "connected"
   };
-  function fakeSDP(str) {
-    return {
-      str: str,
-      contains: function(what) {
-        return this.str.indexOf(what) !== -1;
-      }
-    };
-  }
-
-  var fakeOffer = {type: "offer", sdp: fakeSDP("\nm=video aaa\nm=audio bbb")};
-  var fakeAnswer = {type: "answer", sdp: fakeSDP("\nm=video ccc\nm=audio ddd")};
+  var fakeOffer = {type: "offer", sdp: "\nm=video aaa\nm=audio bbb"};
+  var fakeAnswer = {type: "answer", sdp: "\nm=video ccc\nm=audio ddd"};
   var fakeDataChannel = {fakeDataChannel: true};
 
   beforeEach(function() {
@@ -297,18 +288,30 @@ describe("ChatApp", function() {
     });
 
     describe("#_onCallEstablishment", function() {
-      var answer;
-
-      beforeEach(function() {
-        answer = {answer: "fake"};
+      it("should set a call as established", function() {
+        var answerMessage = {answer: fakeAnswer};
         sandbox.stub(chatApp.call, "establish");
-      });
 
-      it("should set the call as established", function() {
-        chatApp._onCallEstablishment(answer);
+        chatApp._onCallEstablishment(answerMessage);
 
         sinon.assert.calledOnce(chatApp.call.establish);
-        sinon.assert.calledWithExactly(chatApp.call.establish, answer);
+        sinon.assert.calledWithExactly(chatApp.call.establish, answerMessage);
+      });
+
+      it("should set a text chat conversation as established", function() {
+        var answerMessage = {
+          answer: {
+            type: "answer",
+            sdp: "\na=sctpmap:2 webrtc-datachannel 16"
+          }
+        };
+        sandbox.stub(chatApp.textChat, "establish");
+
+        chatApp._onCallEstablishment(answerMessage);
+
+        sinon.assert.calledOnce(chatApp.textChat.establish);
+        sinon.assert.calledWithExactly(chatApp.textChat.establish,
+                                       answerMessage.answer);
       });
     });
 

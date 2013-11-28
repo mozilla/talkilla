@@ -35,7 +35,6 @@ describe("Call Model", function() {
       },
       callid: 2,
       peer: "bob",
-      textChat: true,
       upgrade: false
     });
   });
@@ -215,7 +214,7 @@ describe("Call Model", function() {
 
     it("should store the parsed constraints", function() {
       var constraints = {video: false, audio: true};
-      sandbox.stub(WebRTC, "parseOfferConstraints").returns(constraints);
+      sandbox.stub(WebRTC, "SDP").returns({constraints: constraints});
 
       call.incoming(callData);
 
@@ -226,7 +225,6 @@ describe("Call Model", function() {
       call.incoming(callData);
 
       expect(call.get("incomingData").offer).to.equal(callData.offer);
-      expect(call.get("incomingData").textChat).to.equal(callData.textChat);
       expect(call.get("incomingData").upgrade).to.equal(callData.upgrade);
     });
 
