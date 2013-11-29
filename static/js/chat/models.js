@@ -249,7 +249,8 @@
     },
 
     /**
-     * Used to resume a call after a hold.
+     * Resume a call after a hold.
+     *
      * @param {Boolean} enableVideoStream set to true to re-enable the
      * video stream if it was enabled before the hold
      */

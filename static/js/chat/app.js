@@ -222,32 +222,35 @@ var ChatApp = (function(app, $, Backbone, _) {
   /**
    * Called when a call move request is accepted.
    *
-   * @param {payloads.MoveAccept} moveAcceptMsg the message to handle
-   * to close the call.
+   * @param {Object} moveAcceptData a data structure representing
+   * payloads.MoveAccept
    */
-  ChatApp.prototype._onMoveAccept = function(moveAcceptMsg) {
+  ChatApp.prototype._onMoveAccept = function(moveAcceptData) {
+    var moveAcceptMsg = new app.payloads.MoveAccept(moveAcceptData);
     if (moveAcceptMsg.callid === this.call.callid)
       this.call.hangup(false);
   };
 
   /**
-   * Called to put a call on hold
+   * Called to put a call on hold.
    *
-   * @param {payloads.Hold} holdMsg the hold to send to pause the
-   * call.
+   * @param {Object} holdData a data structure representing
+   * payloads.Hold
    */
-  ChatApp.prototype._onHold = function(holdMsg) {
+  ChatApp.prototype._onHold = function(holdData) {
+    var holdMsg = new app.payloads.Hold(holdData);
     if (holdMsg.callid === this.call.callid)
       this.call.hold();
   };
 
   /**
-   * Called to resume a call
+   * Called to resume a call.
    *
-   * @param {payloads.Resume} resumeMsg the resume to send to restart
-   * the call.
+   * @param {Object} resumeData a data structure representing
+   * payloads.Resume
    */
-  ChatApp.prototype._onResume = function(resumeMsg) {
+  ChatApp.prototype._onResume = function(resumeData) {
+    var resumeMsg = new app.payloads.Resume(resumeData);
     if (resumeMsg.callid === this.call.callid)
       this.call.resume(resumeMsg.media.video);
   };

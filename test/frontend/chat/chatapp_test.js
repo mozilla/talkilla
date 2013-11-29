@@ -604,7 +604,10 @@ describe("ChatApp", function() {
 
             chatApp.appPort.trigger("talkilla.resume", {
               peer: "lloyd",
-              callid: 42
+              callid: 42,
+              media: {
+                video: true
+              }
             });
 
             sinon.assert.notCalled(chatApp.call.resume);
