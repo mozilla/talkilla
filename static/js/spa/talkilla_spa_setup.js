@@ -5,7 +5,8 @@ var TalkillaSPASetup = (function(globalScope) {
   "use strict";
 
   function IframePort() {
-    this.allowedTargetOrigins = "*";
+    var config = globalScope.loadConfig();
+    this.allowedTargetOrigins = config.ROOTURL;
   }
 
   IframePort.prototype = {
@@ -46,3 +47,4 @@ var TalkillaSPASetup = (function(globalScope) {
 
   return TalkillaSPASetup;
 }(window));
+
