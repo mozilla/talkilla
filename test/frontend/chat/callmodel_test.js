@@ -440,6 +440,11 @@ describe("Call Model", function() {
   });
 
   describe("#resume", function() {
+    it("should throw if the current state is not hold", function() {
+      call.state.current = 'ongoing';
+      expect(call.resume.bind(call)).to.Throw(/Cannot resume a call/);
+    });
+
     it("should change the state from hold to ongoing", function() {
       call.state.current = 'hold';
       call.resume();

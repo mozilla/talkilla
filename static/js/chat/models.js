@@ -249,18 +249,29 @@
     },
 
     /**
-     * Used to resume a call.
-     *
-     * @param {Boolean} video set to true to re-enable the video
-     *                        if it was previously enabled.
+     * Used to resume a call after a hold.
+     * @param {Boolean} enableVideoStream set to true to re-enable the
+     * video stream if it was enabled before the hold
      */
-    resume: function(video) {
+    resume: function(enableVideoStream) {
+      // Note: We set the mute status and constraints before changing the
+      // state of the model, to ensure that the views are updated cleanly.
+      if (this.state.current !== "hold")
+        throw new Error("Cannot resume a call that isn't on hold.");
+
       // XXX Whilst we don't have session renegotiation which would
       // add the streams, we must unmute the outgoing audio & video.
-      if (!this.requiresVideo())
+
+      if (!this.requiresVideo()) {
+        // If the original constraints were audio only then we can just
+        // re-enable the audio stream.
         this.media.setMuteState('local', 'audio', false);
+      }
       else {
-        if (!video) {
+        if (!enableVideoStream) {
+          // Although this call still has video muted in the background
+          // update the constraints so that the views can get the correct
+          // state for determining if to display video or not.
           var constraints = this.get('currentConstraints');
           constraints.video = false;
           this.set('currentConstraints', constraints);
