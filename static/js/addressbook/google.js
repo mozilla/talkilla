@@ -54,11 +54,11 @@ var GoogleContacts = (function() {
      * @return {Array}
      */
     normalize: function() {
-      return this.dataFeed.feed.entry.reduce(function(emails, entry) {
+      return this.dataFeed.feed.entry.reduce(function(contacts, entry) {
         if (!entry.gd$email)
-          return emails;
-        return emails.concat(entry.gd$email.map(function(email) {
-          return {username: email.address};
+          return contacts;
+        return contacts.concat(entry.gd$email.map(function(email) {
+          return {username: email.address, name:entry.gd$fullName};
         }));
       }, []);
     }
