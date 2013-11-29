@@ -1,6 +1,8 @@
 /* jshint unused:false */
 
 var SPADB = (function() {
+  "use strict";
+
   var ON_BLOCKED_MAX_RETRIES = 10;
 
   function SPADB(options) {

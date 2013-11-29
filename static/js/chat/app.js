@@ -92,6 +92,8 @@ var ChatApp = (function(app, $, Backbone, _) {
     this.appPort.on('talkilla.user-joined', this._onUserJoined, this);
     this.appPort.on('talkilla.user-left', this._onUserLeft, this);
     this.appPort.on('talkilla.move-accept', this._onMoveAccept, this);
+    this.appPort.on('talkilla.hold', this._onHold, this);
+    this.appPort.on('talkilla.resume', this._onResume, this);
 
     // Outgoing events
     this.call.on('send-offer', this._onSendOffer, this);
@@ -139,8 +141,10 @@ var ChatApp = (function(app, $, Backbone, _) {
   };
 
   ChatApp.prototype._onCallEstablishment = function(data) {
+    var sdp = new WebRTC.SDP(data.answer.sdp);
+
     // text chat conversation
-    if (data.textChat)
+    if (sdp.only("datachannel"))
       return this.textChat.establish(data.answer);
 
     // video/audio call
@@ -149,6 +153,8 @@ var ChatApp = (function(app, $, Backbone, _) {
 
   // Incoming calls
   ChatApp.prototype._onIncomingConversation = function(msg) {
+    var sdp = new WebRTC.SDP(msg.offer.offer.sdp);
+
     this.call.set({capabilities: msg.capabilities});
     this.user.set({nick: msg.user});
 
@@ -156,7 +162,7 @@ var ChatApp = (function(app, $, Backbone, _) {
       this.peer.set({nick: msg.peer, presence: msg.peerPresence});
 
     // incoming text chat conversation
-    if (msg.offer.textChat)
+    if (sdp.only("datachannel"))
       return this.textChat.answer(msg.offer.offer);
 
     // incoming video/audio call
@@ -213,9 +219,40 @@ var ChatApp = (function(app, $, Backbone, _) {
     this.appPort.post('talkilla.ice-candidate', iceCandidateMsg);
   };
 
-  ChatApp.prototype._onMoveAccept = function(msg) {
-    if (msg.callid === this.call.callid)
+  /**
+   * Called when a call move request is accepted.
+   *
+   * @param {Object} moveAcceptData a data structure representing
+   * payloads.MoveAccept
+   */
+  ChatApp.prototype._onMoveAccept = function(moveAcceptData) {
+    var moveAcceptMsg = new app.payloads.MoveAccept(moveAcceptData);
+    if (moveAcceptMsg.callid === this.call.callid)
       this.call.hangup(false);
+  };
+
+  /**
+   * Called to put a call on hold.
+   *
+   * @param {Object} holdData a data structure representing
+   * payloads.Hold
+   */
+  ChatApp.prototype._onHold = function(holdData) {
+    var holdMsg = new app.payloads.Hold(holdData);
+    if (holdMsg.callid === this.call.callid)
+      this.call.hold();
+  };
+
+  /**
+   * Called to resume a call.
+   *
+   * @param {Object} resumeData a data structure representing
+   * payloads.Resume
+   */
+  ChatApp.prototype._onResume = function(resumeData) {
+    var resumeMsg = new app.payloads.Resume(resumeData);
+    if (resumeMsg.callid === this.call.callid)
+      this.call.resume(resumeMsg.media.video);
   };
 
   // Call Hangup

@@ -12,6 +12,7 @@
 
   "maxlen" : 80,      // {int} Max number of characters per line
   "node" : true,      // Node.js
+  "strict": true,     // Strict mode
   "trailing" : false, // true: Prohibit trailing whitespaces
   "undef" : true,     // true: Require all non-global variables to be
                       // declared (prevents global leaks)

@@ -1,9 +1,9 @@
 /*global sinon, chai, AppPort */
+"use strict";
+
 var expect = chai.expect;
 
 describe("AppPort", function() {
-  "use strict";
-
   var sandbox, mozSocialBackup, postMessageSpy;
 
   beforeEach(function() {

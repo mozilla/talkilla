@@ -1,11 +1,10 @@
 /*global app, chai, sinon  */
-
 /* jshint expr:true */
+"use strict";
+
 var expect = chai.expect;
 
 describe("CallView", function() {
-  "use strict";
-
   var fakeLocalStream = "fakeLocalStream";
   var fakeRemoteStream = "fakeRemoteStream";
   var el = 'fakeDom';

@@ -65,24 +65,49 @@
   });
   /* jshint camelcase:true */
 
-  // static methods
-
   /**
-   * Extracts media constraints from an offer SDP.
-   * @param  {Object}  offer  Offer object
-   * @return {Object}         Media constraints object
-   * @private
+   * SDP abstraction.
+   * @param {String} sdp SDP description string object.
    */
-  WebRTC.parseOfferConstraints = function(offer) {
-    var sdp = offer && offer.sdp;
+  WebRTC.SDP = function(sdp) {
+    if (typeof sdp !== "string" || !sdp)
+      throw new Error('Invalid SDP provided.');
+    this.sdp = sdp;
+  };
 
-    if (!sdp)
-      throw new Error('No SDP offer to parse');
+  WebRTC.SDP.prototype = {
+    /**
+     * Extracts and returns current media constraints Object.
+     * @return {Object}
+     */
+    get constraints() {
+      return {
+        video: this.sdp.contains('\nm=video '),
+        audio: this.sdp.contains('\nm=audio '),
+        datachannel: this.sdp.contains('webrtc-datachannel')
+      };
+    },
 
-    return {
-      video: sdp.contains('\nm=video '),
-      audio: sdp.contains('\nm=audio ')
-    };
+    /**
+     * Retrieves enabled media constraints sorted alphabetically.
+     * @return {Array} of the form ["audio", "datachannel", "video"]
+     */
+    get enabled() {
+      var constraints = this.constraints;
+      return Object.keys(constraints).filter(function(media) {
+        return !!constraints[media];
+      }).sort();
+    },
+
+    /**
+     * Checks if current SDP enables only media passed as arguments.
+     * @param  {[]String ...args}
+     * @return {Boolean}
+     */
+    only: function() {
+      var medias = [].slice.call(arguments).sort().toString();
+      return this.enabled.toString() === medias;
+    }
   };
 
   // public prototype
@@ -165,7 +190,7 @@
   WebRTC.prototype.answer = function(offer) {
     this.state.answer();
     this._setupPeerConnection();
-    this.constraints = WebRTC.parseOfferConstraints(offer);
+    this.constraints = new WebRTC.SDP(offer.sdp).constraints;
 
     if (!this.constraints.video && !this.constraints.audio)
       return this._prepareAnswer(offer);
@@ -253,7 +278,7 @@
    * @param {String}  type  The type of stream to mute, values are
    *                        'local' or 'remote'
    * @param {String}  media The type of media stream to mute, values are
-   *                        'audio' or 'video'
+   *                        'audio', 'video' or 'both'
    * @param {Boolean} mute  True to mute the stream, false to unmute
    */
   WebRTC.prototype.setMuteState = function(type, media, mute) {
@@ -275,6 +300,10 @@
         stream.getAudioTracks().forEach(muteTrack, this);
       else if (media === 'video')
         stream.getVideoTracks().forEach(muteTrack, this);
+      else if (media === 'both') {
+        stream.getAudioTracks().forEach(muteTrack, this);
+        stream.getVideoTracks().forEach(muteTrack, this);
+      }
     }, this);
   };
 

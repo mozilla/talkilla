@@ -1,21 +1,13 @@
 /*global WebRTC, tnetbin, chai, sinon */
+"use strict";
 
 var expect = chai.expect;
 
 describe("WebRTC", function() {
-  function fakeSDP(str) {
-    return {
-      str: str,
-      contains: function(what) {
-        return this.str.indexOf(what) !== -1;
-      }
-    };
-  }
-
   var sandbox, webrtc;
 
-  var fakeOffer = {type: "offer", sdp: fakeSDP("\nm=video aaa\nm=audio bbb")};
-  var fakeAnswer = {type: "answer", sdp: fakeSDP("\nm=video ccc\nm=audio ddd")};
+  var fakeOffer = {type: "offer", sdp: "\nm=video aaa\nm=audio bbb"};
+  var fakeAnswer = {type: "answer", sdp: "\nm=video ccc\nm=audio ddd"};
   var fakeStream = {fakeStream: true};
   var fakeDataChannel = {fakeDataChannel: true};
   var audioStreamTrack = {enabled:true};
@@ -114,23 +106,6 @@ describe("WebRTC", function() {
 
         expect(webrtc.constraints.fake).to.equal(true);
       });
-  });
-
-  describe("static methods", function () {
-    describe("#parseOfferConstraints", function() {
-      it("should parse an offer SDP to retrieve media constraints", function() {
-        var constraints = WebRTC.parseOfferConstraints(fakeOffer);
-
-        expect(constraints.audio).to.equal(true);
-        expect(constraints.video).to.equal(true);
-      });
-
-      it("should throw if no valid offer passed", function() {
-        expect(function() {
-          WebRTC.parseOfferConstraints({});
-        }).to.Throw(Error);
-      });
-    });
   });
 
   describe("prototype", function() {
@@ -389,7 +364,7 @@ describe("WebRTC", function() {
 
       it("should extract media constraints from a different incoming offer",
         function() {
-          webrtc.answer({type: "answer", sdp: fakeSDP("\nm=audio ddd")});
+          webrtc.answer({type: "answer", sdp: "\nm=audio ddd"});
 
           expect(webrtc.constraints.video).to.equal(false);
           expect(webrtc.constraints.audio).to.equal(true);
@@ -584,6 +559,13 @@ describe("WebRTC", function() {
         expect(videoStreamTrack.enabled).to.be.equal(false);
       });
 
+      it("should set the mute status for all local tracks", function() {
+        webrtc.setMuteState('local', 'both', true);
+
+        expect(audioStreamTrack.enabled).to.be.equal(false);
+        expect(videoStreamTrack.enabled).to.be.equal(false);
+      });
+
       it("should set the mute status for remote audio tracks", function() {
         webrtc.setMuteState('remote', 'audio', true);
 
@@ -595,6 +577,13 @@ describe("WebRTC", function() {
         webrtc.setMuteState('remote', 'video', true);
 
         expect(audioStreamTrack.enabled).to.be.equal(true);
+        expect(videoStreamTrack.enabled).to.be.equal(false);
+      });
+
+      it("should set the mute status for all remote tracks", function() {
+        webrtc.setMuteState('remote', 'both', true);
+
+        expect(audioStreamTrack.enabled).to.be.equal(false);
         expect(videoStreamTrack.enabled).to.be.equal(false);
       });
     });
@@ -854,6 +843,86 @@ describe("WebRTC", function() {
       }).initiate();
 
       webrtc.dc.onclose();
+    });
+  });
+
+  describe("WebRTC.SDP", function() {
+    describe("#constructor", function() {
+      it("should throw if no valid offer passed", function() {
+        expect(function() { new WebRTC.SDP({}); }).to.Throw(Error);
+      });
+    });
+
+    describe("`constraints` getter", function() {
+      it("should retrieve audio media availability from SDP", function() {
+        expect(new WebRTC.SDP("\nm=audio xxx").constraints.audio).eql(true);
+      });
+
+      it("should retrieve video media availability from SDP", function() {
+        expect(new WebRTC.SDP("\nm=video xxx").constraints.video).eql(true);
+      });
+
+      it("should retrieve datachannel availability from SDP", function() {
+        expect(new WebRTC.SDP("\na=sctpmap:2 webrtc-datachannel 16")
+                   .constraints.datachannel).eql(true);
+      });
+
+      it("should retrieve datachannel availability from SDP", function() {
+        var constraints = new WebRTC.SDP(
+          "\nm=audio \nm=video \nwebrtc-datachannel").constraints;
+
+        expect(constraints.audio).eql(true);
+        expect(constraints.datachannel).eql(true);
+        expect(constraints.video).eql(true);
+      });
+    });
+
+    describe("`enabled` getter", function() {
+      it("should return an empty array when no media is enabled", function() {
+        expect(new WebRTC.SDP("xxx").enabled).eql([]);
+      });
+
+      it("should list audio when audio is enabled", function() {
+        expect(new WebRTC.SDP("\nm=audio xxx").enabled).eql(["audio"]);
+      });
+
+      it("should list audio & video on audio & video enabled", function() {
+        expect(new WebRTC.SDP("\nm=video xxx\nm=audio xxx").enabled)
+          .eql(["audio", "video"]);
+      });
+
+      it("should list all enabled medias", function() {
+        expect(new WebRTC.SDP([
+          "xxx",
+          "m=video xxx",
+          "m=audio xxx",
+          "a=sctpmap:2 webrtc-datachannel"
+        ].join("\n")).enabled).eql(["audio", "datachannel", "video"]);
+      });
+    });
+
+    describe("#only", function() {
+      it("should check when no media is enabled", function() {
+        expect(new WebRTC.SDP("xxx").only("video")).eql(false);
+      });
+
+      it("should check if SDP enabled only audio", function() {
+        expect(new WebRTC.SDP("\nm=audio xxx").only("audio")).eql(true);
+      });
+
+      it("should check if SDP enabled only video", function() {
+        expect(new WebRTC.SDP("\nm=video xxx").only("video")).eql(true);
+      });
+
+      it("should check if SDP enabled only datachannel", function() {
+        expect(new WebRTC.SDP("sctpmap:2 webrtc-datachannel 16")
+                   .only("datachannel")).eql(true);
+      });
+
+      it("should check if medias are not the only ones enabled", function() {
+        expect(new WebRTC.SDP("\nm=video xxx\nm=audio xxx").only("video"))
+              .eql(false);
+      });
     });
   });
 });

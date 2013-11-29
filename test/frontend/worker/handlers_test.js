@@ -1,6 +1,7 @@
 /*global chai, sinon, Port, handlers, currentConversation:true, UserData,
   browserPort:true, tkWorker, Conversation, SPA, spa:true, payloads */
 /* jshint expr:true */
+"use strict";
 
 var expect = chai.expect;
 
@@ -19,6 +20,34 @@ describe('handlers', function() {
   afterEach(function() {
     sandbox.restore();
     browserPort = undefined;
+  });
+
+  describe("social.initialize", function() {
+    beforeEach(function() {
+      sandbox.stub(tkWorker, "initialize");
+      sandbox.stub(tkWorker.ports, "remove");
+    });
+
+    it("should save the browser port", function() {
+      browserPort = undefined;
+
+      handlers['social.initialize']();
+
+      expect(browserPort).to.equal(handlers);
+    });
+
+    it("should remove the port from the list of ports", function() {
+      handlers['social.initialize']();
+
+      sinon.assert.calledOnce(tkWorker.ports.remove);
+      sinon.assert.calledWithExactly(tkWorker.ports.remove, handlers);
+    });
+
+    it("should initialize the worker", function() {
+      handlers['social.initialize']();
+
+      sinon.assert.calledOnce(tkWorker.initialize);
+    });
   });
 
   describe("social.port-closing", function() {

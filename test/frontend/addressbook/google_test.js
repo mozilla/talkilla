@@ -1,5 +1,6 @@
 /*global sinon, chai, GoogleContacts */
 /* jshint expr:true, camelcase:false */
+"use strict";
 
 var expect = chai.expect;
 

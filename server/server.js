@@ -1,4 +1,6 @@
 /* jshint unused:false */
+"use strict";
+
 var express  = require('express');
 var http     = require('http');
 var sessions = require("client-sessions");

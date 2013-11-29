@@ -1,4 +1,6 @@
 (function(window) {
+  "use strict";
+
   var handlers = {};
 
   window.navigator.id = {

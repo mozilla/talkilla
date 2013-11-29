@@ -4,6 +4,8 @@
  * Google Contacts API helper.
  */
 var GoogleContacts = (function() {
+  "use strict";
+
   var AUTH_COOKIE_NAME = "google.auth.token";
   var AUTH_COOKIE_TTL = 365 * 10; // in days
   var MAX_RESULTS = 9999; // max number of contacts to fetch

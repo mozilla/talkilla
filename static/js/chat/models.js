@@ -60,6 +60,13 @@
           {name: 'ignore',    from: 'incoming',  to: 'terminated'},
           {name: 'complete',  from: 'pending',   to: 'ongoing'},
 
+          // Call actions
+          // For call hold, it is expected that there may be a future
+          // attribute for which side of the connection initiated the
+          // hold. For now, we only support hold for an incoming request.
+          {name: 'hold', from: 'ongoing', to: 'hold'},
+          {name: 'resume', from: 'hold', to: 'ongoing'},
+
           // Call hangup
           {name: 'hangup',    from: '*',         to: 'terminated'}
         ],
@@ -122,9 +129,8 @@
       // offerMsg and upsetting unit tests
       var options = _.extend({
         offer: offerMsg.offer,
-        textChat: !!offerMsg.textChat,
         upgrade: !!offerMsg.upgrade
-      }, WebRTC.parseOfferConstraints(offerMsg.offer));
+      }, new WebRTC.SDP(offerMsg.offer.sdp).constraints);
 
       this.set('incomingData', options);
       this.callid = offerMsg.callid;
@@ -233,6 +239,54 @@
     },
 
     /**
+     * Used to place a call on hold.
+     */
+    hold: function() {
+      this.state.hold();
+      // XXX Whilst we don't have session renegotiation which would
+      // remove the streams, we must mute the outgoing audio & video.
+      this.media.setMuteState('local', 'both', true);
+    },
+
+    /**
+     * Resume a call after a hold.
+     *
+     * @param {Boolean} enableVideoStream set to true to re-enable the
+     * video stream if it was enabled before the hold
+     */
+    resume: function(enableVideoStream) {
+      // Note: We set the mute status and constraints before changing the
+      // state of the model, to ensure that the views are updated cleanly.
+      if (this.state.current !== "hold")
+        throw new Error("Cannot resume a call that isn't on hold.");
+
+      // XXX Whilst we don't have session renegotiation which would
+      // add the streams, we must unmute the outgoing audio & video.
+
+      if (!this.requiresVideo()) {
+        // If the original constraints were audio only then we can just
+        // re-enable the audio stream.
+        this.media.setMuteState('local', 'audio', false);
+      }
+      else {
+        if (!enableVideoStream) {
+          // Although this call still has video muted in the background
+          // update the constraints so that the views can get the correct
+          // state for determining if to display video or not.
+          var constraints = this.get('currentConstraints');
+          constraints.video = false;
+          this.set('currentConstraints', constraints);
+
+          this.media.setMuteState('local', 'audio', false);
+        }
+        else
+          this.media.setMuteState('local', 'both', false);
+      }
+
+      this.state.resume();
+    },
+
+    /**
      * Upgrades ongoing call with new media constraints.
      *
      * @param {Object} constraints object containing:
@@ -247,7 +301,6 @@
         this.trigger("send-offer", new app.payloads.Offer({
           peer: this.peer.get("nick"),
           offer: offer,
-          textChat: false,
           upgrade: true,
           callid: this.callid
         }));
@@ -483,8 +536,7 @@
       this.media.once("offer-ready", function(offer) {
         this.trigger("send-offer", new app.payloads.Offer({
           peer: this.peer.get("nick"),
-          offer: offer,
-          textChat: true
+          offer: offer
         }));
       }, this);
 
@@ -495,8 +547,7 @@
       this.media.once("answer-ready", function(answer) {
         this.trigger("send-answer", new app.payloads.Answer({
           peer: this.peer.get("nick"),
-          answer: answer,
-          textChat: true
+          answer: answer
         }));
       }, this);
 
