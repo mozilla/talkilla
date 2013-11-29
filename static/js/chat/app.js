@@ -219,19 +219,40 @@ var ChatApp = (function(app, $, Backbone, _) {
     this.appPort.post('talkilla.ice-candidate', iceCandidateMsg);
   };
 
-  ChatApp.prototype._onMoveAccept = function(msg) {
-    if (msg.callid === this.call.callid)
+  /**
+   * Called when a call move request is accepted.
+   *
+   * @param {Object} moveAcceptData a data structure representing
+   * payloads.MoveAccept
+   */
+  ChatApp.prototype._onMoveAccept = function(moveAcceptData) {
+    var moveAcceptMsg = new app.payloads.MoveAccept(moveAcceptData);
+    if (moveAcceptMsg.callid === this.call.callid)
       this.call.hangup(false);
   };
 
-  ChatApp.prototype._onHold = function(msg) {
-    if (msg.callid === this.call.callid)
+  /**
+   * Called to put a call on hold.
+   *
+   * @param {Object} holdData a data structure representing
+   * payloads.Hold
+   */
+  ChatApp.prototype._onHold = function(holdData) {
+    var holdMsg = new app.payloads.Hold(holdData);
+    if (holdMsg.callid === this.call.callid)
       this.call.hold();
   };
 
-  ChatApp.prototype._onResume = function(msg) {
-    if (msg.callid === this.call.callid)
-      this.call.resume();
+  /**
+   * Called to resume a call.
+   *
+   * @param {Object} resumeData a data structure representing
+   * payloads.Resume
+   */
+  ChatApp.prototype._onResume = function(resumeData) {
+    var resumeMsg = new app.payloads.Resume(resumeData);
+    if (resumeMsg.callid === this.call.callid)
+      this.call.resume(resumeMsg.media.video);
   };
 
   // Call Hangup
