@@ -213,7 +213,6 @@
     el: '#login',
 
     events: {
-      'click #signin': 'signin',
       'submit form#signout': 'signout'
     },
 
@@ -232,26 +231,22 @@
 
     render: function() {
       if (!this.appStatus.get('workerInitialized')) {
-        this.$('#signin').hide();
         this.$('#signout').hide();
+        this.$('[name="spa-setup"]').remove();
       } else if (!this.user.get("nick")) {
-        this.$('#signin').show();
+        var iframe = $("<iframe>")
+          .attr("src", "/talkilla-spa-setup.html")
+          .attr("id", "signin")
+          .attr("name", "spa-setup");
+        $("#login p:first").append(iframe);
+
         this.$('#signout').hide().find('.nick').text('');
       } else {
         this.$('#signin').hide();
+        this.$('[name="spa-setup"]').remove();
         this.$('#signout').show().find('.nick').text(this.user.get('nick'));
       }
       return this;
-    },
-
-    /**
-     * Signs in a user.
-     *
-     * @param  {FormEvent}  Signin form submit event
-     */
-    signin: function(event) {
-      event.preventDefault();
-      this.user.signin();
     },
 
     /**

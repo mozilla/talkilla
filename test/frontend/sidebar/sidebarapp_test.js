@@ -17,8 +17,6 @@ describe("SidebarApp", function() {
         return {port: {}};
       }
     };
-    // BrowserId "mock"
-    window.navigator.id = {watch: sinon.spy(), logout: sinon.spy()};
 
     sandbox.stub(app.views, "AppView");
     sandbox.stub(AppPort.prototype, "post");
@@ -154,56 +152,6 @@ describe("SidebarApp", function() {
         sinon.assert.calledOnce(app.utils.notifyUI);
         sinon.assert.calledWithExactly(app.utils.notifyUI,
           sinon.match.string, 'error');
-      });
-
-    });
-
-    describe("signin-requested", function() {
-
-      beforeEach(function() {
-        sidebarApp.http.post.restore();
-      });
-
-      it("should ask the worker to enable the spa", function() {
-        var spec = new app.payloads.SPASpec({
-          name: "TalkillaSPA",
-          src: "/js/spa/talkilla_worker.js",
-          credentials: {email: "foo"}
-        });
-        sandbox.stub(sidebarApp.http, "post", function(path, data, callback) {
-          expect(path).to.equal("/signin");
-          callback(null, JSON.stringify({nick: "foo"}));
-        });
-        sidebarApp.appPort.post.reset();
-
-        sidebarApp.user.trigger("signin-requested", "fake assertion");
-
-        sinon.assert.calledOnce(sidebarApp.appPort.post);
-        sinon.assert.calledWithExactly(
-          sidebarApp.appPort.post, "talkilla.spa-enable", spec);
-      });
-
-      it("should logout the user if the signin failed", function() {
-        sandbox.stub(sidebarApp.http, "post", function(path, data, callback) {
-          expect(path).to.equal("/signin");
-          callback("error", "");
-        });
-
-        sidebarApp.user.trigger("signin-requested", "fake assertion");
-
-        sinon.assert.calledOnce(navigator.id.logout);
-      });
-
-      it("should display an error if the signin failed", function() {
-        sandbox.stub(sidebarApp.http, "post", function(path, data, callback) {
-          expect(path).to.equal("/signin");
-          callback("fake error", "");
-        });
-
-        sidebarApp.user.trigger("signin-requested", "fake assertion");
-
-        sinon.assert.calledOnce(app.utils.notifyUI);
-        sinon.assert.calledWith(app.utils.notifyUI, sinon.match("fake error"));
       });
 
     });
