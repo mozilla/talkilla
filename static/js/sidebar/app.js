@@ -34,7 +34,6 @@ var SidebarApp = (function(app, $) {
 
     // user events
     this.user.on("signout", this._onUserSignout, this);
-    this.user.on("signin-requested", this._onUserSigninRequested, this);
     this.user.on("signout-requested", this._onUserSignoutRequested, this);
 
     // port events
@@ -49,6 +48,7 @@ var SidebarApp = (function(app, $) {
     this.appPort.on("talkilla.worker-ready", this._onWorkerReady, this);
     this.appPort.on("social.user-profile", this._onUserProfile, this);
     this.appPort.on('talkilla.reauth-needed', this._onReauthNeeded, this);
+    window.addEventListener("message", this._onSPASetup.bind(this), false);
 
     this.appPort.post("talkilla.sidebar-ready");
 
@@ -66,15 +66,6 @@ var SidebarApp = (function(app, $) {
     this.user.set({nick: userData.userName});
   };
 
-  SidebarApp.prototype._onUserSigninRequested = function(assertion) {
-    this.http.post("/signin", {assertion: assertion}, function(err, response) {
-      if (err)
-        return this._onLoginFailure(err);
-
-      return this._onLoginSuccess(JSON.parse(response));
-    }.bind(this));
-  };
-
   SidebarApp.prototype._onUserSignoutRequested = function() {
     this.http.post("/signout", {}, this._onLogoutSuccess.bind(this));
   };
@@ -89,15 +80,19 @@ var SidebarApp = (function(app, $) {
     this.appPort.post('talkilla.user-nick', {nick: this.user.get('nick')});
   };
 
-  SidebarApp.prototype._onLoginSuccess = function(data) {
-    // We are successfuly logged in, we setup the SPA and ask to be
-    // connected.
-    var talkillaSpec = new payloads.SPASpec({
-      name: "TalkillaSPA",
-      src: "/js/spa/talkilla_worker.js",
-      credentials: {email: data.nick}
-    });
+  SidebarApp.prototype._onSPASetup = function(event) {
+    // This handler is attached to any message the window receives.
+    // This is why we exclude messages not coming from the setup page
+    // (i.e. the same origin for now).
+    // XXX: in the future, the setup page could be on a different origin.
+    if (event.origin !== window.location.origin)
+      return;
 
+    event = JSON.parse(event.data);
+    if (event.topic !== "talkilla.spa-enable")
+      return;
+
+    var talkillaSpec = new app.payloads.SPASpec(event.data);
     this.appPort.post("talkilla.spa-enable", talkillaSpec);
   };
 
@@ -110,12 +105,6 @@ var SidebarApp = (function(app, $) {
   // However, I suspect the factoring is going to be meaningfully effected by
   // our efforts to retry connections much of the time, so it probably makes
   // sense to do it as part of that card.
-
-  SidebarApp.prototype._onLoginFailure = function(error) {
-    app.utils.notifyUI('Failed to login while communicating with the server: ' +
-      error, 'error');
-    navigator.id.logout();
-  };
 
   SidebarApp.prototype._onLogoutSuccess = function() {
     this.appPort.post("talkilla.spa-disable", "TalkillaSPA");
