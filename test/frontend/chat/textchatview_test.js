@@ -206,6 +206,21 @@ describe("Text chat views", function() {
               .to.equal('Type something to start chatting');
 
       });
+
+      it("should focus on the input textbox", function() {
+        // stubbing focus because travis setup doesnt handle focus correctly
+        sandbox.stub($.fn, 'focus');
+        var view = new app.views.TextChatView({
+          call: new app.models.Call(),
+          collection: new app.models.TextChat([], {
+            media: media,
+            user: user,
+            peer: peer
+          })
+        });
+
+        sinon.assert.calledOnce(view.$('form input[name="message"]').focus);
+      });
     });
 
     describe("#render", function() {

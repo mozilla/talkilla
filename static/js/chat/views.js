@@ -599,6 +599,7 @@
         var $input = this.$('form input[name="message"]');
         $input.attr('placeholder', 'Type something to start chatting');
       }
+      this.$('form input[name="message"]').focus();
     },
 
     hide: function() {
