@@ -8,11 +8,15 @@ describe("TalkillaSPASetup", function() {
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
 
-    // BrowserId "mock"
+    // BrowserId mock
     window.navigator.id = {
       watch: function(callbacks) {
         browserIdHandlers = callbacks;
       }
+    };
+    // loadConfig mock
+    window.loadConfig = function() {
+      return {ROOTURL: "*"};
     };
 
     setup = new TalkillaSPASetup();
