@@ -120,6 +120,9 @@
    * @public
    */
   WebRTC.prototype.initiate = function(constraints) {
+    if (this.state.current === 'ongoing')
+      return this._upgrade(constraints);
+
     this.state.initiate();
     this._setupPeerConnection();
     this.constraints = constraints;
@@ -139,7 +142,7 @@
    * @param  {Object} constraints User media constraints
    * @return {WebRTC}
    */
-  WebRTC.prototype.upgrade = function(constraints) {
+  WebRTC.prototype._upgrade = function(constraints) {
     this.state.upgrade();
 
     if (!constraints || typeof constraints !== 'object')
