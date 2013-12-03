@@ -30,6 +30,10 @@ var Server = (function() {
       this.currentXHR.abort();
     },
 
+    signout: function() {
+      this.http.post("/signout", {});
+    },
+
     _longPolling: function(events) {
       events.forEach(function(event) {
         this.trigger("message", event.topic, event.data);
