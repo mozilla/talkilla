@@ -40,7 +40,7 @@ var browserDetection = (function ($) {
 
   app._isFirefox = function(userAgent) {
     var ua = userAgent.toLowerCase();
-    return ua.contains('firefox');
+    return ua.search(/firefox/) != -1;
   };
 
   app.activateSocial = function(node, userAgent) {
