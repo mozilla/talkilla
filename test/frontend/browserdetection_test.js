@@ -34,6 +34,8 @@ describe("browserDetection.app", function() {
       ' sidebar URL when running on a browser with statusPanel support',
       function() {
         sandbox.stub(node, "dispatchEvent");
+        userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.8; rv:28.0) " +
+          "Gecko/20100101 Firefox/28.0";
 
         browserDetection.activateSocial(node, userAgent);
 
@@ -46,8 +48,8 @@ describe("browserDetection.app", function() {
       ' statusURL when running on a browser without statusPanel support',
       function() {
         sandbox.stub(node, "dispatchEvent");
-        userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.8; rv:27.0) " +
-          "Gecko/20100101 Firefox/27.0";
+        userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.8; rv:25.0) " +
+          "Gecko/20100101 Firefox/25.0";
 
         browserDetection.activateSocial(node, userAgent);
 
