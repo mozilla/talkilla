@@ -8,8 +8,8 @@
  *                            If this parameter is null, then the request
  *                            has succeeded.
  *                            Note: in some cases XMLHttpRequest can return 0 in
- *                            an error case (e.g. offline or CORS issue), so that
- *                            needs to be explicitly handled.
+ *                            an error case (e.g. offline or CORS issue), so
+ *                            that needs to be explicitly handled.
  * @param {String} statusText The response text if the request has succeed,
  *                            or the error text if a request has failed.
  */
