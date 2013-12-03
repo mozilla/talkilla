@@ -21,8 +21,6 @@ describe("HTTP", function() {
     });
 
     describe("#request", function() {
-      var http = new HTTP();
-
       it("Should execute the callback when the request times out.", function() {
         var callback = sinon.spy();
 
@@ -36,21 +34,41 @@ describe("HTTP", function() {
   });
 
   describe("With useFakeXMLHttpRequest", function (){
-    var xhr, request;
+    var xhr, request, callback;
 
     beforeEach(function () {
       xhr = sinon.useFakeXMLHttpRequest();
       xhr.onCreate = function (xhrRequest) {
         request = xhrRequest;
       };
+
+      callback = sinon.spy();
+      http.request("POST", "/somewhere", {some: "data"}, callback);
     });
 
     describe("#request", function() {
+      it("should execute the callback with success for 200 responses",
+        function() {
+          request.respond(200, {}, "OK Response");
+
+          sinon.assert.calledOnce(callback);
+          sinon.assert.calledWithExactly(callback,
+                                         null,
+                                         "OK Response");
+        });
+
+      it("should execute the callback with success for 204 responses",
+        function() {
+          request.respond(204, {});
+
+          sinon.assert.calledOnce(callback);
+          sinon.assert.calledWithExactly(callback,
+                                         null,
+                                         "");
+        });
+
       it("should execute the callback with an error AND the response body",
         function() {
-          var callback = sinon.spy();
-          http.request("POST", "/somewhere", {some: "data"}, callback);
-
           request.respond(400, {}, "response body");
 
           sinon.assert.calledOnce(callback);

@@ -33,11 +33,6 @@ var tkWorker;
  * @param {String} peer: the Peer for the conversation
  * @param {payloads.Offer} offer: Optional, the offer message for an
  *                                incoming conversation
- *
- * context properties:
- *
- * - {String} peer: The id of the peer this conversation window is for.
- * - {Object} offer: optional data for incoming calls.
  */
 function Conversation(spa, peer, offer) {
   this.peer = peer;
