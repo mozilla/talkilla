@@ -80,6 +80,30 @@ describe("Server", function() {
 
   });
 
+  describe("#disconnect", function() {
+
+    it("should abort the current long polling connection", function() {
+      server.currentXHR = {abort: sinon.spy()};
+      server.disconnect();
+
+      sinon.assert.calledOnce(server.currentXHR.abort);
+    });
+
+  });
+
+  describe("#signout", function() {
+
+    it("should sign out the spa from the server", function() {
+      sandbox.stub(server.http, "post");
+
+      server.signout();
+
+      sinon.assert.calledOnce(server.http.post);
+      sinon.assert.calledWithExactly(server.http.post, "/signout", {});
+    });
+
+  });
+
   describe("#_longPolling", function() {
 
     it("should request a stream", function() {

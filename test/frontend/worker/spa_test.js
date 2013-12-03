@@ -165,4 +165,17 @@ describe("SPA", function() {
       });
     });
   });
+
+  describe("#forgetCredentials", function() {
+    it("should send a forget-credentials message to the spa", function() {
+      spa.forgetCredentials();
+
+      sinon.assert.calledOnce(spa.worker.postMessage);
+      sinon.assert.calledWithExactly(spa.worker.postMessage, {
+        topic: "forget-credentials",
+        data: undefined
+      });
+    });
+
+  });
 });
