@@ -27,7 +27,7 @@ var browserDetection = (function ($) {
   };
 
   app.supportsStatusPanel = function(userAgent) {
-    return app._majorVersion(userAgent) >= 28 && app._isFirefox(userAgent);
+    return app._majorVersion(userAgent) >= 27 && app._isFirefox(userAgent);
   };
 
   app._majorVersion = function(userAgent) {
