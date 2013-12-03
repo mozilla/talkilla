@@ -67,7 +67,12 @@ var SidebarApp = (function(app, $) {
   };
 
   SidebarApp.prototype._onUserSignoutRequested = function() {
-    this.http.post("/signout", {}, this._onLogoutSuccess.bind(this));
+    this.appPort.post("talkilla.spa-forget-credentials", "TalkillaSPA");
+    this.appPort.post("talkilla.spa-disable", "TalkillaSPA");
+    // XXX: we may want to synchronize this with the TkWorker#close
+    // method from the shared worker.
+    this.user.clear();
+    this.users.reset();
   };
 
   SidebarApp.prototype.openConversation = function(nick) {
@@ -96,6 +101,10 @@ var SidebarApp = (function(app, $) {
     this.appPort.post("talkilla.spa-enable", talkillaSpec);
   };
 
+  SidebarApp.prototype._onSPAConnected = function() {
+    this.user.set({presence: "connected"});
+  };
+
   // XXX a lot of the steps that happen after various types of logouts and
   // failures are very very similar but not the same, and I suspect some
   // of this is intentional, and some of it is not.  One of the consequences
@@ -105,16 +114,6 @@ var SidebarApp = (function(app, $) {
   // However, I suspect the factoring is going to be meaningfully effected by
   // our efforts to retry connections much of the time, so it probably makes
   // sense to do it as part of that card.
-
-  SidebarApp.prototype._onLogoutSuccess = function() {
-    this.appPort.post("talkilla.spa-disable", "TalkillaSPA");
-    this.user.clear();
-    this.users.reset();
-  };
-
-  SidebarApp.prototype._onSPAConnected = function() {
-    this.user.set({presence: "connected"});
-  };
 
   SidebarApp.prototype._onError = function(error) {
     app.utils.notifyUI('Error while communicating with the server: ' +
