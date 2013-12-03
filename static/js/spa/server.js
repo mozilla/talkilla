@@ -7,12 +7,13 @@ var Server = (function() {
   function Server(options) {
     this.options = options;
     this.http = new HTTP();
+    this.currentXHR = undefined;
   }
 
   Server.prototype = {
     connect: function() {
       // XXX Timeout value to depend on LONG_POLLING_TIMEOUT.
-      this.http.post("/stream", {firstRequest: true, timeout: 21000},
+      var xhr = this.http.post("/stream", {firstRequest: true, timeout: 21000},
         function(err, response) {
           if (err === 400)
             return this.trigger("unauthorized", response);
@@ -22,24 +23,29 @@ var Server = (function() {
           this.trigger("connected");
           this._longPolling(JSON.parse(response));
         }.bind(this));
+      this.currentXHR = xhr;
+    },
+
+    disconnect: function() {
+      this.currentXHR.abort();
     },
 
     _longPolling: function(events) {
-
       events.forEach(function(event) {
         this.trigger("message", event.topic, event.data);
         this.trigger("message:" + event.topic, event.data);
       }.bind(this));
 
       // XXX Timeout value to depend on LONG_POLLING_TIMEOUT.
-      this.http.post("/stream", {timeout: 21000}, function(err, response) {
-        if (err === 400)
-          return this.trigger("unauthorized", response);
-        if (err !== null)
-          return this.trigger("network-error", response);
+      this.currentXHR =
+        this.http.post("/stream", {timeout: 21000}, function(err, response) {
+          if (err === 400)
+            return this.trigger("unauthorized", response);
+          if (err !== null)
+            return this.trigger("network-error", response);
 
-        this._longPolling(JSON.parse(response));
-      }.bind(this));
+          this._longPolling(JSON.parse(response));
+        }.bind(this));
     },
 
     /**

@@ -39,6 +39,7 @@ var HTTP = (function() {
     }
 
     xhr.send(JSON.stringify(data));
+    return xhr;
   };
 
   /**
@@ -48,7 +49,7 @@ var HTTP = (function() {
    * @param  {Function} callback Callback
    */
   HTTP.prototype.get = function(url, data, callback) {
-    this.request("GET", url, data, callback);
+    return this.request("GET", url, data, callback);
   };
 
   /**
@@ -58,7 +59,7 @@ var HTTP = (function() {
    * @param  {Function} callback Callback
    */
   HTTP.prototype.post = function(url, data, callback) {
-    this.request("POST", url, data, callback);
+    return this.request("POST", url, data, callback);
   };
 
   return HTTP;
