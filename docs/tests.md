@@ -93,7 +93,7 @@ Run one test file:
 
     $ ./bin/run_selenium_test.sh test/functional/test_SingleBrowser.py
 
-Run on test in particular in a file (the quotes are important):
+Run one test in particular in a file (the quotes are important):
 
     $ ./bin/run_selenium_test.sh "test/functional/test_MultipleBrowsers.py MultipleBrowsersTest.test_video_call"
 
