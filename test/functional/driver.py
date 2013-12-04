@@ -159,7 +159,7 @@ class Driver(WebDriver):
 
             # if frame switches are failing, uncomment the following line to
             # help debug:
-            print "self.current_url = ", current_url
+            #print "self.current_url = ", current_url
 
             if current_url != expected_url:
                 # getting here may have been caused by the previous wait having
