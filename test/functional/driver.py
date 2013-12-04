@@ -125,6 +125,9 @@ class Driver(WebDriver):
 
             Args:
             - message: Text chat message contents
+
+            Kwargs:
+            - send: Submit form to send the message? (default: False)
         """
         self.switchToChatWindow()
         input_text = self.waitForElement("form input", visible=True)

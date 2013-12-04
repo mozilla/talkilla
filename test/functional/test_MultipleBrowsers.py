@@ -171,15 +171,16 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
         self.larry.signin()
         self.bob.signin()
 
-        self.bob.openConversationWith("larry").typeChatMessage("hi!", True)
+        self.bob.openConversationWith("larry").typeChatMessage("hi!",
+                                                               send=True)
         self.assertChatMessageContains(self.bob, "hi!", line=1)
         self.assertChatMessageContains(self.larry, "hi!", line=1)
 
-        self.larry.typeChatMessage("yay!", True)
+        self.larry.typeChatMessage("yay!", send=True)
         self.assertChatMessageContains(self.bob, "yay!", line=2)
         self.assertChatMessageContains(self.larry, "yay!", line=2)
 
-        self.bob.typeChatMessage("ok", True)
+        self.bob.typeChatMessage("ok", send=True)
         self.assertChatMessageContains(self.bob, "ok", line=3)
         self.assertChatMessageContains(self.larry, "ok", line=3)
 
@@ -201,7 +202,7 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
         self.assertMessagePlaceholderEquals(self.bob,
                                             "Type something to start chatting")
 
-        self.bob.typeChatMessage("wazza", True)
+        self.bob.typeChatMessage("wazza", send=True)
         self.assertMessagePlaceholderEquals(self.bob, "")
 
         self.bob.closeConversationWindow()
@@ -213,7 +214,7 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
         self.larry.signin()
 
         self.bob.openConversationWith("larry").typeChatMessage("let's chat!",
-                                                               True)
+                                                               send=True)
 
         self.larry.switchToChatWindow().startCall(True)
 
@@ -230,7 +231,7 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
 
         self.larry.openConversationWith("bob")
         self.bob.openConversationWith("larry").typeChatMessage("Hey Buddy!",
-                                                               True)
+                                                               send=True)
 
         self.waitForNewMessageReceived(self.larry)
         self.bob.typeChatMessage("wazzza")
