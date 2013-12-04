@@ -273,51 +273,53 @@ describe("WebRTC", function() {
             }).initiate();
           });
       });
-    });
 
-    describe("#upgrade", function() {
-      it("should accept new media constraints", function() {
-        webrtc.initiate({video: false}).establish({}).upgrade({video: true});
-
-        expect(webrtc.constraints.video).to.equal(true);
-      });
-
-      it("should throw if no new media constraints are provided", function() {
-        webrtc.initiate({video: true}).establish({});
-
-        expect(webrtc.upgrade).to.Throw(Error);
-      });
-
-      it("should transition state to `pending`", function() {
-        webrtc.initiate({video: false}).establish({}).upgrade({video: true});
-
-        expect(webrtc.state.current).to.equal('pending');
-      });
-
-      it("should initiate a new peer connection using provided constraints",
-        function(done) {
-          var newConstraints = {video: true, audio: true};
-
-          webrtc.on('connection-upgraded', function() {
-            expect(this.constraints.video).to.equal(true);
-            expect(this.constraints.audio).to.equal(true);
-            done();
-          }).initiate().establish({}).upgrade(newConstraints);
-
-          webrtc.trigger('connection-terminated').trigger('ice:connected');
+      describe("upgrading a call", function() {
+        beforeEach(function() {
+          webrtc.initiate({video: false}).establish({});
         });
 
-      describe("#upgrade events", function() {
-        it("should emit a `transition:upgrade` event", function(done) {
-          webrtc.once('transition:upgrade', function() {
-            done();
-          }).initiate().establish({}).upgrade({});
+        it("should accept new media constraints", function() {
+          webrtc.initiate({video: true});
+
+          expect(webrtc.constraints.video).to.equal(true);
         });
 
-        it("should emit a `state:to:pending` event", function(done) {
-          webrtc.once('state:to:pending', function() {
-            done();
-          }).initiate().establish({}).upgrade({});
+        it("should throw if no new media constraints are provided", function() {
+          expect(webrtc.initiate.bind(webrtc)).to.Throw(/media constraints/);
+        });
+
+        it("should transition state to `pending`", function() {
+          webrtc.initiate({video: true});
+
+          expect(webrtc.state.current).to.equal('pending');
+        });
+
+        it("should initiate a new peer connection using provided constraints",
+          function(done) {
+            var newConstraints = {video: true, audio: true};
+
+            webrtc.on('connection-upgraded', function() {
+              expect(this.constraints.video).to.equal(true);
+              expect(this.constraints.audio).to.equal(true);
+              done();
+            }).initiate(newConstraints);
+
+            webrtc.trigger('connection-terminated').trigger('ice:connected');
+          });
+
+        describe("#upgrade events", function() {
+          it("should emit a `transition:upgrade` event", function(done) {
+            webrtc.once('transition:upgrade', function() {
+              done();
+            }).initiate({});
+          });
+
+          it("should emit a `state:to:pending` event", function(done) {
+            webrtc.once('state:to:pending', function() {
+              done();
+            }).initiate({});
+          });
         });
       });
     });

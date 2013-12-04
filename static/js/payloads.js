@@ -13,18 +13,11 @@ var payloads = (function() {
    * - {Integer} callid, the id of the call being initiated
    * - {String} peer, the user to call
    * - {mozRTCSessionDescription} offer, a sdp offer
-   *
-   * Optional attributes:
-   *
-   * - {Boolean} textChat, does the call involve text chat?
-   * - {Boolean} upgrade, is the call an upgrade?
-   *
    */
   function Offer(data) {
     this.callid   = data.callid;
     this.peer     = data.peer;
     this.offer    = data.offer;
-    this.upgrade  = data.upgrade  || false;
   }
 
   Offer.prototype = {
@@ -32,8 +25,7 @@ var payloads = (function() {
       return {
         callid: this.callid,
         peer: this.peer,
-        offer: this.offer,
-        upgrade: this.upgrade
+        offer: this.offer
       };
     }
   };
