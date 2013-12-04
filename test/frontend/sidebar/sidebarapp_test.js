@@ -159,31 +159,31 @@ describe("SidebarApp", function() {
     describe("signout-requested", function() {
 
       beforeEach(function() {
-        sidebarApp.http.post.restore();
+        sidebarApp.appPort.post.reset();
       });
 
       it("should reset users' state", function() {
-        sandbox.stub(sidebarApp.http, "post", function(path, data, callback) {
-          expect(path).to.equal("/signout");
-          callback(null, "");
-        });
-
         sidebarApp.user.trigger("signout-requested");
 
         expect(sidebarApp.user.nick).to.equal(undefined);
         expect(sidebarApp.users.length).to.equal(0);
       });
 
-      it("should logout the user even if the request failed", function() {
-        sandbox.stub(sidebarApp.http, "post", function(path, data, callback) {
-          expect(path).to.equal("/signout");
-          callback("error", "");
-        });
-
+      it("should ask the SPA to forget credentials", function() {
         sidebarApp.user.trigger("signout-requested");
 
-        expect(sidebarApp.user.nick).to.equal(undefined);
-        expect(sidebarApp.users.length).to.equal(0);
+        sinon.assert.calledTwice(sidebarApp.appPort.post);
+        sinon.assert.calledWithExactly(sidebarApp.appPort.post,
+                                       "talkilla.spa-forget-credentials",
+                                       "TalkillaSPA");
+      });
+
+      it("should disable the SPA", function() {
+        sidebarApp.user.trigger("signout-requested");
+
+        sinon.assert.calledTwice(sidebarApp.appPort.post);
+        sinon.assert.calledWithExactly(
+          sidebarApp.appPort.post, "talkilla.spa-disable", "TalkillaSPA");
       });
 
     });
