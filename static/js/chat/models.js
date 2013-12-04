@@ -50,8 +50,6 @@
                                      'timeout'], to: 'pending'},
           {name: 'establish', from: 'pending',   to: 'ongoing'},
           {name: 'timeout',   from: 'pending',   to: 'timeout'},
-          {name: 'upgrade',   from: ['ready',
-                                     'ongoing'], to: 'pending'},
 
           // Incoming call scenario
           {name: 'incoming',  from: ['ready',
@@ -92,9 +90,6 @@
       this.callid = app.utils.id();
       this.set('currentConstraints', constraints);
 
-      if (this.media.state.current === 'ongoing')
-        return this.upgrade(constraints);
-
       this._startCall(this.get('currentConstraints'));
     },
 
@@ -117,7 +112,10 @@
         }));
       }, this);
 
-      this.media.initiate(constraints);
+      if (this.media.state.current === 'ongoing')
+        this.media.upgrade(constraints);
+      else
+        this.media.initiate(constraints);
     },
 
     /**
@@ -284,29 +282,6 @@
       }
 
       this.state.resume();
-    },
-
-    /**
-     * Upgrades ongoing call with new media constraints.
-     *
-     * @param {Object} constraints object containing:
-     *
-     * - video: set to true to enable video
-     * - audio: set to true to enable audio
-     */
-    upgrade: function(constraints) {
-      this.state.upgrade();
-
-      this.media.once("offer-ready", function(offer) {
-        this.trigger("send-offer", new app.payloads.Offer({
-          peer: this.peer.get("nick"),
-          offer: offer,
-          upgrade: true,
-          callid: this.callid
-        }));
-      }, this);
-
-      this.media.upgrade(constraints);
     },
 
     /**

@@ -34,8 +34,7 @@ describe("Call Model", function() {
         type: "offer"
       },
       callid: 2,
-      peer: "bob",
-      upgrade: false
+      peer: "bob"
     });
   });
 
@@ -93,19 +92,17 @@ describe("Call Model", function() {
     });
 
     it("should silently upgrade a call if currently ongoing", function() {
-      sandbox.stub(call, "upgrade");
       call.media.state.current = "ongoing";
       var fakeConstraints = {fakeConstraint: true};
 
       call.start(fakeConstraints);
 
-      sinon.assert.calledOnce(call.upgrade);
-      sinon.assert.calledWithExactly(call.upgrade, fakeConstraints);
+      sinon.assert.calledOnce(media.upgrade);
+      sinon.assert.calledOnce(media.upgrade, fakeConstraints);
     });
 
     it("should cause a requiresVideo() call to give an updated answer",
       function() {
-        sandbox.stub(call, "upgrade");
         call.media.state.current = "ongoing";
         var constraints = {video: true};
         expect(call.requiresVideo()).to.equal(false);
@@ -225,7 +222,6 @@ describe("Call Model", function() {
       call.incoming(callData);
 
       expect(call.get("incomingData").offer).to.equal(callData.offer);
-      expect(call.get("incomingData").upgrade).to.equal(callData.upgrade);
     });
 
     it("should have the same id as the incoming call", function() {
@@ -490,53 +486,6 @@ describe("Call Model", function() {
 
       sinon.assert.calledOnce(media.setMuteState);
       sinon.assert.calledWith(media.setMuteState, 'local', 'audio', false);
-    });
-  });
-
-  describe("#upgrade", function() {
-    it("should change the state from ready to pending", function() {
-      call.state.current = 'ongoing';
-      call.upgrade({});
-      expect(call.state.current).to.equal('pending');
-    });
-
-    it("should listen to offer-ready from the media", function() {
-      call.state.current = 'ongoing';
-      call.upgrade({});
-      sinon.assert.calledWith(media.once, "offer-ready");
-    });
-
-    it("should pass new media constraints to the media", function() {
-      call.state.current = 'ongoing';
-      call.upgrade({audio: true});
-
-      sinon.assert.calledOnce(media.upgrade);
-      sinon.assert.calledWithExactly(media.upgrade, {audio: true});
-    });
-
-    describe("send-offer", function() {
-      var fakeOffer = {offer: {fake: true}};
-
-      beforeEach(function() {
-        call.state.current = 'ongoing';
-        call.media = _.extend(media, Backbone.Events);
-        peer.set("nick", "larry");
-        call.id = 2;
-
-        call.upgrade({});
-      });
-
-      it("should trigger send-offer with transport data on offer-ready",
-        function(done) {
-          call.once("send-offer", function(data) {
-            expect(data.offer).to.deep.equal(fakeOffer);
-            expect(data.peer).to.equal(peer.get("nick"));
-            expect(data.callid).to.equal(call.callid);
-            done();
-          });
-
-          call.media.trigger("offer-ready", fakeOffer);
-        });
     });
   });
 
