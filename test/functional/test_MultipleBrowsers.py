@@ -171,15 +171,16 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
         self.larry.signin()
         self.bob.signin()
 
-        self.bob.openConversationWith("larry").sendChatMessage("hi!")
+        self.bob.openConversationWith("larry").typeChatMessage("hi!",
+                                                               send=True)
         self.assertChatMessageContains(self.bob, "hi!", line=1)
         self.assertChatMessageContains(self.larry, "hi!", line=1)
 
-        self.larry.sendChatMessage("yay!")
+        self.larry.typeChatMessage("yay!", send=True)
         self.assertChatMessageContains(self.bob, "yay!", line=2)
         self.assertChatMessageContains(self.larry, "yay!", line=2)
 
-        self.bob.sendChatMessage("ok")
+        self.bob.typeChatMessage("ok", send=True)
         self.assertChatMessageContains(self.bob, "ok", line=3)
         self.assertChatMessageContains(self.larry, "ok", line=3)
 
@@ -201,7 +202,7 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
         self.assertMessagePlaceholderEquals(self.bob,
                                             "Type something to start chatting")
 
-        self.bob.sendChatMessage("wazza")
+        self.bob.typeChatMessage("wazza", send=True)
         self.assertMessagePlaceholderEquals(self.bob, "")
 
         self.bob.closeConversationWindow()
@@ -212,7 +213,8 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
         self.bob.signin()
         self.larry.signin()
 
-        self.bob.openConversationWith("larry").sendChatMessage("let's chat!")
+        self.bob.openConversationWith("larry").typeChatMessage("let's chat!",
+                                                               send=True)
 
         self.larry.switchToChatWindow().startCall(True)
 
@@ -223,6 +225,19 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
         self.bob.hangupCall()
         self.assertChatWindowClosed(self.larry)
 
+    def test_contact_is_typing(self):
+        self.larry.signin()
+        self.bob.signin()
+
+        self.larry.openConversationWith("bob")
+        self.bob.openConversationWith("larry").typeChatMessage("Hey Buddy!",
+                                                               send=True)
+
+        self.waitForNewMessageReceived(self.larry)
+        self.bob.typeChatMessage("wazzza")
+        self.assertIsTyping(self.larry)
+
+        self.assertNotTyping(self.larry)
 
 if __name__ == "__main__":
     unittest.main(catchbreak=True)

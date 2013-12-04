@@ -509,6 +509,7 @@
     media: undefined,
     user: undefined,
     peer: undefined,
+    typingTimeout: undefined,
 
     initialize: function(attributes, options) {
       if (!options || !options.media)
@@ -522,6 +523,8 @@
       if (!options || !options.peer)
         throw new Error('TextChat model needs a `peer` option');
       this.peer = options.peer;
+
+      this.typeTimeout = options && options.typeTimeout || 5000;
 
       this.media.on('dc:message-in', this._onDcMessageIn, this);
       this.on('add', this._onTextChatEntryCreated, this);
@@ -575,12 +578,29 @@
         this.initiate({video: false, audio: false});
     },
 
+    notifyTyping: function() {
+      if (!this.length || this.media.state.current !== "ongoing")
+        return;
+      this.media.send({
+        type: "chat:typing",
+        message: { nick: this.user.get("nick") }
+      });
+    },
+
     _onDcMessageIn: function(event) {
       var transfer;
 
       switch (event.type) {
       case "chat:message":
         this.add(new app.models.TextChatEntry(event.message));
+        this.trigger("chat:type-stop");
+        break;
+      case "chat:typing":
+        this.trigger("chat:type-start", event.message);
+        if (this.typingTimeout)
+          clearTimeout(this.typingTimeout);
+        this.typingTimeout = setTimeout(this.trigger.bind(this, "chat:type-stop"
+                                                          ), this.typeTimeout);
         break;
       case "file:new":
         var nick = this.user.get("nick");
