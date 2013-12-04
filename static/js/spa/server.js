@@ -27,7 +27,8 @@ var Server = (function() {
     },
 
     disconnect: function() {
-      this.currentXHR.abort();
+      if (this.currentXHR)
+        this.currentXHR.abort();
     },
 
     signout: function() {
