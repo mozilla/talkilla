@@ -162,4 +162,23 @@ describe("TalkillaSPA", function() {
 
   });
 
+  describe("#_onForgetCredentials", function() {
+
+    it("should disconnect the SPA from the server", function() {
+      sandbox.stub(spa.server, "disconnect");
+
+      spa.port.trigger("forget-credentials");
+
+      sinon.assert.calledOnce(spa.server.disconnect);
+    });
+
+    it("should signout the SPA from the server", function() {
+      sandbox.stub(spa.server, "signout");
+
+      spa.port.trigger("forget-credentials");
+      sinon.assert.calledOnce(spa.server.signout);
+    });
+
+  });
+
 });

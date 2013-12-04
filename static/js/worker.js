@@ -489,6 +489,17 @@ var handlers = {
   },
 
   /**
+   * Called to forget the credentials of a SPA.
+   *
+   * @param {String} event.data the name of the SPA.
+   */
+  'talkilla.spa-forget-credentials': function(event) {
+    // XXX: For now we have only one SPA so we don't need to use
+    // event.data.
+    spa.forgetCredentials();
+  },
+
+  /**
    * Called to enable a new SPA.
    *
    * @param {Object} event.data a data structure representation of a
@@ -512,6 +523,7 @@ var handlers = {
   'talkilla.spa-disable': function(event) {
     // XXX: For now, we only support one SPA
     tkWorker.spaDb.drop();
+    tkWorker.closeSession();
   },
 
   'talkilla.initiate-move': function(event) {

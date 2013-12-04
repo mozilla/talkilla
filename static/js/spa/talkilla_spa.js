@@ -16,6 +16,7 @@ var TalkillaSPA = (function() {
     this.port.on("answer", this._onCallAnswer.bind(this));
     this.port.on("hangup", this._onCallHangup.bind(this));
     this.port.on("ice:candidate", this._onIceCandidate.bind(this));
+    this.port.on("forget-credentials", this._onForgetCredentials.bind(this));
 
     this.server.on("connected", this._onServerEvent.bind(this, "connected"));
     this.server.on("unauthorized",
@@ -104,6 +105,11 @@ var TalkillaSPA = (function() {
     _onIceCandidate: function(iceCandidateData) {
       var iceCandidateMsg = new payloads.IceCandidate(iceCandidateData);
       this.server.iceCandidate(iceCandidateMsg);
+    },
+
+    _onForgetCredentials: function() {
+      this.server.disconnect();
+      this.server.signout();
     }
   };
 

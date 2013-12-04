@@ -24,6 +24,8 @@ var HTTP = (function() {
    * @param  {String}   url      Endpoint URL
    * @param  {Object}   data     Request data
    * @param  {Function} callback Callback
+   *
+   * @return {XMLHttpRequest}
    */
   HTTP.prototype.request = function(method, url, data, callback) {
     var xhr = new XMLHttpRequest();
@@ -53,6 +55,7 @@ var HTTP = (function() {
     }
 
     xhr.send(JSON.stringify(data));
+    return xhr;
   };
 
   /**
@@ -60,9 +63,11 @@ var HTTP = (function() {
    * @param  {String}   url      Endpoint URL
    * @param  {Object}   data     Request data
    * @param  {Function} callback Callback
+   *
+   * @return {XMLHttpRequest}
    */
   HTTP.prototype.get = function(url, data, callback) {
-    this.request("GET", url, data, callback);
+    return this.request("GET", url, data, callback);
   };
 
   /**
@@ -70,9 +75,11 @@ var HTTP = (function() {
    * @param  {String}   url      Endpoint URL
    * @param  {Object}   data     Request data
    * @param  {Function} callback Callback
+   *
+   * @return {XMLHttpRequest}
    */
   HTTP.prototype.post = function(url, data, callback) {
-    this.request("POST", url, data, callback);
+    return this.request("POST", url, data, callback);
   };
 
   return HTTP;
