@@ -110,10 +110,10 @@ describe("browserDetection.app", function() {
         expect(browserDetection.supportsStatusPanel(userAgent)).to.equal(true);
       });
 
-    it("should return false when given a user-agent string from Firefox 27",
+    it("should return false when given a user-agent string from Firefox 26",
       function() {
-        userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.8; rv:27.0) " +
-          "Gecko/20100101 Firefox/27.0";
+        userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.8; rv:26.0) " +
+          "Gecko/20100101 Firefox/26.0";
 
         expect(browserDetection.supportsStatusPanel(userAgent)).to.equal(false);
       });
