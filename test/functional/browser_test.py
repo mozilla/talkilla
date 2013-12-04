@@ -72,6 +72,36 @@ class BrowserTest(unittest.TestCase):
             raise AssertionError(u'Message box doesnt have placeholder; %s'
                                  % (err))
 
+    def assertIsTyping(self, driver):
+        driver.switchToChatWindow()
+        css_selector = "#textchat.typing"
+
+        try:
+            self.assertElementHasClass(driver, css_selector, "typing")
+
+        except AssertionError, err:
+            raise AssertionError(u'User is not currently typing a message; %s'
+                                 % (err))
+
+    def assertNotTyping(self, driver):
+        driver.switchToChatWindow()
+        css_selector = "#textchat"
+        driver.waitForElement("#textchat:not(.typing)")
+
+        try:
+            self.assertElementHasNoClass(driver, css_selector, "typing")
+
+        except AssertionError, err:
+            raise AssertionError(u'User is currently typing a message; %s'
+                                 % (err))
+
+    def waitForNewMessageReceived(self, driver):
+        prev = len(driver.find_elements_by_css_selector("#textchat ul > li"))
+        driver.switchToChatWindow()
+        next = prev + 1
+        css_selector = "#textchat li:nth-child(%d)" % next
+        driver.waitForElement(css_selector)
+
     @classmethod
     def assertCallMediaPlaying(cls, driver):
         # the spec defines playing to be not paused
@@ -105,6 +135,26 @@ class BrowserTest(unittest.TestCase):
         if not element_attr == text:
             raise AssertionError(u"%s attribute %s doesnt not equal %s" % (
                 css_selector, attr, text))
+
+    def assertElementHasClass(self, driver, css_selector, class_name,
+                              visible=None):
+        element_class = driver.waitForElement(css_selector, visible=visible
+                                              ).get_attribute('class')
+        element_class_list = element_class.split(' ')
+
+        if not class_name in element_class_list:
+            raise AssertionError(u"%s does not contain class name %s" % (
+                css_selector, class_name))
+
+    def assertElementHasNoClass(self, driver, css_selector, class_name,
+                                visible=None):
+        element_class = driver.waitForElement(css_selector, visible=visible
+                                              ).get_attribute('class')
+        element_class_list = element_class.split(' ')
+
+        if class_name in element_class_list:
+            raise AssertionError(u"%s contains class name %s" % (
+                css_selector, class_name))
 
     def assertElementTextEquals(self, driver, css_selector, text,
                                 visible=None):
