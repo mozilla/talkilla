@@ -120,7 +120,6 @@ describe("SidebarApp", function() {
     });
 
     describe("talkilla.spa-connected", function() {
-
       beforeEach(function() {
         var sidebarApp = new SidebarApp();
         // Skipping events triggered in the constructor
@@ -129,9 +128,18 @@ describe("SidebarApp", function() {
 
       it("should set the user presence", function() {
         sidebarApp.appPort.trigger("talkilla.spa-connected");
+
         expect(sidebarApp.user.get("presence")).to.equal("connected");
       });
 
+      it("should set the SPA capabilities", function() {
+        var capabilities = ["call", "move"];
+
+        sidebarApp.appPort.trigger("talkilla.spa-connected",
+                                   {capabilities: capabilities});
+
+        expect(sidebarApp.spa.get("capabilities")).eql(capabilities);
+      });
     });
 
     describe("talkilla.spa-error", function() {

@@ -15,7 +15,7 @@ var SidebarApp = (function(app, $) {
     this.appStatus = new app.models.AppStatus();
     this.user = new app.models.CurrentUser();
     this.users = new app.models.UserSet();
-    this.spa = new app.models.SPA(); // XXX: set capabilities later
+    this.spa = new app.models.SPA();
 
     this.services = {
       google: new GoogleContacts({
@@ -102,8 +102,10 @@ var SidebarApp = (function(app, $) {
     this.appPort.post("talkilla.spa-enable", talkillaSpec);
   };
 
-  SidebarApp.prototype._onSPAConnected = function() {
+  SidebarApp.prototype._onSPAConnected = function(event) {
     this.user.set({presence: "connected"});
+    if (event && event.capabilities)
+      this.spa.set({capabilities: event.capabilities});
   };
 
   // XXX a lot of the steps that happen after various types of logouts and

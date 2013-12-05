@@ -4,10 +4,12 @@
 var expect = chai.expect;
 
 describe("SPAView", function() {
-  var sandbox;
+  var sandbox, view, spa;
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
+    spa = new app.models.SPA({capabilities: ["call"]});
+    view = new app.views.SPAView({spa: spa});
   });
 
   afterEach(function() {
@@ -22,14 +24,21 @@ describe("SPAView", function() {
     });
   });
 
-  describe("#render", function() {
-    var view, spa;
+  describe("#dial", function() {
+    it("should dial a number", function() {
+      sandbox.stub(spa, "dial");
 
-    beforeEach(function() {
-      spa = new app.models.SPA({capabilities: ["call"]});
-      view = new app.views.SPAView({spa: spa});
+      view.dial({
+        preventDefault: sinon.spy(),
+        currentTarget: {number: {value: "123"}}
+      });
+
+      sinon.assert.calledOnce(spa.dial);
+      sinon.assert.calledWithExactly(spa.dial, "123");
     });
+  });
 
+  describe("#render", function() {
     it("should hide the dialer when the SPA doesn't support it", function() {
       sandbox.stub(view.$el, "addClass");
 

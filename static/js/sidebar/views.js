@@ -71,8 +71,7 @@
     },
 
     dial: function(event) {
-      if (event)
-        event.preventDefault();
+      event.preventDefault();
 
       this.spa.dial(event.currentTarget.number.value);
     },
