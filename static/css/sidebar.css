@@ -17,6 +17,12 @@
   color: #818A8F; /* match the header */
 }
 
+.sidebar #signin {
+  border: none;
+  width: 100%;
+  height: 30px; /* XXX: decide for a standard height for the SPA login iframe */
+}
+
 .sidebar #signin img {
   width: 185px;
   height: 25px;
