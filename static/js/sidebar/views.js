@@ -59,11 +59,22 @@
   app.views.SPAView = Backbone.View.extend({
     el: "#pstn-dialin",
 
+    events: {
+      "submit form": "dial"
+    },
+
     initialize: function(options) {
       if (!options.spa)
         throw new Error("missing parameter: spa");
 
       this.spa = options.spa.on("change:capabilities", this.render, this);
+    },
+
+    dial: function(event) {
+      if (event)
+        event.preventDefault();
+
+      this.spa.dial(event.currentTarget.number.value);
     },
 
     render: function() {

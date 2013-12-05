@@ -20,6 +20,18 @@
     defaults: {capabilities: []},
 
     /**
+     * Triggers a `dial` event with user entered PSTN number.
+     * @param  {String} number User entered PSTN number
+     * @throws {Error}         If SPA doesn't support the `pstn-call` capability
+     */
+    dial: function(number) {
+      if (!this.supports("pstn-call"))
+        throw new Error("SPA doesn't support PSTN calls");
+
+      this.trigger("dial", number);
+    },
+
+    /**
      * Checks if the SPA supports any of the capabilities passed as arguments.
      * @return {Boolean}
      */
