@@ -28,6 +28,15 @@
   height: 25px;
 }
 
+.sidebar #pstn-dialin {
+  padding: 0 10px;
+  text-align: center;
+}
+
+.sidebar #pstn-dialin input {
+  width: 100px;
+}
+
 .sidebar .title {
   margin-top: 0;
   font-size: 20px;
