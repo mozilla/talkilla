@@ -5,11 +5,24 @@
 (function(app, Backbone) {
   "use strict";
 
+  /**
+   * Notification model.
+   */
   app.models.Notification = Backbone.Model.extend({
     defaults: {type:    "default",
                message: "empty message"}
   });
 
+  /**
+   * SPA model.
+   */
+  app.models.SPA = Backbone.Model.extend({
+    defaults: {capabilities: []},
+  });
+
+  /**
+   * User model.
+   */
   app.models.User = Backbone.Model.extend({
     defaults: {nick: undefined,
                avatar: "img/default-avatar.png",
