@@ -205,18 +205,6 @@ describe("Call Controls View", function() {
         sinon.assert.calledWithExactly(call.start,
           {audio: true, video: true});
       });
-
-      it("should upgrade to a video call", function() {
-        sandbox.stub(call, "upgrade");
-        call.media.state.current = "ongoing";
-
-        callControlsView.videoCall(fakeClickEvent);
-
-        sinon.assert.calledOnce(fakeClickEvent.preventDefault);
-        sinon.assert.calledOnce(call.upgrade);
-        sinon.assert.calledWithExactly(call.upgrade,
-          {audio: true, video: true});
-      });
     });
 
     describe("#audioCall", function() {

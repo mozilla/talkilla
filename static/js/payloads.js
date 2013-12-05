@@ -24,7 +24,6 @@ var payloads = (function() {
     this.callid   = data.callid;
     this.peer     = data.peer;
     this.offer    = data.offer;
-    this.upgrade  = data.upgrade  || false;
   }
 
   Offer.prototype = {
@@ -32,8 +31,7 @@ var payloads = (function() {
       return {
         callid: this.callid,
         peer: this.peer,
-        offer: this.offer,
-        upgrade: this.upgrade
+        offer: this.offer
       };
     }
   };
