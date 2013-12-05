@@ -4,12 +4,13 @@
 var expect = chai.expect;
 
 describe("SPAView", function() {
-  var sandbox, view, spa;
+  var sandbox, view, user, spa;
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
     spa = new app.models.SPA({capabilities: ["call"]});
-    view = new app.views.SPAView({spa: spa});
+    user = new app.models.User({nick: "boriss", presence: "connected"});
+    view = new app.views.SPAView({user: user, spa: spa});
   });
 
   afterEach(function() {
@@ -17,9 +18,15 @@ describe("SPAView", function() {
   });
 
   describe("#initialize", function() {
-    it("should require an spa parameter", function() {
+    it("should require a user parameter", function() {
       expect(function() {
         new app.views.SPAView({});
+      }).to.Throw(/user/);
+    });
+
+    it("should require a spa parameter", function() {
+      expect(function() {
+        new app.views.SPAView({user: {}});
       }).to.Throw(/spa/);
     });
   });
@@ -39,20 +46,29 @@ describe("SPAView", function() {
   });
 
   describe("#render", function() {
-    it("should hide the dialer when the SPA doesn't support it", function() {
-      sandbox.stub(view.$el, "addClass");
+    beforeEach(function() {
+      sandbox.stub(view, "display");
+    });
 
+    it("should hide the dialer when the user is not signed in", function() {
+      user.set("presence", "disconnected");
+
+      sinon.assert.calledOnce(view.display);
+      sinon.assert.calledWithExactly(view.display, false);
+    });
+
+    it("should hide the dialer when the SPA doesn't support it", function() {
       spa.set("capabilities", ["move"]);
 
-      sinon.assert.calledOnce(view.$el.addClass);
+      sinon.assert.calledOnce(view.display);
+      sinon.assert.calledWithExactly(view.display, false);
     });
 
     it("should show the dialer when the SPA support it", function() {
-      sandbox.stub(view.$el, "removeClass");
-
       spa.set("capabilities", ["move", "pstn-call"]);
 
-      sinon.assert.calledOnce(view.$el.removeClass);
+      sinon.assert.calledOnce(view.display);
+      sinon.assert.calledWithExactly(view.display, true);
     });
   });
 });

@@ -41,7 +41,10 @@
         service: options.services && options.services.google
       });
 
-      this.spa = new app.views.SPAView({spa: options.spa});
+      this.spa = new app.views.SPAView({
+        user: options.user,
+        spa: options.spa
+      });
     },
 
     render: function() {
@@ -64,10 +67,13 @@
     },
 
     initialize: function(options) {
+      if (!options.user)
+        throw new Error("missing parameter: user");
       if (!options.spa)
         throw new Error("missing parameter: spa");
 
       this.spa = options.spa.on("change:capabilities", this.render, this);
+      this.user = options.user.on('signin signout', this.render, this);
     },
 
     dial: function(event) {
@@ -76,11 +82,15 @@
       this.spa.dial(event.currentTarget.number.value);
     },
 
-    render: function() {
-      if (this.spa.supports("pstn-call"))
+    display: function(show) {
+      if (show)
         this.$el.removeClass("hide");
       else
         this.$el.addClass("hide");
+    },
+
+    render: function() {
+      this.display(this.user.isLoggedIn() && this.spa.supports("pstn-call"));
     },
   });
 
