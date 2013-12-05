@@ -16,7 +16,12 @@
       }
   });
 
-  app.models.SPA = Backbone.Model.extend({});
+  /**
+   * SPA model.
+   */
+  app.models.SPA = Backbone.Model.extend({
+    defaults: {capabilities: []}
+  });
 
   /**
    * This models the currently signed-in user.

@@ -41,12 +41,7 @@
         service: options.services && options.services.google
       });
 
-      this.spa = options.spa;
-      this.spa.on("change:capabilities", function (capabilities) {
-        if (_.contains(capabilities, "pstn-call")){
-          this.$("#pstn-dialin").show();
-        }
-      });
+      this.spa = new app.views.SPAView({spa: options.spa});
     },
 
     render: function() {
@@ -56,6 +51,27 @@
       this.spa.render();
       return this;
     }
+  });
+
+  /**
+   * SPA view.
+   */
+  app.views.SPAView = Backbone.View.extend({
+    el: "#pstn-dialin",
+
+    initialize: function(options) {
+      if (!options.spa)
+        throw new Error("missing parameter: spa");
+
+      this.spa = options.spa.on("change:capabilities", this.render, this);
+    },
+
+    render: function() {
+      if (_.contains(this.spa.get("capabilities"), "pstn-call"))
+        this.$el.removeClass("hide");
+      else
+        this.$el.addClass("hide");
+    },
   });
 
   /**
