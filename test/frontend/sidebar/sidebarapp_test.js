@@ -238,5 +238,17 @@ describe("SidebarApp", function() {
 
     });
 
+    describe("SPA `dial` event", function() {
+      it("should open a conversation passing dialed number", function() {
+        sidebarApp.spa.trigger("dial", "123");
+
+        sinon.assert.called(sidebarApp.appPort.post,
+                            "talkilla.conversation-open");
+        sinon.assert.calledWithExactly(sidebarApp.appPort.post,
+                                       "talkilla.conversation-open",
+                                       {peer: "123"});
+      });
+    });
+
   });
 });
