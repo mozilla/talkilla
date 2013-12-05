@@ -67,7 +67,7 @@
     },
 
     render: function() {
-      if (_.contains(this.spa.get("capabilities"), "pstn-call"))
+      if (this.spa.supports("pstn-call"))
         this.$el.removeClass("hide");
       else
         this.$el.addClass("hide");

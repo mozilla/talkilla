@@ -18,6 +18,16 @@
    */
   app.models.SPA = Backbone.Model.extend({
     defaults: {capabilities: []},
+
+    /**
+     * Checks if the SPA supports any of the capabilities passed as arguments.
+     * @return {Boolean}
+     */
+    supports: function() {
+      if (arguments.length === 0)
+        throw new Error("At least one capability is expected");
+      return _.intersection(arguments, this.get("capabilities")).length > 0;
+    }
   });
 
   /**
