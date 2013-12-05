@@ -29,12 +29,18 @@
 }
 
 .sidebar #pstn-dialin {
-  padding: 10px;
+  padding: 10px 0 0 0;
   text-align: center;
 }
 
+.sidebar #pstn-dialin form {
+  margin-bottom: 3px;
+}
+
 .sidebar #pstn-dialin input {
-  width: 100px;
+  width: 130px;
+  font-size: 13px;
+  padding-top: 5px;
 }
 
 .sidebar .title {
