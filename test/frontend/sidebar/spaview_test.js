@@ -45,6 +45,29 @@ describe("SPAView", function() {
     });
   });
 
+  describe("#display", function() {
+    beforeEach(function() {
+      view.$el = {
+        addClass: sinon.spy(),
+        removeClass: sinon.spy()
+      };
+    });
+
+    it("should show el when arg is true", function() {
+      view.display(true);
+
+      sinon.assert.calledOnce(view.$el.removeClass);
+      sinon.assert.calledWithExactly(view.$el.removeClass, "hide");
+    });
+
+    it("should hide el when arg is false", function() {
+      view.display(false);
+
+      sinon.assert.calledOnce(view.$el.addClass);
+      sinon.assert.calledWithExactly(view.$el.addClass, "hide");
+    });
+  });
+
   describe("#render", function() {
     beforeEach(function() {
       sandbox.stub(view, "display");
