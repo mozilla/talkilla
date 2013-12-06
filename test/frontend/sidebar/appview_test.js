@@ -14,6 +14,7 @@ describe("AppView", function() {
       sandbox.stub(app.views, "LoginView");
       sandbox.stub(app.views, "UsersView");
       sandbox.stub(app.views, "ImportContactsView");
+      sandbox.stub(app.views, "SPAView");
     });
 
     afterEach(function() {
@@ -38,26 +39,41 @@ describe("AppView", function() {
           new app.views.AppView({user: {}, appStatus: []});
         }).to.Throw(/users/);
       });
+
+      it("should require a spa parameter", function() {
+        expect(function() {
+          new app.views.AppView({user: {}, users: {}, appStatus: []});
+        }).to.Throw(/spa/);
+      });
     });
 
     describe("constructed properties", function() {
       var appView;
 
       beforeEach(function() {
-        appView = new app.views.AppView({user: {}, users: [], appStatus: []});
+        appView = new app.views.AppView({
+          user: {},
+          users: [],
+          appStatus: [],
+          spa: {}
+        });
       });
 
-      it("should add initialize a notifications property", function() {
+      it("should set a notifications property", function() {
         expect(appView.notifications).to.be.an.instanceOf(
           app.views.NotificationsView);
       });
 
-      it("should add initialize a login property", function() {
+      it("should set a login property", function() {
         expect(appView.login).to.be.an.instanceOf(app.views.LoginView);
       });
 
-      it("should add initialize a users property", function() {
+      it("should set a users property", function() {
         expect(appView.users).to.be.an.instanceOf(app.views.UsersView);
+      });
+
+      it("should set an spa property", function() {
+        expect(appView.spa).to.be.an.instanceOf(app.views.SPAView);
       });
     });
   });

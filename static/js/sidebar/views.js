@@ -19,6 +19,8 @@
         throw new Error("missing parameter: users");
       if (!options.appStatus)
         throw new Error("missing parameter: appStatus");
+      if (!options.spa)
+        throw new Error("missing parameter: spa");
 
       this.notifications = new app.views.NotificationsView({
         user: options.user
@@ -38,14 +40,58 @@
         user: options.user,
         service: options.services && options.services.google
       });
+
+      this.spa = new app.views.SPAView({
+        user: options.user,
+        spa: options.spa
+      });
     },
 
     render: function() {
       this.login.render();
       this.users.render();
       this.importButton.render();
+      this.spa.render();
       return this;
     }
+  });
+
+  /**
+   * SPA view.
+   */
+  app.views.SPAView = Backbone.View.extend({
+    el: "#pstn-dialin",
+
+    events: {
+      "submit form": "dial"
+    },
+
+    initialize: function(options) {
+      if (!options.user)
+        throw new Error("missing parameter: user");
+      if (!options.spa)
+        throw new Error("missing parameter: spa");
+
+      this.spa = options.spa.on("change:capabilities", this.render, this);
+      this.user = options.user.on('signin signout', this.render, this);
+    },
+
+    dial: function(event) {
+      event.preventDefault();
+
+      this.spa.dial(event.currentTarget.number.value);
+    },
+
+    display: function(show) {
+      if (show)
+        this.$el.removeClass("hide");
+      else
+        this.$el.addClass("hide");
+    },
+
+    render: function() {
+      this.display(this.user.isLoggedIn() && this.spa.supports("pstn-call"));
+    },
   });
 
   /**
