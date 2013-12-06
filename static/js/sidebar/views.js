@@ -190,6 +190,8 @@
       if (!options.user)
         throw new Error("missing parameter: user");
       this.user = options.user;
+      if (!options.collection)
+        throw new Error("missing parameter: collection");
 
       this.collection.on('reset change', this.render, this);
     },
