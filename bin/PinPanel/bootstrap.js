@@ -19,6 +19,7 @@
  *
  * Contributor(s):
  *   Edward Lee <edilee@mozilla.com>
+ *   Dan Mosedale <dmose@mozilla.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -200,10 +201,6 @@ function pinPanel(window) {
     ppDebug("socPanel.noautohide = " + socPanel.getAttribute("noautohide"));
   }, window);
 }
-
-// XXX need to attach this listener to button only after popup shown
-//
-
 
 /**
  * Handle the add-on being activated on install/enable
