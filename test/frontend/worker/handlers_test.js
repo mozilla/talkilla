@@ -317,4 +317,34 @@ describe('handlers', function() {
       });
   });
 
+  describe("talkilla.spa-forget-credentials", function() {
+
+    it("should make the spa forget credentials", function() {
+      sandbox.stub(spa, "forgetCredentials");
+      handlers['talkilla.spa-forget-credentials']({
+        topic: "talkilla.spa-forget-credentials",
+        data: "TalkillaSPA" // XXX: part of the interface but not used
+                            // for now.
+      });
+
+      sinon.assert.calledOnce(spa.forgetCredentials);
+    });
+
+  });
+
+  describe("talkilla.spa-disable", function() {
+
+    it("should drop the SPA database", function() {
+      sandbox.stub(tkWorker.spaDb, "drop");
+      handlers['talkilla.spa-disable']({
+        topic: "talkilla.spa-disable",
+        data: "TalkillaSPA" // XXX: part of the interface but not used
+                            // for now.
+      });
+
+      sinon.assert.calledOnce(tkWorker.spaDb.drop);
+    });
+
+  });
+
 });

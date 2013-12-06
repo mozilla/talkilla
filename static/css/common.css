@@ -5,6 +5,11 @@
   display: none;
 }
 
+body.talkilla-spa-setup {
+  margin: 0;
+  padding: 0;
+}
+
 /**
  * Common responsive rules
  */

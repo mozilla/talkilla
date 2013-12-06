@@ -14,9 +14,6 @@
     <h1 class="title">Welcome to Talkilla</h1>
 
     <p>
-      <a href="#" id="signin" class="hide">
-        <img src="/img/persona_sign_in_blue.png" alt="Sign in with Persona">
-      </a>
     </p>
 
     <form action="/signout" id="signout" method="post" class="hide">
@@ -36,6 +33,16 @@
   <!-- User notifications -->
   <div id="messages"></div>
   <!-- /User notifications -->
+
+  <!-- SPA view -->
+  <div id="pstn-dialin" class="hide">
+    <form class="form-inline" role="form">
+      <input type="tel" class="form-control input-small" name="number" title="Phone number"
+             placeholder="Enter a number to dial" pattern="^[+0-9]{9,15}$">
+      <button type="submit" class="btn btn-info">Call</button>
+    </form>
+  </div>
+  <!-- /SPA view -->
 
   <!-- Users view -->
   <nav id="users" class="users">
@@ -71,12 +78,8 @@
   <script>
     $(function() {
       var config = loadConfig();
-      $.getScript(config.PERSONA_INCLUDE_URL).done(function() {
-        $.getScript("vendor/persona-goldilocks-api-0.0.1.js").done(function() {
-          app.start(config);
-          window.sidebarApp = new SidebarApp();
-        });
-     });
+      app.start(config);
+      window.sidebarApp = new SidebarApp();
     });
   </script>
 </body>

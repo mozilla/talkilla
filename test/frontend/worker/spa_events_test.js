@@ -24,7 +24,10 @@ describe("SPA events", function() {
   });
 
   describe("`connected` event", function() {
-    var data = {addresses: [{type: "email", value: "foo"}]};
+    var data = {
+      addresses: [{type: "email", value: "foo"}],
+      capabilities: ["call", "move"]
+    };
 
     it("should set the user data as connected", function() {
       spa.trigger("connected", data);
@@ -39,7 +42,8 @@ describe("SPA events", function() {
 
       sinon.assert.calledOnce(tkWorker.ports.broadcastEvent);
       sinon.assert.calledWithExactly(tkWorker.ports.broadcastEvent,
-                                     "talkilla.spa-connected");
+                                     "talkilla.spa-connected",
+                                     {capabilities: data.capabilities});
     });
 
     it("should load the contacts database", function() {

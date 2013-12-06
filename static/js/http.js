@@ -1,5 +1,18 @@
 /* jshint unused:false */
 
+/**
+ * A general wrapper around XMLHttpRequest. Uses async requests.
+ * When request callbacks are involked the parameters are:
+ *
+ * @param {Number} statusCode The status code of the request.
+ *                            If this parameter is null, then the request
+ *                            has succeeded.
+ *                            Note: in some cases XMLHttpRequest can return 0 in
+ *                            an error case (e.g. offline or CORS issue), so
+ *                            that needs to be explicitly handled.
+ * @param {String} statusText The response text if the request has succeed,
+ *                            or the error text if a request has failed.
+ */
 var HTTP = (function() {
   "use strict";
 
@@ -11,6 +24,8 @@ var HTTP = (function() {
    * @param  {String}   url      Endpoint URL
    * @param  {Object}   data     Request data
    * @param  {Function} callback Callback
+   *
+   * @return {XMLHttpRequest}
    */
   HTTP.prototype.request = function(method, url, data, callback) {
     var xhr = new XMLHttpRequest();
@@ -21,7 +36,8 @@ var HTTP = (function() {
       // ignore it.
       if (!event)
         return;
-      if (xhr.readyState === 4 && xhr.status === 200)
+      if (xhr.readyState === 4 &&
+          (xhr.status === 200 || xhr.status === 204))
         return callback(null, xhr.responseText);
       callback(xhr.status, xhr.responseText);
     };
@@ -39,6 +55,7 @@ var HTTP = (function() {
     }
 
     xhr.send(JSON.stringify(data));
+    return xhr;
   };
 
   /**
@@ -46,9 +63,11 @@ var HTTP = (function() {
    * @param  {String}   url      Endpoint URL
    * @param  {Object}   data     Request data
    * @param  {Function} callback Callback
+   *
+   * @return {XMLHttpRequest}
    */
   HTTP.prototype.get = function(url, data, callback) {
-    this.request("GET", url, data, callback);
+    return this.request("GET", url, data, callback);
   };
 
   /**
@@ -56,9 +75,11 @@ var HTTP = (function() {
    * @param  {String}   url      Endpoint URL
    * @param  {Object}   data     Request data
    * @param  {Function} callback Callback
+   *
+   * @return {XMLHttpRequest}
    */
   HTTP.prototype.post = function(url, data, callback) {
-    this.request("POST", url, data, callback);
+    return this.request("POST", url, data, callback);
   };
 
   return HTTP;

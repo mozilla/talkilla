@@ -17,7 +17,7 @@ describe("LoginView", function() {
     sandbox = sinon.sandbox.create();
     $('body').append([
       '<div id="login">',
-      '  <form id="signin" class="hide"><input name="nick"></form>',
+      '  <p></p>',
       '  <form id="signout" class="hide"></form>',
       '</div>',
     ].join(''));
@@ -98,7 +98,7 @@ describe("LoginView", function() {
       function() {
         loginView.render();
 
-        expect(loginView.$('#signin').is(':visible')).to.equal(false);
+        expect(loginView.$('#signin').length).to.equal(0);
         expect(loginView.$('#signout').is(':visible')).to.equal(false);
       });
 
@@ -107,6 +107,7 @@ describe("LoginView", function() {
         appStatus.set("workerInitialized", true);
         loginView.render();
 
+        expect(loginView.$('#signin').length).to.equal(1);
         expect(loginView.$('#signin').is(':visible')).to.equal(true);
         expect(loginView.$('#signout').is(':visible')).to.equal(false);
       });
@@ -139,18 +140,6 @@ describe("LoginView", function() {
 
     afterEach(function() {
       window.sidebarApp = undefined;
-    });
-
-    describe("#signin", function() {
-
-      it("should call sign in on the user model", function() {
-        sandbox.stub(loginView.user, "signin");
-
-        loginView.signin(clickEvent);
-
-        sinon.assert.calledOnce(loginView.user.signin);
-      });
-
     });
 
     describe("#signout", function() {

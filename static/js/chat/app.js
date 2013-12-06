@@ -120,7 +120,7 @@ var ChatApp = (function(app, $, Backbone, _) {
 
   /**
    * Listens to the `talkilla.conversation-open` event.
-   * @param {Object} context Conversation context object.
+   * @param {Object} msg Conversation msg object.
    */
   ChatApp.prototype._onConversationOpen = function(msg) {
     this.call.set({capabilities: msg.capabilities});

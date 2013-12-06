@@ -578,7 +578,8 @@
     el: '#textchat', // XXX: uncouple the selector from this view
 
     events: {
-      'submit form': 'sendMessage'
+      'submit form': 'sendMessage',
+      'keypress form input[name="message"]' : 'sendTyping'
     },
 
     initialize: function(options) {
@@ -594,11 +595,15 @@
       this.call.on('state:to:ongoing state:to:timeout', this.show, this);
 
       this.collection.on('add', this.render, this);
+      this.collection.on('chat:type-start', this._showTypingNotification, this);
+      this.collection.on('chat:type-stop', this._clearTypingNotification, this);
+
 
       if (this._firstMessage()) {
         var $input = this.$('form input[name="message"]');
         $input.attr('placeholder', 'Type something to start chatting');
       }
+      this.$('form input[name="message"]').focus();
     },
 
     hide: function() {
@@ -630,6 +635,10 @@
       }));
     },
 
+    sendTyping : _.debounce(function() {
+      this.collection.notifyTyping();
+    }, 1000, true),
+
     render: function() {
       var $ul = this.$('ul').empty();
 
@@ -654,6 +663,15 @@
       var notFirstMessage = localStorage.getItem('notFirstMessage');
       notFirstMessage = notFirstMessage ? JSON.parse(notFirstMessage) : false;
       return !notFirstMessage;
+    },
+
+    _showTypingNotification: function(message) {
+      this.$el.addClass('typing');
+      this.$('ul').attr('data-nick', message.nick);
+    },
+
+    _clearTypingNotification: function() {
+      this.$el.removeClass('typing');
     }
   });
 })(app, Backbone, _, jQuery);

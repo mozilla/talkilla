@@ -50,8 +50,6 @@
                                      'timeout'], to: 'pending'},
           {name: 'establish', from: 'pending',   to: 'ongoing'},
           {name: 'timeout',   from: 'pending',   to: 'timeout'},
-          {name: 'upgrade',   from: ['ready',
-                                     'ongoing'], to: 'pending'},
 
           // Incoming call scenario
           {name: 'incoming',  from: ['ready',
@@ -92,9 +90,6 @@
       this.callid = app.utils.id();
       this.set('currentConstraints', constraints);
 
-      if (this.media.state.current === 'ongoing')
-        return this.upgrade(constraints);
-
       this._startCall(this.get('currentConstraints'));
     },
 
@@ -117,7 +112,10 @@
         }));
       }, this);
 
-      this.media.initiate(constraints);
+      if (this.media.state.current === 'ongoing')
+        this.media.upgrade(constraints);
+      else
+        this.media.initiate(constraints);
     },
 
     /**
@@ -284,29 +282,6 @@
       }
 
       this.state.resume();
-    },
-
-    /**
-     * Upgrades ongoing call with new media constraints.
-     *
-     * @param {Object} constraints object containing:
-     *
-     * - video: set to true to enable video
-     * - audio: set to true to enable audio
-     */
-    upgrade: function(constraints) {
-      this.state.upgrade();
-
-      this.media.once("offer-ready", function(offer) {
-        this.trigger("send-offer", new app.payloads.Offer({
-          peer: this.peer.get("nick"),
-          offer: offer,
-          upgrade: true,
-          callid: this.callid
-        }));
-      }, this);
-
-      this.media.upgrade(constraints);
     },
 
     /**
@@ -509,6 +484,7 @@
     media: undefined,
     user: undefined,
     peer: undefined,
+    typingTimeout: undefined,
 
     initialize: function(attributes, options) {
       if (!options || !options.media)
@@ -522,6 +498,8 @@
       if (!options || !options.peer)
         throw new Error('TextChat model needs a `peer` option');
       this.peer = options.peer;
+
+      this.typeTimeout = options && options.typeTimeout || 5000;
 
       this.media.on('dc:message-in', this._onDcMessageIn, this);
       this.on('add', this._onTextChatEntryCreated, this);
@@ -575,12 +553,29 @@
         this.initiate({video: false, audio: false});
     },
 
+    notifyTyping: function() {
+      if (!this.length || this.media.state.current !== "ongoing")
+        return;
+      this.media.send({
+        type: "chat:typing",
+        message: { nick: this.user.get("nick") }
+      });
+    },
+
     _onDcMessageIn: function(event) {
       var transfer;
 
       switch (event.type) {
       case "chat:message":
         this.add(new app.models.TextChatEntry(event.message));
+        this.trigger("chat:type-stop");
+        break;
+      case "chat:typing":
+        this.trigger("chat:type-start", event.message);
+        if (this.typingTimeout)
+          clearTimeout(this.typingTimeout);
+        this.typingTimeout = setTimeout(this.trigger.bind(this, "chat:type-stop"
+                                                          ), this.typeTimeout);
         break;
       case "file:new":
         var nick = this.user.get("nick");

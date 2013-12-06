@@ -17,8 +17,6 @@ describe("SidebarApp", function() {
         return {port: {}};
       }
     };
-    // BrowserId "mock"
-    window.navigator.id = {watch: sinon.spy(), logout: sinon.spy()};
 
     sandbox.stub(app.views, "AppView");
     sandbox.stub(AppPort.prototype, "post");
@@ -122,7 +120,6 @@ describe("SidebarApp", function() {
     });
 
     describe("talkilla.spa-connected", function() {
-
       beforeEach(function() {
         var sidebarApp = new SidebarApp();
         // Skipping events triggered in the constructor
@@ -131,9 +128,18 @@ describe("SidebarApp", function() {
 
       it("should set the user presence", function() {
         sidebarApp.appPort.trigger("talkilla.spa-connected");
+
         expect(sidebarApp.user.get("presence")).to.equal("connected");
       });
 
+      it("should set the SPA capabilities", function() {
+        var capabilities = ["call", "move"];
+
+        sidebarApp.appPort.trigger("talkilla.spa-connected",
+                                   {capabilities: capabilities});
+
+        expect(sidebarApp.spa.get("capabilities")).eql(capabilities);
+      });
     });
 
     describe("talkilla.spa-error", function() {
@@ -158,84 +164,34 @@ describe("SidebarApp", function() {
 
     });
 
-    describe("signin-requested", function() {
-
-      beforeEach(function() {
-        sidebarApp.http.post.restore();
-      });
-
-      it("should ask the worker to enable the spa", function() {
-        var spec = new app.payloads.SPASpec({
-          name: "TalkillaSPA",
-          src: "/js/spa/talkilla_worker.js",
-          credentials: {email: "foo"}
-        });
-        sandbox.stub(sidebarApp.http, "post", function(path, data, callback) {
-          expect(path).to.equal("/signin");
-          callback(null, JSON.stringify({nick: "foo"}));
-        });
-        sidebarApp.appPort.post.reset();
-
-        sidebarApp.user.trigger("signin-requested", "fake assertion");
-
-        sinon.assert.calledOnce(sidebarApp.appPort.post);
-        sinon.assert.calledWithExactly(
-          sidebarApp.appPort.post, "talkilla.spa-enable", spec);
-      });
-
-      it("should logout the user if the signin failed", function() {
-        sandbox.stub(sidebarApp.http, "post", function(path, data, callback) {
-          expect(path).to.equal("/signin");
-          callback("error", "");
-        });
-
-        sidebarApp.user.trigger("signin-requested", "fake assertion");
-
-        sinon.assert.calledOnce(navigator.id.logout);
-      });
-
-      it("should display an error if the signin failed", function() {
-        sandbox.stub(sidebarApp.http, "post", function(path, data, callback) {
-          expect(path).to.equal("/signin");
-          callback("fake error", "");
-        });
-
-        sidebarApp.user.trigger("signin-requested", "fake assertion");
-
-        sinon.assert.calledOnce(app.utils.notifyUI);
-        sinon.assert.calledWith(app.utils.notifyUI, sinon.match("fake error"));
-      });
-
-    });
-
     describe("signout-requested", function() {
 
       beforeEach(function() {
-        sidebarApp.http.post.restore();
+        sidebarApp.appPort.post.reset();
       });
 
       it("should reset users' state", function() {
-        sandbox.stub(sidebarApp.http, "post", function(path, data, callback) {
-          expect(path).to.equal("/signout");
-          callback(null, "");
-        });
-
         sidebarApp.user.trigger("signout-requested");
 
         expect(sidebarApp.user.nick).to.equal(undefined);
         expect(sidebarApp.users.length).to.equal(0);
       });
 
-      it("should logout the user even if the request failed", function() {
-        sandbox.stub(sidebarApp.http, "post", function(path, data, callback) {
-          expect(path).to.equal("/signout");
-          callback("error", "");
-        });
-
+      it("should ask the SPA to forget credentials", function() {
         sidebarApp.user.trigger("signout-requested");
 
-        expect(sidebarApp.user.nick).to.equal(undefined);
-        expect(sidebarApp.users.length).to.equal(0);
+        sinon.assert.calledTwice(sidebarApp.appPort.post);
+        sinon.assert.calledWithExactly(sidebarApp.appPort.post,
+                                       "talkilla.spa-forget-credentials",
+                                       "TalkillaSPA");
+      });
+
+      it("should disable the SPA", function() {
+        sidebarApp.user.trigger("signout-requested");
+
+        sinon.assert.calledTwice(sidebarApp.appPort.post);
+        sinon.assert.calledWithExactly(
+          sidebarApp.appPort.post, "talkilla.spa-disable", "TalkillaSPA");
       });
 
     });
@@ -288,6 +244,18 @@ describe("SidebarApp", function() {
         expect(sidebarApp.user.get("nick")).to.equal("foo");
       });
 
+    });
+
+    describe("SPA `dial` event", function() {
+      it("should open a conversation passing dialed number", function() {
+        sidebarApp.spa.trigger("dial", "123");
+
+        sinon.assert.called(sidebarApp.appPort.post,
+                            "talkilla.conversation-open");
+        sinon.assert.calledWithExactly(sidebarApp.appPort.post,
+                                       "talkilla.conversation-open",
+                                       {peer: "123"});
+      });
     });
 
   });

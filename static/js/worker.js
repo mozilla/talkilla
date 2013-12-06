@@ -33,11 +33,6 @@ var tkWorker;
  * @param {String} peer: the Peer for the conversation
  * @param {payloads.Offer} offer: Optional, the offer message for an
  *                                incoming conversation
- *
- * context properties:
- *
- * - {String} peer: The id of the peer this conversation window is for.
- * - {Object} offer: optional data for incoming calls.
  */
 function Conversation(spa, peer, offer) {
   this.peer = peer;
@@ -303,7 +298,8 @@ function _setupSPA(spa) {
     // but we don't have enough info for the worker for that yet
     tkWorker.loadContacts();
 
-    tkWorker.ports.broadcastEvent("talkilla.spa-connected");
+    tkWorker.ports.broadcastEvent("talkilla.spa-connected",
+      {"capabilities": data.capabilities});
   });
 
   spa.on("message", function(label, data) {
@@ -446,7 +442,8 @@ var handlers = {
     this.postEvent('talkilla.worker-ready');
     if (spa) {
       tkWorker.user.send();
-      this.postEvent("talkilla.spa-connected");
+      this.postEvent("talkilla.spa-connected",
+                     {capabilities: spa.capabilities});
       this.postEvent('talkilla.users', tkWorker.users.toArray());
     }
   },
@@ -494,6 +491,17 @@ var handlers = {
   },
 
   /**
+   * Called to forget the credentials of a SPA.
+   *
+   * @param {String} event.data the name of the SPA.
+   */
+  'talkilla.spa-forget-credentials': function(event) {
+    // XXX: For now we have only one SPA so we don't need to use
+    // event.data.
+    spa.forgetCredentials();
+  },
+
+  /**
    * Called to enable a new SPA.
    *
    * @param {Object} event.data a data structure representation of a
@@ -517,6 +525,7 @@ var handlers = {
   'talkilla.spa-disable': function(event) {
     // XXX: For now, we only support one SPA
     tkWorker.spaDb.drop();
+    tkWorker.closeSession();
   },
 
   'talkilla.initiate-move': function(event) {
