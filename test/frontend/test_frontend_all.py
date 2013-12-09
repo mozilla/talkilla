@@ -40,6 +40,8 @@ class FrontEndSuite(unittest.TestCase):
         self.drvr.get(url)
         self.drvr.find_element_by_id('complete')
         self.check_coverage()
+        # import time
+        # time.sleep(1000)
         failNode = self.drvr.find_element_by_css_selector('.failures > em')
         if failNode.text == "0":
             return
