@@ -18,6 +18,7 @@
     },
     timer: undefined,
     media: undefined,
+    transport: undefined,
     callid: undefined,
 
     /**
@@ -523,13 +524,8 @@
         throw new Error('TextChat model needs a `peer` option');
       this.peer = options.peer;
 
-      this.media.on('dc:message-in', this._onDcMessageIn, this);
       this.on('add', this._onTextChatEntryCreated, this);
       this.on('add', this._onFileTransferCreated, this);
-
-      this.media.on('dc:close', function() {
-        this.terminate().reset();
-      });
     },
 
     initiate: function(constraints) {
@@ -541,6 +537,11 @@
       }, this);
 
       this.media.initiate(constraints);
+      this.transport = this.media.createDataChannel();
+      this.transport.on('message', this._onMessage, this);
+      this.transport.on('close', function() {
+        this.terminate().reset();
+      }.bind(this));
     },
 
     answer: function(offer) {
@@ -565,9 +566,9 @@
      */
     send: function(entry) {
       if (this.media.state.current === "ongoing")
-        return this.media.send(entry);
+        return this.transport.send(entry);
 
-      this.media.once("dc:ready", function() {
+      this.transport.once("ready", function() {
         this.send(entry);
       });
 
@@ -575,7 +576,7 @@
         this.initiate({video: false, audio: false});
     },
 
-    _onDcMessageIn: function(event) {
+    _onMessage: function(event) {
       var transfer;
 
       switch (event.type) {
