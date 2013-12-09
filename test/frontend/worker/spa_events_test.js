@@ -69,8 +69,8 @@ describe("SPA events", function() {
 
       expect(tkWorker.users.all()).to.deep.equal({
         jb: {presence: "disconnected"},
-        james: {presence: "connected"},
-        harvey: {presence: "connected"}
+        james: {username: "james", presence: "connected"},
+        harvey: {username: "harvey", presence: "connected"}
       });
     });
 

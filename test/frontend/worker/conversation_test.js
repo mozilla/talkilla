@@ -25,7 +25,7 @@ describe("Conversation", function() {
     it("should store the peer", function() {
       currentConversation = new Conversation(spa, "florian");
 
-      expect(currentConversation.peer).to.deep.equal("florian");
+      expect(currentConversation.peer).to.deep.equal({username: "florian"});
     });
 
     it("should store the offer", function() {
@@ -61,7 +61,7 @@ describe("Conversation", function() {
       };
       tkWorker.user.name = "romain";
       peer = "florian";
-      tkWorker.users.set("florian", { presence: "connected" });
+      tkWorker.users.set("florian", {username: peer, presence: "connected" });
     });
 
     afterEach(function() {
@@ -88,7 +88,7 @@ describe("Conversation", function() {
         sinon.assert.calledWith(port.postEvent,
           "talkilla.conversation-open", {
           capabilities: [],
-          peer: peer,
+          peer: {username: peer, presence: "connected"},
           peerPresence: "connected",
           user: tkWorker.user.name
         });
@@ -105,7 +105,7 @@ describe("Conversation", function() {
         sinon.assert.calledWith(port.postEvent,
           "talkilla.conversation-incoming", {
           capabilities: [],
-          peer: peer,
+          peer: {username: peer, presence: "connected"},
           peerPresence: "connected",
           offer: offer,
           user: tkWorker.user.name
@@ -165,7 +165,7 @@ describe("Conversation", function() {
       sinon.assert.calledWithMatch(port.postEvent,
         "talkilla.conversation-open", {
         capabilities: [],
-        peer: peer,
+        peer: {username: peer, presence: "disconnected"},
         peerPresence: "disconnected",
         user: tkWorker.user.name
       });
@@ -211,11 +211,11 @@ describe("Conversation", function() {
       };
       peer = "florian";
       offer = {
-        peer: peer,
+        peer: {username: peer},
         offer: {sdp: "fake"}
       };
 
-      tkWorker.users.set(peer, { presence: "connected" });
+      tkWorker.users.set(peer, {username: peer, presence: "connected" });
 
       currentConversation = new Conversation(spa, peer);
       currentConversation.windowOpened(port);
@@ -250,7 +250,7 @@ describe("Conversation", function() {
         sinon.assert.calledWith(port.postEvent,
           "talkilla.conversation-incoming", {
           capabilities: [],
-          peer: peer,
+          peer: {username: peer, presence:"connected"},
           peerPresence: "connected",
           offer: offer,
           user: tkWorker.user.name
@@ -266,7 +266,7 @@ describe("Conversation", function() {
       sinon.assert.calledWithMatch(port.postEvent,
           "talkilla.conversation-incoming", {
           capabilities: [],
-          peer: peer,
+          peer: {username: peer, presence:"disconnected"},
           peerPresence: "disconnected",
           offer: offer,
           user: tkWorker.user.name
@@ -282,7 +282,7 @@ describe("Conversation", function() {
       expect(currentConversation.messageQueue[0].data)
         .to.deep.equal({
           capabilities: [],
-          peer: peer,
+          peer: {username: peer, presence:"connected"},
           peerPresence: "connected",
           offer: offer,
           user: tkWorker.user.name

@@ -31,14 +31,22 @@ describe("GoogleContacts", function() {
           address: "foo@baz.com",
           "rel": "http://schemas.google.com/g/2005#other"
         }],
-        "gd$fullName": "Foo Foo"
+        "gd$name": {
+          "gd$fullName": {
+            "$t": "Foo Foo"
+          }
+        }
       }, {
         "gd$email": [{
           address: "bar@bar.com",
           primary: "true",
           rel: "http://schemas.google.com/g/2005#other"
         }],
-        "gd$fullName": "Bar Bar"
+        "gd$name": {
+          "gd$fullName": {
+            "$t":"Bar Bar"
+          }
+        }
       }, {
         /* empty record */
       }]
