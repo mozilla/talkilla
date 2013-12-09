@@ -16,8 +16,6 @@
   function WebRTC(options) {
     // pc is for "peer connection"
     this.pc = undefined;
-    // dc is for "data channel"
-    this.dc = undefined;
     this._constraints = {};
     this.options = options || {};
 
@@ -221,27 +219,6 @@
     this._setupPeerConnection();
 
     return this;
-  };
-
-  /**
-   * Sends data over data channel.
-   * @param  {Object} data
-   * @return {WebRTC}
-   * @event  `dc:message-out` {Object}
-   * @public
-   */
-  WebRTC.prototype.send = function(data) {
-    if (this.state.current !== 'ongoing')
-      return this._handleError("Not connected, can't send data");
-
-    data = tnetbin.encode(data);
-    try {
-      this.dc.send(data);
-    } catch(err) {
-      return this._handleError("Couldn't send data", err);
-    }
-
-    return this.trigger('dc:message-out', data);
   };
 
   /**
@@ -527,7 +504,6 @@
    */
   WebRTC.prototype._setupPeerConnection = function() {
     this.pc = new mozRTCPeerConnection();
-    this.dc = this._setupDataChannel(this.pc, 0);
 
     this.pc.onaddstream = this._onAddStream.bind(this);
     this.pc.ondatachannel = this._onDataChannel.bind(this);
@@ -538,13 +514,25 @@
     this.pc.onsignalingstatechange = this._onSignalingStateChange.bind(this);
   };
 
+  WebRTC.prototype.createDataChannel = function() {
+    return (new WebRTC.DataChannel(this.pc));
+  };
+
+  WebRTC.DataChannel = function DataChannel(pc) {
+    // XXX: verify if pc is undefined
+    // dc is for "data channel"
+    this.dc = this._setupDataChannel(pc, 0);
+  };
+
+  _.extend(WebRTC.DataChannel.prototype, Backbone.Events);
+
   /**
    * Configures a data channel, registering local event listeners.
    *
    * @param {RTCPeerConnection} pc
    * @param {short}             id of the data channel to create
    */
-  WebRTC.prototype._setupDataChannel = function(pc, id) {
+  WebRTC.DataChannel.prototype._setupDataChannel = function(pc, id) {
     var dc = pc.createDataChannel('dc', {
       // We set up a pre-negotiated channel with a specific id, this
       // way we know exactly which channel we're expecting to communicate
@@ -553,14 +541,29 @@
       negotiated: true
     });
 
-    dc.onopen  = this.trigger.bind(this, "dc:ready", dc);
-    dc.onerror = this.trigger.bind(this, "dc:error");
-    dc.onclose = this.trigger.bind(this, "dc:close");
+    dc.onopen  = this.trigger.bind(this, "ready", this);
+    dc.onerror = this.trigger.bind(this, "error");
+    dc.onclose = this.trigger.bind(this, "close");
     dc.onmessage = function(event) {
       var data = tnetbin.decode(event.data).value;
-      this.trigger("dc:message-in", data);
+      this.trigger("message", data);
     }.bind(this);
 
     return dc;
   };
+
+  /**
+   * Sends data over data channel.
+   * @param  {Object} data
+   * @public
+   */
+  WebRTC.DataChannel.prototype.send = function(data) {
+    data = tnetbin.encode(data);
+    try {
+      this.dc.send(data);
+    } catch(err) {
+      return this.dc.onerror(err);
+    }
+  };
+
 })(this);
