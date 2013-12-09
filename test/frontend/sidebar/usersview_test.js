@@ -19,13 +19,13 @@ describe("UsersView", function() {
     it("should require a user parameter", function() {
       expect(function() {
         new app.views.UsersView({collection: []});
-      }).to.Throw(Error);
+      }).to.Throw(Error, /missing parameter: user/);
     });
 
     it("should require a collection parameter", function() {
       expect(function() {
         new app.views.UsersView({user: {}});
-      }).to.Throw(Error);
+      }).to.Throw(Error, /missing parameter: collection/);
     });
 
     it("should render the view when the collection is reset", function() {

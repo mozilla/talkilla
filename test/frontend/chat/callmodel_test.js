@@ -88,7 +88,7 @@ describe("Call Model", function() {
 
     it("should raise an error if called twice", function() {
       call.start({});
-      expect(call.start).to.Throw();
+      expect(call.start.bind(call)).to.Throw(/event start inappropriate/);
     });
 
     it("should silently upgrade a call if currently ongoing", function() {
@@ -167,7 +167,7 @@ describe("Call Model", function() {
 
     it("should raise an error if called twice", function() {
       call.restart();
-      expect(call.restart).to.Throw();
+      expect(call.restart.bind(call)).to.Throw(/event start inappropriate/);
     });
 
     describe("send-offer", function() {

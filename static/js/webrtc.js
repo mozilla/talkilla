@@ -140,11 +140,11 @@
    * @return {WebRTC}
    */
   WebRTC.prototype.upgrade = function(constraints) {
-    this.state.upgrade();
-
     if (!constraints || typeof constraints !== 'object')
       throw new Error('upgrading needs new media constraints');
+
     this.constraints = constraints;
+    this.state.upgrade();
 
     // XXX: renegotiate connection once supported by the WebRTC API;
     //      right now, reinitialize the current peer connection.
