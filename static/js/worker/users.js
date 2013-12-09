@@ -60,12 +60,11 @@ var CurrentUsers = (function() {
      */
     updateContacts: function(contacts) {
       (contacts || [])
-        .map(function(contact) {
-          return contact.username;
-        })
-        .forEach(function(userId) {
-          if (!this.has(userId))
-            this.set(userId, {presence: "disconnected"});
+        .forEach(function(contact) {
+          if (!this.has(contact.username)){
+            contact.presence = "disconnected";
+            this.set(contact.username, contact);
+          }
         }, this);
     },
 

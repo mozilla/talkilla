@@ -40,7 +40,9 @@ var tkWorker;
  * - {Object} offer: optional data for incoming calls.
  */
 function Conversation(spa, peer, offer) {
-  this.peer = peer;
+  this.peer = tkWorker.users.get(peer);
+  if(!this.peer) this.peer = {username: peer};
+ 
   this.port = undefined;
   this.capabilities = spa.capabilities;
 
@@ -63,7 +65,7 @@ Conversation.prototype = {
     this.port = port;
 
     // For collected contacts
-    tkWorker.contactsDb.add({username: this.peer}, function(err) {
+    tkWorker.contactsDb.add({username: this.peer.username}, function(err) {
       if (err)
         tkWorker.ports.broadcastError(err);
     });
@@ -71,7 +73,7 @@ Conversation.prototype = {
     var msg = {
       capabilities: this.capabilities,
       peer: this.peer,
-      peerPresence: tkWorker.users.getPresence(this.peer),
+      peerPresence: tkWorker.users.getPresence(this.peer.username),
       user: tkWorker.user.name
     };
 
@@ -108,13 +110,13 @@ Conversation.prototype = {
   handleIncomingCall: function(offer) {
     tkWorker.ports.broadcastDebug('handle incoming call', offer);
 
-    if (this.peer !== offer.peer)
+    if (this.peer.username !== offer.peer.username)
       return false;
 
     this._sendMessage("talkilla.conversation-incoming", {
       capabilities: this.capabilities,
       peer: this.peer,
-      peerPresence: tkWorker.users.getPresence(this.peer),
+      peerPresence: tkWorker.users.getPresence(this.peer.username),
       offer: offer,
       user: tkWorker.user.name
     });
@@ -312,14 +314,15 @@ function _setupSPA(spa) {
 
   spa.on("message:users", function(data) {
     data.forEach(function(user) {
-      tkWorker.users.set(user.nick, {presence: "connected"});
+      tkWorker.users.set(user.nick, 
+                         {username: user.nick, presence: "connected"});
     });
 
     tkWorker.ports.broadcastEvent("talkilla.users", tkWorker.users.toArray());
   });
 
   spa.on("message:userJoined", function(userId) {
-    tkWorker.users.set(userId, {presence: "connected"});
+    tkWorker.users.set(userId, {username:userId, presence: "connected"});
 
     tkWorker.ports.broadcastEvent("talkilla.users", tkWorker.users.toArray());
     tkWorker.ports.broadcastEvent("talkilla.user-joined", userId);

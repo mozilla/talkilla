@@ -58,7 +58,14 @@ var GoogleContacts = (function() {
         if (!entry.gd$email)
           return contacts;
         return contacts.concat(entry.gd$email.map(function(email) {
-          return {username: email.address, name:entry.gd$fullName};
+          var contact = {
+            username: email.address
+          };
+          if (entry.gd$name && entry.gd$name.gd$fullName &&
+              entry.gd$name.gd$fullName.$t)
+            contact.name = entry.gd$name.gd$fullName.$t; 
+
+          return contact;
         }));
       }, []);
     }

@@ -125,11 +125,16 @@ var ChatApp = (function(app, $, Backbone, _) {
   ChatApp.prototype._onConversationOpen = function(msg) {
     this.call.set({capabilities: msg.capabilities});
     this.user.set({nick: msg.user});
-    this.peer
-        .set({nick: msg.peer, presence: msg.peerPresence},
-             {silent: true})
-        .trigger('change:nick', this.peer) // force triggering change event
-        .trigger('change:presence', this.peer);
+    if (msg.peer.name)
+      this.peer.set({nick: msg.peer.name, presence: msg.peerPresence},
+                    {silent: true});
+    else
+      this.peer
+          .set({nick: msg.peer.username, presence: msg.peerPresence},
+               {silent: true});
+
+    this.peer.trigger('change:nick', this.peer) // force triggering change event
+             .trigger('change:presence', this.peer);
   };
 
   ChatApp.prototype._onCallAccepted = function() {
