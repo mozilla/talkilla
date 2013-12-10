@@ -26,26 +26,6 @@ describe("ImportContactsView", function() {
       sandbox.stub(app.views.ImportContactsView.prototype, "render");
     });
 
-    it("should require a user parameter", function() {
-      expect(function() {
-        new app.views.ImportContactsView({service: {}});
-      }).to.Throw(/missing parameter: user/);
-
-      expect(function() {
-        new app.views.ImportContactsView({user: user});
-      }).to.not.Throw(/missing parameter: user/);
-    });
-
-    it("should require a service parameter", function() {
-      expect(function() {
-        new app.views.ImportContactsView({user: user});
-      }).to.Throw(/missing parameter: service/);
-
-      expect(function() {
-        new app.views.ImportContactsView({service: {}});
-      }).to.not.Throw(/missing parameter: service/);
-    });
-
     it("should render the view when the user signs in", function() {
       var importView = new app.views.ImportContactsView({
         user: user,

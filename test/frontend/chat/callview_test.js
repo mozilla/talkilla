@@ -39,20 +39,6 @@ describe("CallView", function() {
       expect(callView.call).to.equal(call);
     });
 
-    it("should throw an error when no call model is given", function() {
-      function shouldExplode() {
-        new app.views.CallView({el: 'fakeDom'});
-      }
-      expect(shouldExplode).to.Throw(Error, /missing parameter: call/);
-    });
-
-    it("should throw an error when no el parameter is given", function() {
-      function shouldExplode() {
-        new app.views.CallView({call: 'fakeWebrtc'});
-      }
-      expect(shouldExplode).to.Throw(Error, /missing parameter: el/);
-    });
-
     describe("Change events", function() {
       var callView;
 

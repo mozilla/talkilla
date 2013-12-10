@@ -73,30 +73,6 @@ describe("Call Controls View", function() {
       expect(callControlsView.call).to.equal(call);
     });
 
-    it("should throw an error when no call model is given", function() {
-      function shouldExplode() {
-        new app.views.CallControlsView({el: 'fakeDom'});
-      }
-      expect(shouldExplode).to.Throw(Error, /missing parameter: call/);
-    });
-
-    it("should throw an error when no media object is given", function() {
-      function shouldExplode() {
-        new app.views.CallControlsView({el: 'fakeDom', call: 'fakeCall'});
-      }
-      expect(shouldExplode).to.Throw(Error, /missing parameter: media/);
-    });
-
-    it("should throw an error when no el parameter is given", function() {
-      function shouldExplode() {
-        new app.views.CallControlsView({
-          call: 'fakeWebrtc',
-          media: 'fakeMedia'
-        });
-      }
-      expect(shouldExplode).to.Throw(Error, /missing parameter: el/);
-    });
-
     describe("attach call states", function() {
       var callControlsView;
 
