@@ -41,13 +41,6 @@ describe('Call Offer View', function() {
 
       expect(offerView.call).to.equal(call);
     });
-
-    it("should throw an error when no call model is given", function() {
-      function shouldExplode() {
-        new app.views.CallOfferView();
-      }
-      expect(shouldExplode).to.Throw(Error, /missing parameter: call/);
-    });
   });
 
   describe("Change events", function() {

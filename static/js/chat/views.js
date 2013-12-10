@@ -9,22 +9,14 @@
   /**
    * Conversation View (overall)
    */
-  app.views.ConversationView = Backbone.View.extend({
+  app.views.ConversationView = app.views.BaseView.extend({
     events: {
       'dragover': 'dragover',
       'drop': 'drop'
     },
 
     initialize: function(options) {
-      options = options || {};
-      if (!options.call)
-        throw new Error("missing parameter: call");
-      if (!options.peer)
-        throw new Error("missing parameter: peer");
-      if (!options.user)
-        throw new Error("missing parameter: user");
-      if (!options.textChat)
-        throw new Error("missing parameter: textChat");
+      options = this.checkOptions(options, "call", "peer", "user", "textChat");
 
       this.call = options.call;
       this.peer = options.peer;
@@ -158,7 +150,7 @@
   /**
    * Call controls view
    */
-  app.views.CallControlsView = Backbone.View.extend({
+  app.views.CallControlsView = app.views.BaseView.extend({
 
     events: {
       'click .btn-video a': 'videoCall',
@@ -170,13 +162,7 @@
     },
 
     initialize: function(options) {
-      options = options || {};
-      if (!options.call)
-        throw new Error("missing parameter: call");
-      if (!options.media)
-        throw new Error("missing parameter: media");
-      if (!options.el)
-        throw new Error("missing parameter: el");
+      options = this.checkOptions(options, "call", "media", "el");
 
       this.media = options.media;
       this.call = options.call;
@@ -274,7 +260,7 @@
   /**
    * Call offer view
    */
-  app.views.CallOfferView = Backbone.View.extend({
+  app.views.CallOfferView = app.views.BaseView.extend({
     el: "#offer",
 
     events: {
@@ -283,9 +269,7 @@
     },
 
     initialize: function(options) {
-      options = options || {};
-      if (!options.call)
-        throw new Error("missing parameter: call");
+      options = this.checkOptions(options, "call");
 
       this.call = options.call;
 
@@ -344,7 +328,7 @@
   /**
    * Call establish view
    */
-  app.views.CallEstablishView = Backbone.View.extend({
+  app.views.CallEstablishView = app.views.BaseView.extend({
     el: "#establish",
 
     events: {
@@ -355,13 +339,7 @@
     outgoingTextTemplate: _.template('Calling <%= peer %>…'),
 
     initialize: function(options) {
-      options = options || {};
-      if (!options.peer)
-        throw new Error("missing parameter: peer");
-      if (!options.call)
-        throw new Error("missing parameter: call");
-      if (!options.audioLibrary)
-        throw new Error("missing parameter: audioLibrary");
+      options = this.checkOptions(options, "call", "peer", "audioLibrary");
 
       this.peer = options.peer;
       this.call = options.call;
@@ -455,14 +433,10 @@
   /**
    * Video/Audio Call View
    */
-  app.views.CallView = Backbone.View.extend({
+  app.views.CallView = app.views.BaseView.extend({
 
     initialize: function(options) {
-      options = options || {};
-      if (!options.call)
-        throw new Error("missing parameter: call");
-      if (!options.el)
-        throw new Error("missing parameter: el");
+      options = this.checkOptions(options, "call", "el");
 
       this.call = options.call;
       this.call.media.on('local-stream:ready', this._playLocalMedia, this);
@@ -527,7 +501,7 @@
   /**
    * Text chat entry view.
    */
-  app.views.TextChatEntryView = Backbone.View.extend({
+  app.views.TextChatEntryView = app.views.BaseView.extend({
     tagName: 'li',
 
     template: _.template([
@@ -556,7 +530,7 @@
   /**
    * File transfer view.
    */
-  app.views.FileTransferView = Backbone.View.extend({
+  app.views.FileTransferView = app.views.BaseView.extend({
     tagName: 'li',
 
     template: _.template($('#file-transfer-tpl').text()),
@@ -574,7 +548,7 @@
   /**
    * Text chat conversation view.
    */
-  app.views.TextChatView = Backbone.View.extend({
+  app.views.TextChatView = app.views.BaseView.extend({
     el: '#textchat', // XXX: uncouple the selector from this view
 
     events: {
@@ -583,10 +557,7 @@
     },
 
     initialize: function(options) {
-      if (!options.call)
-        throw new Error("missing parameter: call");
-      if (!options.collection)
-        throw new Error("missing parameter: collection");
+      options = this.checkOptions(options, "call", "collection");
 
       this.call = options.call;
       this.collection = options.collection;

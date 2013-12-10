@@ -94,50 +94,6 @@ describe("ConversationView", function() {
       expect(view.textChat).to.equal(textChat);
     });
 
-    it("should throw an error when no call model is given", function() {
-      function shouldExplode() {
-        new app.views.ConversationView({
-          peer: peer,
-          user: user,
-          textChat: textChat
-        });
-      }
-      expect(shouldExplode).to.Throw(Error, /missing parameter: call/);
-    });
-
-    it("should throw an error when no peer model is given", function() {
-      function shouldExplode() {
-        new app.views.ConversationView({
-          user: user,
-          call: call,
-          textChat: textChat
-        });
-      }
-      expect(shouldExplode).to.Throw(Error, /missing parameter: peer/);
-    });
-
-    it("should throw an error when no user model is given", function() {
-      function shouldExplode() {
-        new app.views.ConversationView({
-          call: call,
-          peer: peer,
-          textChat: textChat
-        });
-      }
-      expect(shouldExplode).to.Throw(Error, /missing parameter: user/);
-    });
-
-    it("should throw an error when no textChat model is given", function() {
-      function shouldExplode() {
-        new app.views.ConversationView({
-          user: user,
-          call: call,
-          peer: peer
-        });
-      }
-      expect(shouldExplode).to.Throw(Error, /missing parameter: textChat/);
-    });
-
     it("should listen to peer's nick change", function() {
       new app.views.ConversationView({
         call: call,
