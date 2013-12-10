@@ -20,8 +20,8 @@ describe("app.views", function() {
 
       it("should throw a ViewOptionError when options are missing", function() {
         expect(function() {
-          view.checkOptions({}, "foo", "bar");
-        }).to.Throw(app.views.ViewOptionError, /foo/);
+          view.checkOptions({}, "foo", "bar", "baz");
+        }).to.Throw(app.views.ViewOptionError, /foo, bar, baz/);
       });
 
       it("shouldn't throw when a required option is present", function() {

@@ -29,10 +29,11 @@
      */
     checkOptions: function(options) {
       options = options || {};
-      [].slice.call(arguments, 1).forEach(function(prop) {
-        if (!options.hasOwnProperty(prop))
-          throw new app.views.ViewOptionError("required option: " + prop);
-      });
+      var requirements = [].slice.call(arguments, 1);
+      var diff = _.difference(requirements, Object.keys(options));
+      if (diff.length > 0)
+        throw new app.views.ViewOptionError("missing required options: " +
+                                            diff.join(", "));
       return options;
     }
   });
