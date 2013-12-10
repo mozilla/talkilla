@@ -553,6 +553,11 @@
       }, this);
 
       this.media.answer(offer);
+      this.transport = this.media.createDataChannel();
+      this.transport.on('message', this._onMessage, this);
+      this.transport.on('close', function() {
+        this.terminate().reset();
+      }.bind(this));
     },
 
     establish: function(answer) {
@@ -568,12 +573,12 @@
       if (this.media.state.current === "ongoing")
         return this.transport.send(entry);
 
+      if (this.media.state.current !== "pending")
+        this.initiate({video: false, audio: false});
+
       this.transport.once("ready", function() {
         this.send(entry);
       });
-
-      if (this.media.state.current !== "pending")
-        this.initiate({video: false, audio: false});
     },
 
     _onMessage: function(event) {
