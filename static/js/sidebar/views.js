@@ -11,6 +11,10 @@
   app.views.AppView = Backbone.View.extend({
     el: 'body',
 
+    events: {
+      'click a.close-panel-on-click': 'closeIfPanel'
+    },
+
     initialize: function(options) {
       options = options || {};
       if (!options.user)
@@ -45,6 +49,15 @@
         user: options.user,
         spa: options.spa
       });
+
+      if (options.isInSidebar) {
+        this._isInSidebar = true;
+      }
+    },
+
+    closeIfPanel: function() {
+      if (!this._isInSidebar)
+        window.close();
     },
 
     render: function() {
@@ -144,7 +157,7 @@
     tagName: 'li',
 
     template: _.template([
-      '<a href="#" rel="<%= nick %>">',
+      '<a class="close-panel-on-click" href="#" rel="<%= nick %>">',
       '  <div class="avatar">',
       '    <img src="<%= avatar %>">',
       '    <span class="status status-<%= presence %>"></span>',
