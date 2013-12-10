@@ -76,5 +76,64 @@ describe("AppView", function() {
         expect(appView.spa).to.be.an.instanceOf(app.views.SPAView);
       });
     });
+
+    describe("events", function() {
+
+      var appViewOptions;
+
+      beforeEach(function() {
+        var $el = $("<div id='appViewDiv'>" +
+                    "  <nav>" +
+                    "    <ul>" +
+                    "      <li>" +
+                    "        <a class='close-panel-on-click'></a>" +
+                    "      </li>" +
+                    "    </ul>" +
+                    "  </nav>" +
+                    "</div>");
+        $("#fixtures").append($el);
+        appViewOptions = {
+          el: $el.get()[0],
+          user: {},
+          users: [],
+          appStatus: [],
+          spa: {}
+        };
+        sandbox.stub(window, "close");
+      });
+
+      afterEach(function() {
+        $("#fixtures").empty();
+      });
+
+      describe("click", function() {
+        it("should call window.close when fired on a.close-panel-on-click" +
+          " if the appView is not running in a sidebar", function() {
+
+          appViewOptions.isInSidebar = false;
+          var appView = new app.views.AppView(appViewOptions);
+
+          var $link = appView.$("a.close-panel-on-click");
+          $link.trigger("click");
+
+          sinon.assert.calledOnce(window.close);
+          sinon.assert.calledWithExactly(window.close);
+        });
+
+        it("should not call window.close when fired on a.close-panel-on-click" +
+          " if the appView is running in a sidebar", function() {
+
+          appViewOptions.isInSidebar = true;
+          var appView = new app.views.AppView(appViewOptions);
+
+          var $link = appView.$("a.close-panel-on-click");
+          $link.trigger("click");
+
+          sinon.assert.notCalled(window.close);
+        });
+      });
+
+    });
+
   });
 });
