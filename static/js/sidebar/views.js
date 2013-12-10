@@ -11,6 +11,10 @@
   app.views.AppView = app.views.BaseView.extend({
     el: 'body',
 
+    events: {
+      'click a.close-panel-on-click': 'closeIfPanel'
+    },
+
     initialize: function(options) {
       options = this.checkOptions(options, "user", "users", "appStatus", "spa");
 
@@ -37,6 +41,15 @@
         user: options.user,
         spa: options.spa
       });
+
+      if (options.isInSidebar) {
+        this._isInSidebar = true;
+      }
+    },
+
+    closeIfPanel: function() {
+      if (!this._isInSidebar)
+        window.close();
     },
 
     render: function() {
@@ -131,7 +144,7 @@
     tagName: 'li',
 
     template: _.template([
-      '<a href="#" rel="<%= username %>" title="<%= username %>">',
+      '<a class="close-panel-on-click" href="#" rel="<%= username %>" title="<%= username %>">',
       '  <div class="avatar">',
       '    <img src="<%= avatar %>">',
       '    <span class="status status-<%= presence %>"></span>',
