@@ -158,48 +158,56 @@ function pinPanel(window) {
     if (_ppDebug)
       window.console.log.apply(window.console, arguments);
   }
-
   ppDebug("in pinPanel");
 
-  var socPanel = window.document.getElementById("social-notification-panel");
-  ppDebug("socPanel = " + socPanel);
+  function attachHandlers() {
+    ppDebug("in attachHandlers");
+    var socPanel = window.document.getElementById("social-notification-panel");
+    ppDebug("socPanel = " + socPanel);
 
-  socPanel.setAttribute("noautohide", "true");
-  ppDebug("socPanel.noautohide = " + socPanel.getAttribute("noautohide"));
-
-  var socButton =
-    window.document.getElementsByClassName("social-status-button")[0];
-  ppDebug("socButton = " + socButton);
-
-
-  socPanel.addEventListener("popupshown", function() {
-    ppDebug("in popupshown handler");
-
-    function buttonListener(e) {
-      ppDebug("in buttonListener");
-
-      e.preventDefault();
-      ppDebug("default prevented");
-
-      socPanel.hidePopup();
-      ppDebug("called hidePopup");
-
-      socButton.removeEventListener("click", buttonListener, false);
-      ppDebug("click listener removed");
-
-    }
-
-    socButton.addEventListener("click", buttonListener, false);
-    ppDebug("click listener added");
-  });
-  ppDebug("popupshown listener added");
-
-  unload(function() {
-    ppDebug("in unload function");
-
-    socPanel.setAttribute("noautohide", "false");
+    socPanel.setAttribute("noautohide", "true");
     ppDebug("socPanel.noautohide = " + socPanel.getAttribute("noautohide"));
-  }, window);
+
+    var socButton =
+      window.document.getElementsByClassName("social-status-button")[0];
+    ppDebug("socButton = " + socButton);
+
+    socPanel.addEventListener("popupshown", function() {
+      ppDebug("in popupshown handler");
+
+      function buttonListener(e) {
+        ppDebug("in buttonListener");
+
+        e.preventDefault();
+        ppDebug("default prevented");
+
+        socPanel.hidePopup();
+        ppDebug("called hidePopup");
+
+        socButton.removeEventListener("click", buttonListener, false);
+        ppDebug("click listener removed");
+      }
+
+      socButton.addEventListener("click", buttonListener, false);
+      ppDebug("click listener added");
+    });
+    ppDebug("popupshown listener added");
+
+    unload(function() {
+      ppDebug("in unload function");
+
+      socPanel.setAttribute("noautohide", "false");
+      ppDebug("socPanel.noautohide = " + socPanel.getAttribute("noautohide"));
+    }, window);
+  }
+
+  // XXX hack to give the social elements (particularly the button, which is
+  // created dynamically) time to load before we attempt to use them.  It'd
+  // be nice to use a DOM load event handler, but this code may run long
+  // after that has fired.
+  ppDebug("about to call setTimeout");
+  window.setTimeout(attachHandlers.bind(this), 250);
+  ppDebug("setTimeout called");
 }
 
 /**
