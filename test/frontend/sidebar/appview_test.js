@@ -52,12 +52,19 @@ describe("AppView", function() {
       var appView;
 
       beforeEach(function() {
+        var $el = $("<div></div>");
+        $("#fixtures").append($el);
         appView = new app.views.AppView({
+          el: $el.get()[0],
           user: {},
           users: [],
           appStatus: [],
           spa: {}
         });
+      });
+
+      afterEach(function() {
+        $("#fixtures").empty();
       });
 
       it("should set a notifications property", function() {
