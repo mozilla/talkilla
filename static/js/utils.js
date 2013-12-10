@@ -106,7 +106,7 @@
         message: message
       })
     });
-    sidebarApp.view.notifications.addNotification(notification);
+    sidebarApp.view.notificationsView.addNotification(notification);
     return notification;
   };
 

@@ -49,51 +49,6 @@ describe("ConversationView", function() {
   });
 
   describe("#initialize", function() {
-
-    it("should attach a given call model", function() {
-      var view = new app.views.ConversationView({
-        call: call,
-        peer: peer,
-        user: user,
-        textChat: textChat
-      });
-
-      expect(view.call).to.equal(call);
-    });
-
-    it("should attach a given peer model", function() {
-      var view = new app.views.ConversationView({
-        call: call,
-        peer: peer,
-        user: user,
-        textChat: textChat
-      });
-
-      expect(view.peer).to.equal(peer);
-    });
-
-    it("should attach a given user model", function() {
-      var view = new app.views.ConversationView({
-        call: call,
-        peer: peer,
-        user: user,
-        textChat: textChat
-      });
-
-      expect(view.user).to.equal(user);
-    });
-
-    it("should have a textChat model", function() {
-      var view = new app.views.ConversationView({
-        call: call,
-        peer: peer,
-        user: user,
-        textChat: textChat
-      });
-
-      expect(view.textChat).to.equal(textChat);
-    });
-
     it("should listen to peer's nick change", function() {
       new app.views.ConversationView({
         call: call,

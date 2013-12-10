@@ -9,32 +9,67 @@
    * View required option error.
    * @param {String} msg Error message
    */
-  app.views.ViewOptionError = function ViewOptionError(msg) {
-    Error.call(this);
-    this.message = msg;
-    this.name = 'ViewOptionError';
-  };
-  app.views.ViewOptionError.prototype = Object.create(Error.prototype);
+  var DependencyError = app.views.DependencyError =
+      function DependencyError() {
+        var err = Error.apply(this, arguments);
+        ["message", "stack", "lineNumber", "columnNumber", "fileName"]
+          .forEach(function(prop) {
+            this[prop] = err[prop];
+          }, this);
+        this.name = 'DependencyError';
+      };
+  app.views.DependencyError.prototype = Object.create(Error.prototype);
 
   /**
    * Base Talkilla view.
    */
   app.views.BaseView = Backbone.View.extend({
+    // default dependencies (none)
+    dependencies: {},
+
     /**
-     * Checks that an options object owns properties passed as arguments.
-     * @param  {Object}   options   Options object
-     * @param  {[]String}           Property names as remaining arguments
-     * @return {Object}             Checked options object
-     * @throws {ViewOptionError} If object doesn't own an expected property
+     * Constructs this view, checking and attaching required dependencies.
      */
-    checkOptions: function(options) {
-      options = options || {};
-      var requirements = [].slice.call(arguments, 1);
-      var diff = _.difference(requirements, Object.keys(options));
+    constructor: function(options) {
+      this._processDependencies(options || {});
+      Backbone.View.apply(this, arguments);
+    },
+
+    /**
+     * Checks an options object for required dependencies and attaches them to
+     * current instance.
+     * @param  {Object}   options   Options object
+     * @throws {DependencyError} If object doesn't own an expected property
+     */
+    _processDependencies: function(options) {
+      /*jshint eqnull:true*/
+      var dependencyNames = Object.keys(this.dependencies || {});
+      if (dependencyNames.length === 0)
+        return;
+      var diff = _.difference(dependencyNames,
+                              Object.keys(options).filter(function(name) {
+                                return options[name] != null;
+                              }));
       if (diff.length > 0)
-        throw new app.views.ViewOptionError("missing required options: " +
-                                            diff.join(", "));
-      return options;
+        throw new DependencyError("missing required " + diff.join(", "));
+      dependencyNames.forEach(function(name) {
+        var types = this.dependencies[name], option = options[name];
+        types = Array.isArray(types) ? types : [types];
+        var match = types.some(function(Type) {
+          /*jshint eqeqeq:false*/
+          return typeof Type === "undefined" ||        // skip checking
+                 option.constructor == Type  ||        // native types
+                 Type.prototype.isPrototypeOf(option); // custom types
+        });
+        if (!match) {
+          throw new DependencyError(
+            "invalid dependency: " + name + "; expected " +
+            types.map(function(type) {
+              return type && type.name;
+            }).join(", "));
+        }
+        this[name] = option;
+      }, this);
     }
   });
 

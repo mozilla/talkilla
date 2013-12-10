@@ -32,13 +32,6 @@ describe("CallView", function() {
   });
 
   describe("#initialize", function() {
-
-    it("should attach a given call model", function() {
-      var callView = new app.views.CallView({el: el, call: call});
-
-      expect(callView.call).to.equal(call);
-    });
-
     describe("Change events", function() {
       var callView;
 

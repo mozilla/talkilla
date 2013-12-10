@@ -1,4 +1,4 @@
-/*global app */
+/*global app, WebRTC */
 /**
  * Talkilla Backbone views.
  */
@@ -10,19 +10,19 @@
    * Conversation View (overall)
    */
   app.views.ConversationView = app.views.BaseView.extend({
+    dependencies: {
+      call: app.models.Call,
+      peer: app.models.User,
+      user: app.models.User,
+      textChat: app.models.TextChat
+    },
+
     events: {
       'dragover': 'dragover',
       'drop': 'drop'
     },
 
-    initialize: function(options) {
-      options = this.checkOptions(options, "call", "peer", "user", "textChat");
-
-      this.call = options.call;
-      this.peer = options.peer;
-      this.user = options.user;
-      this.textChat = options.textChat;
-
+    initialize: function() {
       this.peer.on('change:nick', function(to) {
         document.title = to.get("nick");
       });
@@ -151,6 +151,11 @@
    * Call controls view
    */
   app.views.CallControlsView = app.views.BaseView.extend({
+    dependencies: {
+      call:  app.models.Call,
+      media: WebRTC,
+      el:    [String, jQuery]
+    },
 
     events: {
       'click .btn-video a': 'videoCall',
@@ -161,12 +166,7 @@
       'click .btn-call-move a': 'initiateCallMove'
     },
 
-    initialize: function(options) {
-      options = this.checkOptions(options, "call", "media", "el");
-
-      this.media = options.media;
-      this.call = options.call;
-
+    initialize: function() {
       this.call.on('state:to:pending state:to:incoming',
                    this._callPending, this);
       this.call.on('state:to:ongoing', this._callOngoing, this);
@@ -261,6 +261,10 @@
    * Call offer view
    */
   app.views.CallOfferView = app.views.BaseView.extend({
+    dependencies: {
+      call:  app.models.Call,
+    },
+
     el: "#offer",
 
     events: {
@@ -268,12 +272,8 @@
       'click .btn-ignore': 'ignore'
     },
 
-    initialize: function(options) {
-      options = this.checkOptions(options, "call");
-
-      this.call = options.call;
-
-      options.call.on('change:state', function(to, from) {
+    initialize: function() {
+      this.call.on('change:state', function(to, from) {
         if (to === "incoming")
           this.$el.show();
         else if (from === "incoming")
@@ -329,6 +329,12 @@
    * Call establish view
    */
   app.views.CallEstablishView = app.views.BaseView.extend({
+    dependencies: {
+      call: app.models.Call,
+      peer: app.models.User,
+      audioLibrary: app.utils.AudioLibrary
+    },
+
     el: "#establish",
 
     events: {
@@ -338,15 +344,8 @@
 
     outgoingTextTemplate: _.template('Calling <%= peer %>…'),
 
-    initialize: function(options) {
-      options = this.checkOptions(options, "call", "peer", "audioLibrary");
-
-      this.peer = options.peer;
-      this.call = options.call;
-      this.audioLibrary = options.audioLibrary;
-
+    initialize: function() {
       this.call.on('send-offer', this._onSendOffer, this);
-
       this.call.on("change:state", this._handleStateChanges, this);
     },
 
@@ -434,11 +433,12 @@
    * Video/Audio Call View
    */
   app.views.CallView = app.views.BaseView.extend({
+    dependencies: {
+      call: app.models.Call,
+      el:   [String, jQuery]
+    },
 
-    initialize: function(options) {
-      options = this.checkOptions(options, "call", "el");
-
-      this.call = options.call;
+    initialize: function() {
       this.call.media.on('local-stream:ready', this._playLocalMedia, this);
       this.call.media.on('remote-stream:ready', this._playRemoteMedia, this);
       this.call.media.on('local-stream:terminated',
@@ -549,6 +549,11 @@
    * Text chat conversation view.
    */
   app.views.TextChatView = app.views.BaseView.extend({
+    dependencies: {
+      call:       app.models.Call,
+      collection: app.models.TextChat
+    },
+
     el: '#textchat', // XXX: uncouple the selector from this view
 
     events: {
@@ -556,19 +561,13 @@
       'keypress form input[name="message"]' : 'sendTyping'
     },
 
-    initialize: function(options) {
-      options = this.checkOptions(options, "call", "collection");
-
-      this.call = options.call;
-      this.collection = options.collection;
-
+    initialize: function() {
       this.call.on('state:to:pending state:to:incoming', this.hide, this);
       this.call.on('state:to:ongoing state:to:timeout', this.show, this);
 
       this.collection.on('add', this.render, this);
       this.collection.on('chat:type-start', this._showTypingNotification, this);
       this.collection.on('chat:type-stop', this._clearTypingNotification, this);
-
 
       if (this._firstMessage()) {
         var $input = this.$('form input[name="message"]');
