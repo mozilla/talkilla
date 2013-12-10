@@ -1,9 +1,13 @@
-describe("WebRTC.DataChannel", function() {
+/*global sinon, WebRTC, tnetbin, chai */
+"use strict";
 
+var expect = chai.expect;
+
+describe("WebRTC.DataChannel", function() {
   var sandbox, datachannel;
 
   beforeEach(function() {
-    sandbox = sinon.sandbox.create()
+    sandbox = sinon.sandbox.create();
     var dc = {send: sinon.spy()};
     var pc = {
       createDataChannel: function() {

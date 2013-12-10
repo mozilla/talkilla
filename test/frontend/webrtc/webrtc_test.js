@@ -1,4 +1,4 @@
-/*global WebRTC, tnetbin, chai, sinon */
+/*global WebRTC, chai, sinon */
 "use strict";
 
 var expect = chai.expect;

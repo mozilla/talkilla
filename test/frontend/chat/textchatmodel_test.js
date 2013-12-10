@@ -238,7 +238,7 @@ describe('Text chat models', function() {
   });
 
   describe("#_onTextChatEntryCreated", function() {
-    var textChat, send;
+    var textChat;
 
     beforeEach(function() {
       user.set("nick", "foo");
@@ -258,7 +258,7 @@ describe('Text chat models', function() {
   });
 
   describe("#_onFileTransferCreated", function() {
-    var textChat, blob, send;
+    var textChat, blob;
 
     beforeEach(function() {
       blob = new Blob(["abcdefghij"]);
