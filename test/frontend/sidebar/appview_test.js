@@ -107,7 +107,7 @@ describe("AppView", function() {
 
           expect(appView.isInSidebar).to.equal(true);
         });
-      });
+    });
   });
 
   describe("events", function() {
