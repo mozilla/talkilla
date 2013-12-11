@@ -9,6 +9,11 @@ var SidebarApp = (function(app, $) {
   function SidebarApp(options) {
     options = options || {};
 
+    if (options.location)
+      this._location = new URL(options.location);
+    else
+      this._location = window.location;
+
     this.http = new HTTP();
     this.appPort = new AppPort();
 
@@ -24,6 +29,7 @@ var SidebarApp = (function(app, $) {
     };
 
     this.view = new app.views.AppView({
+      isInSidebar: this._location.search === "?sidebar",
       appStatus: this.appStatus,
       user: this.user,
       users: this.users,
