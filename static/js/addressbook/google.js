@@ -63,7 +63,7 @@ var GoogleContacts = (function() {
           };
           if (entry.gd$name && entry.gd$name.gd$fullName &&
               entry.gd$name.gd$fullName.$t)
-            contact.name = entry.gd$name.gd$fullName.$t; 
+            contact.fullName = entry.gd$name.gd$fullName.$t;
 
           return contact;
         }));

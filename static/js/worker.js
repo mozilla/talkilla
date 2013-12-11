@@ -41,7 +41,8 @@ var tkWorker;
  */
 function Conversation(spa, peer, offer) {
   this.peer = tkWorker.users.get(peer);
-  if(!this.peer) this.peer = {username: peer};
+  if (!this.peer)
+    this.peer = {username: peer};
  
   this.port = undefined;
   this.capabilities = spa.capabilities;

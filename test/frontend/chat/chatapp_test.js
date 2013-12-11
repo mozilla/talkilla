@@ -8,7 +8,7 @@ describe("ChatApp", function() {
   var sandbox, chatApp, AppPortStub, incomingCallData;
   var callData = {
     capabilities: ["call", "move"],
-    peer: {username:"bob", presence: "connected"},
+    peer: {username: "bob", presence: "connected"},
     peerPresence: "connected"
   };
   var fakeOffer = {type: "offer", sdp: "\nm=video aaa\nm=audio bbb"};
@@ -241,7 +241,8 @@ describe("ChatApp", function() {
       it("should set the peer", function() {
         chatApp._onIncomingConversation(incomingCallData);
 
-        expect(chatApp.peer.get("nick")).to.equal(incomingCallData.peer);
+        expect(chatApp.peer.get("nick"))
+          .to.equal(incomingCallData.peer.username);
       });
 
       it("should set peer's presence", function() {

@@ -248,9 +248,9 @@ describe("GoogleContacts", function() {
 
       sinon.assert.calledOnce(callback);
       sinon.assert.calledWith(callback, null, [
-        {username: "foo@bar.com", name: "Foo Foo"},
-        {username: "foo@baz.com", name: "Foo Foo"},
-        {username: "bar@bar.com", name: "Bar Bar"}
+        {username: "foo@bar.com", fullName: "Foo Foo"},
+        {username: "foo@baz.com", fullName: "Foo Foo"},
+        {username: "bar@bar.com", fullName: "Bar Bar"}
       ]);
     });
 
@@ -325,9 +325,9 @@ describe("GoogleContacts", function() {
       it("should normalize data feed", function() {
         var normalized = new GoogleContacts.Importer(sampleFeed).normalize();
         expect(normalized).eql([
-          {username: "foo@bar.com", name: "Foo Foo"},
-          {username: "foo@baz.com", name: "Foo Foo"},
-          {username: "bar@bar.com", name: "Bar Bar"}
+          {username: "foo@bar.com", fullName: "Foo Foo"},
+          {username: "foo@baz.com", fullName: "Foo Foo"},
+          {username: "bar@bar.com", fullName: "Bar Bar"}
         ]);
       });
     });

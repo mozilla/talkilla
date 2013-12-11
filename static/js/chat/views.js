@@ -32,7 +32,11 @@
       this.textChat = options.textChat;
 
       this.peer.on('change:nick', function(to) {
-        document.title = to.get("nick");
+        var fullName = to.get("fullName");
+        if (fullName)
+          document.title = fullName;
+        else
+          document.title = to.get("nick");
       });
 
       this.peer.on('change:presence', this._onPeerPresenceChanged, this);

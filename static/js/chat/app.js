@@ -125,8 +125,9 @@ var ChatApp = (function(app, $, Backbone, _) {
   ChatApp.prototype._onConversationOpen = function(msg) {
     this.call.set({capabilities: msg.capabilities});
     this.user.set({nick: msg.user});
-    if (msg.peer.name)
-      this.peer.set({nick: msg.peer.name, presence: msg.peerPresence},
+    if (msg.peer.fullName)
+      this.peer.set({nick: msg.peer.username, presence: msg.peerPresence,
+                     fullName: msg.peer.fullName},
                     {silent: true});
     else
       this.peer
@@ -163,8 +164,13 @@ var ChatApp = (function(app, $, Backbone, _) {
     this.call.set({capabilities: msg.capabilities});
     this.user.set({nick: msg.user});
 
-    if (!msg.offer.upgrade)
-      this.peer.set({nick: msg.peer, presence: msg.peerPresence});
+    if (!msg.offer.upgrade) {
+      if (msg.peer.fullName)
+        this.peer.set({nick: msg.peer.username, fullName: msg.peer.fullName,
+                      presence: msg.peerPresence});
+      else
+        this.peer.set({nick: msg.peer.username, presence: msg.peerPresence});
+    }
 
     // incoming text chat conversation
     if (sdp.only("datachannel"))
