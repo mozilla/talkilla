@@ -42,7 +42,27 @@ describe("SidebarApp", function() {
       sinon.assert.calledOnce(app.views.AppView);
     });
 
-    it("should create an AppPport", function() {
+    it("should initialize an AppView with isInSidebar set to true if the" +
+      " location query string is a sidebar parameter", function() {
+
+      new SidebarApp({location: "http://example.com/?sidebar"});
+
+      sinon.assert.calledOnce(app.views.AppView);
+      sinon.assert.calledWithExactly(app.views.AppView,
+        sinon.match.has("isInSidebar", true));
+    });
+
+    it("should initialize an AppView with isInSidebar set to false if the" +
+      " location query string is not a sidebar parameter", function() {
+
+      new SidebarApp({location: "http://example.com/"});
+
+      sinon.assert.calledOnce(app.views.AppView);
+      sinon.assert.calledWithExactly(app.views.AppView,
+        sinon.match.has("isInSidebar", false));
+    });
+
+    it("should create an AppPort", function() {
       var sidebarApp = new SidebarApp();
 
       expect(sidebarApp.appPort).to.be.an.instanceOf(AppPort);
