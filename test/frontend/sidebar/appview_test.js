@@ -49,18 +49,19 @@ describe("AppView", function() {
     });
 
     describe("constructed properties", function() {
-      var appView;
+      var appView, appViewOptions;
 
       beforeEach(function() {
         var $el = $("<div></div>");
         $("#fixtures").append($el);
-        appView = new app.views.AppView({
+        appViewOptions =           {
           el: $el.get()[0],
           user: {},
           users: [],
           appStatus: [],
           spa: {}
-        });
+        };
+
       });
 
       afterEach(function() {
@@ -68,23 +69,45 @@ describe("AppView", function() {
       });
 
       it("should set a notifications property", function() {
+        appView = new app.views.AppView(appViewOptions);
+
         expect(appView.notifications).to.be.an.instanceOf(
           app.views.NotificationsView);
       });
 
       it("should set a login property", function() {
+        appView = new app.views.AppView(appViewOptions);
+
         expect(appView.login).to.be.an.instanceOf(app.views.LoginView);
       });
 
       it("should set a users property", function() {
+        appView = new app.views.AppView(appViewOptions);
+
         expect(appView.users).to.be.an.instanceOf(app.views.UsersView);
       });
 
       it("should set an spa property", function() {
+        appView = new app.views.AppView(appViewOptions);
+
         expect(appView.spa).to.be.an.instanceOf(app.views.SPAView);
       });
-    });
 
+      it("should set isInSidebar to false if no isInSidebar option is given",
+        function() {
+          appView = new app.views.AppView(appViewOptions);
+
+          expect(appView.isInSidebar).to.equal(false);
+        });
+
+      it("should set isInSidebar to the value of the isInSidebar option",
+        function() {
+          appViewOptions.isInSidebar = true;
+          appView = new app.views.AppView(appViewOptions);
+
+          expect(appView.isInSidebar).to.equal(true);
+        });
+      });
   });
 
   describe("events", function() {

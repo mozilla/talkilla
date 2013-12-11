@@ -9,6 +9,9 @@
    * Global app view.
    */
   app.views.AppView = Backbone.View.extend({
+
+    isInSidebar: false, // default to panel
+
     el: 'body',
 
     events: {
@@ -51,12 +54,12 @@
       });
 
       if (options.isInSidebar) {
-        this._isInSidebar = true;
+        this.isInSidebar = options.isInSidebar;
       }
     },
 
     closeIfPanel: function() {
-      if (!this._isInSidebar)
+      if (!this.isInSidebar)
         window.close();
     },
 
