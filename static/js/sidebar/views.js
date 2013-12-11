@@ -9,11 +9,14 @@
    * Global app view.
    */
   app.views.AppView = app.views.BaseView.extend({
+
     el: 'body',
 
     events: {
       'click a.close-panel-on-click': 'closeIfPanel'
     },
+
+    isInSidebar: false, // default to panel
 
     initialize: function(options) {
       options = this.checkOptions(options, "user", "users", "appStatus", "spa");
@@ -43,12 +46,12 @@
       });
 
       if (options.isInSidebar) {
-        this._isInSidebar = true;
+        this.isInSidebar = options.isInSidebar;
       }
     },
 
     closeIfPanel: function() {
-      if (!this._isInSidebar)
+      if (!this.isInSidebar)
         window.close();
     },
 
@@ -93,7 +96,7 @@
 
     render: function() {
       this.display(this.user.isLoggedIn() && this.spa.supports("pstn-call"));
-    },
+    }
   });
 
   /**
