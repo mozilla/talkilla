@@ -68,7 +68,7 @@ var browserDetection = (function ($) {
     if (this.supportsStatusPanel(userAgent))
       data.statusURL = baseUrl + "/sidebar.html";
     else
-      data.sidebarURL = baseUrl + "/sidebar.html";
+      data.sidebarURL = baseUrl + "/sidebar.html?isInSidebar";
 
     var event = new CustomEvent("ActivateSocialFeature");
     node.setAttribute("data-service", JSON.stringify(data));
