@@ -13,7 +13,7 @@
     el: 'body',
 
     events: {
-      'click a.close-panel-on-click': 'closeIfPanel'
+      'click a.user-entry': 'closeIfPanel'
     },
 
     isInSidebar: false, // default to panel
@@ -156,7 +156,7 @@
     tagName: 'li',
 
     template: _.template([
-      '<a class="close-panel-on-click" href="#" rel="<%= nick %>">',
+      '<a class="user-entry" href="#" rel="<%= nick %>">',
       '  <div class="avatar">',
       '    <img src="<%= avatar %>">',
       '    <span class="status status-<%= presence %>"></span>',

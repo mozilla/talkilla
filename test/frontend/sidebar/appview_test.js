@@ -119,7 +119,7 @@ describe("AppView", function() {
         "  <nav>" +
         "    <ul>" +
         "      <li>" +
-        "        <a class='close-panel-on-click'></a>" +
+        "        <a class='user-entry'></a>" +
         "      </li>" +
         "    </ul>" +
         "  </nav>" +
@@ -140,26 +140,26 @@ describe("AppView", function() {
     });
 
     describe("click", function() {
-      it("should call window.close when fired on a.close-panel-on-click" +
+      it("should call window.close when fired on a.user-entry" +
         " if the appView is not running in a sidebar", function() {
 
         appViewOptions.isInSidebar = false;
         var appView = new app.views.AppView(appViewOptions);
 
-        var $link = appView.$("a.close-panel-on-click");
+        var $link = appView.$("a.user-entry");
         $link.trigger("click");
 
         sinon.assert.calledOnce(window.close);
         sinon.assert.calledWithExactly(window.close);
       });
 
-      it("should not call window.close when fired on a.close-panel-on-click" +
+      it("should not call window.close when fired on a.user-entry" +
         " if the appView is running in a sidebar", function() {
 
         appViewOptions.isInSidebar = true;
         var appView = new app.views.AppView(appViewOptions);
 
-        var $link = appView.$("a.close-panel-on-click");
+        var $link = appView.$("a.user-entry");
         $link.trigger("click");
 
         sinon.assert.notCalled(window.close);
