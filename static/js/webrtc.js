@@ -118,8 +118,10 @@
    * @public
    */
   WebRTC.prototype.initiate = function(constraints) {
+    if (this.pc === undefined || this.pc.signalingState === 'closed')
+      this.pc = new mozRTCPeerConnection();
     this.state.initiate();
-    this._setupPeerConnection();
+    this._setupPeerConnection(this.pc);
     this.constraints = constraints;
 
     if (!this.constraints.video && !this.constraints.audio)
@@ -137,10 +139,10 @@
    * @param  {Object} constraints User media constraints
    * @return {WebRTC}
    */
-  WebRTC.prototype.upgrade = function(constraints) {
+  WebRTC.prototype.upgrade = function(constraints, offer) {
     this.state.upgrade();
 
-    if (!constraints || typeof constraints !== 'object')
+    if (!offer && (!constraints || typeof constraints !== 'object'))
       throw new Error('upgrading needs new media constraints');
     this.constraints = constraints;
 
@@ -150,7 +152,12 @@
       this.state.current = "ready";
       this.once('ice:connected', function() {
         this.trigger('connection-upgraded');
-      }).initiate(constraints);
+      });
+
+      if (offer)
+        this.answer(offer);
+      else
+        this.initiate(constraints);
     }).terminate();
 
     // force state to pending as we're actually waiting for pc reinitiation
@@ -186,8 +193,10 @@
    * @public
    */
   WebRTC.prototype.answer = function(offer) {
+    if (this.pc === undefined || this.pc.signalingState === 'closed')
+      this.pc = new mozRTCPeerConnection();
     this.state.answer();
-    this._setupPeerConnection();
+    this._setupPeerConnection(this.pc);
     this.constraints = new WebRTC.SDP(offer.sdp).constraints;
 
     if (!this.constraints.video && !this.constraints.audio)
@@ -502,19 +511,19 @@
    *
    * @param {RTCPeerConnection} pc
    */
-  WebRTC.prototype._setupPeerConnection = function() {
-    this.pc = new mozRTCPeerConnection();
-
-    this.pc.onaddstream = this._onAddStream.bind(this);
-    this.pc.ondatachannel = this._onDataChannel.bind(this);
-    this.pc.onicecandidate = this._onIceCandidate.bind(this);
-    this.pc.oniceconnectionstatechange =
+  WebRTC.prototype._setupPeerConnection = function(pc) {
+    pc.onaddstream = this._onAddStream.bind(this);
+    pc.ondatachannel = this._onDataChannel.bind(this);
+    pc.onicecandidate = this._onIceCandidate.bind(this);
+    pc.oniceconnectionstatechange =
       this._onIceConnectionStateChange.bind(this);
-    this.pc.onremovestream = this._onRemoveStream.bind(this);
-    this.pc.onsignalingstatechange = this._onSignalingStateChange.bind(this);
+    pc.onremovestream = this._onRemoveStream.bind(this);
+    pc.onsignalingstatechange = this._onSignalingStateChange.bind(this);
   };
 
   WebRTC.prototype.createDataChannel = function() {
+    if (this.pc === undefined || this.pc.signalingState === 'closed')
+      this.pc = new mozRTCPeerConnection();
     return (new WebRTC.DataChannel(this.pc));
   };
 

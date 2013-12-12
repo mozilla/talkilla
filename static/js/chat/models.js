@@ -195,7 +195,10 @@
         this.state.complete();
       }, this);
 
-      this.media.answer(data && data.offer);
+      if (this.media.state.current === 'ongoing')
+        this.media.upgrade(null, data && data.offer);
+      else
+        this.media.answer(data && data.offer);
 
       this.state.accept();
     },
@@ -536,12 +539,12 @@
         }));
       }, this);
 
-      this.media.initiate(constraints);
       this.transport = this.media.createDataChannel();
       this.transport.on('message', this._onMessage, this);
       this.transport.on('close', function() {
         this.terminate().reset();
       }.bind(this));
+      this.media.initiate(constraints);
     },
 
     answer: function(offer) {
@@ -552,12 +555,12 @@
         }));
       }, this);
 
-      this.media.answer(offer);
       this.transport = this.media.createDataChannel();
       this.transport.on('message', this._onMessage, this);
       this.transport.on('close', function() {
         this.terminate().reset();
       }.bind(this));
+      this.media.answer(offer);
     },
 
     establish: function(answer) {
