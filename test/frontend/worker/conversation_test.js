@@ -211,7 +211,7 @@ describe("Conversation", function() {
       };
       peer = "florian";
       offer = {
-        peer: {username: peer},
+        peer: peer,
         offer: {sdp: "fake"}
       };
 

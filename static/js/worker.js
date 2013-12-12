@@ -43,7 +43,7 @@ function Conversation(spa, peer, offer) {
   this.peer = tkWorker.users.get(peer);
   if (!this.peer)
     this.peer = {username: peer};
- 
+
   this.port = undefined;
   this.capabilities = spa.capabilities;
 
@@ -111,7 +111,7 @@ Conversation.prototype = {
   handleIncomingCall: function(offer) {
     tkWorker.ports.broadcastDebug('handle incoming call', offer);
 
-    if (this.peer.username !== offer.peer.username)
+    if (this.peer.username !== offer.peer)
       return false;
 
     this._sendMessage("talkilla.conversation-incoming", {
@@ -315,7 +315,7 @@ function _setupSPA(spa) {
 
   spa.on("message:users", function(data) {
     data.forEach(function(user) {
-      tkWorker.users.set(user.nick, 
+      tkWorker.users.set(user.nick,
                          {username: user.nick, presence: "connected"});
     });
 
