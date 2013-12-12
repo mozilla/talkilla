@@ -36,11 +36,15 @@ var CurrentUsers = (function() {
     set: function(userId, attributes) {
       attributes = attributes || {};
       if (!this.has(userId)) {
+        // XXX: we should have a proper user object in the future
+        if (!attributes.username)
+          attributes.username = userId;
         this.users[userId] = attributes;
         return;
       }
       for (var attr in attributes)
         this.users[userId][attr] = attributes[attr];
+
     },
 
     /**

@@ -70,7 +70,13 @@ describe('handlers', function() {
 
     it("should clear the current conversation on receiving " +
        "social.port-closing for the conversation port", function() {
-        currentConversation = new Conversation({}, spa);
+        currentConversation = new Conversation({
+          capabilities: spa.capabilities,
+          peer: spa,
+          browserPort: browserPort,
+          users: tkWorker.users,
+          user: tkWorker.user
+        });
         currentConversation.port = port;
 
         handlers['social.port-closing'].bind(port)();
@@ -101,14 +107,36 @@ describe('handlers', function() {
 
     it("should create a new conversation object when receiving a " +
        "talkilla.conversation-open event", function() {
+        var offerMsg = new payloads.Offer({
+          offer: "fake offer",
+          peer: "alice"
+        });
+        tkWorker.users.set("alice", {});
         handlers.postEvent = sinon.spy();
         handlers['talkilla.conversation-open']({
           topic: "talkilla.conversation-open",
-          data: {}
+          data: offerMsg
         });
 
         expect(currentConversation).to.be.an.instanceOf(Conversation);
       });
+
+    it("should store the contact", function() {
+      sandbox.stub(tkWorker.contactsDb, "add");
+      var offerMsg = new payloads.Offer({
+        offer: "fake offer",
+        peer: "alice"
+      });
+      tkWorker.users.set("alice", {});
+      handlers.postEvent = sinon.spy();
+      handlers['talkilla.conversation-open']({
+        topic: "talkilla.conversation-open",
+        data: offerMsg
+      });
+
+      sinon.assert.calledOnce(tkWorker.contactsDb.add);
+      sinon.assert.calledWith(tkWorker.contactsDb.add, {username: "alice"});
+    });
   });
 
   describe("talkilla.chat-window-ready", function() {

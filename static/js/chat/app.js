@@ -304,7 +304,7 @@ var ChatApp = (function(app, $, Backbone, _) {
       return;
 
     // app object events logging
-    ['webrtc', 'call', 'textChat'].forEach(function(prop) {
+    ['webrtc', 'call', 'textChat', 'appPort'].forEach(function(prop) {
       this[prop].on("all", function() {
         var args = [].slice.call(arguments);
         console.log.apply(console, ['chatapp.' + prop].concat(args));

@@ -23,22 +23,41 @@ describe("Conversation", function() {
 
   describe("initialize", function() {
     it("should store the peer", function() {
-      currentConversation = new Conversation(spa, "florian");
+      currentConversation = new Conversation({
+        capabilities: spa.capabilities,
+        peer: { username: "florian" },
+        browserPort: browserPort,
+        users: tkWorker.users,
+        user: tkWorker.user
+      });
 
-      expect(currentConversation.peer).to.deep.equal("florian");
+      expect(currentConversation.peer).to.deep.equal({ username: "florian"});
     });
 
     it("should store the offer", function() {
       var offer = {
         offer: { sdp: "fake" }
       };
-      currentConversation = new Conversation(spa, "florian", offer);
+      currentConversation = new Conversation({
+        capabilities: spa.capabilities,
+        peer: {username: "florian"},
+        offer: offer,
+        browserPort: browserPort,
+        users: tkWorker.users,
+        user: tkWorker.user
+      });
 
       expect(currentConversation.offer).to.deep.equal(offer);
     });
 
     it("should ask the browser to open a chat window", function() {
-      currentConversation = new Conversation({}, spa);
+      currentConversation = new Conversation({
+        capabilities: {},
+        peer: spa,
+        browserPort: browserPort,
+        users: tkWorker.users,
+        user: tkWorker.user
+      });
 
       sinon.assert.calledOnce(browserPort.postEvent);
       sinon.assert.calledWithExactly(browserPort.postEvent,
@@ -71,7 +90,13 @@ describe("Conversation", function() {
     });
 
     it("should store the port", function() {
-      currentConversation = new Conversation(spa, peer);
+      currentConversation = new Conversation({
+        capabilities: spa.capabilities,
+        peer: tkWorker.users.get(peer),
+        browserPort: browserPort,
+        users: tkWorker.users,
+        user: tkWorker.user
+      });
 
       currentConversation.windowOpened(port);
 
@@ -79,8 +104,14 @@ describe("Conversation", function() {
     });
 
     it("should post a talkilla.conversation-open event for a " +
-       "non-incoming call", function() {
-        currentConversation = new Conversation(spa, peer);
+      "non-incoming call", function() {
+        currentConversation = new Conversation({
+          capabilities: spa.capabilities,
+          peer: tkWorker.users.get(peer),
+          browserPort: browserPort,
+          users: tkWorker.users,
+          user: tkWorker.user
+        });
 
         currentConversation.windowOpened(port);
 
@@ -97,7 +128,14 @@ describe("Conversation", function() {
     it("should post a talkilla.conversation-incoming event for an " +
        "incoming call",
       function() {
-        currentConversation = new Conversation(spa, peer, offer);
+        currentConversation = new Conversation({
+          capabilities: spa.capabilities,
+          peer: tkWorker.users.get(peer),
+          offer: offer,
+          browserPort: browserPort,
+          users: tkWorker.users,
+          user: tkWorker.user
+        });
 
         currentConversation.windowOpened(port);
 
@@ -116,13 +154,20 @@ describe("Conversation", function() {
     it("should not update talkilla.conversation-incoming event if it " +
        "is already queued",
       function() {
-        currentConversation = new Conversation(spa, peer, offer);
+        currentConversation = new Conversation({
+          capabilities: spa.capabilities,
+          peer: tkWorker.users.get(peer),
+          offer: offer,
+          browserPort: browserPort,
+          users: tkWorker.users,
+          user: tkWorker.user
+        });
 
         currentConversation.messageQueue.push({
           topic: "talkilla.conversation-incoming",
           data: {
             capabilities: [],
-            peer: peer,
+            peer: tkWorker.users.get(peer),
             peerPresence: "disconnected",
             offer: offer,
             user: tkWorker.user.name
@@ -137,7 +182,7 @@ describe("Conversation", function() {
         sinon.assert.calledWith(port.postEvent,
           "talkilla.conversation-incoming", {
           capabilities: [],
-          peer: peer,
+          peer: tkWorker.users.get(peer),
           peerPresence: "disconnected",
           offer: offer,
           user: tkWorker.user.name
@@ -145,19 +190,16 @@ describe("Conversation", function() {
 
       });
 
-    it("should store the contact", function() {
-        currentConversation = new Conversation(spa, peer);
-
-        currentConversation.windowOpened(port);
-
-        sinon.assert.calledOnce(tkWorker.contactsDb.add);
-        sinon.assert.calledWith(tkWorker.contactsDb.add, {username: peer});
-      });
-
     it("should send peer presence information", function() {
       tkWorker.users.set("florian", { presence: "disconnected" });
 
-      currentConversation = new Conversation(spa, peer);
+      currentConversation = new Conversation({
+        capabilities: spa.capabilities,
+        peer: tkWorker.users.get(peer),
+        browserPort: browserPort,
+        users: tkWorker.users,
+        user: tkWorker.user
+      });
 
       currentConversation.windowOpened(port);
 
@@ -173,7 +215,13 @@ describe("Conversation", function() {
 
     it("should send any outstanding messages when the port is opened",
       function() {
-        currentConversation = new Conversation({}, spa);
+        currentConversation = new Conversation({
+          capabilities: {},
+          peer: spa,
+          browserPort: browserPort,
+          users: tkWorker.users,
+          user: tkWorker.user
+        });
         var messages = [
           {topic: "talkilla.ice-candidate", context: { candidate: "dummy1" }},
           {
@@ -217,7 +265,13 @@ describe("Conversation", function() {
 
       tkWorker.users.set(peer, { presence: "connected" });
 
-      currentConversation = new Conversation(spa, peer);
+      currentConversation = new Conversation({
+        capabilities: spa.capabilities,
+        peer: tkWorker.users.get(peer),
+        browserPort: browserPort,
+        users: tkWorker.users,
+        user: tkWorker.user
+      });
       currentConversation.windowOpened(port);
     });
 
@@ -292,7 +346,13 @@ describe("Conversation", function() {
 
   describe("#callAccepted", function() {
     beforeEach(function() {
-      currentConversation = new Conversation({}, spa);
+      currentConversation = new Conversation({
+        capabilities: {},
+        peer: spa,
+        browserPort: browserPort,
+        users: tkWorker.users,
+        user: tkWorker.user
+      });
       currentConversation.port = {
         postEvent: sandbox.spy()
       };
@@ -314,7 +374,13 @@ describe("Conversation", function() {
 
   describe("#hold" , function() {
     beforeEach(function() {
-      currentConversation = new Conversation({}, spa);
+      currentConversation = new Conversation({
+        capabilities: {},
+        peer: spa,
+        browserPort: browserPort,
+        users: tkWorker.users,
+        user: tkWorker.user
+      });
       currentConversation.port = {
         postEvent: sandbox.spy()
       };
@@ -335,7 +401,13 @@ describe("Conversation", function() {
 
   describe("#resume" , function() {
     beforeEach(function() {
-      currentConversation = new Conversation({}, spa);
+      currentConversation = new Conversation({
+        capabilities: {},
+        peer: spa,
+        browserPort: browserPort,
+        users: tkWorker.users,
+        user: tkWorker.user
+      });
       currentConversation.port = {
         postEvent: sandbox.spy()
       };
@@ -356,7 +428,13 @@ describe("Conversation", function() {
 
   describe("#callHangup" , function() {
     beforeEach(function() {
-      currentConversation = new Conversation({}, spa);
+      currentConversation = new Conversation({
+        capabilities: {},
+        peer: spa,
+        browserPort: browserPort,
+        users: tkWorker.users,
+        user: tkWorker.user
+      });
       currentConversation.port = {
         postEvent: sandbox.spy()
       };
@@ -377,7 +455,13 @@ describe("Conversation", function() {
 
   describe("#callHangup" , function() {
     beforeEach(function() {
-      currentConversation = new Conversation({}, spa);
+      currentConversation = new Conversation({
+        capabilities: {},
+        peer: spa,
+        browserPort: browserPort,
+        users: tkWorker.users,
+        user: tkWorker.user
+      });
       currentConversation.port = {
         postEvent: sandbox.spy()
       };
@@ -403,7 +487,13 @@ describe("Conversation", function() {
       context = {
         candidate: "dummy"
       };
-      currentConversation = new Conversation({}, spa);
+      currentConversation = new Conversation({
+        capabilities: {},
+        peer: spa,
+        browserPort: browserPort,
+        users: tkWorker.users,
+        user: tkWorker.user
+      });
       currentConversation.port = {
         postEvent: sandbox.spy()
       };
