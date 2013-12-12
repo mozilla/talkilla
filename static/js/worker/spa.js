@@ -58,6 +58,10 @@ var SPA = (function() {
       this._send("connect", credentials);
     },
 
+    forgetCredentials: function() {
+      this._send("forget-credentials");
+    },
+
     /**
      * Initiate a call via an SDP offer.
      *

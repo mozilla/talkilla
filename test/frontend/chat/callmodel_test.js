@@ -34,8 +34,7 @@ describe("Call Model", function() {
         type: "offer"
       },
       callid: 2,
-      peer: "bob",
-      upgrade: false
+      peer: "bob"
     });
   });
 
@@ -89,23 +88,21 @@ describe("Call Model", function() {
 
     it("should raise an error if called twice", function() {
       call.start({});
-      expect(call.start).to.Throw();
+      expect(call.start.bind(call)).to.Throw(/event start inappropriate/);
     });
 
     it("should silently upgrade a call if currently ongoing", function() {
-      sandbox.stub(call, "upgrade");
       call.media.state.current = "ongoing";
       var fakeConstraints = {fakeConstraint: true};
 
       call.start(fakeConstraints);
 
-      sinon.assert.calledOnce(call.upgrade);
-      sinon.assert.calledWithExactly(call.upgrade, fakeConstraints);
+      sinon.assert.calledOnce(media.upgrade);
+      sinon.assert.calledOnce(media.upgrade, fakeConstraints);
     });
 
     it("should cause a requiresVideo() call to give an updated answer",
       function() {
-        sandbox.stub(call, "upgrade");
         call.media.state.current = "ongoing";
         var constraints = {video: true};
         expect(call.requiresVideo()).to.equal(false);
@@ -170,7 +167,7 @@ describe("Call Model", function() {
 
     it("should raise an error if called twice", function() {
       call.restart();
-      expect(call.restart).to.Throw();
+      expect(call.restart.bind(call)).to.Throw(/event start inappropriate/);
     });
 
     describe("send-offer", function() {
@@ -225,7 +222,6 @@ describe("Call Model", function() {
       call.incoming(callData);
 
       expect(call.get("incomingData").offer).to.equal(callData.offer);
-      expect(call.get("incomingData").upgrade).to.equal(callData.upgrade);
     });
 
     it("should have the same id as the incoming call", function() {
@@ -440,65 +436,56 @@ describe("Call Model", function() {
   });
 
   describe("#resume", function() {
+    it("should throw if the current state is not hold", function() {
+      call.state.current = 'ongoing';
+      expect(call.resume.bind(call)).to.Throw(/Cannot resume a call/);
+    });
+
     it("should change the state from hold to ongoing", function() {
       call.state.current = 'hold';
       call.resume();
       expect(call.state.current).to.equal('ongoing');
     });
 
-    it("should mute the local streams", function() {
-      call.state.current = 'hold';
-      call.resume();
+    it("should unmute the local streams for video calls when video is " +
+      "specified", function() {
+        call.state.current = 'hold';
+        call.set('currentConstraints', {
+          video: true,
+          audio: true
+        });
 
-      sinon.assert.calledOnce(media.setMuteState);
-      sinon.assert.calledWith(media.setMuteState, 'local', 'both', false);
-    });
-  });
+        call.resume(true);
 
-  describe("#upgrade", function() {
-    it("should change the state from ready to pending", function() {
-      call.state.current = 'ongoing';
-      call.upgrade({});
-      expect(call.state.current).to.equal('pending');
-    });
-
-    it("should listen to offer-ready from the media", function() {
-      call.state.current = 'ongoing';
-      call.upgrade({});
-      sinon.assert.calledWith(media.once, "offer-ready");
-    });
-
-    it("should pass new media constraints to the media", function() {
-      call.state.current = 'ongoing';
-      call.upgrade({audio: true});
-
-      sinon.assert.calledOnce(media.upgrade);
-      sinon.assert.calledWithExactly(media.upgrade, {audio: true});
-    });
-
-    describe("send-offer", function() {
-      var fakeOffer = {offer: {fake: true}};
-
-      beforeEach(function() {
-        call.state.current = 'ongoing';
-        call.media = _.extend(media, Backbone.Events);
-        peer.set("nick", "larry");
-        call.id = 2;
-
-        call.upgrade({});
+        sinon.assert.calledOnce(media.setMuteState);
+        sinon.assert.calledWith(media.setMuteState, 'local', 'both', false);
       });
 
-      it("should trigger send-offer with transport data on offer-ready",
-        function(done) {
-          call.once("send-offer", function(data) {
-            expect(data.offer).to.deep.equal(fakeOffer);
-            expect(data.peer).to.equal(peer.get("nick"));
-            expect(data.callid).to.equal(call.callid);
-            done();
-          });
-
-          call.media.trigger("offer-ready", fakeOffer);
+    it("should unmute only the audio stream for video calls when video is " +
+      "not specified", function() {
+        call.state.current = 'hold';
+        call.set('currentConstraints', {
+          video: true,
+          audio: true
         });
+
+        call.resume(false);
+
+        sinon.assert.calledOnce(media.setMuteState);
+        sinon.assert.calledWith(media.setMuteState, 'local', 'audio', false);
+      });
+
+    it("should unmute only the audio stream for audio calls", function() {
+      call.state.current = 'hold';
+      call.set('currentConstraints', {
+        video: false,
+        audio: true
+      });
+
+      call.resume(true);
+
+      sinon.assert.calledOnce(media.setMuteState);
+      sinon.assert.calledWith(media.setMuteState, 'local', 'audio', false);
     });
   });
 

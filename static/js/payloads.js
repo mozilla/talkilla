@@ -24,7 +24,6 @@ var payloads = (function() {
     this.callid   = data.callid;
     this.peer     = data.peer;
     this.offer    = data.offer;
-    this.upgrade  = data.upgrade  || false;
   }
 
   Offer.prototype = {
@@ -32,8 +31,7 @@ var payloads = (function() {
       return {
         callid: this.callid,
         peer: this.peer,
-        offer: this.offer,
-        upgrade: this.upgrade
+        offer: this.offer
       };
     }
   };
@@ -164,7 +162,9 @@ var payloads = (function() {
    *
    * - {Integer} callid, the id of the call being initiated
    * - {String} peer, the user to call
-   *
+   * - {Object} media An object containing one item, video which
+   *                  is a boolean and should be set to true to
+   *                  resume with video
    */
   function Resume(data) {
     this.callid = data.callid;

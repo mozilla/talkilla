@@ -93,6 +93,10 @@ Run one test file:
 
     $ ./bin/run_selenium_test.sh test/functional/test_SingleBrowser.py
 
+Run one test in particular in a file (the quotes are important):
+
+    $ ./bin/run_selenium_test.sh "test/functional/test_MultipleBrowsers.py MultipleBrowsersTest.test_video_call"
+
 Debugging a single test:
 
     # start selenium and get the right stuff in your $PATH

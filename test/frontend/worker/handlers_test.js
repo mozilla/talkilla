@@ -70,7 +70,13 @@ describe('handlers', function() {
 
     it("should clear the current conversation on receiving " +
        "social.port-closing for the conversation port", function() {
-        currentConversation = new Conversation({}, spa);
+        currentConversation = new Conversation({
+          capabilities: spa.capabilities,
+          peer: spa,
+          browserPort: browserPort,
+          users: tkWorker.users,
+          user: tkWorker.user
+        });
         currentConversation.port = port;
 
         handlers['social.port-closing'].bind(port)();
@@ -101,14 +107,36 @@ describe('handlers', function() {
 
     it("should create a new conversation object when receiving a " +
        "talkilla.conversation-open event", function() {
+        var offerMsg = new payloads.Offer({
+          offer: "fake offer",
+          peer: "alice"
+        });
+        tkWorker.users.set("alice", {});
         handlers.postEvent = sinon.spy();
         handlers['talkilla.conversation-open']({
           topic: "talkilla.conversation-open",
-          data: {}
+          data: offerMsg
         });
 
         expect(currentConversation).to.be.an.instanceOf(Conversation);
       });
+
+    it("should store the contact", function() {
+      sandbox.stub(tkWorker.contactsDb, "add");
+      var offerMsg = new payloads.Offer({
+        offer: "fake offer",
+        peer: "alice"
+      });
+      tkWorker.users.set("alice", {});
+      handlers.postEvent = sinon.spy();
+      handlers['talkilla.conversation-open']({
+        topic: "talkilla.conversation-open",
+        data: offerMsg
+      });
+
+      sinon.assert.calledOnce(tkWorker.contactsDb.add);
+      sinon.assert.calledWith(tkWorker.contactsDb.add, {username: "alice"});
+    });
   });
 
   describe("talkilla.chat-window-ready", function() {
@@ -315,6 +343,36 @@ describe('handlers', function() {
         sinon.assert.calledOnce(spa.iceCandidate);
         sinon.assert.calledWithExactly(spa.iceCandidate, iceCandidateMsg);
       });
+  });
+
+  describe("talkilla.spa-forget-credentials", function() {
+
+    it("should make the spa forget credentials", function() {
+      sandbox.stub(spa, "forgetCredentials");
+      handlers['talkilla.spa-forget-credentials']({
+        topic: "talkilla.spa-forget-credentials",
+        data: "TalkillaSPA" // XXX: part of the interface but not used
+                            // for now.
+      });
+
+      sinon.assert.calledOnce(spa.forgetCredentials);
+    });
+
+  });
+
+  describe("talkilla.spa-disable", function() {
+
+    it("should drop the SPA database", function() {
+      sandbox.stub(tkWorker.spaDb, "drop");
+      handlers['talkilla.spa-disable']({
+        topic: "talkilla.spa-disable",
+        data: "TalkillaSPA" // XXX: part of the interface but not used
+                            // for now.
+      });
+
+      sinon.assert.calledOnce(tkWorker.spaDb.drop);
+    });
+
   });
 
 });
