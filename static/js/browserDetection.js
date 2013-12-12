@@ -39,8 +39,7 @@ var browserDetection = (function ($) {
   };
 
   app._isFirefox = function(userAgent) {
-    var ua = userAgent.toLowerCase();
-    return ua.search(/firefox/) !== -1;
+    return userAgent.toLowerCase().contains("firefox");
   };
 
   app.activateSocial = function(node, userAgent) {
