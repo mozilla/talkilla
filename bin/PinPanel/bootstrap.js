@@ -155,7 +155,7 @@ function unload(callback, container) {
 */
 function pinPanel(window) {
   function ppDebug() {
-    var _ppDebug = false;
+    var _ppDebug = true;
 
     if (_ppDebug)
       window.console.log.apply(window.console, arguments);
