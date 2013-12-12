@@ -42,7 +42,7 @@ describe("CurrentUsers", function() {
 
     describe("#get", function() {
       it("should retrieve an existing user", function() {
-        expect(users.get("jb")).eql({presence: "disconnected"});
+        expect(users.get("jb")).eql({username:"jb", presence: "disconnected"});
       });
 
       it("shouldn't retrieve a nonexistent user", function() {
@@ -69,8 +69,8 @@ describe("CurrentUsers", function() {
         users.updateContacts(contacts);
 
         expect(users.all()).eql({
-          jb: {presence: "disconnected"},
-          foo: {presence: "disconnected"}
+          jb: {username:"jb", presence: "disconnected"},
+          foo: {username:"foo", presence: "disconnected"}
         });
       });
 
@@ -80,8 +80,8 @@ describe("CurrentUsers", function() {
         users.updateContacts(contacts);
 
         expect(users.all()).eql({
-          jb: {presence: "disconnected"},
-          foo: {presence: "connected"}
+          jb: {username:"jb", presence: "disconnected"},
+          foo: {username:"foo", presence: "connected"}
         });
       });
     });
