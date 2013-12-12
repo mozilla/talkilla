@@ -13,7 +13,7 @@
     el: 'body',
 
     events: {
-      'click a.user-entry': 'closeIfPanel'
+      'click a.user-entry': 'clickUserEntry'
     },
 
     isInSidebar: false, // default to panel
@@ -59,7 +59,7 @@
       this.$el.css("max-height", (height - safetyHeightMargin) + "px");
     },
 
-    closeIfPanel: function() {
+    clickUserEntry: function() {
       if (!this.isInSidebar)
         window.close();
     },
