@@ -143,14 +143,15 @@ function _setupSPA(spa) {
 
   spa.on("message:users", function(data) {
     data.forEach(function(user) {
-      tkWorker.users.set(user.nick, {presence: "connected"});
+      tkWorker.users.set(user.nick,
+                         {username: user.nick, presence: "connected"});
     });
 
     tkWorker.ports.broadcastEvent("talkilla.users", tkWorker.users.toArray());
   });
 
   spa.on("message:userJoined", function(userId) {
-    tkWorker.users.set(userId, {presence: "connected"});
+    tkWorker.users.set(userId, {username:userId, presence: "connected"});
 
     tkWorker.ports.broadcastEvent("talkilla.users", tkWorker.users.toArray());
     tkWorker.ports.broadcastEvent("talkilla.user-joined", userId);

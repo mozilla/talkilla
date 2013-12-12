@@ -31,7 +31,7 @@ describe("Conversation", function() {
         user: tkWorker.user
       });
 
-      expect(currentConversation.peer).to.deep.equal({ username: "florian"});
+      expect(currentConversation.peer).to.deep.equal({username: "florian"});
     });
 
     it("should store the offer", function() {
@@ -79,8 +79,11 @@ describe("Conversation", function() {
         offer: {sdp: "fake"}
       };
       tkWorker.user.name = "romain";
-      peer = "florian";
-      tkWorker.users.set("florian", { presence: "connected" });
+      tkWorker.users.set("florian", {
+        username: "florian",
+        presence: "connected"
+      });
+      peer = tkWorker.users.get("florian");
     });
 
     afterEach(function() {
@@ -92,7 +95,7 @@ describe("Conversation", function() {
     it("should store the port", function() {
       currentConversation = new Conversation({
         capabilities: spa.capabilities,
-        peer: tkWorker.users.get(peer),
+        peer: peer,
         browserPort: browserPort,
         users: tkWorker.users,
         user: tkWorker.user
@@ -107,7 +110,7 @@ describe("Conversation", function() {
       "non-incoming call", function() {
         currentConversation = new Conversation({
           capabilities: spa.capabilities,
-          peer: tkWorker.users.get(peer),
+          peer: peer,
           browserPort: browserPort,
           users: tkWorker.users,
           user: tkWorker.user
@@ -130,7 +133,7 @@ describe("Conversation", function() {
       function() {
         currentConversation = new Conversation({
           capabilities: spa.capabilities,
-          peer: tkWorker.users.get(peer),
+          peer: peer,
           offer: offer,
           browserPort: browserPort,
           users: tkWorker.users,
@@ -156,7 +159,7 @@ describe("Conversation", function() {
       function() {
         currentConversation = new Conversation({
           capabilities: spa.capabilities,
-          peer: tkWorker.users.get(peer),
+          peer: peer,
           offer: offer,
           browserPort: browserPort,
           users: tkWorker.users,
@@ -167,7 +170,7 @@ describe("Conversation", function() {
           topic: "talkilla.conversation-incoming",
           data: {
             capabilities: [],
-            peer: tkWorker.users.get(peer),
+            peer: peer,
             peerPresence: "disconnected",
             offer: offer,
             user: tkWorker.user.name
@@ -182,7 +185,7 @@ describe("Conversation", function() {
         sinon.assert.calledWith(port.postEvent,
           "talkilla.conversation-incoming", {
           capabilities: [],
-          peer: tkWorker.users.get(peer),
+          peer: peer,
           peerPresence: "disconnected",
           offer: offer,
           user: tkWorker.user.name
@@ -195,7 +198,7 @@ describe("Conversation", function() {
 
       currentConversation = new Conversation({
         capabilities: spa.capabilities,
-        peer: tkWorker.users.get(peer),
+        peer: peer,
         browserPort: browserPort,
         users: tkWorker.users,
         user: tkWorker.user
@@ -257,17 +260,20 @@ describe("Conversation", function() {
       port = {
         postEvent: sandbox.spy()
       };
-      peer = "florian";
       offer = {
-        peer: peer,
+        peer: "florian",
         offer: {sdp: "fake"}
       };
 
-      tkWorker.users.set(peer, { presence: "connected" });
+      tkWorker.users.set("florian", {
+        username: "florian",
+        presence: "connected"
+      });
+      peer = tkWorker.users.get("florian");
 
       currentConversation = new Conversation({
         capabilities: spa.capabilities,
-        peer: tkWorker.users.get(peer),
+        peer: peer,
         browserPort: browserPort,
         users: tkWorker.users,
         user: tkWorker.user
@@ -312,7 +318,7 @@ describe("Conversation", function() {
       });
 
     it("should send peer presence information", function() {
-      tkWorker.users.set(peer, { presence: "disconnected" });
+      peer.presence = "disconnected";
 
       currentConversation.handleIncomingCall(offer);
 

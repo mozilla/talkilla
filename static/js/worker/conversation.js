@@ -59,7 +59,7 @@ var Conversation = (function() {
       // XXX: remove the need for this.users after we have a user object
       var msg = {
         capabilities: this.capabilities,
-        peer: this.peer.username,
+        peer: this.peer,
         peerPresence: this.users.getPresence(this.peer.username),
         user: this.user.name
       };
@@ -100,7 +100,7 @@ var Conversation = (function() {
 
       this._sendMessage("talkilla.conversation-incoming", {
         capabilities: this.capabilities,
-        peer: this.peer.username,
+        peer: this.peer,
         peerPresence: this.users.getPresence(this.peer.username),
         offer: offer,
         user: this.user.name

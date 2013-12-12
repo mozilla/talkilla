@@ -59,17 +59,15 @@ var CurrentUsers = (function() {
     },
 
     /**
-     * Update current users list with provided contacts list.
+     * Update current users list with provided contacts list, preserving the
+     * presence property.
      * @param  {Array} contacts Contacts list
      */
     updateContacts: function(contacts) {
       (contacts || [])
-        .map(function(contact) {
-          return contact.username;
-        })
-        .forEach(function(userId) {
-          if (!this.has(userId))
-            this.set(userId, {presence: "disconnected"});
+        .forEach(function(contact) {
+          contact.presence = this.getPresence(contact.username);
+          this.set(contact.username, contact);
         }, this);
     },
 

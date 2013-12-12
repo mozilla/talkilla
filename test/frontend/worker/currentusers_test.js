@@ -16,7 +16,7 @@ describe("CurrentUsers", function() {
 
     beforeEach(function() {
       users = new CurrentUsers();
-      users.set("jb", {presence: "disconnected"});
+      users.set("jb", {username: "jb", presence: "disconnected"});
     });
 
     afterEach(function() {
@@ -75,13 +75,14 @@ describe("CurrentUsers", function() {
       });
 
       it("shouldn't duplicate contacts", function() {
-        users.set('foo', {presence: "connected"});
+        users.set('foo', {username: "foo", presence: "connected"});
 
         users.updateContacts(contacts);
+        console.log(users.all());
 
         expect(users.all()).eql({
-          jb: {username:"jb", presence: "disconnected"},
-          foo: {username:"foo", presence: "connected"}
+          jb: {username: "jb", presence: "disconnected"},
+          foo: {username: "foo", presence: "connected"}
         });
       });
     });
