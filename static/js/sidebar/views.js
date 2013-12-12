@@ -48,6 +48,15 @@
       if (options.isInSidebar) {
         this.isInSidebar = options.isInSidebar;
       }
+
+      this.on("resize", this._onResize, this);
+    },
+
+    _onResize: function(width, height) {
+      if (this.isInSidebar)
+        return;
+      var safetyHeightMargin = 120; // 120px height safety margin
+      this.$el.css("max-height", (height - safetyHeightMargin) + "px");
     },
 
     closeIfPanel: function() {
