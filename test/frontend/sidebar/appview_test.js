@@ -166,6 +166,28 @@ describe("AppView", function() {
       });
     });
 
+    describe("resize", function() {
+      it("should update the panel css when it's resized", function() {
+        appViewOptions.isInSidebar = false;
+        var appView = new app.views.AppView(appViewOptions);
+        sandbox.stub(appView.$el, "css");
+
+        appView.trigger("resize", 400, 300);
+
+        sinon.assert.calledOnce(appView.$el.css);
+        sinon.assert.calledWithExactly(appView.$el.css, "max-height", "180px");
+      });
+
+      it("shouldn't update css when we're in a sidebar", function() {
+        appViewOptions.isInSidebar = true;
+        var appView = new app.views.AppView(appViewOptions);
+        sandbox.stub(appView.$el, "css");
+
+        appView.trigger("resize", 400, 300);
+
+        sinon.assert.notCalled(appView.$el.css);
+      });
+    });
   });
 
 });
