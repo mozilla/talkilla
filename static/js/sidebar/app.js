@@ -9,6 +9,11 @@ var SidebarApp = (function(app, $) {
   function SidebarApp(options) {
     options = options || {};
 
+    if (options.location)
+      this._location = new URL(options.location);
+    else
+      this._location = window.location;
+
     this.http = new HTTP();
     this.appPort = new AppPort();
 
@@ -24,6 +29,7 @@ var SidebarApp = (function(app, $) {
     };
 
     this.view = new app.views.AppView({
+      isInSidebar: this._location.search === "?sidebar",
       appStatus: this.appStatus,
       user: this.user,
       users: this.users,
@@ -52,6 +58,7 @@ var SidebarApp = (function(app, $) {
     this.spa.on("dial", this.openConversation, this);
 
     window.addEventListener("message", this._onSPASetup.bind(this), false);
+    window.addEventListener("resize", this._onWindowResized.bind(this), false);
 
     this.appPort.post("talkilla.sidebar-ready");
 
@@ -63,6 +70,10 @@ var SidebarApp = (function(app, $) {
     // XXX Hide or disable the import button at the start and add a callback
     // here to show it when this completes.
     this.services.google.initialize();
+  };
+
+  SidebarApp.prototype._onWindowResized = function() {
+    this.view.trigger("resize", window.outerWidth, window.outerHeight);
   };
 
   SidebarApp.prototype._onUserProfile = function(userData) {

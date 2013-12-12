@@ -75,3 +75,11 @@ selenium-repeat:
 frontend:
 	bin/run_selenium_test.sh "python -m unittest discover -v test/frontend"
 
+PINPANEL_DIR ?= bin/PinPanel
+PINPANEL_SRCS ?= $(PINPANEL_DIR)/install.rdf $(PINPANEL_DIR)/bootstrap.js
+bin/PinPanel.xpi: $(PINPANEL_SRCS)
+	rm -f bin/PinPanel.xpi
+	( cd bin/PinPanel && zip ../PinPanel.xpi install.rdf bootstrap.js )
+
+.PHONY: pinpanel
+pinpanel: bin/PinPanel.xpi
