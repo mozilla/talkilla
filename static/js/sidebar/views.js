@@ -45,9 +45,8 @@
         spa: options.spa
       });
 
-      if (options.isInSidebar) {
+      if (options.isInSidebar)
         this.isInSidebar = options.isInSidebar;
-      }
 
       this.on("resize", this._onResize, this);
     },
