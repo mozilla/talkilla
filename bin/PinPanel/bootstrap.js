@@ -53,7 +53,9 @@ function watchWindows(callback) {
       if (documentElement.getAttribute("windowtype") == "navigator:browser")
         callback(window);
     }
-    catch(ex) {}
+    catch(ex) {
+      window.console.log("PinPanel: ignored " + ex);
+    }
   }
 
   // Wait for the window to finish loading before running the callback
@@ -206,7 +208,7 @@ function pinPanel(window) {
   // be nice to use a DOM load event handler, but this code may run long
   // after that has fired.
   ppDebug("about to call setTimeout");
-  window.setTimeout(attachHandlers.bind(this), 250);
+  window.setTimeout(attachHandlers.bind(this), 500);
   ppDebug("setTimeout called");
 }
 
