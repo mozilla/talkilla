@@ -10,7 +10,6 @@ describe("browserDetection.app", function() {
     node = $("#fixtures").append(el).get()[0];
 
     sandbox = sinon.sandbox.create();
-    userAgent = navigator.userAgent;
   });
 
   afterEach(function() {
@@ -23,6 +22,7 @@ describe("browserDetection.app", function() {
     it('should set the data-service attr on the given node to a JSON object',
       function() {
       sandbox.stub(node, "dispatchEvent");
+      userAgent = navigator.userAgent;
 
       browserDetection.activateSocial(node, userAgent);
 
@@ -64,7 +64,7 @@ describe("browserDetection.app", function() {
         function handler() {
           done();
         }
-
+        userAgent = navigator.userAgent;
         node.addEventListener("ActivateSocialFeature", handler);
 
         browserDetection.activateSocial(node, userAgent);
