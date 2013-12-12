@@ -131,12 +131,18 @@
     tagName: 'li',
 
     template: _.template([
-      '<a href="#" rel="<%= username %>">',
+      '<a href="#" rel="<%= username %>"',
+      '  <% if (!_.isUndefined(fullName)) { %>',
+      '       title="<%= username %>"',
+      '  <% } %> >',
       '  <div class="avatar">',
       '    <img src="<%= avatar %>">',
       '    <span class="status status-<%= presence %>"></span>',
       '  </div>',
-      '  <span class="username"><%= username %></span>',
+      '  <span class="username">',
+      '    <% if (_.isUndefined(fullName)) { %> <%= username %> <% }',
+      '       else { %> <%= fullName %> <% } %>',
+      '  </span>',
       '</a>'
     ].join('')),
 

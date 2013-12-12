@@ -89,17 +89,13 @@ var CurrentUsers = (function() {
     /**
      * Returns current users object mapped as an array.
      *
-     * XXX: - we use this to map to what the sidebar wants, really the sidebar
-     *        should change so that we can just send the object.
-     *      - users related logic should be moved to a dedicated object.
-     *
      * @return {Array}
      */
     toArray: function() {
       if (Object.keys(this.users).length === 0)
         return [];
       return Object.keys(this.users).map(function(userId) {
-        return {username: userId, presence: this.users[userId].presence};
+        return this.users[userId];
       }, this);
     }
   };

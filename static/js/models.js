@@ -48,6 +48,7 @@
    */
   app.models.User = Backbone.Model.extend({
     defaults: {username: undefined,
+               fullName: undefined,
                avatar: "img/default-avatar.png",
                presence: "disconnected"},
 

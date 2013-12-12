@@ -10,6 +10,7 @@ describe("app.models", function() {
       var user = new app.models.User();
       expect(user.defaults).to.deep.equal({
         username: undefined,
+        fullName: undefined,
         avatar: "img/default-avatar.png",
         presence: "disconnected"
       });
