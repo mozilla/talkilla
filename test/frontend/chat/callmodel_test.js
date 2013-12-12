@@ -123,7 +123,7 @@ describe("Call Model", function() {
 
       beforeEach(function() {
         call.media = _.extend(media, Backbone.Events);
-        peer.set("nick", "larry");
+        peer.set("username", "larry");
 
         call.start({});
       });
@@ -175,7 +175,7 @@ describe("Call Model", function() {
 
       beforeEach(function() {
         call.media = _.extend(media, Backbone.Events);
-        peer.set("nick", "larry");
+        peer.set("username", "larry");
 
         call.start({});
       });
@@ -247,7 +247,7 @@ describe("Call Model", function() {
     it("should trigger send-answer with transport data on answer-ready",
       function(done) {
         call.media = _.extend(media, Backbone.Events);
-        peer.set("nick", "larry");
+        peer.set("username", "larry");
         var fakeAnswer = {peer: "larry", answer: {fake: true}};
         call.once("send-answer", function(data) {
           expect(data.answer).to.deep.equal(fakeAnswer);
@@ -303,7 +303,7 @@ describe("Call Model", function() {
   describe("#timeout", function() {
     beforeEach(function() {
       call.start({});
-      call.peer.set("nick", "Mark");
+      call.peer.set("username", "Mark");
       call.callid = 2;
     });
 
@@ -389,7 +389,7 @@ describe("Call Model", function() {
 
     it("should trigger send-hangup", function(done) {
       call.start({});
-      call.peer.set("nick", "Mark");
+      call.peer.set("username", "Mark");
       call.callid = 2;
 
       call.on("send-hangup", function(hangupMsg) {
@@ -405,7 +405,7 @@ describe("Call Model", function() {
 
   describe("#move", function() {
     it("should trigger an initiate-move event", function(done) {
-      call.peer.set("nick", "alexis");
+      call.peer.set("username", "alexis");
       call.callid = 1337;
 
       call.on("initiate-move", function(moveMsg) {

@@ -266,11 +266,11 @@ class BrowserTest(unittest.TestCase):
     def assertCallTimedOut(self, driver):
         self.assertElementVisible(driver, ".btn-call-again")
 
-    def assertSignedInAs(self, driver, nick):
+    def assertSignedInAs(self, driver, username):
         driver.switchToSidebar()
         # We might have just reloaded, so wait a bit in case it
         # isn't there yet.
-        self.assertElementTextEquals(driver, "strong.nick", nick, True)
+        self.assertElementTextEquals(driver, "strong.username", username, True)
         self.assertElementVisible(driver, "#signout")
 
     def assertSignedOut(self, driver):

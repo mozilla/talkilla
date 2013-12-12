@@ -31,7 +31,7 @@ describe("Call Controls View", function() {
       on: sandbox.stub(),
       state: {current: "ready"}
     };
-    var user = new app.models.User({nick: "foo"});
+    var user = new app.models.User({username: "foo"});
     call = new app.models.Call({}, {peer: user, media: media});
   });
 

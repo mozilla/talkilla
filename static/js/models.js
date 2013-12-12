@@ -47,7 +47,7 @@
    * User model.
    */
   app.models.User = Backbone.Model.extend({
-    defaults: {nick: undefined,
+    defaults: {username: undefined,
                avatar: "img/default-avatar.png",
                presence: "disconnected"},
 
@@ -67,7 +67,7 @@
      */
     isLoggedIn: function() {
       return this.get('presence') !== "disconnected" &&
-        this.get('nick') !== undefined;
+        this.get('username') !== undefined;
     },
 
     /**
@@ -76,7 +76,7 @@
      */
     wasLoggedIn: function() {
       return this.previous('presence') !== "disconnected" &&
-        this.previous('nick') !== undefined;
+        this.previous('username') !== undefined;
     }
   });
 

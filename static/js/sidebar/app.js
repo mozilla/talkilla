@@ -64,7 +64,7 @@ var SidebarApp = (function(app, $) {
   };
 
   SidebarApp.prototype._onUserProfile = function(userData) {
-    this.user.set({nick: userData.userName});
+    this.user.set({username: userData.userName});
   };
 
   SidebarApp.prototype._onUserSignoutRequested = function() {

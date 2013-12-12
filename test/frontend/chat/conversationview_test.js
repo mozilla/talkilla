@@ -94,7 +94,7 @@ describe("ConversationView", function() {
       expect(view.textChat).to.equal(textChat);
     });
 
-    it("should listen to peer's nick change", function() {
+    it("should listen to peer's username change", function() {
       new app.views.ConversationView({
         call: call,
         peer: peer,
@@ -103,7 +103,7 @@ describe("ConversationView", function() {
       });
 
       sinon.assert.called(peer.on);
-      sinon.assert.calledWith(peer.on, "change:nick");
+      sinon.assert.calledWith(peer.on, "change:username");
     });
 
     it("should listen to peer's presence change", function() {
@@ -120,7 +120,7 @@ describe("ConversationView", function() {
 
     it("should update the document title on change of the peer's details",
       function() {
-        peer.set({nick: "nick"});
+        peer.set({username: "username"});
         new app.views.ConversationView({
           call: call,
           peer: peer,
@@ -130,7 +130,7 @@ describe("ConversationView", function() {
 
         peer.on.args[0][1](peer);
 
-        expect(document.title).to.be.equal("nick");
+        expect(document.title).to.be.equal("username");
       });
 
     it("should update presence icon when peer's is connected", function() {
@@ -417,7 +417,7 @@ describe("ConversationView", function() {
         el: '#fixtures'
       });
 
-      peer.set("nick", "hardfire");
+      peer.set("username", "hardfire");
       clock = sinon.useFakeTimers();
     });
 

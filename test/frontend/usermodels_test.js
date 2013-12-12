@@ -9,7 +9,7 @@ describe("app.models", function() {
     it("should be initialized with a sensible defaults object", function() {
       var user = new app.models.User();
       expect(user.defaults).to.deep.equal({
-        nick: undefined,
+        username: undefined,
         avatar: "img/default-avatar.png",
         presence: "disconnected"
       });
@@ -25,9 +25,9 @@ describe("app.models", function() {
         expect(user.isLoggedIn()).to.equal(false);
       });
 
-      it("should be logged out when the user nick is specified, but the user" +
-         "is disconnected", function() {
-        user.set('nick', 'nicolas');
+      it("should be logged out when the user username is specified, but the " +
+         "user is disconnected", function() {
+        user.set('username', 'nicolas');
         expect(user.isLoggedIn()).to.equal(false);
       });
 
@@ -40,7 +40,7 @@ describe("app.models", function() {
       it("should be logged in when the presence is not disconnected and " +
          "the username is specified", function() {
         user.set('presence', 'connected');
-        user.set('nick', 'nicolas');
+        user.set('username', 'nicolas');
         expect(user.isLoggedIn()).to.equal(true);
       });
     });
@@ -58,7 +58,7 @@ describe("app.models", function() {
 
       describe("already logged in", function() {
         beforeEach(function() {
-          user.set('nick', 'dan');
+          user.set('username', 'dan');
           user.set('presence', 'connected');
         });
 
@@ -76,7 +76,7 @@ describe("app.models", function() {
 
         it("should change to logged in when the user is logged out",
           function() {
-            user.set('nick', undefined);
+            user.set('username', undefined);
 
             expect(user.wasLoggedIn()).to.equal(true);
           });
@@ -110,7 +110,7 @@ describe("app.models", function() {
 
       it("should send a signin message when the user signs in", function() {
         // Set up the model as logged in
-        user.set('nick', 'dan');
+        user.set('username', 'dan');
         user.set('presence', 'connected');
 
         // Now we want to stub the trigger, to catch the call
@@ -126,9 +126,9 @@ describe("app.models", function() {
 
       it("should send a signin message when the user signs in", function() {
         // Set up the model as logged out by first logging in, then out.
-        user.set('nick', 'dan');
+        user.set('username', 'dan');
         user.set('presence', 'connected');
-        user.set('nick', undefined);
+        user.set('username', undefined);
 
         // Now we want to stub the trigger, to catch the call
         sandbox.stub(user, "trigger");

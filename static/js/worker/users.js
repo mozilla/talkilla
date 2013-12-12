@@ -99,7 +99,7 @@ var CurrentUsers = (function() {
       if (Object.keys(this.users).length === 0)
         return [];
       return Object.keys(this.users).map(function(userId) {
-        return {nick: userId, presence: this.users[userId].presence};
+        return {username: userId, presence: this.users[userId].presence};
       }, this);
     }
   };
