@@ -42,8 +42,6 @@ var SidebarApp = (function(app, $) {
     this.appPort.on("talkilla.spa-error", this._onSPAError, this);
     this.appPort.on("talkilla.presence-unavailable",
                  this._onPresenceUnavailable, this);
-    this.appPort.on("talkilla.chat-window-ready",
-                 this._onChatWindowReady, this);
     this.appPort.on("talkilla.worker-ready", this._onWorkerReady, this);
     this.appPort.on("social.user-profile", this._onUserProfile, this);
     this.appPort.on('talkilla.reauth-needed', this._onReauthNeeded, this);
@@ -66,7 +64,7 @@ var SidebarApp = (function(app, $) {
   };
 
   SidebarApp.prototype._onUserProfile = function(userData) {
-    this.user.set({nick: userData.userName});
+    this.user.set({username: userData.userName});
   };
 
   SidebarApp.prototype._onUserSignoutRequested = function() {
@@ -80,10 +78,6 @@ var SidebarApp = (function(app, $) {
 
   SidebarApp.prototype.openConversation = function(peer) {
     this.appPort.post('talkilla.conversation-open', {peer: peer});
-  };
-
-  SidebarApp.prototype._onChatWindowReady = function() {
-    this.appPort.post('talkilla.user-nick', {nick: this.user.get('nick')});
   };
 
   SidebarApp.prototype._onSPASetup = function(event) {

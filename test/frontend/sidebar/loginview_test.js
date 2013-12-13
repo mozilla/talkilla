@@ -102,7 +102,7 @@ describe("LoginView", function() {
         expect(loginView.$('#signout').is(':visible')).to.equal(false);
       });
 
-    it("should display signin and hide signout when there is not a nick",
+    it("should display signin and hide signout when there is not a username",
       function() {
         appStatus.set("workerInitialized", true);
         loginView.render();
@@ -112,10 +112,10 @@ describe("LoginView", function() {
         expect(loginView.$('#signout').is(':visible')).to.equal(false);
       });
 
-    it("should hide signin and display signout when there is not a nick",
+    it("should hide signin and display signout when there is not a username",
       function() {
         appStatus.set("workerInitialized", true);
-        user.set("nick", "james");
+        user.set("username", "james");
         loginView.render();
 
         expect(loginView.$('#signin').is(':visible')).to.equal(false);
