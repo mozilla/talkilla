@@ -73,8 +73,9 @@ User.prototype.send = function(topic, data) {
   else
     // if we try to send data to a non present user we do not fail but
     // we log a warning.
+    // Note: be careful not to expose user data here.
     logger.warn("Could not forward event " +
-                JSON.stringify(event) + " to non present peer");
+                topic + " to non present peer");
   return this;
 };
 
