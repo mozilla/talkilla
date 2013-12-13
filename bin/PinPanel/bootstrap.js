@@ -170,12 +170,13 @@ function pinPanel(window) {
     socPanel.setAttribute("noautohide", "true");
     ppDebug("socPanel.noautohide = " + socPanel.getAttribute("noautohide"));
 
-    var socButton =
-      window.document.getElementsByClassName("social-status-button")[0];
-    ppDebug("socButton = " + socButton);
-
     socPanel.addEventListener("popupshown", function() {
       ppDebug("in popupshown handler");
+
+      var socButton =
+        window.document.getElementsByClassName("social-status-button")[0];
+      ppDebug("socButton = " + socButton);
+      ppDebug("socButton ID = " + socButton.getAttribute("id"));
 
       function buttonListener(e) {
         ppDebug("in buttonListener");
@@ -208,7 +209,7 @@ function pinPanel(window) {
   // be nice to use a DOM load event handler, but this code may run long
   // after that has fired.
   ppDebug("about to call setTimeout");
-  window.setTimeout(attachHandlers.bind(this), 500);
+  window.setTimeout(attachHandlers.bind(this), 1000);
   ppDebug("setTimeout called");
 }
 
