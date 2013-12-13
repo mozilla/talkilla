@@ -9,7 +9,14 @@
    * Global app view.
    */
   app.views.AppView = app.views.BaseView.extend({
+
     el: 'body',
+
+    events: {
+      'click a.user-entry': 'clickUserEntry'
+    },
+
+    isInSidebar: false, // default to panel
 
     initialize: function(options) {
       options = this.checkOptions(options, "user", "users", "appStatus", "spa");
@@ -37,6 +44,23 @@
         user: options.user,
         spa: options.spa
       });
+
+      if (options.isInSidebar)
+        this.isInSidebar = options.isInSidebar;
+
+      this.on("resize", this._onResize, this);
+    },
+
+    _onResize: function(width, height) {
+      if (this.isInSidebar)
+        return;
+      var safetyHeightMargin = 120; // 120px height safety margin
+      this.$el.css("max-height", (height - safetyHeightMargin) + "px");
+    },
+
+    clickUserEntry: function() {
+      if (!this.isInSidebar)
+        window.close();
     },
 
     render: function() {
@@ -80,7 +104,7 @@
 
     render: function() {
       this.display(this.user.isLoggedIn() && this.spa.supports("pstn-call"));
-    },
+    }
   });
 
   /**
@@ -131,7 +155,7 @@
     tagName: 'li',
 
     template: _.template([
-      '<a href="#" rel="<%= nick %>">',
+      '<a class="user-entry" href="#" rel="<%= nick %>">',
       '  <div class="avatar">',
       '    <img src="<%= avatar %>">',
       '    <span class="status status-<%= presence %>"></span>',
