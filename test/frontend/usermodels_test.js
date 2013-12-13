@@ -16,6 +16,14 @@ describe("app.models", function() {
       });
     });
 
+    describe("#toJSON", function() {
+      it("should include fullName dynamic getter value", function() {
+        var json = new app.models.User({username: "mark"}).toJSON();
+        expect(json).to.have.property("fullName");
+        expect(json.fullName).eql("mark");
+      });
+    });
+
     describe("#get", function() {
       var TestUser = app.models.User.extend({
         defaults: {foo: "bar"},
@@ -31,18 +39,18 @@ describe("app.models", function() {
       });
     });
 
-    describe("#displayName", function() {
-      it("should return the full name when data is available", function() {
+    describe("#fullName", function() {
+      it("should return the full name when attribute is available", function() {
         var user = new app.models.User({
           username: "mark",
           fullName: "Mark Banner"
         });
-        expect(user.displayName()).eql("Mark Banner");
+        expect(user.fullName()).eql("Mark Banner");
       });
 
-      it("should return the username when full name is missing", function() {
+      it("should return the username when attribute is undefined", function() {
         var user = new app.models.User({username: "mark"});
-        expect(user.displayName()).eql("mark");
+        expect(user.fullName()).eql("mark");
       });
     });
 

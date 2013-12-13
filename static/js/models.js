@@ -64,6 +64,18 @@
     },
 
     /**
+     * Overrides Backbone.Model#toJSON to include dynamically generated atribute
+     * values.
+     * @overrides Backbone.Model.prototype.toJSON
+     * @return {Object}
+     */
+    toJSON: function() {
+      return _.extend(Backbone.Model.prototype.toJSON.call(this), {
+        fullName: this.get("fullName")
+      });
+    },
+
+    /**
      * Overrides Backbone.Model#get to check if a method exists within the
      * current prototype to retrieve an attribute value, process it and returns
      * the resulting value.
@@ -82,12 +94,12 @@
     },
 
     /**
-     * Returns user display name, which is the full name when available, or the
-     * username by default.
+     * Returns user full name when the attribute is available, or the username
+     * by default.
      * @return {String}
      */
-    displayName: function() {
-      return this.get("fullName") || this.get("username");
+    fullName: function() {
+      return this.attributes.fullName || this.get("username");
     },
 
     /**

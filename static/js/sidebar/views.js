@@ -131,12 +131,12 @@
     tagName: 'li',
 
     template: _.template([
-      '<a href="#" rel="<%= username %>" title="<%= displayName %>">',
+      '<a href="#" rel="<%= username %>" title="<%= fullName %>">',
       '  <div class="avatar">',
       '    <img src="<%= avatar %>">',
       '    <span class="status status-<%= presence %>"></span>',
       '  </div>',
-      '  <span class="username"><%= displayName %></span>',
+      '  <span class="username"><%= fullName %></span>',
       '</a>'
     ].join('')),
 
