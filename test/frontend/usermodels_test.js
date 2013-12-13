@@ -16,6 +16,36 @@ describe("app.models", function() {
       });
     });
 
+    describe("#get", function() {
+      var TestUser = app.models.User.extend({
+        defaults: {foo: "bar"},
+        bar: function() { return "baz"; }
+      });
+
+      it("should returns attribute value from a string", function() {
+        expect(new TestUser().get("foo")).eql("bar");
+      });
+
+      it("should returns attribute value from a function", function() {
+        expect(new TestUser().get("bar")).eql("baz");
+      });
+    });
+
+    describe("#displayName", function() {
+      it("should return the full name when data is available", function() {
+        var user = new app.models.User({
+          username: "mark",
+          fullName: "Mark Banner"
+        });
+        expect(user.displayName()).eql("Mark Banner");
+      });
+
+      it("should return the username when full name is missing", function() {
+        var user = new app.models.User({username: "mark"});
+        expect(user.displayName()).eql("mark");
+      });
+    });
+
     describe("#isLoggedIn", function() {
       var user;
       beforeEach(function () {
