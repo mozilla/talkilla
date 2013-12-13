@@ -149,10 +149,10 @@ describe('Text chat models', function() {
       var textChat;
 
       beforeEach(function() {
-        sandbox.stub(WebRTC.prototype, "send");
         sandbox.stub(WebRTC.prototype, "initiate");
 
         textChat = createTextChat();
+        textChat.transport = transport;
         textChat.user.set('nick', 'foo');
       });
 
@@ -166,8 +166,8 @@ describe('Text chat models', function() {
 
         textChat.notifyTyping();
 
-        sinon.assert.calledOnce(media.send);
-        sinon.assert.calledWithExactly(media.send, entry);
+        sinon.assert.calledOnce(textChat.transport.send);
+        sinon.assert.calledWithExactly(textChat.transport.send, entry);
       });
 
       it("should not send typing message over uninitiated data channel",
@@ -176,7 +176,7 @@ describe('Text chat models', function() {
 
           textChat.notifyTyping();
 
-          sinon.assert.notCalled(media.send);
+          sinon.assert.notCalled(textChat.transport.send);
         });
 
       it("should not send typing message if empty collection", function() {
@@ -184,7 +184,7 @@ describe('Text chat models', function() {
 
         textChat.notifyTyping();
 
-        sinon.assert.notCalled(media.send);
+        sinon.assert.notCalled(textChat.transport.send);
       });
     });
 
@@ -283,7 +283,7 @@ describe('Text chat models', function() {
       var event = {type: "chat:typing", message: "data"};
 
       sandbox.stub(textChat, "trigger");
-      textChat._onDcMessageIn(event);
+      textChat._onMessage(event);
 
       sinon.assert.calledOnce(textChat.trigger);
       sinon.assert.calledWithExactly(textChat.trigger, "chat:type-start",
@@ -295,7 +295,7 @@ describe('Text chat models', function() {
       var event = {type: "chat:typing", message: "data"};
 
       sandbox.stub(textChat,"trigger");
-      textChat._onDcMessageIn(event);
+      textChat._onMessage(event);
       this.clock.tick(5100);
 
       sinon.assert.calledTwice(textChat.trigger);
@@ -307,9 +307,9 @@ describe('Text chat models', function() {
       var event = {type: "chat:typing", message: "data"};
 
       sandbox.stub(textChat,"trigger");
-      textChat._onDcMessageIn(event);
+      textChat._onMessage(event);
       this.clock.tick(2000);
-      textChat._onDcMessageIn(event);
+      textChat._onMessage(event);
       this.clock.tick(10000);
 
       sinon.assert.calledThrice(textChat.trigger);

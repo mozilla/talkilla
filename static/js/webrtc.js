@@ -140,8 +140,6 @@
    * @return {WebRTC}
    */
   WebRTC.prototype.upgrade = function(constraints, offer) {
-    this.state.upgrade();
-
     if (!offer && (!constraints || typeof constraints !== 'object'))
       throw new Error('upgrading needs new media constraints');
 

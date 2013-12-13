@@ -565,7 +565,7 @@
     notifyTyping: function() {
       if (!this.length || this.media.state.current !== "ongoing")
         return;
-      this.media.send({
+      this.transport.send({
         type: "chat:typing",
         message: { nick: this.user.get("nick") }
       });
