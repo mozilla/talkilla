@@ -26,26 +26,6 @@ describe("ImportContactsView", function() {
       sandbox.stub(app.views.ImportContactsView.prototype, "render");
     });
 
-    it("should require a user parameter", function() {
-      expect(function() {
-        new app.views.ImportContactsView({service: {}});
-      }).to.Throw(/missing parameter: user/);
-
-      expect(function() {
-        new app.views.ImportContactsView({user: user});
-      }).to.not.Throw(/missing parameter: user/);
-    });
-
-    it("should require a service parameter", function() {
-      expect(function() {
-        new app.views.ImportContactsView({user: user});
-      }).to.Throw(/missing parameter: service/);
-
-      expect(function() {
-        new app.views.ImportContactsView({service: {}});
-      }).to.not.Throw(/missing parameter: service/);
-    });
-
     it("should render the view when the user signs in", function() {
       var importView = new app.views.ImportContactsView({
         user: user,
@@ -101,12 +81,13 @@ describe("ImportContactsView", function() {
     });
 
     it("should be displayed when user signs out", function() {
-      user.set({nick: undefined, presence: "disconnected"}).trigger("signout");
+      user.set({username: undefined, presence: "disconnected"})
+          .trigger("signout");
       expect(importView.render().$el.is(':visible')).to.equal(false);
     });
 
     it("should be displayed when user signs in", function() {
-      user.set({nick: "james", presence: "connected"}).trigger("signin");
+      user.set({username: "james", presence: "connected"}).trigger("signin");
       expect(importView.render().$el.is(':visible')).to.equal(true);
     });
   });

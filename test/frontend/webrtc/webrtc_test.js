@@ -285,7 +285,7 @@ describe("WebRTC", function() {
       it("should throw if no new media constraints are provided", function() {
         webrtc.initiate({video: true}).establish({});
 
-        expect(webrtc.upgrade).to.Throw(Error);
+        expect(webrtc.upgrade).to.Throw(Error, /needs new media constraints/);
       });
 
       it("should transition state to `pending`", function() {
@@ -849,7 +849,9 @@ describe("WebRTC", function() {
   describe("WebRTC.SDP", function() {
     describe("#constructor", function() {
       it("should throw if no valid offer passed", function() {
-        expect(function() { new WebRTC.SDP({}); }).to.Throw(Error);
+        expect(function() {
+          new WebRTC.SDP({});
+        }).to.Throw(Error, /Invalid SDP provided/);
       });
     });
 

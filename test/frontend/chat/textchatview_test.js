@@ -69,7 +69,7 @@ describe("Text chat views", function() {
     it("should register a click event for message links", function() {
       new app.views.TextChatEntryView({
         model: new app.models.TextChatEntry({
-          nick: "jb",
+          username: "jb",
           message: 'hi http://mozilla.com/'
         })
       }).render().$('a.chat-link').click();
@@ -104,7 +104,7 @@ describe("Text chat views", function() {
 
       peer = new app.models.User();
 
-      user.set({nick: "niko"});
+      user.set({username: "niko"});
 
       localStorage.removeItem('notFirstMessage');
     });
@@ -131,13 +131,13 @@ describe("Text chat views", function() {
     });
 
     it("should update rendering when its collection is updated", function() {
-      user.set({nick: "niko"});
+      user.set({username: "niko"});
       var view = new app.views.TextChatView({
         call: new app.models.Call(),
         sender: user,
         collection: new app.models.TextChat([
-          {nick: "niko", message: "plop"},
-          {nick: "jb", message: "hello"}
+          {username: "niko", message: "plop"},
+          {username: "jb", message: "hello"}
         ], {
           media: media,
           user: user,
@@ -151,7 +151,7 @@ describe("Text chat views", function() {
       expect(view.$('li')).to.have.length.of(2);
 
       // add a new message to the conversation
-      view.collection.add({nick: "niko", message: "how is it going?"});
+      view.collection.add({username: "niko", message: "how is it going?"});
 
       expect(view.collection).to.have.length.of(3);
       expect(view.$('li')).to.have.length.of(3);
@@ -168,7 +168,7 @@ describe("Text chat views", function() {
 
       textChat.once("add", function(entry) {
         expect(entry).to.be.an.instanceOf(app.models.TextChatEntry);
-        expect(entry.get("nick")).to.equal("jb");
+        expect(entry.get("username")).to.equal("jb");
         expect(entry.get("message")).to.equal("plop");
         done();
       });
@@ -242,15 +242,15 @@ describe("Text chat views", function() {
 
       describe("#_showTypingNotification", function() {
         it("should add the typing class", function() {
-          view.collection.trigger('chat:type-start', {nick:'hardfire'});
+          view.collection.trigger('chat:type-start', {username:'hardfire'});
 
           expect(view.$el.hasClass('typing')).to.be.equal(true);
         });
 
-        it("should add a data nick attribute", function() {
-          view.collection.trigger('chat:type-start', {nick:'avinash'});
+        it("should add a data username attribute", function() {
+          view.collection.trigger('chat:type-start', {username:'avinash'});
 
-          expect(view.$('ul').attr('data-nick')).eql('avinash');
+          expect(view.$('ul').attr('data-username')).eql('avinash');
         });
       });
 

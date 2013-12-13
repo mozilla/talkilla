@@ -94,51 +94,7 @@ describe("ConversationView", function() {
       expect(view.textChat).to.equal(textChat);
     });
 
-    it("should throw an error when no call model is given", function() {
-      function shouldExplode() {
-        new app.views.ConversationView({
-          peer: peer,
-          user: user,
-          textChat: textChat
-        });
-      }
-      expect(shouldExplode).to.Throw(Error, /missing parameter: call/);
-    });
-
-    it("should throw an error when no peer model is given", function() {
-      function shouldExplode() {
-        new app.views.ConversationView({
-          user: user,
-          call: call,
-          textChat: textChat
-        });
-      }
-      expect(shouldExplode).to.Throw(Error, /missing parameter: peer/);
-    });
-
-    it("should throw an error when no user model is given", function() {
-      function shouldExplode() {
-        new app.views.ConversationView({
-          call: call,
-          peer: peer,
-          textChat: textChat
-        });
-      }
-      expect(shouldExplode).to.Throw(Error, /missing parameter: user/);
-    });
-
-    it("should throw an error when no textChat model is given", function() {
-      function shouldExplode() {
-        new app.views.ConversationView({
-          user: user,
-          call: call,
-          peer: peer
-        });
-      }
-      expect(shouldExplode).to.Throw(Error, /missing parameter: textChat/);
-    });
-
-    it("should listen to peer's nick change", function() {
+    it("should listen to peer's username change", function() {
       new app.views.ConversationView({
         call: call,
         peer: peer,
@@ -147,7 +103,7 @@ describe("ConversationView", function() {
       });
 
       sinon.assert.called(peer.on);
-      sinon.assert.calledWith(peer.on, "change:nick");
+      sinon.assert.calledWith(peer.on, "change:username");
     });
 
     it("should listen to peer's presence change", function() {
@@ -164,7 +120,7 @@ describe("ConversationView", function() {
 
     it("should update the document title on change of the peer's details",
       function() {
-        peer.set({nick: "nick"});
+        peer.set({username: "username"});
         new app.views.ConversationView({
           call: call,
           peer: peer,
@@ -174,7 +130,7 @@ describe("ConversationView", function() {
 
         peer.on.args[0][1](peer);
 
-        expect(document.title).to.be.equal("nick");
+        expect(document.title).to.be.equal("username");
       });
 
     it("should update presence icon when peer's is connected", function() {
@@ -461,7 +417,7 @@ describe("ConversationView", function() {
         el: '#fixtures'
       });
 
-      peer.set("nick", "hardfire");
+      peer.set("username", "hardfire");
       clock = sinon.useFakeTimers();
     });
 

@@ -21,7 +21,7 @@ describe('Call Establish View', function() {
     sandbox.useFakeTimers();
 
     peer = new app.models.User();
-    peer.set({nick: "Mark"});
+    peer.set({username: "Mark"});
 
     var media = sandbox.stub(new WebRTC());
     call = new app.models.Call({}, {media: media, peer: peer});
@@ -34,59 +34,6 @@ describe('Call Establish View', function() {
     call = undefined;
     media = undefined;
     sandbox.restore();
-  });
-
-  describe("#initialize", function() {
-    it("should attach a given call model", function() {
-      var establishView = new app.views.CallEstablishView({
-        call: call,
-        peer: peer,
-        audioLibrary: audioLibrary
-      });
-
-      expect(establishView.call).to.equal(call);
-    });
-
-    it("should attach a given peer model", function() {
-      var establishView = new app.views.CallEstablishView({
-        call: call,
-        peer: peer,
-        audioLibrary: audioLibrary
-      });
-
-      expect(establishView.peer).to.equal(peer);
-    });
-
-    it("should attach a given audio library", function() {
-      var establishView = new app.views.CallEstablishView({
-        call: call,
-        peer: peer,
-        audioLibrary: audioLibrary
-      });
-
-      expect(establishView.audioLibrary).to.equal(audioLibrary);
-    });
-
-    it("should throw an error when no peer is given", function() {
-      function shouldExplode() {
-        new app.views.CallEstablishView({call: call});
-      }
-      expect(shouldExplode).to.Throw(Error, /missing parameter: peer/);
-    });
-
-    it("should throw an error when no call is given", function() {
-      function shouldExplode() {
-        new app.views.CallEstablishView({peer: peer});
-      }
-      expect(shouldExplode).to.Throw(Error, /missing parameter: call/);
-    });
-
-    it("should throw an error when no audioLibrary is given", function() {
-      function shouldExplode() {
-        new app.views.CallEstablishView({call: call, peer: peer});
-      }
-      expect(shouldExplode).to.Throw(Error, /missing parameter: audioLibrary/);
-    });
   });
 
   describe("#_startTimer", function() {

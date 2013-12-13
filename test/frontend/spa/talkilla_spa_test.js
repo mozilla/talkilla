@@ -111,9 +111,9 @@ describe("TalkillaSPA", function() {
     it("should send an answer to the server",
       function(done) {
         sandbox.stub(spa.server, "callAccepted",
-          function(data, nick, callback) {
-            expect(data.answer).to.equal("fake answer data");
-            expect(data.peer).to.equal("foo");
+          function(answerMsg, callback) {
+            expect(answerMsg.answer).to.equal("fake answer data");
+            expect(answerMsg.peer).to.equal("foo");
 
             done();
           });
