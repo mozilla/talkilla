@@ -225,7 +225,6 @@
    */
   WebRTC.prototype.reset = function() {
     this.state.reset();
-    this._setupPeerConnection();
 
     return this;
   };
