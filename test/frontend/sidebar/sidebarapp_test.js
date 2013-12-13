@@ -72,7 +72,7 @@ describe("SidebarApp", function() {
       function() {
         sandbox.stub(AppPort.prototype, "on");
         app.options.DEBUG = true;
-        var sidebarApp = new SidebarApp({nick: "toto"});
+        var sidebarApp = new SidebarApp({username: "toto"});
 
         sinon.assert.called(sidebarApp.appPort.on);
         sinon.assert.calledWith(sidebarApp.appPort.on, "talkilla.debug");
@@ -83,13 +83,13 @@ describe("SidebarApp", function() {
         var sidebarApp = new SidebarApp();
 
         sidebarApp.appPort.trigger("talkilla.users", [
-          {nick: "bob"},
-          {nick: "bill"}
+          {username: "bob"},
+          {username: "bill"}
         ]);
 
         expect(sidebarApp.users).to.have.length.of(2);
-        expect(sidebarApp.users.at(0).get('nick')).to.equal("bill");
-        expect(sidebarApp.users.at(1).get('nick')).to.equal("bob");
+        expect(sidebarApp.users.at(0).get('username')).to.equal("bill");
+        expect(sidebarApp.users.at(1).get('username')).to.equal("bob");
       });
   });
 
@@ -113,7 +113,7 @@ describe("SidebarApp", function() {
 
     beforeEach(function() {
       sidebarApp = new SidebarApp();
-      sidebarApp.user.set("nick", "toto");
+      sidebarApp.user.set("username", "toto");
 
       sandbox.stub(sidebarApp.http, "post");
       sandbox.stub(app.utils, "notifyUI");
@@ -173,7 +173,7 @@ describe("SidebarApp", function() {
       it("should reset users' state", function() {
         sidebarApp.user.trigger("signout-requested");
 
-        expect(sidebarApp.user.nick).to.equal(undefined);
+        expect(sidebarApp.user.username).to.equal(undefined);
         expect(sidebarApp.users.length).to.equal(0);
       });
 
@@ -230,7 +230,7 @@ describe("SidebarApp", function() {
 
     describe("social.user-profile", function() {
 
-      it("should set the user's nick", function() {
+      it("should set the user's username", function() {
         var userData = {
           iconURL: "fake icon url",
           portrait: "fake portrait",
@@ -241,7 +241,7 @@ describe("SidebarApp", function() {
 
         sidebarApp.appPort.trigger("social.user-profile", userData);
 
-        expect(sidebarApp.user.get("nick")).to.equal("foo");
+        expect(sidebarApp.user.get("username")).to.equal("foo");
       });
 
     });

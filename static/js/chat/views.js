@@ -23,12 +23,12 @@
       this.user = options.user;
       this.textChat = options.textChat;
 
-      this.peer.on('change:nick', function(to) {
+      this.peer.on('change:username', function(to) {
         var fullName = to.get("fullName");
         if (fullName)
           document.title = fullName;
         else
-          document.title = to.get("nick");
+          document.title = to.get("username");
       });
 
       this.peer.on('change:presence', this._onPeerPresenceChanged, this);
@@ -41,13 +41,13 @@
 
       // Call hold and resume
       this.call.on('state:to:hold', function () {
-        this._notify(this.peer.get("nick") + " has placed you on hold");
+        this._notify(this.peer.get("username") + " has placed you on hold");
         this.$el.removeClass('has-video');
       }, this);
 
       this.call.on('change:state', function(to, from) {
         if (to === 'ongoing' && from === 'hold') {
-          this._notify(this.peer.get("nick") + " is back!", 5000);
+          this._notify(this.peer.get("username") + " is back!", 5000);
           this._updateHasVideo();
         }
       }, this);
@@ -125,7 +125,7 @@
     drop: function(event) {
       var url;
       var dataTransfer = event.originalEvent.dataTransfer;
-      var nick = this.user.get("nick");
+      var username = this.user.get("username");
 
       if (!this._checkDragTypes(dataTransfer.types))
         return;
@@ -136,7 +136,7 @@
         // File Transfer
         _.each(dataTransfer.files, function(file) {
           var transfer =
-            new app.models.FileTransfer({nick: nick, file: file},
+            new app.models.FileTransfer({username: username, file: file},
                                         {chunkSize: 512 * 1024});
           this.textChat.add(transfer);
         }.bind(this));
@@ -413,7 +413,7 @@
       //      as a User model instance
 
       if (this.call.state.current === "pending") {
-        var peer = this.peer.get('nick');
+        var peer = this.peer.get('username');
         var formattedText = this.outgoingTextTemplate({peer: peer});
         this.$('.text').text(formattedText);
 
@@ -509,7 +509,7 @@
     tagName: 'li',
 
     template: _.template([
-      '<strong><%= nick %>:</strong>',
+      '<strong><%= username %>:</strong>',
       '<%= linkify(message, {attributes: {class: "chat-link"}}) %>'
     ].join(' ')),
 
@@ -605,7 +605,7 @@
       }
 
       this.collection.add(new app.models.TextChatEntry({
-        nick: this.collection.user.get("nick"),
+        username: this.collection.user.get("username"),
         message: message
       }));
     },
@@ -642,7 +642,7 @@
 
     _showTypingNotification: function(message) {
       this.$el.addClass('typing');
-      this.$('ul').attr('data-nick', message.nick);
+      this.$('ul').attr('data-username', message.username);
     },
 
     _clearTypingNotification: function() {

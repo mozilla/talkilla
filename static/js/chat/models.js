@@ -107,7 +107,7 @@
 
       this.media.once("offer-ready", function(offer) {
         this.trigger("send-offer", new app.payloads.Offer({
-          peer: this.peer.get("nick"),
+          peer: this.peer.get("username"),
           offer: offer,
           callid: this.callid
         }));
@@ -168,7 +168,7 @@
       this.media.terminate();
       this.media.reset();
       this.trigger("send-timeout", new app.payloads.Hangup({
-        peer: this.peer.get("nick"),
+        peer: this.peer.get("username"),
         callid: this.callid
       }));
     },
@@ -181,7 +181,7 @@
 
       this.media.once("answer-ready", function(answer) {
         this.trigger("send-answer", new app.payloads.Answer({
-          peer: this.peer.get("nick"),
+          peer: this.peer.get("username"),
           answer: answer
         }));
 
@@ -227,7 +227,7 @@
 
       if (sendMsg) {
         this.trigger("send-hangup", new app.payloads.Hangup({
-          peer: this.peer.get("nick"),
+          peer: this.peer.get("username"),
           callid: this.callid
         }));
       }
@@ -235,7 +235,7 @@
 
     move: function() {
       this.trigger("initiate-move", new app.payloads.Move({
-        peer: this.peer.get("nick"),
+        peer: this.peer.get("username"),
         callid: this.callid
       }));
     },
@@ -389,7 +389,7 @@
         this.chunks        = [];
       }
 
-      this.nick = attributes.nick;
+      this.username = attributes.username;
       this.set('incoming', !this.file);
       this.seek = 0;
       this.on("chunk", this._onProgress, this);
@@ -407,7 +407,7 @@
     toJSON: function() {
       var progress = this.get("progress");
       var json = {
-        nick: this.nick,
+        username: this.username,
         incoming: this.get('incoming'),
         filename: _.escape(this.filename),
         progress: progress,
@@ -477,7 +477,7 @@
   });
 
   app.models.TextChatEntry = Backbone.Model.extend({
-    defaults: {nick: undefined,
+    defaults: {username: undefined,
                message: undefined,
                date: new Date().getTime()}
   });
@@ -512,7 +512,7 @@
     initiate: function(constraints) {
       this.media.once("offer-ready", function(offer) {
         this.trigger("send-offer", new app.payloads.Offer({
-          peer: this.peer.get("nick"),
+          peer: this.peer.get("username"),
           offer: offer
         }));
       }, this);
@@ -528,7 +528,7 @@
     answer: function(offer) {
       this.media.once("answer-ready", function(answer) {
         this.trigger("send-answer", new app.payloads.Answer({
-          peer: this.peer.get("nick"),
+          peer: this.peer.get("username"),
           answer: answer
         }));
       }, this);
@@ -567,7 +567,7 @@
         return;
       this.transport.send({
         type: "chat:typing",
-        message: { nick: this.user.get("nick") }
+        message: { username: this.user.get("username") }
       });
     },
 
@@ -587,8 +587,8 @@
                                                           ), this.typeTimeout);
         break;
       case "file:new":
-        var nick = this.user.get("nick");
-        var message = _.extend({nick: nick}, event.message);
+        var username = this.user.get("username");
+        var message = _.extend({username: username}, event.message);
         this.add(new app.models.FileTransfer(message));
         break;
       case "file:chunk":
@@ -610,7 +610,7 @@
       // I we are not, the message comes from a contact and we do not
       // want to send it back.
       if (entry instanceof app.models.TextChatEntry &&
-          entry.get('nick') === this.user.get("nick"))
+          entry.get('username') === this.user.get("username"))
         this.send({type: "chat:message", message: entry.toJSON()});
     },
 

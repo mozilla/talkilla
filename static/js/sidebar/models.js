@@ -12,7 +12,7 @@
   app.models.UserSet = Backbone.Collection.extend({
     model: app.models.User,
     comparator: function(item) {
-        return item.get('nick').toLowerCase();
+        return item.get('username').toLowerCase();
       }
   });
 

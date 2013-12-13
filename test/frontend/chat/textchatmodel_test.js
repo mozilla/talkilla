@@ -73,7 +73,7 @@ describe('Text chat models', function() {
     it("should be initialized with defaults", function() {
       var entry = new app.models.TextChatEntry();
 
-      expect(entry.get("nick")).to.be.a("undefined");
+      expect(entry.get("username")).to.be.a("undefined");
       expect(entry.get("message")).to.be.a("undefined");
       expect(entry.get("date")).to.be.a("number");
     });
@@ -109,7 +109,7 @@ describe('Text chat models', function() {
       });
 
       it("should send a message over a connected data channel", function() {
-        var entry = {nick: "niko", message: "hi"};
+        var entry = {username: "niko", message: "hi"};
 
         textChat.media.state.current = "ongoing";
         textChat.send(entry);
@@ -136,7 +136,7 @@ describe('Text chat models', function() {
 
       it("should buffer a message then send it over data channel once a " +
          "peer connection is established", function() {
-        var entry = {nick: "niko", message: "hi"};
+        var entry = {username: "niko", message: "hi"};
 
         textChat.send(entry);
         textChat.transport.trigger("ready"); // dc establishment event
@@ -153,7 +153,6 @@ describe('Text chat models', function() {
 
         textChat = createTextChat();
         textChat.transport = transport;
-        textChat.user.set('nick', 'foo');
       });
 
       it("should send typing message over connected data channel", function() {
@@ -161,7 +160,7 @@ describe('Text chat models', function() {
         textChat.media.state.current = "ongoing";
         var entry = {
           type: 'chat:typing',
-          message: { nick: textChat.user.get('nick') }
+          message: { username: textChat.user.get('username') }
         };
 
         textChat.notifyTyping();
@@ -321,14 +320,17 @@ describe('Text chat models', function() {
     var textChat;
 
     beforeEach(function() {
-      user.set("nick", "foo");
+      user.set("username", "foo");
+      sandbox.stub(app.models.TextChat.prototype, "send");
       textChat = createTextChat();
     });
 
     it("should send data over data channel", function() {
-      var entry = new app.models.TextChatEntry({nick: "foo", message: "bar"});
+      var entry = new app.models.TextChatEntry({
+        username: "foo",
+        message: "bar"
+      });
       var message = {type: "chat:message", message: entry.toJSON()};
-      sandbox.stub(textChat, "send");
 
       textChat._onTextChatEntryCreated(entry);
 

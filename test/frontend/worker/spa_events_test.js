@@ -85,7 +85,7 @@ describe("SPA events", function() {
         sinon.assert.calledOnce(tkWorker.ports.broadcastEvent);
         sinon.assert.calledWith(
           tkWorker.ports.broadcastEvent, "talkilla.users", [
-            { nick: "jb", presence: "connected" }
+            { username: "jb", presence: "connected" }
           ]);
       });
 
@@ -101,7 +101,7 @@ describe("SPA events", function() {
 
       sinon.assert.called(tkWorker.ports.broadcastEvent);
       sinon.assert.calledWith(tkWorker.ports.broadcastEvent, "talkilla.users", [
-        {nick: "foo", presence: "connected"}
+        {username: "foo", presence: "connected"}
       ]);
     });
 
@@ -138,7 +138,7 @@ describe("SPA events", function() {
 
       sinon.assert.called(tkWorker.ports.broadcastEvent);
       sinon.assert.calledWith(tkWorker.ports.broadcastEvent, "talkilla.users", [
-        {nick: "foo", presence: "disconnected"}
+        {username: "foo", presence: "disconnected"}
       ]);
     });
 

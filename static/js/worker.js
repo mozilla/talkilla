@@ -293,9 +293,6 @@ var handlers = {
 
   /**
    * Called when the sidebar is ready.
-   * The data for talkilla.sidebar-ready is:
-   *
-   * - nick: an optional previous nickname
    */
   'talkilla.sidebar-ready': function(event) {
     this.postEvent('talkilla.worker-ready');
