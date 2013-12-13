@@ -131,7 +131,7 @@
     tagName: 'li',
 
     template: _.template([
-      '<a href="#" rel="<%= username %>" title="<%= fullName %>">',
+      '<a href="#" rel="<%= username %>" title="<%= username %>">',
       '  <div class="avatar">',
       '    <img src="<%= avatar %>">',
       '    <span class="status status-<%= presence %>"></span>',
