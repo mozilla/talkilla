@@ -88,12 +88,51 @@ var SPADB = (function() {
       }.bind(this);
       request.onerror = function(event) {
         var err = event.target.error;
-        // ignore constraint error when a SPA already exists in the db
-        if (err.name !== "ConstraintError")
-          return cb.call(this, err);
         event.preventDefault();
-        cb.call(this, null, record);
+        cb.call(this, err);
       }.bind(this);
+    });
+  };
+
+  SPADB.prototype.update = function(record, cb) {
+    this.load(function(err) {
+      if (err)
+        return cb.call(this, err);
+
+      function handleerror(event) {
+        // This function is bound to this where it is used below.
+        /* jshint validthis:true */
+        var err = event.target.error;
+        event.preventDefault();
+        cb.call(this, err);
+      }
+
+      var store;
+      var request;
+
+      try {
+        store = this._getStore("readwrite");
+        request = store.get(record.name);
+      } catch (err) {
+        return cb.call(this, err && err.message || "Unable to update SPA");
+      }
+      request.onsuccess = function() {
+        var data = request.result;
+        data.credentials = record.credentials;
+        data.src = record.src;
+
+        var requestUpdate;
+        try {
+          requestUpdate = store.put(data);
+        } catch (err) {
+          return cb.call(this, err && err.message || "Unable to update SPA");
+        }
+        requestUpdate.onerror = handleerror.bind(this);
+        requestUpdate.onsuccess = function(event) {
+          cb.call(this, null, record);
+        }.bind(this);
+      }.bind(this);
+      request.onerror = handleerror.bind(this);
     });
   };
 

@@ -213,11 +213,44 @@ describe('handlers', function() {
 
   describe("talkilla.spa-enable", function() {
 
-    var spa;
+    var spa, spaSpec;
 
     beforeEach(function() {
       spa = {connect: sinon.spy(), on: function() {}};
+      spaSpec = {
+        src: "/path/to/spa",
+        name: "spa",
+        credentials: "fake credentials"
+      };
       sandbox.stub(window, "SPA").returns(spa);
+    });
+
+    it("should add the SPA to the database", function() {
+      sandbox.stub(tkWorker.spaDb, "add");
+
+      handlers["talkilla.spa-enable"]({
+        data: spaSpec
+      });
+
+      sinon.assert.calledOnce(tkWorker.spaDb.add);
+      sinon.assert.calledWith(tkWorker.spaDb.add,
+                              new payloads.SPASpec(spaSpec));
+    });
+
+    it("should update the SPA in the DB if it already exists", function() {
+      sandbox.stub(tkWorker.spaDb, "add", function(spec, callback) {
+        callback({name: "ConstraintError"});
+      });
+
+      sandbox.stub(tkWorker.spaDb, "update");
+
+      handlers["talkilla.spa-enable"]({
+        data: spaSpec
+      });
+
+      sinon.assert.calledOnce(tkWorker.spaDb.update);
+      sinon.assert.calledWith(tkWorker.spaDb.update,
+                              new payloads.SPASpec(spaSpec));
     });
 
     it("should instantiate a new SPA with the given src", function() {
