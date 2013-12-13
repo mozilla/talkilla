@@ -107,12 +107,12 @@ api = {
     var user = users.get(nick);
 
     if (!user) {
-      // First send notification to the other peers...
+      // Send the userJoined notification before adding the user as present to
+      // prevent the user receiving it's own notification.
       users.forEach(function(peer) {
         peer.send("userJoined", nick);
       });
 
-      // ...then add the user.
       user = users.add(nick).get(nick);
       users.get(nick).ondisconnect = function() {
         users.remove(nick);
