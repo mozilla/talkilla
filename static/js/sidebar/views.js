@@ -8,17 +8,11 @@
   /**
    * Global app view.
    */
-  app.views.AppView = Backbone.View.extend({
+  app.views.AppView = app.views.BaseView.extend({
     el: 'body',
 
     initialize: function(options) {
-      options = options || {};
-      if (!options.user)
-        throw new Error("missing parameter: user");
-      if (!options.users)
-        throw new Error("missing parameter: users");
-      if (!options.appStatus)
-        throw new Error("missing parameter: appStatus");
+      options = this.checkOptions(options, "user", "users", "appStatus", "spa");
 
       this.notifications = new app.views.NotificationsView({
         user: options.user
@@ -38,28 +32,67 @@
         user: options.user,
         service: options.services && options.services.google
       });
+
+      this.spa = new app.views.SPAView({
+        user: options.user,
+        spa: options.spa
+      });
     },
 
     render: function() {
       this.login.render();
       this.users.render();
       this.importButton.render();
+      this.spa.render();
       return this;
     }
   });
 
   /**
+   * SPA view.
+   */
+  app.views.SPAView = app.views.BaseView.extend({
+    el: "#pstn-dialin",
+
+    events: {
+      "submit form": "dial"
+    },
+
+    initialize: function(options) {
+      options = this.checkOptions(options, "user", "spa");
+
+      this.spa = options.spa.on("change:capabilities", this.render, this);
+      this.user = options.user.on('signin signout', this.render, this);
+    },
+
+    dial: function(event) {
+      event.preventDefault();
+
+      this.spa.dial(event.currentTarget.number.value);
+    },
+
+    display: function(show) {
+      if (show)
+        this.$el.removeClass("hide");
+      else
+        this.$el.addClass("hide");
+    },
+
+    render: function() {
+      this.display(this.user.isLoggedIn() && this.spa.supports("pstn-call"));
+    },
+  });
+
+  /**
    * Notifications list view.
    */
-  app.views.NotificationsView = Backbone.View.extend({
+  app.views.NotificationsView = app.views.BaseView.extend({
     el: '#messages',
 
     notifications: [],
 
     initialize: function(options) {
-      options = options || {};
-      if (!options.user)
-        throw new Error("missing parameter: user");
+      options = this.checkOptions(options, "user");
       this.user = options.user;
 
       this.user.on('signin signout', this.clear, this);
@@ -94,7 +127,7 @@
   /**
    * User list entry view.
    */
-  app.views.UserEntryView = Backbone.View.extend({
+  app.views.UserEntryView = app.views.BaseView.extend({
     tagName: 'li',
 
     template: _.template([
@@ -133,18 +166,16 @@
   /**
    * User list view.
    */
-  app.views.UsersView = Backbone.View.extend({
+  app.views.UsersView = app.views.BaseView.extend({
     el: '#users',
 
     views: [],
     activeNotification: null,
 
     initialize: function(options) {
-      options = options || {};
-      if (!options.user)
-        throw new Error("missing parameter: user");
-      this.user = options.user;
+      options = this.checkOptions(options, "user", "collection");
 
+      this.user = options.user;
       this.collection.on('reset change', this.render, this);
     },
 
@@ -209,7 +240,7 @@
   /**
    * Login/logout forms view.
    */
-  app.views.LoginView = Backbone.View.extend({
+  app.views.LoginView = app.views.BaseView.extend({
     el: '#login',
 
     events: {
@@ -217,11 +248,8 @@
     },
 
     initialize: function(options) {
-      options = options || {};
-      if (!options.user)
-        throw new Error("missing parameter: user");
-      if (!options.appStatus)
-        throw new Error("missing parameter: appStatus");
+      options = this.checkOptions(options, "user", "appStatus");
+
       this.user = options.user;
       this.appStatus = options.appStatus;
 
@@ -260,7 +288,7 @@
     }
   });
 
-  app.views.ImportContactsView = Backbone.View.extend({
+  app.views.ImportContactsView = app.views.BaseView.extend({
     el: "#import-contacts",
 
     events: {
@@ -268,13 +296,11 @@
     },
 
     initialize: function(options) {
-      options = options || {};
-      if (!options.user)
-        throw new Error("missing parameter: user");
-      if (!options.service)
-        throw new Error("missing parameter: service");
+      options = this.checkOptions(options, "user", "service");
+
       this.user = options.user;
       this.service = options.service;
+
       this.user.on('signin signout', this.render, this);
     },
 

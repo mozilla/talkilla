@@ -145,6 +145,49 @@ describe('Text chat models', function() {
       });
     });
 
+    describe("#notifyTyping", function() {
+      var textChat;
+
+      beforeEach(function() {
+        sandbox.stub(WebRTC.prototype, "send");
+        sandbox.stub(WebRTC.prototype, "initiate");
+
+        textChat = createTextChat();
+        textChat.user.set('nick', 'foo');
+      });
+
+      it("should send typing message over connected data channel", function() {
+        textChat.add({message: 'test Message'});
+        textChat.media.state.current = "ongoing";
+        var entry = {
+          type: 'chat:typing',
+          message: { nick: textChat.user.get('nick') }
+        };
+
+        textChat.notifyTyping();
+
+        sinon.assert.calledOnce(media.send);
+        sinon.assert.calledWithExactly(media.send, entry);
+      });
+
+      it("should not send typing message over uninitiated data channel",
+        function() {
+          textChat.add({message: 'test Message'});
+
+          textChat.notifyTyping();
+
+          sinon.assert.notCalled(media.send);
+        });
+
+      it("should not send typing message if empty collection", function() {
+        textChat.media.state.current = "ongoing";
+
+        textChat.notifyTyping();
+
+        sinon.assert.notCalled(media.send);
+      });
+    });
+
   });
 
   describe("#_onMessage", function() {
@@ -234,6 +277,43 @@ describe('Text chat models', function() {
       textChat._onMessage(event);
 
       sinon.assert.notCalled(transfer.nextChunk);
+    });
+
+    it("should trigger a `chat:type-start` event", function() {
+      var event = {type: "chat:typing", message: "data"};
+
+      sandbox.stub(textChat, "trigger");
+      textChat._onDcMessageIn(event);
+
+      sinon.assert.calledOnce(textChat.trigger);
+      sinon.assert.calledWithExactly(textChat.trigger, "chat:type-start",
+                                     "data");
+    });
+
+    it("should trigger a `chat:type-stop` event after 5s", function() {
+      this.clock = sinon.useFakeTimers();
+      var event = {type: "chat:typing", message: "data"};
+
+      sandbox.stub(textChat,"trigger");
+      textChat._onDcMessageIn(event);
+      this.clock.tick(5100);
+
+      sinon.assert.calledTwice(textChat.trigger);
+      sinon.assert.calledWithExactly(textChat.trigger, "chat:type-stop");
+    });
+
+    it("should clear previous timeout and add new one", function() {
+      this.clock = sinon.useFakeTimers();
+      var event = {type: "chat:typing", message: "data"};
+
+      sandbox.stub(textChat,"trigger");
+      textChat._onDcMessageIn(event);
+      this.clock.tick(2000);
+      textChat._onDcMessageIn(event);
+      this.clock.tick(10000);
+
+      sinon.assert.calledThrice(textChat.trigger);
+      sinon.assert.calledWithMatch(textChat.trigger, "chat:type-stop");
     });
   });
 

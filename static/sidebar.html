@@ -34,6 +34,16 @@
   <div id="messages"></div>
   <!-- /User notifications -->
 
+  <!-- SPA view -->
+  <div id="pstn-dialin" class="hide">
+    <form class="form-inline" role="form">
+      <input type="tel" class="form-control input-small" name="number" title="Phone number"
+             placeholder="Enter a number to dial" pattern="^[+0-9]{9,15}$">
+      <button type="submit" class="btn btn-info">Call</button>
+    </form>
+  </div>
+  <!-- /SPA view -->
+
   <!-- Users view -->
   <nav id="users" class="users">
     <ul class="nav nav-list"></ul>

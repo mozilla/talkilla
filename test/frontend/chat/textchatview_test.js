@@ -191,8 +191,47 @@ describe("Text chat views", function() {
       });
 
     describe("#initialize", function() {
+
+      var view;
+
+      beforeEach(function() {
+        var collection = new app.models.TextChat([], {
+          media: media,
+          user: user,
+          peer: peer
+        });
+        sandbox.stub(collection, "on");
+        view = new app.views.TextChatView({
+          call: new app.models.Call(),
+          collection: collection
+        });
+      });
+
       it("should have placeholder for the first message", function() {
-        var view = new app.views.TextChatView({
+        view.render();
+
+        // XXX: Check for text to be present and not exact text message
+        expect(view.$('form input[name="message"]').attr('placeholder'))
+              .to.equal('Type something to start chatting');
+      });
+
+      it("should listen to start of peer's typing activity", function() {
+        sinon.assert.called(view.collection.on);
+        sinon.assert.calledWith(view.collection.on, "chat:type-start");
+      });
+
+      it("should listen to stop of peer's typing activity", function() {
+        sinon.assert.called(view.collection.on);
+        sinon.assert.calledWith(view.collection.on, "chat:type-stop");
+      });
+    });
+
+    describe("Public Events", function() {
+
+      var view;
+
+      beforeEach(function() {
+        view = new app.views.TextChatView({
           call: new app.models.Call(),
           collection: new app.models.TextChat([], {
             media: media,
@@ -200,12 +239,30 @@ describe("Text chat views", function() {
             peer: peer
           })
         });
+      });
 
-        view.render();
+      describe("#_showTypingNotification", function() {
+        it("should add the typing class", function() {
+          view.collection.trigger('chat:type-start', {nick:'hardfire'});
 
-        expect(view.$('form input[name="message"]').attr('placeholder'))
-              .to.equal('Type something to start chatting');
+          expect(view.$el.hasClass('typing')).to.be.equal(true);
+        });
 
+        it("should add a data nick attribute", function() {
+          view.collection.trigger('chat:type-start', {nick:'avinash'});
+
+          expect(view.$('ul').attr('data-nick')).eql('avinash');
+        });
+      });
+
+      describe("#_clearTypingNotification", function() {
+        it("should remove the typing class", function() {
+          view.$el.addClass('typing');
+
+          view.collection.trigger('chat:type-stop');
+
+          expect(view.$el.hasClass('typing')).to.be.equal(false);
+        });
       });
 
       it("should focus on the input textbox", function() {
@@ -265,9 +322,28 @@ describe("Text chat views", function() {
 
         expect(textChatView.$('form input[name="message"]').attr('placeholder'))
               .to.equal(undefined);
-
       });
     });
+
+    describe("#sendTyping", function() {
+      it("should call collection.notifyTyping()", function() {
+        var view = new app.views.TextChatView({
+          call: new app.models.Call(),
+          collection: new app.models.TextChat([], {
+            media: media,
+            user: user,
+            peer: peer
+          })
+        });
+
+        sandbox.stub(view.collection, "notifyTyping");
+
+        view.sendTyping();
+
+        sinon.assert.calledOnce(view.collection.notifyTyping);
+      });
+    });
+
   });
 });
 

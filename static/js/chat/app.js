@@ -125,11 +125,12 @@ var ChatApp = (function(app, $, Backbone, _) {
   ChatApp.prototype._onConversationOpen = function(msg) {
     this.call.set({capabilities: msg.capabilities});
     this.user.set({nick: msg.user});
-    this.peer
-        .set({nick: msg.peer, presence: msg.peerPresence},
-             {silent: true})
-        .trigger('change:nick', this.peer) // force triggering change event
-        .trigger('change:presence', this.peer);
+
+    this.peer.set({nick: msg.peer.username, presence: msg.peerPresence,
+                   fullName: msg.peer.fullName},
+                  {silent: true})
+             .trigger('change:nick', this.peer) // force triggering change event
+             .trigger('change:presence', this.peer);
   };
 
   ChatApp.prototype._onCallAccepted = function() {
@@ -159,7 +160,8 @@ var ChatApp = (function(app, $, Backbone, _) {
     this.user.set({nick: msg.user});
 
     if (!msg.offer.upgrade)
-      this.peer.set({nick: msg.peer, presence: msg.peerPresence});
+      this.peer.set({nick: msg.peer.username, fullName: msg.peer.fullName,
+                    presence: msg.peerPresence});
 
     // incoming text chat conversation
     if (sdp.only("datachannel"))
@@ -304,7 +306,7 @@ var ChatApp = (function(app, $, Backbone, _) {
       return;
 
     // app object events logging
-    ['webrtc', 'call', 'textChat'].forEach(function(prop) {
+    ['webrtc', 'call', 'textChat', 'appPort'].forEach(function(prop) {
       this[prop].on("all", function() {
         var args = [].slice.call(arguments);
         console.log.apply(console, ['chatapp.' + prop].concat(args));

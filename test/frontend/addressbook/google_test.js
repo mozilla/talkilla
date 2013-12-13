@@ -30,13 +30,23 @@ describe("GoogleContacts", function() {
         }, {
           address: "foo@baz.com",
           "rel": "http://schemas.google.com/g/2005#other"
-        }]
+        }],
+        "gd$name": {
+          "gd$fullName": {
+            "$t": "Foo Foo"
+          }
+        }
       }, {
         "gd$email": [{
           address: "bar@bar.com",
           primary: "true",
           rel: "http://schemas.google.com/g/2005#other"
-        }]
+        }],
+        "gd$name": {
+          "gd$fullName": {
+            "$t":"Bar Bar"
+          }
+        }
       }, {
         /* empty record */
       }]
@@ -238,9 +248,9 @@ describe("GoogleContacts", function() {
 
       sinon.assert.calledOnce(callback);
       sinon.assert.calledWith(callback, null, [
-        {username: "foo@bar.com"},
-        {username: "foo@baz.com"},
-        {username: "bar@bar.com"}
+        {username: "foo@bar.com", fullName: "Foo Foo"},
+        {username: "foo@baz.com", fullName: "Foo Foo"},
+        {username: "bar@bar.com", fullName: "Bar Bar"}
       ]);
     });
 
@@ -315,9 +325,9 @@ describe("GoogleContacts", function() {
       it("should normalize data feed", function() {
         var normalized = new GoogleContacts.Importer(sampleFeed).normalize();
         expect(normalized).eql([
-          {username: "foo@bar.com"},
-          {username: "foo@baz.com"},
-          {username: "bar@bar.com"}
+          {username: "foo@bar.com", fullName: "Foo Foo"},
+          {username: "foo@baz.com", fullName: "Foo Foo"},
+          {username: "bar@bar.com", fullName: "Bar Bar"}
         ]);
       });
     });

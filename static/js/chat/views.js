@@ -9,22 +9,14 @@
   /**
    * Conversation View (overall)
    */
-  app.views.ConversationView = Backbone.View.extend({
+  app.views.ConversationView = app.views.BaseView.extend({
     events: {
       'dragover': 'dragover',
       'drop': 'drop'
     },
 
     initialize: function(options) {
-      options = options || {};
-      if (!options.call)
-        throw new Error("missing parameter: call");
-      if (!options.peer)
-        throw new Error("missing parameter: peer");
-      if (!options.user)
-        throw new Error("missing parameter: user");
-      if (!options.textChat)
-        throw new Error("missing parameter: textChat");
+      options = this.checkOptions(options, "call", "peer", "user", "textChat");
 
       this.call = options.call;
       this.peer = options.peer;
@@ -32,7 +24,11 @@
       this.textChat = options.textChat;
 
       this.peer.on('change:nick', function(to) {
-        document.title = to.get("nick");
+        var fullName = to.get("fullName");
+        if (fullName)
+          document.title = fullName;
+        else
+          document.title = to.get("nick");
       });
 
       this.peer.on('change:presence', this._onPeerPresenceChanged, this);
@@ -158,7 +154,7 @@
   /**
    * Call controls view
    */
-  app.views.CallControlsView = Backbone.View.extend({
+  app.views.CallControlsView = app.views.BaseView.extend({
 
     events: {
       'click .btn-video a': 'videoCall',
@@ -170,13 +166,7 @@
     },
 
     initialize: function(options) {
-      options = options || {};
-      if (!options.call)
-        throw new Error("missing parameter: call");
-      if (!options.media)
-        throw new Error("missing parameter: media");
-      if (!options.el)
-        throw new Error("missing parameter: el");
+      options = this.checkOptions(options, "call", "media", "el");
 
       this.media = options.media;
       this.call = options.call;
@@ -274,7 +264,7 @@
   /**
    * Call offer view
    */
-  app.views.CallOfferView = Backbone.View.extend({
+  app.views.CallOfferView = app.views.BaseView.extend({
     el: "#offer",
 
     events: {
@@ -283,9 +273,7 @@
     },
 
     initialize: function(options) {
-      options = options || {};
-      if (!options.call)
-        throw new Error("missing parameter: call");
+      options = this.checkOptions(options, "call");
 
       this.call = options.call;
 
@@ -344,7 +332,7 @@
   /**
    * Call establish view
    */
-  app.views.CallEstablishView = Backbone.View.extend({
+  app.views.CallEstablishView = app.views.BaseView.extend({
     el: "#establish",
 
     events: {
@@ -355,13 +343,7 @@
     outgoingTextTemplate: _.template('Calling <%= peer %>…'),
 
     initialize: function(options) {
-      options = options || {};
-      if (!options.peer)
-        throw new Error("missing parameter: peer");
-      if (!options.call)
-        throw new Error("missing parameter: call");
-      if (!options.audioLibrary)
-        throw new Error("missing parameter: audioLibrary");
+      options = this.checkOptions(options, "call", "peer", "audioLibrary");
 
       this.peer = options.peer;
       this.call = options.call;
@@ -455,14 +437,10 @@
   /**
    * Video/Audio Call View
    */
-  app.views.CallView = Backbone.View.extend({
+  app.views.CallView = app.views.BaseView.extend({
 
     initialize: function(options) {
-      options = options || {};
-      if (!options.call)
-        throw new Error("missing parameter: call");
-      if (!options.el)
-        throw new Error("missing parameter: el");
+      options = this.checkOptions(options, "call", "el");
 
       this.call = options.call;
       this.call.media.on('local-stream:ready', this._playLocalMedia, this);
@@ -527,7 +505,7 @@
   /**
    * Text chat entry view.
    */
-  app.views.TextChatEntryView = Backbone.View.extend({
+  app.views.TextChatEntryView = app.views.BaseView.extend({
     tagName: 'li',
 
     template: _.template([
@@ -556,7 +534,7 @@
   /**
    * File transfer view.
    */
-  app.views.FileTransferView = Backbone.View.extend({
+  app.views.FileTransferView = app.views.BaseView.extend({
     tagName: 'li',
 
     template: _.template($('#file-transfer-tpl').text()),
@@ -574,18 +552,16 @@
   /**
    * Text chat conversation view.
    */
-  app.views.TextChatView = Backbone.View.extend({
+  app.views.TextChatView = app.views.BaseView.extend({
     el: '#textchat', // XXX: uncouple the selector from this view
 
     events: {
-      'submit form': 'sendMessage'
+      'submit form': 'sendMessage',
+      'keypress form input[name="message"]' : 'sendTyping'
     },
 
     initialize: function(options) {
-      if (!options.call)
-        throw new Error("missing parameter: call");
-      if (!options.collection)
-        throw new Error("missing parameter: collection");
+      options = this.checkOptions(options, "call", "collection");
 
       this.call = options.call;
       this.collection = options.collection;
@@ -594,6 +570,9 @@
       this.call.on('state:to:ongoing state:to:timeout', this.show, this);
 
       this.collection.on('add', this.render, this);
+      this.collection.on('chat:type-start', this._showTypingNotification, this);
+      this.collection.on('chat:type-stop', this._clearTypingNotification, this);
+
 
       if (this._firstMessage()) {
         var $input = this.$('form input[name="message"]');
@@ -631,6 +610,10 @@
       }));
     },
 
+    sendTyping : _.debounce(function() {
+      this.collection.notifyTyping();
+    }, 1000, true),
+
     render: function() {
       var $ul = this.$('ul').empty();
 
@@ -655,6 +638,15 @@
       var notFirstMessage = localStorage.getItem('notFirstMessage');
       notFirstMessage = notFirstMessage ? JSON.parse(notFirstMessage) : false;
       return !notFirstMessage;
+    },
+
+    _showTypingNotification: function(message) {
+      this.$el.addClass('typing');
+      this.$('ul').attr('data-nick', message.nick);
+    },
+
+    _clearTypingNotification: function() {
+      this.$el.removeClass('typing');
     }
   });
 })(app, Backbone, _, jQuery);

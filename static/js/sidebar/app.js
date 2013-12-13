@@ -10,14 +10,12 @@ var SidebarApp = (function(app, $) {
     options = options || {};
 
     this.http = new HTTP();
-
-    this.appStatus = new app.models.AppStatus();
-
     this.appPort = new AppPort();
 
+    this.appStatus = new app.models.AppStatus();
     this.user = new app.models.CurrentUser();
-
     this.users = new app.models.UserSet();
+    this.spa = new app.models.SPA();
 
     this.services = {
       google: new GoogleContacts({
@@ -29,7 +27,8 @@ var SidebarApp = (function(app, $) {
       appStatus: this.appStatus,
       user: this.user,
       users: this.users,
-      services: this.services
+      services: this.services,
+      spa: this.spa
     });
 
     // user events
@@ -48,6 +47,10 @@ var SidebarApp = (function(app, $) {
     this.appPort.on("talkilla.worker-ready", this._onWorkerReady, this);
     this.appPort.on("social.user-profile", this._onUserProfile, this);
     this.appPort.on('talkilla.reauth-needed', this._onReauthNeeded, this);
+
+    // SPA model events
+    this.spa.on("dial", this.openConversation, this);
+
     window.addEventListener("message", this._onSPASetup.bind(this), false);
 
     this.appPort.post("talkilla.sidebar-ready");
@@ -75,10 +78,8 @@ var SidebarApp = (function(app, $) {
     this.users.reset();
   };
 
-  SidebarApp.prototype.openConversation = function(nick) {
-    this.appPort.post('talkilla.conversation-open', {
-      peer: nick
-    });
+  SidebarApp.prototype.openConversation = function(peer) {
+    this.appPort.post('talkilla.conversation-open', {peer: peer});
   };
 
   SidebarApp.prototype._onChatWindowReady = function() {
@@ -101,8 +102,10 @@ var SidebarApp = (function(app, $) {
     this.appPort.post("talkilla.spa-enable", talkillaSpec);
   };
 
-  SidebarApp.prototype._onSPAConnected = function() {
+  SidebarApp.prototype._onSPAConnected = function(event) {
     this.user.set({presence: "connected"});
+    if (event && event.capabilities)
+      this.spa.set({capabilities: event.capabilities});
   };
 
   // XXX a lot of the steps that happen after various types of logouts and
