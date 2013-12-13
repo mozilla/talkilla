@@ -81,8 +81,13 @@ var SidebarApp = (function(app, $) {
   };
 
   SidebarApp.prototype._onUserSignoutRequested = function() {
-    this.appPort.post("talkilla.spa-forget-credentials", "TalkillaSPA");
-    this.appPort.post("talkilla.spa-disable", "TalkillaSPA");
+    try {
+      this.appPort.post("talkilla.spa-forget-credentials", "TalkillaSPA");
+      this.appPort.post("talkilla.spa-disable", "TalkillaSPA");
+    } catch (ex) {
+      console.log("exception caught; will invoke debugger");
+      debugger;
+    }
     // XXX: we may want to synchronize this with the TkWorker#close
     // method from the shared worker.
     this.user.clear();
