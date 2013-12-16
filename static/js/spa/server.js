@@ -1,6 +1,9 @@
 /* global importScripts, BackboneEvents, HTTP */
 /* jshint unused:false */
 
+/**
+ * Handles the server connection and events.
+ **/
 var Server = (function() {
   "use strict";
 
