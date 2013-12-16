@@ -1,4 +1,4 @@
-/*global app, AppPort, GoogleContacts, HTTP, payloads */
+/*global app, AppPort, GoogleContacts, HTTP, URL, payloads */
 /* jshint unused: false */
 /**
  * Sidebar application.
@@ -51,6 +51,7 @@ var SidebarApp = (function(app, $) {
     this.appPort.on("talkilla.worker-ready", this._onWorkerReady, this);
     this.appPort.on("social.user-profile", this._onUserProfile, this);
     this.appPort.on('talkilla.reauth-needed', this._onReauthNeeded, this);
+    this.appPort.on('social.port-closing', this._onSocialPortClosing(), this);
 
     // SPA model events
     this.spa.on("dial", this.openConversation, this);
@@ -76,6 +77,10 @@ var SidebarApp = (function(app, $) {
 
   SidebarApp.prototype._onUserProfile = function(userData) {
     this.user.set({username: userData.userName});
+  };
+
+  SidebarApp.prototype._onSocialPortClosing = function() {
+    console.log("social.port-closing message received by sidebar app");
   };
 
   SidebarApp.prototype._onUserSignoutRequested = function() {

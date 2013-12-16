@@ -49,6 +49,8 @@
         this.isInSidebar = options.isInSidebar;
 
       this.on("resize", this._onResize, this);
+
+      window.addEventListener("unload", this._onUnload.bind(this));
     },
 
     _onResize: function(width, height) {
@@ -56,6 +58,12 @@
         return;
       var safetyHeightMargin = 120; // 120px height safety margin
       this.$el.css("max-height", (height - safetyHeightMargin) + "px");
+    },
+
+    // for debugging, to see if we're getting unload events only from the
+    // panel, or also from contained iframes
+    _onUnload: function(e) {
+      console.log("panel unload called, target =  ", e.target);
     },
 
     clickUserEntry: function() {
