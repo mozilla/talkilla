@@ -155,7 +155,8 @@
     tagName: 'li',
 
     template: _.template([
-      '<a class="user-entry" href="#" rel="<%= username %>" title="<%= username %>">',
+      '<a class="user-entry" href="#" rel="<%= username %>"',
+      '   title="<%= username %>">',
       '  <div class="avatar">',
       '    <img src="<%= avatar %>">',
       '    <span class="status status-<%= presence %>"></span>',

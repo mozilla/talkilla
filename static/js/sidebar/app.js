@@ -83,8 +83,18 @@ var SidebarApp = (function(app, $) {
       this.appPort.post("talkilla.spa-forget-credentials", "TalkillaSPA");
       this.appPort.post("talkilla.spa-disable", "TalkillaSPA");
     } catch (ex) {
-      console.log("exception caught; will invoke debugger");
-      debugger;
+      console.log("exception " + ex + " caught; will invoke debugger");
+
+      /* If we get here, that means that the hard-to-reproduce intermittent
+       * where logging out fails to work has happened.  Let's give ourselves
+       * a chance to debug...
+       *
+       * Once we're convinced this bug is fixed, we will probably want to
+       * remove this code.
+       */
+      if (app.options.DEBUG)
+        /* jshint -W087 */
+        debugger;
     }
     // XXX: we may want to synchronize this with the TkWorker#close
     // method from the shared worker.

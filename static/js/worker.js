@@ -1,5 +1,5 @@
 /* global indexedDB, importScripts, SPA, HTTP, ContactsDB, SPADB,
-   CurrentUsers, loadConfig, payloads, Conversation  */
+   CurrentUsers, loadConfig, payloads, Conversation */
 /* jshint unused:false */
 "use strict";
 
@@ -244,6 +244,7 @@ function _setupSPA(spa) {
 var handlers = {
   // SocialAPI events
   'social.port-closing': function() {
+    tkWorker.ports.broadcastDebug("social.port-closing", this);
     tkWorker.ports.remove(this);
     if (browserPort === this)
       browserPort = undefined;
@@ -449,6 +450,11 @@ PortCollection.prototype = {
    * @param  {Port} port
    */
   remove: function(port) {
+    try {
+      tkWorker.ports.broadcastDebug("PortCollection.remove id ", port.id);
+    } catch (ex) {
+      tkWorker.ports.broadcastDebug("PortCollection.remove logging", ex);
+    }
     if (port && port.id)
       delete this.ports[port.id];
   },
