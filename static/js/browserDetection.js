@@ -7,8 +7,8 @@ var browserDetection = (function ($) {
   var app = {
   };
 
-  app.initialize = function() {
-    if (this.isSupportedFirefox()) {
+  app.initialize = function(userAgent) {
+    if (this.isSupportedFirefox(userAgent)) {
       $('#browser-firefox').show();
       $('#browser-unknown').hide();
     }
@@ -20,30 +20,40 @@ var browserDetection = (function ($) {
     $('.title').text($('.title').text() + this._getHostSpecificText());
   };
 
-  app.isSupportedFirefox = function() {
-    var ua = navigator.userAgent.toLowerCase();
+  app.isSupportedFirefox = function(userAgent) {
     // Unfortunately the only way of detecting Social API with website support
     // to add is by version number.
-    var rvStart = ua.indexOf('rv:');
-    var rvEnd = ua.indexOf(')', rvStart);
-    var rv = parseInt(ua.substring(rvStart + 3, rvEnd), 10);
-    return ua.contains('firefox') && rv >= 25;
+    return app._majorVersion(userAgent) >= 25 && app._isFirefox(userAgent);
   };
 
-  app.activateSocial = function(node, data) {
+  app.supportsStatusPanel = function(userAgent) {
+    return app._majorVersion(userAgent) >= 27 && app._isFirefox(userAgent);
+  };
+
+  app._majorVersion = function(userAgent) {
+    var ua = userAgent.toLowerCase();
+
+    var rvStart = ua.indexOf('rv:');
+    var rvEnd = ua.indexOf(')', rvStart);
+    return parseInt(ua.substring(rvStart + 3, rvEnd), 10);
+  };
+
+  app._isFirefox = function(userAgent) {
+    return userAgent.toLowerCase().contains("firefox");
+  };
+
+  app.activateSocial = function(node, userAgent) {
     var baseUrl = location.href.substring(0, location.href.lastIndexOf('/'));
 
     // If you update this manifest, please also update the functional
     // test manifests.
-    data = data || {
+    var data = {
       // currently required
       "name": "Talkilla" + this._getHostSpecificText(),
       "iconURL": baseUrl + "/img/talkilla16.png",
       "icon32URL": baseUrl + "/img/talkilla32.png",
       "icon64URL": baseUrl + "/img/talkilla64.png",
 
-      // at least one of these must be defined
-      "sidebarURL": baseUrl + "/sidebar.html",
       "workerURL": baseUrl + "/js/worker.js",
 
       // should be available for display purposes
@@ -51,6 +61,13 @@ var browserDetection = (function ($) {
       "author": "Mozilla",
       "homepageURL": "https://wiki.mozilla.org/Talkilla"
     };
+
+    // XXX once we stop supporting browsers without status panels, we
+    // should rename this file appropriately.
+    if (this.supportsStatusPanel(userAgent))
+      data.statusURL = baseUrl + "/sidebar.html";
+    else
+      data.sidebarURL = baseUrl + "/sidebar.html?isInSidebar";
 
     var event = new CustomEvent("ActivateSocialFeature");
     node.setAttribute("data-service", JSON.stringify(data));

@@ -1,5 +1,5 @@
 /* global indexedDB, importScripts, SPA, HTTP, ContactsDB, SPADB,
-   CurrentUsers, loadConfig, payloads, Conversation  */
+   CurrentUsers, loadConfig, payloads, Conversation, dump */
 /* jshint unused:false */
 "use strict";
 
@@ -244,6 +244,9 @@ function _setupSPA(spa) {
 var handlers = {
   // SocialAPI events
   'social.port-closing': function() {
+    // broadcastDebug won't work here, because the port is dead, so we
+    // use dump
+    dump("social.port-closing called; about to remove port. this = " + this);
     tkWorker.ports.remove(this);
     if (browserPort === this)
       browserPort = undefined;
@@ -449,6 +452,13 @@ PortCollection.prototype = {
    * @param  {Port} port
    */
   remove: function(port) {
+    // broadcastDebug isn't reliable here, because the port may be dead, so we
+    // use dump
+    try {
+      dump("PortCollection.remove called, id = " + port.id);
+    } catch (ex) {
+      dump("PortCollection.remove logging exception" + ex);
+    }
     if (port && port.id)
       delete this.ports[port.id];
   },
