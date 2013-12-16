@@ -13,10 +13,10 @@ var Server = (function() {
     this.currentXHR = undefined;
 
     this.connectionAttempts = 0;
-    this.reconnectOnError = options && options.reconnectOnError || true;
+    this.reconnectOnError = options && options.reconnectOnError;
 
     // Try to reconnect in case of network error.
-    if (this.reconnectOnError === true){
+    if (this.reconnectOnError !== false){
       this.on("network-error", function(response){
         this.reconnect();
       }.bind(this));

@@ -8,7 +8,7 @@ describe("Server", function() {
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
     sandbox.stub(window, "WebSocket").returns({send: sinon.spy()});
-    server = new Server();
+    server = new Server({reconnectOnError: false});
   });
 
   afterEach(function() {
@@ -83,20 +83,17 @@ describe("Server", function() {
   describe("#reconnect", function() {
 
     beforeEach(function() {
-      // Monnkey-patch setTimeout to be a no-op.
+      server = new Server();
+      // Monkey-patch setTimeout to be a no-op.
       sandbox.stub(window, "setTimeout", function(fn) {
         fn();
       });
     });
 
-    it("should reconnect when receiving a network-error event", function(done) {
-      sandbox.stub(server.http, "post", function(method, nick, callback) {
-        callback(null, "[]");
-      });
-      server.on("connected", function() {
-        done();
-      });
+    it("should reconnect when receiving a network-error event", function() {
+      sandbox.stub(server, "connect", sinon.spy());
       server.trigger("network-error");
+      sinon.assert.calledOnce(server.connect);
     });
 
     it("should try to reconnect multiple times and then disconnect",
