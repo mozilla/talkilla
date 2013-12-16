@@ -40,7 +40,7 @@ describe("Server", function() {
         done();
       });
 
-      server.connect({nick: "foo"});
+      server.connect();
     });
 
     it("should trigger a network-error event if the request has been aborted",
@@ -52,7 +52,7 @@ describe("Server", function() {
           done();
         });
 
-        server.connect({nick: "foo"});
+        server.connect();
       });
 
     it("should trigger a unauthorized event if the request returns a 400",
@@ -64,7 +64,7 @@ describe("Server", function() {
           done();
         });
 
-        server.connect({nick: "foo"});
+        server.connect();
       });
 
     it("should call #_longPolling", function(done) {
