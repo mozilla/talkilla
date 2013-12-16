@@ -75,9 +75,50 @@ describe("Server", function() {
         done();
       });
 
-      server.connect({nick: "foo"});
+      server.connect();
     });
 
+  });
+
+  describe("#reconnect", function() {
+
+    beforeEach(function() {
+      // Monnkey-patch setTimeout to be a no-op.
+      sandbox.stub(window, "setTimeout", function(fn) {
+        fn();
+      });
+    });
+
+    it("should reconnect when receiving a network-error event", function(done) {
+      sandbox.stub(server.http, "post", function(method, nick, callback) {
+        callback(null, "[]");
+      });
+      server.on("connected", function() {
+        done();
+      });
+      server.trigger("network-error");
+    });
+
+    it("should try to reconnect multiple times and then disconnect",
+      function(done) {
+        var counter = 0;
+
+        sandbox.stub(server.http, "post", function(method, nick, callback) {
+          callback(0, "request aborted");
+        });
+
+        server.on("reconnecting", function() {
+          // Go straight to the next reconnection.
+          counter++;
+        });
+
+        server.on("disconnected", function() {
+          expect(counter).to.eql(11);
+          done();
+        });
+
+        server.trigger("network-error");
+      });
   });
 
   describe("#disconnect", function() {

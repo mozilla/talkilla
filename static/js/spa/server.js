@@ -11,6 +11,16 @@ var Server = (function() {
     this.options = options;
     this.http = new HTTP();
     this.currentXHR = undefined;
+
+    this.connectionAttempts = 0;
+    this.reconnectOnError = options && options.reconnectOnError || true;
+
+    // Try to reconnect in case of network error.
+    if (this.reconnectOnError === true){
+      this.on("network-error", function(response){
+        this.reconnect();
+      }.bind(this));
+    }
   }
 
   Server.prototype = {
@@ -29,9 +39,44 @@ var Server = (function() {
       this.currentXHR = xhr;
     },
 
+    /**
+     * Try to reconnect to the server if the connection was lost.
+     *
+     * Try a reconnection every second for the first 10 seconds,
+     * then every minute and stop after one attempt.
+     **/
+    reconnect: function() {
+      if (this.connectionAttempts === 0){
+        this.connectionAttempts += 1;
+        this.connect();
+      } else {
+        var timeout;
+        if (this.connectionAttempts <= 10)
+          timeout = 1000; // One second.
+        else if (this.connectionAttempts === 11)
+          timeout = 1000 * 60; // One minute.
+        else {
+          // After one minute, reset the number of attempts and
+          // stop retrying.
+          this.connectionAttempts = 0;
+
+          // Send a signal saying we're disconnected.
+          this.trigger("disconnected");
+          return;
+        }
+        this.trigger("reconnecting", {"attempt": this.connectionAttempts,
+                                      "timeout": timeout});
+        setTimeout(function() {
+          this.connectionAttempts += 1;
+          this.connect();
+        }.bind(this), timeout);
+      }
+    },
+
     disconnect: function() {
       if (this.currentXHR)
         this.currentXHR.abort();
+      this.trigger("disconnected");
     },
 
     signout: function() {
