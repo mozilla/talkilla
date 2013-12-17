@@ -24,6 +24,16 @@ describe("app.views", function() {
         }).to.Throw(app.views.ViewOptionError, /foo, bar, baz/);
       });
 
+      it("should throw a ViewOptionError having stack information",
+        function(done) {
+          try {
+            view.checkOptions({}, "foo");
+          } catch(err) {
+            expect(err).to.have.property("stack");
+            done();
+          }
+        });
+
       it("shouldn't throw when a required option is present", function() {
         expect(function() {
           view.checkOptions({foo: 42}, "foo");
