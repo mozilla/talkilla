@@ -120,7 +120,7 @@ describe('UserData', function() {
 
     it("should send a social.user-profile event to the browser", function () {
       userData.send();
-      sinon.assert.calledOnce(browserPort.postEvent);
+      sinon.assert.called(browserPort.postEvent);
 
       var data = browserPort.postEvent.args[0][1];
       expect(data.userName).to.be.equal('jb');
@@ -137,18 +137,47 @@ describe('UserData', function() {
         sandbox.stub(tkWorker.ports, "broadcastEvent");
         userData.send();
 
-        sinon.assert.calledOnce(tkWorker.ports.broadcastEvent);
+        sinon.assert.called(tkWorker.ports.broadcastEvent);
         sinon.assert.calledWithExactly(
-          tkWorker.ports.broadcastEvent, "social.user-profile", userNameMatcher);
+          tkWorker.ports.broadcastEvent,
+          "social.user-profile",
+          userNameMatcher
+        );
       });
 
     it("should send an online image url if connected", function() {
+      // Connected automatically calls send()
       userData.connected = true;
-      sinon.assert.calledOnce(browserPort.postEvent);
+      sinon.assert.called(browserPort.postEvent);
 
       var data = browserPort.postEvent.args[0][1];
       expect(data.iconURL).to.contain('online');
     });
+
+    it("should send a social.ambient-notification with a disconnected icon " +
+       "url to the browser when disconnected", function() {
+        userData.send();
+
+        sinon.assert.called(browserPort.postEvent);
+        sinon.assert.calledWithExactly(browserPort.postEvent,
+          "social.ambient-notification", {
+            iconURL: "http://fake/img/talkilla16.png"
+          }
+        );
+      });
+
+    it("should send a social.ambient-notification with a connected icon url " +
+       "to the browser when connected", function() {
+        // Connected automatically calls send()
+        userData.connected = true;
+
+        sinon.assert.called(browserPort.postEvent);
+        sinon.assert.calledWithExactly(browserPort.postEvent,
+          "social.ambient-notification", {
+            iconURL: "http://fake/img/talkilla16-online.png"
+          }
+        );
+      });
   });
 });
 
