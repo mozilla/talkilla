@@ -35,7 +35,9 @@
       </p>
 
       <p>To get started on Talkilla, click the button to add it to Firefox:
-        <button onclick="browserDetection.activateSocial(this)">Activate Talkilla</button>
+        <button onclick="browserDetection.activateSocial(this,
+                         window.navigator.userAgent)">Activate Talkilla
+        </button>
       </p>
 
       <p>If you've already clicked it, you don't need to click it again, just look for
@@ -54,7 +56,7 @@
   <script src="js/browserDetection.js"></script>
   <script>
     $(function() {
-      browserDetection.initialize();
+      browserDetection.initialize(window.navigator.userAgent);
     });
   </script>
 </body>

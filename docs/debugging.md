@@ -38,7 +38,35 @@ If none of the other methods work, worst-case you can use [dump to log output](h
 
 ## Debugging
 
-### Using the remote debugger
+### Debugging the drop-down panel
+
+In order to effectively debug panels, they need to be made to not disappear
+when the mouse pointer is clicked in your debugging tool of choice.  Until
+something like this makes it into Firefox, this code base includes an add-on
+which makes the drop-down panel not automatically hide itself.  Instead, the
+developer clicks in the toolbar button that spawned the panel to make the panel
+close.  To install it:
+
+1. Go to `Tools -> Add-ons` while using the browser profile you use for
+development
+
+2. Click the `Extensions` side tab
+
+3. Click the gear button next to the search box near the top of the tab
+
+4. Select `Install Add-on From File`
+
+5. Navigate into the `bin` directory in your Talkilla source tree,
+and select `PinPanel.xpi`.
+
+### Using Firebug
+
+At the time of this writing, it's not really possible to debug live code in
+dynamically created widgets (eg chat box, panel) using the built-in debugger.
+Sufficiently new versions (e.g. 1.13.0a6) of Firebug, however,
+work pretty well.
+
+### Using the built-in remote debugger
 
 The remote debugger can be used for debugging in the sidebar or the frameworker. See the [general debugger information](https://developer.mozilla.org/docs/Tools/Debugger) for details on how it works.
 
@@ -51,13 +79,16 @@ To use the remote debugger:
 
 1. In about:config, set both `devtools.debugger.remote-enabled` and `devtools.chrome.enabled` to true
 
-2. Go to `Tools -> Web Developer -> Browser Debugger`
+2. Go to `Tools -> Web Developer -> Browser Debugger` (or `Browser Toolbox`,
+in newer builds).
 
 3. When it opens, accept the incoming connection
 
 ## Inspecting the DOM
 
-The easiest way to do this currently, is to use the [DOM Inspector](https://addons.mozilla.org/firefox/addon/dom-inspector-6622/).
+If other tools aren't working well enough to inspect the DOM, it's also
+possible to use the [DOM Inspector]
+(https://addons.mozilla.org/firefox/addon/dom-inspector-6622/).
 
 To use the add-on:
 

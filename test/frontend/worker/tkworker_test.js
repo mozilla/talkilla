@@ -162,8 +162,8 @@ describe("tkWorker", function() {
 
       sinon.assert.calledOnce(worker.ports.broadcastEvent);
       sinon.assert.calledWith(worker.ports.broadcastEvent, "talkilla.users", [
-        {nick: "foo", presence: "disconnected"},
-        {nick: "bar", presence: "disconnected"}
+        {username: "foo", presence: "disconnected"},
+        {username: "bar", presence: "disconnected"}
       ]);
     });
   });

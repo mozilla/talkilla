@@ -124,12 +124,14 @@ var ChatApp = (function(app, $, Backbone, _) {
    */
   ChatApp.prototype._onConversationOpen = function(msg) {
     this.call.set({capabilities: msg.capabilities});
-    this.user.set({nick: msg.user});
-    this.peer
-        .set({nick: msg.peer, presence: msg.peerPresence},
-             {silent: true})
-        .trigger('change:nick', this.peer) // force triggering change event
-        .trigger('change:presence', this.peer);
+    this.user.set({username: msg.user});
+
+    this.peer.set({username: msg.peer.username, presence: msg.peerPresence,
+                   fullName: msg.peer.fullName},
+                  {silent: true})
+              // force triggering change event
+             .trigger('change:username', this.peer)
+             .trigger('change:presence', this.peer);
   };
 
   ChatApp.prototype._onCallAccepted = function() {
@@ -156,10 +158,11 @@ var ChatApp = (function(app, $, Backbone, _) {
     var sdp = new WebRTC.SDP(msg.offer.offer.sdp);
 
     this.call.set({capabilities: msg.capabilities});
-    this.user.set({nick: msg.user});
+    this.user.set({username: msg.user});
 
     if (!msg.offer.upgrade)
-      this.peer.set({nick: msg.peer, presence: msg.peerPresence});
+      this.peer.set({username: msg.peer.username, fullName: msg.peer.fullName,
+                    presence: msg.peerPresence});
 
     // incoming text chat conversation
     if (sdp.only("datachannel"))
@@ -213,7 +216,7 @@ var ChatApp = (function(app, $, Backbone, _) {
    */
   ChatApp.prototype._onIceCandidateReady = function(candidate) {
     var iceCandidateMsg = new app.payloads.IceCandidate({
-      peer: this.peer.get("nick"),
+      peer: this.peer.get("username"),
       candidate: candidate
     });
     this.appPort.post('talkilla.ice-candidate', iceCandidateMsg);
@@ -288,13 +291,13 @@ var ChatApp = (function(app, $, Backbone, _) {
     window.close();
   };
 
-  ChatApp.prototype._onUserJoined = function(nick) {
-    if (this.peer.get('nick') === nick)
+  ChatApp.prototype._onUserJoined = function(username) {
+    if (this.peer.get('username') === username)
       this.peer.set('presence', 'connected');
   };
 
-  ChatApp.prototype._onUserLeft = function(nick) {
-    if (this.peer.get('nick') === nick)
+  ChatApp.prototype._onUserLeft = function(username) {
+    if (this.peer.get('username') === username)
       this.peer.set('presence', 'disconnected');
   };
 
@@ -304,7 +307,7 @@ var ChatApp = (function(app, $, Backbone, _) {
       return;
 
     // app object events logging
-    ['webrtc', 'call', 'textChat'].forEach(function(prop) {
+    ['webrtc', 'call', 'textChat', 'appPort'].forEach(function(prop) {
       this[prop].on("all", function() {
         var args = [].slice.call(arguments);
         console.log.apply(console, ['chatapp.' + prop].concat(args));

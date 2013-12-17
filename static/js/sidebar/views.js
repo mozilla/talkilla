@@ -19,7 +19,13 @@
 
     el: 'body',
 
-    initialize: function() {
+    events: {
+      'click a.user-entry': 'clickUserEntry'
+    },
+
+    isInSidebar: false, // default to panel
+
+    initialize: function(options) {
       this.notificationsView = new app.views.NotificationsView({
         user: this.user
       });
@@ -43,6 +49,31 @@
         user: this.user,
         spa: this.spa
       });
+
+      if (options.isInSidebar)
+        this.isInSidebar = options.isInSidebar;
+
+      this.on("resize", this._onResize, this);
+
+      window.addEventListener("unload", this._onUnload.bind(this));
+    },
+
+    _onResize: function(width, height) {
+      if (this.isInSidebar)
+        return;
+      var safetyHeightMargin = 120; // 120px height safety margin
+      this.$el.css("max-height", (height - safetyHeightMargin) + "px");
+    },
+
+    // for debugging, to see if we're getting unload events only from the
+    // panel, or also from contained iframes
+    _onUnload: function(e) {
+      console.log("panel unload called, target =  ", e.target);
+    },
+
+    clickUserEntry: function() {
+      if (!this.isInSidebar)
+        window.close();
     },
 
     render: function() {
@@ -89,7 +120,7 @@
 
     render: function() {
       this.display(this.user.isLoggedIn() && this.spa.supports("pstn-call"));
-    },
+    }
   });
 
   /**
@@ -141,12 +172,13 @@
     tagName: 'li',
 
     template: _.template([
-      '<a href="#" rel="<%= nick %>">',
+      '<a class="user-entry" href="#" rel="<%= username %>"',
+      '   title="<%= username %>">',
       '  <div class="avatar">',
       '    <img src="<%= avatar %>">',
       '    <span class="status status-<%= presence %>"></span>',
       '  </div>',
-      '  <span class="username"><%= nick %></span>',
+      '  <span class="username"><%= fullName %></span>',
       '</a>'
     ].join('')),
 
@@ -205,13 +237,13 @@
         // filter out current signed in user, if any
         if (!session.isLoggedIn())
           return false;
-        return user.get('nick') === session.get('nick');
+        return user.get('username') === session.get('username');
       }).each(function(user) {
         // create a dedicated list entry for each user
         this.views.push(new app.views.UserEntryView({
           model:  user,
           active: !!(callee &&
-                     callee.get('nick') === user.get('nick'))
+                     callee.get('username') === user.get('username'))
         }));
       }.bind(this));
     },
@@ -273,18 +305,19 @@
       if (!this.appStatus.get('workerInitialized')) {
         this.$('#signout').hide();
         this.$('[name="spa-setup"]').remove();
-      } else if (!this.user.get("nick")) {
+      } else if (!this.user.get("username")) {
         var iframe = $("<iframe>")
           .attr("src", "/talkilla-spa-setup.html")
           .attr("id", "signin")
           .attr("name", "spa-setup");
         $("#login p:first").append(iframe);
 
-        this.$('#signout').hide().find('.nick').text('');
+        this.$('#signout').hide().find('.username').text('');
       } else {
         this.$('#signin').hide();
         this.$('[name="spa-setup"]').remove();
-        this.$('#signout').show().find('.nick').text(this.user.get('nick'));
+        this.$('#signout').show().find('.username')
+            .text(this.user.get('username'));
       }
       return this;
     },

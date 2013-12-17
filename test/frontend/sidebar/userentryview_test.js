@@ -1,5 +1,7 @@
-/*global app, sinon, AppPort */
+/*global app, chai, sinon, AppPort */
 "use strict";
+
+var expect = chai.expect;
 
 describe("UserEntryView", function() {
   var sandbox, sidebarApp;
@@ -52,6 +54,46 @@ describe("UserEntryView", function() {
 
       sinon.assert.calledOnce(sidebarApp.openConversation);
       sinon.assert.calledWith(sidebarApp.openConversation, "william");
+    });
+  });
+
+  describe("#render", function() {
+    var user, view;
+
+    beforeEach(function() {
+      user = new app.models.User();
+      view = new app.views.UserEntryView({
+        model: user,
+        el: $("#fixtures")
+      });
+    });
+
+    afterEach(function() {
+      $("#fixtures").empty();
+    });
+
+    it("should populate template with expected username", function() {
+      user.set({username: "chuck"});
+
+      view.render();
+
+      console.log(view.$el.html());
+
+      expect(view.$("a").attr("rel")).eql("chuck");
+      expect(view.$("a").attr("title")).eql("chuck");
+      expect(view.$(".username").text()).eql("chuck");
+    });
+
+    it("should populate template with expected full name", function() {
+      user.set({username: "chuck", fullName: "Chuck Norris"});
+
+      view.render();
+
+      console.log(view.$el.html());
+
+      expect(view.$("a").attr("rel")).eql("chuck");
+      expect(view.$("a").attr("title")).eql("chuck");
+      expect(view.$(".username").text()).eql("Chuck Norris");
     });
   });
 });

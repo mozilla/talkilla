@@ -16,7 +16,7 @@ describe("CurrentUsers", function() {
 
     beforeEach(function() {
       users = new CurrentUsers();
-      users.set("jb", {presence: "disconnected"});
+      users.set("jb", {username: "jb", presence: "disconnected"});
     });
 
     afterEach(function() {
@@ -42,7 +42,7 @@ describe("CurrentUsers", function() {
 
     describe("#get", function() {
       it("should retrieve an existing user", function() {
-        expect(users.get("jb")).eql({presence: "disconnected"});
+        expect(users.get("jb")).eql({username:"jb", presence: "disconnected"});
       });
 
       it("shouldn't retrieve a nonexistent user", function() {
@@ -69,19 +69,20 @@ describe("CurrentUsers", function() {
         users.updateContacts(contacts);
 
         expect(users.all()).eql({
-          jb: {presence: "disconnected"},
-          foo: {presence: "disconnected"}
+          jb: {username:"jb", presence: "disconnected"},
+          foo: {username:"foo", presence: "disconnected"}
         });
       });
 
       it("shouldn't duplicate contacts", function() {
-        users.set('foo', {presence: "connected"});
+        users.set('foo', {username: "foo", presence: "connected"});
 
         users.updateContacts(contacts);
+        console.log(users.all());
 
         expect(users.all()).eql({
-          jb: {presence: "disconnected"},
-          foo: {presence: "connected"}
+          jb: {username: "jb", presence: "disconnected"},
+          foo: {username: "foo", presence: "connected"}
         });
       });
     });

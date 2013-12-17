@@ -82,12 +82,13 @@ describe("ImportContactsView", function() {
     });
 
     it("should be displayed when user signs out", function() {
-      user.set({nick: undefined, presence: "disconnected"}).trigger("signout");
+      user.set({username: undefined, presence: "disconnected"})
+          .trigger("signout");
       expect(importView.render().$el.is(':visible')).to.equal(false);
     });
 
     it("should be displayed when user signs in", function() {
-      user.set({nick: "james", presence: "connected"}).trigger("signin");
+      user.set({username: "james", presence: "connected"}).trigger("signin");
       expect(importView.render().$el.is(':visible')).to.equal(true);
     });
   });

@@ -21,7 +21,7 @@ describe('Call Establish View', function() {
     sandbox.useFakeTimers();
 
     peer = new app.models.User();
-    peer.set({nick: "Mark"});
+    peer.set({username: "Mark"});
 
     var media = sandbox.stub(new WebRTC());
     call = new app.models.Call({}, {media: media, peer: peer});

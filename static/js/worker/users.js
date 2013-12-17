@@ -36,11 +36,15 @@ var CurrentUsers = (function() {
     set: function(userId, attributes) {
       attributes = attributes || {};
       if (!this.has(userId)) {
+        // XXX: we should have a proper user object in the future
+        if (!attributes.username)
+          attributes.username = userId;
         this.users[userId] = attributes;
         return;
       }
       for (var attr in attributes)
         this.users[userId][attr] = attributes[attr];
+
     },
 
     /**
@@ -55,17 +59,15 @@ var CurrentUsers = (function() {
     },
 
     /**
-     * Update current users list with provided contacts list.
+     * Update current users list with provided contacts list, preserving the
+     * presence property.
      * @param  {Array} contacts Contacts list
      */
     updateContacts: function(contacts) {
       (contacts || [])
-        .map(function(contact) {
-          return contact.username;
-        })
-        .forEach(function(userId) {
-          if (!this.has(userId))
-            this.set(userId, {presence: "disconnected"});
+        .forEach(function(contact) {
+          contact.presence = this.getPresence(contact.username);
+          this.set(contact.username, contact);
         }, this);
     },
 
@@ -87,17 +89,13 @@ var CurrentUsers = (function() {
     /**
      * Returns current users object mapped as an array.
      *
-     * XXX: - we use this to map to what the sidebar wants, really the sidebar
-     *        should change so that we can just send the object.
-     *      - users related logic should be moved to a dedicated object.
-     *
      * @return {Array}
      */
     toArray: function() {
       if (Object.keys(this.users).length === 0)
         return [];
       return Object.keys(this.users).map(function(userId) {
-        return {nick: userId, presence: this.users[userId].presence};
+        return this.users[userId];
       }, this);
     }
   };
