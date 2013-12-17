@@ -373,22 +373,10 @@ var handlers = {
       spa.connect(spec.credentials);
     }
 
-    tkWorker.spaDb.add(spec, function(err) {
-      if (err) {
-        // We might have an existing record already, e.g. this could
-        // happen if the SPA has changed their worker url, and so we
-        // actually need to update the database entry.
-        if (err.name === "ConstraintError") {
-          tkWorker.spaDb.update(spec, function(err) {
-            if (err) {
-              tkWorker.ports.broadcastError("Error adding SPA", err);
-              return;
-            }
-            startSPA();
-          });
-        }
-        tkWorker.ports.broadcastError("Error adding SPA", err);
-      }
+    tkWorker.spaDb.store(spec, function(err) {
+      if (err)
+        return tkWorker.ports.broadcastError("Error adding SPA", err);
+
       // Try starting the SPA even if there's an error adding it - at least
       // the user can possibly get into it.
       startSPA();

@@ -225,36 +225,20 @@ describe('handlers', function() {
       sandbox.stub(window, "SPA").returns(spa);
     });
 
-    it("should add the SPA to the database", function() {
-      sandbox.stub(tkWorker.spaDb, "add");
+    it("should store the SPA in the database", function() {
+      sandbox.stub(tkWorker.spaDb, "store");
 
       handlers["talkilla.spa-enable"]({
         data: spaSpec
       });
 
-      sinon.assert.calledOnce(tkWorker.spaDb.add);
-      sinon.assert.calledWith(tkWorker.spaDb.add,
-                              new payloads.SPASpec(spaSpec));
-    });
-
-    it("should update the SPA in the DB if it already exists", function() {
-      sandbox.stub(tkWorker.spaDb, "add", function(spec, callback) {
-        callback({name: "ConstraintError"});
-      });
-
-      sandbox.stub(tkWorker.spaDb, "update");
-
-      handlers["talkilla.spa-enable"]({
-        data: spaSpec
-      });
-
-      sinon.assert.calledOnce(tkWorker.spaDb.update);
-      sinon.assert.calledWith(tkWorker.spaDb.update,
+      sinon.assert.calledOnce(tkWorker.spaDb.store);
+      sinon.assert.calledWith(tkWorker.spaDb.store,
                               new payloads.SPASpec(spaSpec));
     });
 
     it("should instantiate a new SPA with the given src", function() {
-      sandbox.stub(tkWorker.spaDb, "add", function(spec, callback) {
+      sandbox.stub(tkWorker.spaDb, "store", function(spec, callback) {
         callback(null, spec);
 
         sinon.assert.calledOnce(SPA);
@@ -267,7 +251,7 @@ describe('handlers', function() {
     });
 
     it("should connect the created SPA with given credentials", function() {
-      sandbox.stub(tkWorker.spaDb, "add", function(spec, callback) {
+      sandbox.stub(tkWorker.spaDb, "store", function(spec, callback) {
         callback(null, spec);
 
         sinon.assert.calledOnce(spa.connect);

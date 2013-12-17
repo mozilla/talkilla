@@ -59,109 +59,110 @@ describe("SPADB", function() {
 
   });
 
-  describe("#add", function() {
+  describe("#store", function() {
+    describe("adding records", function() {
+      it("should add a record to the database", function(done) {
+        var spec = {name: "Random SPA", src: "/a/b/c.js", credentials: {}};
 
-    it("should add a record to the database", function(done) {
-      var spec = {name: "Random SPA", src: "/a/b/c.js", credentials: {}};
+        spadb.store(spec, function(err, record) {
+          expect(err).to.equal(null);
+          expect(record).to.deep.equal(spec);
 
-      spadb.add(spec, function(err, record) {
-        expect(err).to.equal(null);
-        expect(record).to.deep.equal(spec);
+          spadb.all(function(err, specs) {
+            expect(specs).to.deep.equal([spec]);
+            done();
+          });
+        });
+      });
 
-        this.all(function(err, specs) {
-          expect(specs).to.deep.equal([spec]);
+      it("should pass back any add error", function(done) {
+        var spec = {name: "Random SPA", src: "/a/b/c.js", credentials: {}};
+        sandbox.stub(IDBObjectStore.prototype, "add", function() {
+          throw new Error("add error");
+        });
+
+        spadb.store(spec, function(err) {
+          expect(err).equal("add error");
+          done();
+        });
+      });
+
+      it("should pass back any transaction error", function(done) {
+        var spec = {name: "Random SPA", src: "/a/b/c.js", credentials: {}};
+        sandbox.stub(IDBObjectStore.prototype, "add", function() {
+          var request = {};
+          setTimeout(function() {
+            request.onerror({
+              target: {error: {name: "InvalidStateError",
+                               message: "add error"}},
+              preventDefault: sinon.spy()
+            });
+          });
+          return request;
+        });
+
+        spadb.store(spec, function(err) {
+          expect(err.message).eql("add error");
           done();
         });
       });
     });
 
-    it("should pass back any add error", function(done) {
-      var spec = {name: "Random SPA", src: "/a/b/c.js", credentials: {}};
-      sandbox.stub(IDBObjectStore.prototype, "add", function() {
-        throw new Error("add error");
-      });
+    describe("updating records", function() {
+      var spec;
 
-      spadb.add(spec, function(err) {
-        expect(err).equal("add error");
-        done();
-      });
-    });
+      beforeEach(function(done) {
+        spec = {name: "Random SPA", src: "/a/b/c.js", credentials: {}};
 
-    it("should pass back any transaction error", function(done) {
-      var spec = {name: "Random SPA", src: "/a/b/c.js", credentials: {}};
-      sandbox.stub(IDBObjectStore.prototype, "add", function() {
-        var request = {};
-        setTimeout(function() {
-          request.onerror({
-            target: {error: {name: "InvalidStateError",
-                             message: "add error"}},
-            preventDefault: sinon.spy()
-          });
-        });
-        return request;
-      });
-
-      spadb.add(spec, function(err) {
-        expect(err.message).eql("add error");
-        done();
-      });
-    });
-  });
-
-  describe("#update", function() {
-    var spec;
-
-    beforeEach(function(done) {
-      spec = {name: "Random SPA", src: "/a/b/c.js", credentials: {}};
-
-      spadb.add(spec, function() {
-        done();
-      });
-    });
-
-    it("should add a record to the database", function(done) {
-      spec.src = "/d/e/f.js";
-
-      spadb.update(spec, function(err, record) {
-        expect(err).to.equal(null);
-        expect(record).to.deep.equal(spec);
-
-        this.all(function(err, specs) {
-          expect(specs).to.deep.equal([spec]);
+        spadb.store(spec, function() {
           done();
         });
       });
-    });
 
-    it("should pass back any update error", function(done) {
-      var spec = {name: "Random SPA", src: "/a/b/c.js", credentials: {}};
-      sandbox.stub(IDBObjectStore.prototype, "put", function() {
-        throw new Error("update error");
-      });
+      it("should add a record to the database", function(done) {
+        spec.src = "/d/e/f.js";
 
-      spadb.update(spec, function(err) {
-        expect(err).equal("update error");
-        done();
-      });
-    });
+        spadb.store(spec, function(err, record) {
+          expect(err).to.equal(null);
+          expect(record).to.deep.equal(spec);
 
-    it("should pass back any transaction error", function(done) {
-      var spec = {name: "Random SPA", src: "/a/b/c.js", credentials: {}};
-      sandbox.stub(IDBObjectStore.prototype, "put", function() {
-        var request = {};
-        setTimeout(function() {
-          request.onerror({
-            target: {error: {name: "InvalidStateError",
-                             message: "add error"}},
-            preventDefault: sinon.spy()
+          spadb.all(function(err, specs) {
+            expect(specs).to.deep.equal([spec]);
+            done();
           });
         });
-        return request;
       });
 
-      spadb.update(spec, function(err) {
-        expect(err.message).eql("add error");
-        done();
+      it("should pass back any update error", function(done) {
+        var spec = {name: "Random SPA", src: "/a/b/c.js", credentials: {}};
+        sandbox.stub(IDBObjectStore.prototype, "put", function() {
+          throw new Error("update error");
+        });
+
+        spadb.store(spec, function(err) {
+          expect(err).equal("update error");
+          done();
+        });
+      });
+
+      it("should pass back any transaction error", function(done) {
+        var spec = {name: "Random SPA", src: "/a/b/c.js", credentials: {}};
+        sandbox.stub(IDBObjectStore.prototype, "put", function() {
+          var request = {};
+          setTimeout(function() {
+            request.onerror({
+              target: {error: {name: "InvalidStateError",
+                               message: "add error"}},
+              preventDefault: sinon.spy()
+            });
+          });
+          return request;
+        });
+
+        spadb.store(spec, function(err) {
+          expect(err.message).eql("add error");
+          done();
+        });
       });
     });
   });
@@ -179,9 +180,9 @@ describe("SPADB", function() {
       var spec1 = {name: "Random SPA 1", src: "/a/b/c.js", credentials: {}};
       var spec2 = {name: "Random SPA 2", src: "/a/b/c.js", credentials: {}};
 
-      spadb.add(spec1, function() {
-        this.add(spec2, function() {
-          this.all(function(err, specs) {
+      spadb.store(spec1, function() {
+        spadb.store(spec2, function() {
+          spadb.all(function(err, specs) {
             specs = specs.map(function(spec) {
               return spec.name;
             });

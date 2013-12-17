@@ -63,8 +63,8 @@ var SPADB = (function() {
   };
 
   /**
-   * Adds a new SPA to the database. Automatically opens the
-   * database connection if needed.
+   * Stores an SPA to the database. If the SPA does not exist,
+   * it will add it, otherwise it will update the existing record.
    *
    * @param {payloads.SPASpec} record: SPASpec record
    * @param {Function}             cb: Callback
@@ -73,67 +73,110 @@ var SPADB = (function() {
    * - {Error|null}          err: Encountered error, if any
    * - {payloads.SPASpec} record: Inserted SPASpec record
    */
-  SPADB.prototype.add = function(record, cb) {
+  SPADB.prototype.store = function(record, cb) {
     this.load(function(err) {
       if (err)
         return cb.call(this, err);
-      var request;
+
+      var store;
       try {
-        request = this._getStore("readwrite").add(record);
-      } catch (err) {
-        return cb.call(this, err && err.message || "Unable to collect SPA");
+        store = this._getStore("readwrite");
+      } catch (x) {
+        return cb(err || "Unable to store SPA");
       }
-      request.onsuccess = function() {
-        cb.call(this, null, record);
-      }.bind(this);
-      request.onerror = function(event) {
-        var err = event.target.error;
-        event.preventDefault();
-        cb.call(this, err);
-      }.bind(this);
+
+      this._add(store, record, function (err) {
+        if (err) {
+          if (err.name !== "ConstraintError")
+            return cb(err || "Unable to store SPA");
+
+          // We might have an existing record already, so update it instead.
+          return this._update(store, record, function(err) {
+            if (err)
+              return cb(err || "Unable to store SPA");
+
+            return cb(null, record);
+          });
+        }
+
+        return cb(null, record);
+      });
     });
   };
 
-  SPADB.prototype.update = function(record, cb) {
-    this.load(function(err) {
-      if (err)
-        return cb.call(this, err);
+  /**
+   * Private function to adds a new SPA to the database.
+   *
+   * @param {IDBObjectStore}    store: The database store
+   * @param {payloads.SPASpec} record: SPASpec record
+   * @param {Function}             cb: Callback
+   *
+   * Callback parameters:
+   * - {Error|null}          err: Encountered error, if any
+   * - {payloads.SPASpec} record: Inserted SPASpec record
+   */
+  SPADB.prototype._add = function(store, record, cb) {
+    var request;
+    try {
+      request = store.add(record);
+    } catch (err) {
+      return cb.call(this, err && err.message || "Unable to collect SPA");
+    }
+    request.onsuccess = function() {
+      cb.call(this, null, record);
+    }.bind(this);
+    request.onerror = function(event) {
+      var err = event.target.error;
+      event.preventDefault();
+      cb.call(this, err);
+    }.bind(this);
+  };
 
-      function handleerror(event) {
-        // This function is bound to this where it is used below.
-        /* jshint validthis:true */
-        var err = event.target.error;
-        event.preventDefault();
-        cb.call(this, err);
-      }
+  /**
+   * Private function to update a SPA within the database. Automatically
+   * opens the database connection if needed.
+   *
+   * @param {IDBObjectStore}    store: The database store
+   * @param {payloads.SPASpec} record: SPASpec record
+   * @param {Function}             cb: Callback
+   *
+   * Callback parameters:
+   * - {Error|null}          err: Encountered error, if any
+   * - {payloads.SPASpec} record: Inserted SPASpec record
+   */
+  SPADB.prototype._update = function(store, record, cb) {
+    function handleerror(event) {
+      // This function is bound to this where it is used below.
+      /* jshint validthis:true */
+      var err = event.target.error;
+      event.preventDefault();
+      cb.call(this, err);
+    }
 
-      var store;
-      var request;
+    var request;
 
+    try {
+      request = store.get(record.name);
+    } catch (err) {
+      return cb.call(this, err && err.message || "Unable to update SPA");
+    }
+    request.onsuccess = function() {
+      var updatedRecord = request.result;
+      updatedRecord.credentials = record.credentials;
+      updatedRecord.src = record.src;
+
+      var requestUpdate;
       try {
-        store = this._getStore("readwrite");
-        request = store.get(record.name);
+        requestUpdate = store.put(updatedRecord);
       } catch (err) {
         return cb.call(this, err && err.message || "Unable to update SPA");
       }
-      request.onsuccess = function() {
-        var data = request.result;
-        data.credentials = record.credentials;
-        data.src = record.src;
-
-        var requestUpdate;
-        try {
-          requestUpdate = store.put(data);
-        } catch (err) {
-          return cb.call(this, err && err.message || "Unable to update SPA");
-        }
-        requestUpdate.onerror = handleerror.bind(this);
-        requestUpdate.onsuccess = function(event) {
-          cb.call(this, null, record);
-        }.bind(this);
+      requestUpdate.onerror = handleerror.bind(this);
+      requestUpdate.onsuccess = function(event) {
+        cb.call(this, null, record);
       }.bind(this);
-      request.onerror = handleerror.bind(this);
-    });
+    }.bind(this);
+    request.onerror = handleerror.bind(this);
   };
 
   /**
