@@ -131,15 +131,16 @@ describe('UserData', function() {
       expect(data.profileURL).to.be.equal('http://fake/user.html');
     });
 
-    it("should send a social.user-profile event to the sidebar", function () {
-      var userNameMatcher = sinon.match({userName: "jb"});
-      sandbox.stub(tkWorker.ports, "broadcastEvent");
-      userData.send();
+    it("should broadcast social.user-profile event to the port collection",
+      function () {
+        var userNameMatcher = sinon.match({userName: "jb"});
+        sandbox.stub(tkWorker.ports, "broadcastEvent");
+        userData.send();
 
-      sinon.assert.calledOnce(tkWorker.ports.broadcastEvent);
-      sinon.assert.calledWithExactly(
-        tkWorker.ports.broadcastEvent, "social.user-profile", userNameMatcher);
-    });
+        sinon.assert.calledOnce(tkWorker.ports.broadcastEvent);
+        sinon.assert.calledWithExactly(
+          tkWorker.ports.broadcastEvent, "social.user-profile", userNameMatcher);
+      });
 
     it("should send an online image url if connected", function() {
       userData.connected = true;
