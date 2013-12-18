@@ -9,9 +9,12 @@
    * View required option error.
    * @param {String} msg Error message
    */
-  app.views.ViewOptionError = function ViewOptionError(msg) {
-    Error.call(this);
-    this.message = msg;
+  app.views.ViewOptionError = function ViewOptionError() {
+    var err = Error.apply(this, arguments);
+    ["message", "stack", "lineNumber", "columnNumber", "fileName"]
+      .forEach(function(prop) {
+        this[prop] = err[prop];
+      }, this);
     this.name = 'ViewOptionError';
   };
   app.views.ViewOptionError.prototype = Object.create(Error.prototype);
