@@ -103,8 +103,10 @@ UserData.prototype = {
    * Sends the current user data to Social
    */
   send: function() {
+    var iconURL = this._rootURL + "/img/" + this.statusIcon;
+
     var userData = {
-      iconURL: this._rootURL + "/img/" + this.statusIcon,
+      iconURL: iconURL,
       // XXX for now, we just hard-code the default avatar image.
       portrait: this._rootURL + "/img/default-avatar.png",
       userName: this._name,
@@ -112,8 +114,17 @@ UserData.prototype = {
       profileURL: this._rootURL + "/user.html"
     };
 
+    // This needs to be sent to the browser for Firefox 28 and earlier
+    // (pre bug 935640).
     browserPort.postEvent('social.user-profile', userData);
+
+    // XXX This could be simplified to just send the userName (and renamed).
     tkWorker.ports.broadcastEvent('social.user-profile', userData);
+
+    // This is needed for Firefox 29 onwards (post bug 935640).
+    browserPort.postEvent('social.ambient-notification', {
+      iconURL: iconURL
+    });
   }
 };
 
