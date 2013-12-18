@@ -82,7 +82,7 @@ describe("SPADB", function() {
         });
 
         spadb.store(spec, function(err) {
-          expect(err).equal("add error");
+          expect(err.message).eql("add error");
           done();
         });
       });
@@ -140,7 +140,7 @@ describe("SPADB", function() {
         });
 
         spadb.store(spec, function(err) {
-          expect(err).equal("update error");
+          expect(err.message).eql("update error");
           done();
         });
       });

@@ -81,19 +81,20 @@ var SPADB = (function() {
       var store;
       try {
         store = this._getStore("readwrite");
-      } catch (x) {
-        return cb(err || "Unable to store SPA");
+      } catch (err) {
+        return cb(err && err.message ? err :
+          new Error("Unable to get the store"));
       }
 
       this._add(store, record, function (err) {
         if (err) {
           if (err.name !== "ConstraintError")
-            return cb(err || "Unable to store SPA");
+            return cb(err);
 
           // We might have an existing record already, so update it instead.
           return this._update(store, record, function(err) {
             if (err)
-              return cb(err || "Unable to store SPA");
+              return cb(err);
 
             return cb(null, record);
           });
@@ -120,7 +121,8 @@ var SPADB = (function() {
     try {
       request = store.add(record);
     } catch (err) {
-      return cb.call(this, err && err.message || "Unable to collect SPA");
+      return cb.call(this, err && err.message ? err :
+        new Error("Unable to add SPA record"));
     }
     request.onsuccess = function() {
       cb.call(this, null, record);
@@ -153,26 +155,17 @@ var SPADB = (function() {
       cb.call(this, err);
     }
 
-    var request;
-
+    var requestUpdate;
     try {
-      request = store.get(record.name);
+      requestUpdate = store.put(record);
     } catch (err) {
-      return cb.call(this, err && err.message || "Unable to update SPA");
+      return cb.call(this, err && err.message ? err :
+        new Error("Unable to put new SPA"));
     }
-    request.onsuccess = function() {
-      var requestUpdate;
-      try {
-        requestUpdate = store.put(record);
-      } catch (err) {
-        return cb.call(this, err && err.message || "Unable to update SPA");
-      }
-      requestUpdate.onerror = handleerror.bind(this);
-      requestUpdate.onsuccess = function(event) {
-        cb.call(this, null, record);
-      }.bind(this);
+    requestUpdate.onerror = handleerror.bind(this);
+    requestUpdate.onsuccess = function(event) {
+      cb.call(this, null, record);
     }.bind(this);
-    request.onerror = handleerror.bind(this);
   };
 
   /**
