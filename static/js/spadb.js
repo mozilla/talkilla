@@ -161,13 +161,9 @@ var SPADB = (function() {
       return cb.call(this, err && err.message || "Unable to update SPA");
     }
     request.onsuccess = function() {
-      var updatedRecord = request.result;
-      updatedRecord.credentials = record.credentials;
-      updatedRecord.src = record.src;
-
       var requestUpdate;
       try {
-        requestUpdate = store.put(updatedRecord);
+        requestUpdate = store.put(record);
       } catch (err) {
         return cb.call(this, err && err.message || "Unable to update SPA");
       }
