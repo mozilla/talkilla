@@ -111,6 +111,19 @@ describe("app.views.BaseView", function() {
         expect(createTestView({user: /whatever/})).not.to.Throw();
       });
 
+    it("should throw a DependencyError having stack information",
+      function(done) {
+        TestView.prototype.dependencies = {foo: String};
+
+        try {
+          createTestView({foo: 42})();
+        } catch(err) {
+          expect(err).to.be.an.instanceOf(app.views.DependencyError);
+          expect(err).to.have.property("stack");
+          done();
+        }
+      });
+
     it("should check for a String dependency", function() {
       TestView.prototype.dependencies = {foo: String};
 
