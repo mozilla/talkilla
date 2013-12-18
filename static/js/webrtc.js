@@ -137,6 +137,7 @@
   /**
    * Upgrades an established peer connection with new constraints.
    * @param  {Object} constraints User media constraints
+   * @param  {Object} offer Connection offer
    * @return {WebRTC}
    */
   WebRTC.prototype.upgrade = function(constraints, offer) {
@@ -188,7 +189,7 @@
 
   /**
    * Answers an incoming initial or upgraded connection offer.
-   * @param  {Object}  offer  Connection offer
+   * @param  {Object} offer Connection offer
    * @return {WebRTC}
    * @public
    */
@@ -523,7 +524,7 @@
   WebRTC.prototype.createDataChannel = function() {
     if (this.pc === undefined || this.pc.signalingState === 'closed')
       this.pc = new mozRTCPeerConnection();
-    return (new WebRTC.DataChannel(this.pc));
+    return new WebRTC.DataChannel(this.pc);
   };
 
   WebRTC.DataChannel = function DataChannel(pc) {

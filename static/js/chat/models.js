@@ -18,7 +18,6 @@
     },
     timer: undefined,
     media: undefined,
-    transport: undefined,
     callid: undefined,
 
     /**
@@ -477,15 +476,18 @@
   });
 
   app.models.TextChatEntry = Backbone.Model.extend({
-    defaults: {username: undefined,
-               message: undefined,
-               date: new Date().getTime()}
+    defaults: {
+      username: undefined,
+      message: undefined,
+      date: new Date().getTime()
+    }
   });
 
   app.models.TextChat = Backbone.Collection.extend({
     model: app.models.TextChatEntry,
 
     media: undefined,
+    transport: undefined,
     user: undefined,
     peer: undefined,
     typingTimeout: undefined,
