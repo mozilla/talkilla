@@ -99,11 +99,12 @@
    * - info:    blue
    * - success: green
    */
-  app.utils.notifyUI = function(message, type) {
+  app.utils.notifyUI = function(message, type, timeout) {
     var notification = new app.views.NotificationView({
       model: new app.models.Notification({
         type:    type || "warning",
-        message: message
+        message: message,
+        timeout: timeout
       })
     });
     sidebarApp.view.notifications.addNotification(notification);

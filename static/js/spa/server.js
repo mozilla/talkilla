@@ -34,6 +34,8 @@ var Server = (function() {
             return this.trigger("network-error", response);
 
           this.trigger("connected");
+          this.connectionAttempts = 0;
+
           this._longPolling(JSON.parse(response));
         }.bind(this));
       this.currentXHR = xhr;
@@ -42,41 +44,33 @@ var Server = (function() {
     /**
      * Try to reconnect to the server if the connection was lost.
      *
-     * Try a reconnection every second for the first 10 seconds,
-     * then every minute and stop after one attempt.
+     * Try a reconnection right away, then every second for the
+     * first 10 seconds, then every minute.
+     *
+     * Each time a reconnection occurs, sends a reconnection event with
+     * the current attempt and the timeout in order to know when this will
+     * happen.
      **/
     reconnect: function() {
+      var timeout;
       if (this.connectionAttempts === 0){
+        timeout = 0; // reconnect instantly.
+      } else if (this.connectionAttempts <= 10)
+        timeout = 1000; // One second.
+      else {
+        timeout = 1000 * 4; // One minute.
+      }
+      this.trigger("reconnection", {"attempt": this.connectionAttempts,
+                                    "timeout": timeout});
+      setTimeout(function() {
         this.connectionAttempts += 1;
         this.connect();
-      } else {
-        var timeout;
-        if (this.connectionAttempts <= 10)
-          timeout = 1000; // One second.
-        else if (this.connectionAttempts === 11)
-          timeout = 1000 * 60; // One minute.
-        else {
-          // After one minute, reset the number of attempts and
-          // stop retrying.
-          this.connectionAttempts = 0;
-
-          // Send a signal saying we're disconnected.
-          this.trigger("disconnected");
-          return;
-        }
-        this.trigger("reconnecting", {"attempt": this.connectionAttempts,
-                                      "timeout": timeout});
-        setTimeout(function() {
-          this.connectionAttempts += 1;
-          this.connect();
-        }.bind(this), timeout);
-      }
+      }.bind(this), timeout);
     },
 
     disconnect: function() {
       if (this.currentXHR)
         this.currentXHR.abort();
-      this.trigger("disconnected");
     },
 
     signout: function() {

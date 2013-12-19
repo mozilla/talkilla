@@ -84,7 +84,7 @@ describe("Server", function() {
 
     beforeEach(function() {
       server = new Server();
-      // Monkey-patch setTimeout to be a no-op.
+      // Monkey-patch setTimeout to be a sync operation.
       sandbox.stub(window, "setTimeout", function(fn) {
         fn();
       });
@@ -96,26 +96,16 @@ describe("Server", function() {
       sinon.assert.calledOnce(server.connect);
     });
 
-    it("should try to reconnect multiple times and then disconnect",
-      function(done) {
-        var counter = 0;
-
-        sandbox.stub(server.http, "post", function(method, nick, callback) {
-          callback(0, "request aborted");
-        });
-
-        server.on("reconnecting", function() {
-          // Go straight to the next reconnection.
-          counter++;
-        });
-
-        server.on("disconnected", function() {
-          expect(counter).to.eql(11);
-          done();
-        });
-
-        server.trigger("network-error");
+    it("should send a `reconnection` event when reconnecting", function(done) {
+      sandbox.stub(server, "connect", sinon.spy());
+      server.on("reconnection", function(event) {
+        expect(event.timeout).to.equal(0);
+        expect(event.attempt).to.equal(0);
+        done();
       });
+
+      server.reconnect();
+    });
   });
 
   describe("#disconnect", function() {

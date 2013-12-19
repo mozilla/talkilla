@@ -17,6 +17,8 @@ var SidebarApp = (function(app, $) {
     this.users = new app.models.UserSet();
     this.spa = new app.models.SPA();
 
+    this.reconnecting = false; // true if we are doing a reconnection.
+
     this.services = {
       google: new GoogleContacts({
         appPort: this.appPort
@@ -36,17 +38,16 @@ var SidebarApp = (function(app, $) {
     this.user.on("signout-requested", this._onUserSignoutRequested, this);
 
     // port events
-    this.appPort.on('talkilla.users', this._onUserListReceived, this);
+    this.appPort.on("talkilla.users", this._onUserListReceived, this);
     this.appPort.on("talkilla.spa-connected", this._onSPAConnected, this);
     this.appPort.on("talkilla.error", this._onError, this);
-    this.appPort.on("talkilla.spa-error", this._onSPAError, this);
-    this.appPort.on("talkilla.presence-unavailable",
-                 this._onPresenceUnavailable, this);
+    this.appPort.on("talkilla.server-reconnection",
+                 this._onServerReconnection, this);
     this.appPort.on("talkilla.chat-window-ready",
                  this._onChatWindowReady, this);
     this.appPort.on("talkilla.worker-ready", this._onWorkerReady, this);
     this.appPort.on("social.user-profile", this._onUserProfile, this);
-    this.appPort.on('talkilla.reauth-needed', this._onReauthNeeded, this);
+    this.appPort.on("talkilla.reauth-needed", this._onReauthNeeded, this);
 
     // SPA model events
     this.spa.on("dial", this.openConversation, this);
@@ -79,11 +80,11 @@ var SidebarApp = (function(app, $) {
   };
 
   SidebarApp.prototype.openConversation = function(peer) {
-    this.appPort.post('talkilla.conversation-open', {peer: peer});
+    this.appPort.post("talkilla.conversation-open", {peer: peer});
   };
 
   SidebarApp.prototype._onChatWindowReady = function() {
-    this.appPort.post('talkilla.user-nick', {nick: this.user.get('nick')});
+    this.appPort.post("talkilla.user-nick", {nick: this.user.get("nick")});
   };
 
   SidebarApp.prototype._onSPASetup = function(event) {
@@ -103,41 +104,42 @@ var SidebarApp = (function(app, $) {
   };
 
   SidebarApp.prototype._onSPAConnected = function(event) {
+    // Dismiss all the reconnection messages.
+    this.view.notifications.clear();
+
+    if (this.reconnecting === true){
+      app.utils.notifyUI("Reconnected to the server.", "success", 2000);
+      this.reconnecting = false;
+    }
+
     this.user.set({presence: "connected"});
     if (event && event.capabilities)
       this.spa.set({capabilities: event.capabilities});
   };
 
-  // XXX a lot of the steps that happen after various types of logouts and
-  // failures are very very similar but not the same, and I suspect some
-  // of this is intentional, and some of it is not.  One of the consequences
-  // here is that the app itself can be left in a whole variety of mostly
-  // similar but non-identical states.  My guess is that there should really
-  // only be one or two states possible.  This needs some factoring out.
-  // However, I suspect the factoring is going to be meaningfully effected by
-  // our efforts to retry connections much of the time, so it probably makes
-  // sense to do it as part of that card.
+  SidebarApp.prototype._onServerReconnection = function(event) {
+    // Only notify the users there is a server-connection problem after
+    // trying for some time.
+    if (event.attempt >= 11){
+      this.reconnecting = true;
+      var timeout = event.timeout / 1000;
+      app.utils.notifyUI("We lost the connection with the server. " +
+                         "Attempting a reconnection in " + timeout + "s...",
+                         "error", event.timeout);
+
+      // Show all the users as disconnected.
+      this.view.users.each(function(user) {
+        user.set("presence", "disconnected");
+      });
+    }
+  };
 
   SidebarApp.prototype._onError = function(error) {
-    app.utils.notifyUI('Error while communicating with the server: ' +
-      error, 'error');
-  };
-
-  SidebarApp.prototype._onSPAError = function(error) {
-    app.utils.notifyUI('Error while communicating with the Server: ' +
-      error, 'error');
-    this.user.clear();
-  };
-
-  SidebarApp.prototype._onPresenceUnavailable = function(code) {
-    // 1000 is CLOSE_NORMAL, meaning that the app itself called close(),
-    // (e.g. because the user clicked on logout), so there's no error
-    // here.
-    if (code !== 1000) {
-      this.user.clear();
-      app.utils.notifyUI('Sorry, the browser lost communication with ' +
-                         'the server. CloseEvent code: ' + code);
+    var errorMsg = "Error while communicating with the server";
+    if (error !== undefined) {
+      errorMsg += "; error: " + error;
     }
+    app.utils.notifyUI(errorMsg, "error");
   };
 
   SidebarApp.prototype._onUserSignout = function() {
@@ -157,8 +159,8 @@ var SidebarApp = (function(app, $) {
       return;
 
     // worker port events logging
-    this.appPort.on('talkilla.debug', function(event) {
-      console.log('worker event', event.label, event.data);
+    this.appPort.on("talkilla.debug", function(event) {
+      console.log("worker event", event.label, event.data);
     });
   };
 

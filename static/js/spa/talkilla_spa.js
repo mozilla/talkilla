@@ -21,8 +21,8 @@ var TalkillaSPA = (function() {
     this.server.on("connected", this._onServerEvent.bind(this, "connected"));
     this.server.on("unauthorized",
                    this._onServerEvent.bind(this, "unauthorized"));
-    this.server.on("network-error",
-                   this._onServerEvent.bind(this, "network-error"));
+    this.server.on("reconnection",
+                   this._onServerEvent.bind(this,"reconnection"));
     this.server.on("message", this._onServerMessage.bind(this));
   }
 
@@ -30,6 +30,8 @@ var TalkillaSPA = (function() {
     _onServerEvent: function(type, event) {
       if (type === "unauthorized")
         this.port.post("reauth-needed");
+      else if (type === "reconnection")
+        this.port.post("reconnection", (new payloads.Reconnection(event)));
       else if (type === "connected") {
         this.port.post(type, {
           addresses: [{type: "email", value: this.email}],

@@ -232,6 +232,32 @@ var payloads = (function() {
     }
   };
 
+  /**
+   * Reconnection payload.
+   *
+   * @param {Object} data
+   *
+   * data attributes:
+   *
+   * - {attempt} The reconnection attempt number.
+   * - {timeout} When the reconnection will happen.
+   *
+   */
+  function Reconnection(data) {
+    this.attempt = data.attempt;
+    this.timeout = data.timeout;
+  }
+
+  Answer.prototype = {
+    toJSON: function() {
+      return {
+        attempt: this.attempt,
+        timeout: this.timeout
+      };
+    }
+  };
+
+
   return {
     Offer: Offer,
     Answer: Answer,
@@ -241,6 +267,7 @@ var payloads = (function() {
     IceCandidate: IceCandidate,
     SPASpec: SPASpec,
     Move: Move,
-    MoveAccept: MoveAccept
+    MoveAccept: MoveAccept,
+    Reconnection: Reconnection
   };
 })();

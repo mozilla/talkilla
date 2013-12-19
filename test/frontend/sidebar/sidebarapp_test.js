@@ -142,6 +142,22 @@ describe("SidebarApp", function() {
       });
     });
 
+    describe("talkilla.server-reconnection", function() {
+      var sidebarapp;
+
+      beforeEach(function() {
+        sidebarapp = new SidebarApp();
+        sidebarApp.appPort.post.reset();
+      });
+
+      it("should set the users status to disconnected", function() {
+        sidebarapp.appPort.trigger("talkilla.server-reconnection",
+                                   {attempt: 11, timeout:42});
+        console.log("oh yeah");
+      });
+
+    });
+
     describe("talkilla.spa-error", function() {
 
       it("should call clear() on the user model", function() {
