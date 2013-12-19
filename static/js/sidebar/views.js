@@ -296,7 +296,7 @@
         this.$('[name="spa-setup"]').remove();
       } else if (!this.user.get("username")) {
         var iframe = $("<iframe>")
-          .attr("src", "/talkilla-spa-setup.html")
+          .attr("src", "/spa/talkilla/spa_setup.html")
           .attr("id", "signin")
           .attr("name", "spa-setup");
         $("#login p:first").append(iframe);

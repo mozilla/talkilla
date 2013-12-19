@@ -63,8 +63,8 @@ var SPADB = (function() {
   };
 
   /**
-   * Adds a new SPA to the database. Automatically opens the
-   * database connection if needed.
+   * Stores an SPA to the database. If the SPA does not exist,
+   * it will add it, otherwise it will update the existing record.
    *
    * @param {payloads.SPASpec} record: SPASpec record
    * @param {Function}             cb: Callback
@@ -73,28 +73,99 @@ var SPADB = (function() {
    * - {Error|null}          err: Encountered error, if any
    * - {payloads.SPASpec} record: Inserted SPASpec record
    */
-  SPADB.prototype.add = function(record, cb) {
+  SPADB.prototype.store = function(record, cb) {
     this.load(function(err) {
       if (err)
         return cb.call(this, err);
-      var request;
+
+      var store;
       try {
-        request = this._getStore("readwrite").add(record);
+        store = this._getStore("readwrite");
       } catch (err) {
-        return cb.call(this, err && err.message || "Unable to collect SPA");
+        return cb(err && err.message ? err :
+          new Error("Unable to get the store"));
       }
-      request.onsuccess = function() {
-        cb.call(this, null, record);
-      }.bind(this);
-      request.onerror = function(event) {
-        var err = event.target.error;
-        // ignore constraint error when a SPA already exists in the db
-        if (err.name !== "ConstraintError")
-          return cb.call(this, err);
-        event.preventDefault();
-        cb.call(this, null, record);
-      }.bind(this);
+
+      this._add(store, record, function (err) {
+        if (err) {
+          if (err.name !== "ConstraintError")
+            return cb(err);
+
+          // We might have an existing record already, so update it instead.
+          return this._update(store, record, function(err) {
+            if (err)
+              return cb(err);
+
+            return cb(null, record);
+          });
+        }
+
+        return cb(null, record);
+      });
     });
+  };
+
+  /**
+   * Private function to adds a new SPA to the database.
+   *
+   * @param {IDBObjectStore}    store: The database store
+   * @param {payloads.SPASpec} record: SPASpec record
+   * @param {Function}             cb: Callback
+   *
+   * Callback parameters:
+   * - {Error|null}          err: Encountered error, if any
+   * - {payloads.SPASpec} record: Inserted SPASpec record
+   */
+  SPADB.prototype._add = function(store, record, cb) {
+    var request;
+    try {
+      request = store.add(record);
+    } catch (err) {
+      return cb.call(this, err && err.message ? err :
+        new Error("Unable to add SPA record"));
+    }
+    request.onsuccess = function() {
+      cb.call(this, null, record);
+    }.bind(this);
+    request.onerror = function(event) {
+      var err = event.target.error;
+      event.preventDefault();
+      cb.call(this, err);
+    }.bind(this);
+  };
+
+  /**
+   * Private function to update a SPA within the database. Automatically
+   * opens the database connection if needed.
+   *
+   * @param {IDBObjectStore}    store: The database store
+   * @param {payloads.SPASpec} record: SPASpec record
+   * @param {Function}             cb: Callback
+   *
+   * Callback parameters:
+   * - {Error|null}          err: Encountered error, if any
+   * - {payloads.SPASpec} record: Inserted SPASpec record
+   */
+  SPADB.prototype._update = function(store, record, cb) {
+    function handleerror(event) {
+      // This function is bound to this where it is used below.
+      /* jshint validthis:true */
+      var err = event.target.error;
+      event.preventDefault();
+      cb.call(this, err);
+    }
+
+    var requestUpdate;
+    try {
+      requestUpdate = store.put(record);
+    } catch (err) {
+      return cb.call(this, err && err.message ? err :
+        new Error("Unable to put new SPA"));
+    }
+    requestUpdate.onerror = handleerror.bind(this);
+    requestUpdate.onsuccess = function(event) {
+      cb.call(this, null, record);
+    }.bind(this);
   };
 
   /**

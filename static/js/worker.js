@@ -379,11 +379,21 @@ var handlers = {
    */
   'talkilla.spa-enable': function(event) {
     var spec = new payloads.SPASpec(event.data);
-    tkWorker.spaDb.add(spec, function(err) {
+
+    function startSPA() {
       // XXX: For now, we only support one SPA.
       spa = new SPA({src: spec.src});
       _setupSPA(spa);
       spa.connect(spec.credentials);
+    }
+
+    tkWorker.spaDb.store(spec, function(err) {
+      if (err)
+        return tkWorker.ports.broadcastError("Error adding SPA", err);
+
+      // Try starting the SPA even if there's an error adding it - at least
+      // the user can possibly get into it.
+      startSPA();
     });
   },
 

@@ -1,3 +1,4 @@
+static/spa/talkilla/vendor
 static/vendor
 test/frontend/vendor
 test/functional/user.js
