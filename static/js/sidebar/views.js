@@ -108,6 +108,12 @@
       this.notifications.push(notification);
       this.$el.append(el);
 
+      // Clear the notification once the timeout reached.
+      if (notification.model.has("timeout")) {
+        setTimeout(notification.clear.bind(notification),
+                   notification.model.get("timeout"));
+      }
+
       return this;
     },
 
