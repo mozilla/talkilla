@@ -5,9 +5,12 @@ process.env.NO_LOCAL_CONFIG = true;
 process.env.PORT = 3000;
 var PORT = 3000;
 
-var expect = require("chai").expect;
+var chai = require("chai");
+var expect = chai.expect;
 var path = require("path");
 var sinon = require("sinon");
+
+chai.Assertion.includeStack = true;
 
 var api = require("../../server/server").api;
 var middlewares = require("../../server/server").middlewares;

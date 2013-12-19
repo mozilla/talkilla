@@ -16,7 +16,10 @@
   <script src="vendor/chai.js"></script>
   <script src="vendor/sinon-1.7.1.js"></script>
   <script src="vendor/blanket-1.1.5.js" data-cover-adapter="vendor/mocha-blanket.js"></script>
-  <script>mocha.setup('bdd')</script>
+  <script>
+    chai.Assertion.includeStack = true;
+    mocha.setup('bdd');
+  </script>
   <!-- app external dependencies -->
   <script src="../../vendor/jquery-1.9.1.js"></script>
   <script src="../../vendor/underscore-1.4.4.js"></script>
