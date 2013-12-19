@@ -213,15 +213,32 @@ describe('handlers', function() {
 
   describe("talkilla.spa-enable", function() {
 
-    var spa;
+    var spa, spaSpec;
 
     beforeEach(function() {
       spa = {connect: sinon.spy(), on: function() {}};
+      spaSpec = {
+        src: "/path/to/spa",
+        name: "spa",
+        credentials: "fake credentials"
+      };
       sandbox.stub(window, "SPA").returns(spa);
     });
 
+    it("should store the SPA in the database", function() {
+      sandbox.stub(tkWorker.spaDb, "store");
+
+      handlers["talkilla.spa-enable"]({
+        data: spaSpec
+      });
+
+      sinon.assert.calledOnce(tkWorker.spaDb.store);
+      sinon.assert.calledWith(tkWorker.spaDb.store,
+                              new payloads.SPASpec(spaSpec));
+    });
+
     it("should instantiate a new SPA with the given src", function() {
-      sandbox.stub(tkWorker.spaDb, "add", function(spec, callback) {
+      sandbox.stub(tkWorker.spaDb, "store", function(spec, callback) {
         callback(null, spec);
 
         sinon.assert.calledOnce(SPA);
@@ -234,7 +251,7 @@ describe('handlers', function() {
     });
 
     it("should connect the created SPA with given credentials", function() {
-      sandbox.stub(tkWorker.spaDb, "add", function(spec, callback) {
+      sandbox.stub(tkWorker.spaDb, "store", function(spec, callback) {
         callback(null, spec);
 
         sinon.assert.calledOnce(spa.connect);

@@ -180,7 +180,7 @@ describe("tkWorker", function() {
       };
       spa = {connect: sinon.spy(), on: function() {}};
       sandbox.stub(window, "SPA").returns(spa);
-      worker.spaDb.add(spec, function() {
+      worker.spaDb.store(spec, function() {
         done();
       });
     });

@@ -37,7 +37,7 @@ var TalkillaSPASetup = (function(globalScope) {
     _onLoginSuccess: function(loginData) {
       var talkillaSpec = new payloads.SPASpec({
         name: "TalkillaSPA",
-        src: "/js/spa/talkilla_worker.js",
+        src: "/spa/talkilla/js/worker.js",
         credentials: {email: loginData.nick}
       });
 
