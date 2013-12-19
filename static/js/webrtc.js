@@ -16,8 +16,6 @@
   function WebRTC(options) {
     // pc is for "peer connection"
     this.pc = undefined;
-    // dc is for "data channel"
-    this.dc = undefined;
     this._constraints = {};
     this.options = options || {};
 
@@ -120,8 +118,10 @@
    * @public
    */
   WebRTC.prototype.initiate = function(constraints) {
+    if (this.pc === undefined || this.pc.signalingState === 'closed')
+      this.pc = new mozRTCPeerConnection();
     this.state.initiate();
-    this._setupPeerConnection();
+    this._setupPeerConnection(this.pc);
     this.constraints = constraints;
 
     if (!this.constraints.video && !this.constraints.audio)
@@ -137,10 +137,11 @@
   /**
    * Upgrades an established peer connection with new constraints.
    * @param  {Object} constraints User media constraints
+   * @param  {Object} offer Connection offer
    * @return {WebRTC}
    */
-  WebRTC.prototype.upgrade = function(constraints) {
-    if (!constraints || typeof constraints !== 'object')
+  WebRTC.prototype.upgrade = function(constraints, offer) {
+    if (!offer && (!constraints || typeof constraints !== 'object'))
       throw new Error('upgrading needs new media constraints');
 
     this.constraints = constraints;
@@ -152,7 +153,12 @@
       this.state.current = "ready";
       this.once('ice:connected', function() {
         this.trigger('connection-upgraded');
-      }).initiate(constraints);
+      });
+
+      if (offer)
+        this.answer(offer);
+      else
+        this.initiate(constraints);
     }).terminate();
 
     // force state to pending as we're actually waiting for pc reinitiation
@@ -183,13 +189,15 @@
 
   /**
    * Answers an incoming initial or upgraded connection offer.
-   * @param  {Object}  offer  Connection offer
+   * @param  {Object} offer Connection offer
    * @return {WebRTC}
    * @public
    */
   WebRTC.prototype.answer = function(offer) {
+    if (this.pc === undefined || this.pc.signalingState === 'closed')
+      this.pc = new mozRTCPeerConnection();
     this.state.answer();
-    this._setupPeerConnection();
+    this._setupPeerConnection(this.pc);
     this.constraints = new WebRTC.SDP(offer.sdp).constraints;
 
     if (!this.constraints.video && !this.constraints.audio)
@@ -218,30 +226,8 @@
    */
   WebRTC.prototype.reset = function() {
     this.state.reset();
-    this._setupPeerConnection();
 
     return this;
-  };
-
-  /**
-   * Sends data over data channel.
-   * @param  {Object} data
-   * @return {WebRTC}
-   * @event  `dc:message-out` {Object}
-   * @public
-   */
-  WebRTC.prototype.send = function(data) {
-    if (this.state.current !== 'ongoing')
-      return this._handleError("Not connected, can't send data");
-
-    data = tnetbin.encode(data);
-    try {
-      this.dc.send(data);
-    } catch(err) {
-      return this._handleError("Couldn't send data", err);
-    }
-
-    return this.trigger('dc:message-out', data);
   };
 
   /**
@@ -525,18 +511,29 @@
    *
    * @param {RTCPeerConnection} pc
    */
-  WebRTC.prototype._setupPeerConnection = function() {
-    this.pc = new mozRTCPeerConnection();
-    this.dc = this._setupDataChannel(this.pc, 0);
-
-    this.pc.onaddstream = this._onAddStream.bind(this);
-    this.pc.ondatachannel = this._onDataChannel.bind(this);
-    this.pc.onicecandidate = this._onIceCandidate.bind(this);
-    this.pc.oniceconnectionstatechange =
+  WebRTC.prototype._setupPeerConnection = function(pc) {
+    pc.onaddstream = this._onAddStream.bind(this);
+    pc.ondatachannel = this._onDataChannel.bind(this);
+    pc.onicecandidate = this._onIceCandidate.bind(this);
+    pc.oniceconnectionstatechange =
       this._onIceConnectionStateChange.bind(this);
-    this.pc.onremovestream = this._onRemoveStream.bind(this);
-    this.pc.onsignalingstatechange = this._onSignalingStateChange.bind(this);
+    pc.onremovestream = this._onRemoveStream.bind(this);
+    pc.onsignalingstatechange = this._onSignalingStateChange.bind(this);
   };
+
+  WebRTC.prototype.createDataChannel = function() {
+    if (this.pc === undefined || this.pc.signalingState === 'closed')
+      this.pc = new mozRTCPeerConnection();
+    return new WebRTC.DataChannel(this.pc);
+  };
+
+  WebRTC.DataChannel = function DataChannel(pc) {
+    // XXX: verify if pc is undefined
+    // dc is for "data channel"
+    this.dc = this._setupDataChannel(pc, 0);
+  };
+
+  _.extend(WebRTC.DataChannel.prototype, Backbone.Events);
 
   /**
    * Configures a data channel, registering local event listeners.
@@ -544,7 +541,7 @@
    * @param {RTCPeerConnection} pc
    * @param {short}             id of the data channel to create
    */
-  WebRTC.prototype._setupDataChannel = function(pc, id) {
+  WebRTC.DataChannel.prototype._setupDataChannel = function(pc, id) {
     var dc = pc.createDataChannel('dc', {
       // We set up a pre-negotiated channel with a specific id, this
       // way we know exactly which channel we're expecting to communicate
@@ -553,14 +550,29 @@
       negotiated: true
     });
 
-    dc.onopen  = this.trigger.bind(this, "dc:ready", dc);
-    dc.onerror = this.trigger.bind(this, "dc:error");
-    dc.onclose = this.trigger.bind(this, "dc:close");
+    dc.onopen  = this.trigger.bind(this, "ready", this);
+    dc.onerror = this.trigger.bind(this, "error");
+    dc.onclose = this.trigger.bind(this, "close");
     dc.onmessage = function(event) {
       var data = tnetbin.decode(event.data).value;
-      this.trigger("dc:message-in", data);
+      this.trigger("message", data);
     }.bind(this);
 
     return dc;
   };
+
+  /**
+   * Sends data over data channel.
+   * @param  {Object} data
+   * @public
+   */
+  WebRTC.DataChannel.prototype.send = function(data) {
+    data = tnetbin.encode(data);
+    try {
+      this.dc.send(data);
+    } catch(err) {
+      return this.dc.onerror(err);
+    }
+  };
+
 })(this);

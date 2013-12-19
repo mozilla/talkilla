@@ -192,7 +192,10 @@
         this.state.complete();
       }, this);
 
-      this.media.answer(data && data.offer);
+      if (this.media.state.current === 'ongoing')
+        this.media.upgrade(null, data && data.offer);
+      else
+        this.media.answer(data && data.offer);
 
       this.state.accept();
     },
@@ -473,15 +476,18 @@
   });
 
   app.models.TextChatEntry = Backbone.Model.extend({
-    defaults: {username: undefined,
-               message: undefined,
-               date: new Date().getTime()}
+    defaults: {
+      username: undefined,
+      message: undefined,
+      date: new Date().getTime()
+    }
   });
 
   app.models.TextChat = Backbone.Collection.extend({
     model: app.models.TextChatEntry,
 
     media: undefined,
+    transport: undefined,
     user: undefined,
     peer: undefined,
     typingTimeout: undefined,
@@ -501,13 +507,8 @@
 
       this.typeTimeout = options && options.typeTimeout || 5000;
 
-      this.media.on('dc:message-in', this._onDcMessageIn, this);
       this.on('add', this._onTextChatEntryCreated, this);
       this.on('add', this._onFileTransferCreated, this);
-
-      this.media.on('dc:close', function() {
-        this.terminate().reset();
-      });
     },
 
     initiate: function(constraints) {
@@ -518,6 +519,11 @@
         }));
       }, this);
 
+      this.transport = this.media.createDataChannel();
+      this.transport.on('message', this._onMessage, this);
+      this.transport.on('close', function() {
+        this.terminate().reset();
+      }.bind(this));
       this.media.initiate(constraints);
     },
 
@@ -529,6 +535,11 @@
         }));
       }, this);
 
+      this.transport = this.media.createDataChannel();
+      this.transport.on('message', this._onMessage, this);
+      this.transport.on('close', function() {
+        this.terminate().reset();
+      }.bind(this));
       this.media.answer(offer);
     },
 
@@ -543,26 +554,26 @@
      */
     send: function(entry) {
       if (this.media.state.current === "ongoing")
-        return this.media.send(entry);
-
-      this.media.once("dc:ready", function() {
-        this.send(entry);
-      });
+        return this.transport.send(entry);
 
       if (this.media.state.current !== "pending")
         this.initiate({video: false, audio: false});
+
+      this.transport.once("ready", function() {
+        this.send(entry);
+      });
     },
 
     notifyTyping: function() {
       if (!this.length || this.media.state.current !== "ongoing")
         return;
-      this.media.send({
+      this.transport.send({
         type: "chat:typing",
         message: { username: this.user.get("username") }
       });
     },
 
-    _onDcMessageIn: function(event) {
+    _onMessage: function(event) {
       var transfer;
 
       switch (event.type) {

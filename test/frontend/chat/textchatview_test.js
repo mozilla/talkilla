@@ -58,6 +58,8 @@ describe("Text chat views", function() {
     });
 
     user = new app.models.User();
+
+    sandbox.stub(app.models.TextChat.prototype, "send");
   });
 
   afterEach(function() {
@@ -98,7 +100,6 @@ describe("Text chat views", function() {
       // This stops us changing the document's title unnecessarily
       sandbox.stub(app.views.ConversationView.prototype, "initialize");
 
-      sandbox.stub(WebRTC.prototype, "send");
       media = new WebRTC();
       call = new app.models.Call({}, {media: media});
 
@@ -351,6 +352,7 @@ describe("FileTransferView", function() {
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
+    sandbox.stub(app.models.TextChat.prototype, "send");
   });
 
   afterEach(function() {

@@ -5,7 +5,7 @@
 var expect = chai.expect;
 
 describe('Text chat models', function() {
-  var sandbox, media, user, peer, createTextChat;
+  var sandbox, media, user, peer, createTextChat, transport;
 
   function fakeSDP(str) {
     return {
@@ -58,9 +58,14 @@ describe('Text chat models', function() {
         peer: peer
       });
     };
+
+    transport = {send: sinon.spy()};
+    _.extend(transport, Backbone.Events);
+    sandbox.stub(WebRTC.prototype, "createDataChannel").returns(transport);
   });
 
   afterEach(function() {
+    transport.off();
     sandbox.restore();
   });
 
@@ -90,14 +95,50 @@ describe('Text chat models', function() {
       });
     });
 
+    describe("#answer", function() {
+      var textChat, offer, answer;
+
+      beforeEach(function() {
+        offer = {sdp: "fake", type: "offer"};
+        answer = {sdp: "fake", type: "answer"};
+        textChat = createTextChat();
+        textChat.transport = transport;
+
+        sandbox.stub(media, "answer");
+      });
+
+      it("should create a data channel", function() {
+        textChat.answer(offer);
+
+        sinon.assert.calledOnce(media.createDataChannel);
+      });
+
+      it("should pass the anwser to the media", function() {
+        textChat.answer(offer);
+
+        sinon.assert.calledOnce(media.answer, offer);
+      });
+
+      it("should trigger send-answer with transport data on answer-ready",
+        function(done) {
+          textChat.once("send-answer", function(answerMsg) {
+            expect(answerMsg.answer).to.deep.equal(answer);
+            done();
+          });
+
+          textChat.answer(offer);
+
+          media.trigger("answer-ready", answer);
+        });
+    });
+
     describe("#send", function() {
       var textChat;
 
       beforeEach(function() {
-        sandbox.stub(WebRTC.prototype, "send");
         sandbox.stub(WebRTC.prototype, "initiate");
-
         textChat = createTextChat();
+        textChat.transport = transport;
       });
 
       it("should send a message over a connected data channel", function() {
@@ -106,8 +147,8 @@ describe('Text chat models', function() {
         textChat.media.state.current = "ongoing";
         textChat.send(entry);
 
-        sinon.assert.calledOnce(media.send);
-        sinon.assert.calledWithExactly(media.send, entry);
+        sinon.assert.calledOnce(textChat.transport.send);
+        sinon.assert.calledWithExactly(textChat.transport.send, entry);
       });
 
       it("should not initiate a peer connection if one's pending", function() {
@@ -116,12 +157,14 @@ describe('Text chat models', function() {
         textChat.send({});
 
         sinon.assert.notCalled(media.initiate);
+        sinon.assert.notCalled(media.createDataChannel);
       });
 
       it("should initiate a peer connection if none's ongoing", function() {
         textChat.send({});
 
         sinon.assert.calledOnce(media.initiate);
+        sinon.assert.calledOnce(media.createDataChannel);
       });
 
       it("should buffer a message then send it over data channel once a " +
@@ -129,9 +172,9 @@ describe('Text chat models', function() {
         var entry = {username: "niko", message: "hi"};
 
         textChat.send(entry);
-        textChat.media.trigger("dc:ready"); // dc establishment event
+        textChat.transport.trigger("ready"); // dc establishment event
 
-        sinon.assert.calledOnce(media.send);
+        sinon.assert.calledOnce(textChat.transport.send);
       });
     });
 
@@ -139,11 +182,10 @@ describe('Text chat models', function() {
       var textChat;
 
       beforeEach(function() {
-        sandbox.stub(WebRTC.prototype, "send");
         sandbox.stub(WebRTC.prototype, "initiate");
 
         textChat = createTextChat();
-        textChat.user.set('username', 'foo');
+        textChat.transport = transport;
       });
 
       it("should send typing message over connected data channel", function() {
@@ -156,8 +198,8 @@ describe('Text chat models', function() {
 
         textChat.notifyTyping();
 
-        sinon.assert.calledOnce(media.send);
-        sinon.assert.calledWithExactly(media.send, entry);
+        sinon.assert.calledOnce(textChat.transport.send);
+        sinon.assert.calledWithExactly(textChat.transport.send, entry);
       });
 
       it("should not send typing message over uninitiated data channel",
@@ -166,7 +208,7 @@ describe('Text chat models', function() {
 
           textChat.notifyTyping();
 
-          sinon.assert.notCalled(media.send);
+          sinon.assert.notCalled(textChat.transport.send);
         });
 
       it("should not send typing message if empty collection", function() {
@@ -174,17 +216,18 @@ describe('Text chat models', function() {
 
         textChat.notifyTyping();
 
-        sinon.assert.notCalled(media.send);
+        sinon.assert.notCalled(textChat.transport.send);
       });
     });
 
   });
 
-  describe("#_onDcMessageIn", function() {
+  describe("#_onMessage", function() {
     var textChat;
 
     beforeEach(function() {
       textChat = createTextChat();
+      textChat.transport = transport;
     });
 
     it("should append received message to the current text chat", function() {
@@ -192,7 +235,7 @@ describe('Text chat models', function() {
       var newTextChat = sandbox.stub(app.models, "TextChatEntry");
       var event = {type: "chat:message", message: "data"};
 
-      textChat._onDcMessageIn(event);
+      textChat._onMessage(event);
 
       sinon.assert.calledOnce(newTextChat);
       sinon.assert.calledWithExactly(newTextChat, "data");
@@ -204,7 +247,7 @@ describe('Text chat models', function() {
         var newFileTransfer = sandbox.stub(app.models, "FileTransfer");
         var event = {type: "file:new", message: {id: "someid"}};
 
-        textChat._onDcMessageIn(event);
+        textChat._onMessage(event);
 
         sinon.assert.calledOnce(newFileTransfer);
       });
@@ -219,7 +262,8 @@ describe('Text chat models', function() {
       sandbox.stub(transfer, "append");
       textChat.add(transfer);
 
-      textChat._onDcMessageIn(event);
+      textChat._onMessage(event);
+
       sinon.assert.calledOnce(transfer.append);
       sinon.assert.calledWithExactly(transfer.append, chunk);
     });
@@ -235,7 +279,8 @@ describe('Text chat models', function() {
       sandbox.stub(textChat, "send");
       textChat.add(transfer);
 
-      textChat._onDcMessageIn(event);
+      textChat._onMessage(event);
+
       sinon.assert.calledOnce(textChat.send);
       sinon.assert.calledWithExactly(textChat.send, {
         type: "file:ack",
@@ -249,7 +294,7 @@ describe('Text chat models', function() {
       textChat.add(transfer);
       sandbox.stub(transfer, "nextChunk");
 
-      textChat._onDcMessageIn(event);
+      textChat._onMessage(event);
 
       sinon.assert.calledOnce(transfer.nextChunk);
     });
@@ -261,7 +306,7 @@ describe('Text chat models', function() {
       sandbox.stub(transfer, "nextChunk");
       sandbox.stub(transfer, "isDone").returns(true);
 
-      textChat._onDcMessageIn(event);
+      textChat._onMessage(event);
 
       sinon.assert.notCalled(transfer.nextChunk);
     });
@@ -270,7 +315,7 @@ describe('Text chat models', function() {
       var event = {type: "chat:typing", message: "data"};
 
       sandbox.stub(textChat, "trigger");
-      textChat._onDcMessageIn(event);
+      textChat._onMessage(event);
 
       sinon.assert.calledOnce(textChat.trigger);
       sinon.assert.calledWithExactly(textChat.trigger, "chat:type-start",
@@ -282,7 +327,7 @@ describe('Text chat models', function() {
       var event = {type: "chat:typing", message: "data"};
 
       sandbox.stub(textChat,"trigger");
-      textChat._onDcMessageIn(event);
+      textChat._onMessage(event);
       this.clock.tick(5100);
 
       sinon.assert.calledTwice(textChat.trigger);
@@ -294,9 +339,9 @@ describe('Text chat models', function() {
       var event = {type: "chat:typing", message: "data"};
 
       sandbox.stub(textChat,"trigger");
-      textChat._onDcMessageIn(event);
+      textChat._onMessage(event);
       this.clock.tick(2000);
-      textChat._onDcMessageIn(event);
+      textChat._onMessage(event);
       this.clock.tick(10000);
 
       sinon.assert.calledThrice(textChat.trigger);
@@ -305,11 +350,11 @@ describe('Text chat models', function() {
   });
 
   describe("#_onTextChatEntryCreated", function() {
-    var textChat, send;
+    var textChat;
 
     beforeEach(function() {
       user.set("username", "foo");
-      send = sandbox.stub(app.models.TextChat.prototype, "send");
+      sandbox.stub(app.models.TextChat.prototype, "send");
       textChat = createTextChat();
     });
 
@@ -328,13 +373,13 @@ describe('Text chat models', function() {
   });
 
   describe("#_onFileTransferCreated", function() {
-    var textChat, blob, send;
+    var textChat, blob;
 
     beforeEach(function() {
-      send = sandbox.stub(app.models.TextChat.prototype, "send");
       blob = new Blob(["abcdefghij"]);
       blob.name = "foo";
       textChat = createTextChat();
+      textChat.transport = transport;
     });
 
     it("should notify of a new file via data channel", function() {
@@ -342,10 +387,12 @@ describe('Text chat models', function() {
       var message = {type: "file:new", message: {id: entry.id,
                                                  filename: "foo",
                                                  size: 10}};
+      sandbox.stub(textChat, "send");
+
       textChat._onFileTransferCreated(entry);
 
-      sinon.assert.calledOnce(send);
-      sinon.assert.calledWithExactly(send, message);
+      sinon.assert.calledOnce(textChat.send);
+      sinon.assert.calledWithExactly(textChat.send, message);
     });
 
     it("should bind _onFileChunk on the chunk event triggered by the entry",
@@ -368,19 +415,17 @@ describe('Text chat models', function() {
 
     it("should not send anything if the entry is not a FileTransfer",
       function() {
-        var send = sandbox.stub(WebRTC.prototype, "send");
         var entry = {};
+        sandbox.stub(textChat, "send");
         textChat._onFileTransferCreated(entry);
-
-        sinon.assert.notCalled(send);
+        sinon.assert.notCalled(textChat.send);
       });
   });
 
   describe("#_onFileChunk", function() {
-    var textChat, send;
+    var textChat;
 
     beforeEach(function() {
-      send = sandbox.stub(app.models.TextChat.prototype, "send");
       textChat = createTextChat();
     });
 
@@ -392,12 +437,13 @@ describe('Text chat models', function() {
         message: {id: entry.id, chunk: "chunk"}
       };
       sandbox.stub(entry, "isDone").returns(true);
+      sandbox.stub(textChat, "send");
 
       textChat.add(entry, {silent: true});
       textChat._onFileChunk(entry, entry.id, "chunk");
 
-      sinon.assert.calledOnce(send);
-      sinon.assert.calledWithExactly(send, message);
+      sinon.assert.calledOnce(textChat.send);
+      sinon.assert.calledWithExactly(textChat.send, message);
     });
 
   });
