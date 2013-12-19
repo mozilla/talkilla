@@ -107,6 +107,12 @@ api = {
     var user = users.get(nick);
 
     if (!user) {
+      // Send the userJoined notification before adding the user as present to
+      // prevent the user receiving it's own notification.
+      users.forEach(function(peer) {
+        peer.send("userJoined", nick);
+      });
+
       user = users.add(nick).get(nick);
       users.get(nick).ondisconnect = function() {
         users.remove(nick);
@@ -115,10 +121,8 @@ api = {
         });
         logger.info({type: "disconnection"});
       };
-      users.forEach(function(peer) {
-        peer.send("userJoined", nick);
-      });
       user.touch();
+
       // XXX: Here we force the first long-polling request to return
       // without a timeout. It's because we need to be connected to
       // request the presence. We should fix that on the frontend.

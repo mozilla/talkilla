@@ -98,7 +98,7 @@ describe("WebRTC", function() {
       expect(webrtc.state.current).to.equal('ready');
     });
 
-    it("should make it easier to create a datachannel", function() {
+    it("should allow creation of a datachannel", function() {
       var webrtc = new WebRTC();
       webrtc.initiate();
       sandbox.stub(webrtc.pc, "createDataChannel").returns({});
@@ -307,6 +307,35 @@ describe("WebRTC", function() {
             done();
           }).initiate().establish({}).upgrade(newConstraints);
 
+          webrtc.trigger('connection-terminated').trigger('ice:connected');
+        });
+
+      it("should initiate a new connection if offer is not provided",
+        function(done) {
+          var newConstraints = {video: true, audio: true};
+
+          webrtc.on('connection-upgraded', function() {
+            sinon.assert.calledOnce(webrtc.initiate);
+            sinon.assert.calledWithExactly(webrtc.initiate, newConstraints);
+            done();
+          }).initiate().establish({}).upgrade(newConstraints);
+
+          sandbox.stub(webrtc, "initiate");
+          webrtc.trigger('connection-terminated').trigger('ice:connected');
+        });
+
+      it("should answer with new connection if offer is provided",
+        function(done) {
+          var newConstraints = {video: true, audio: true};
+          var offer = {sdp: "fake"};
+
+          webrtc.on('connection-upgraded', function() {
+            sinon.assert.calledOnce(webrtc.answer);
+            sinon.assert.calledWithExactly(webrtc.answer, offer);
+            done();
+          }).initiate().establish({}).upgrade(newConstraints, offer);
+
+          sandbox.stub(webrtc, "answer");
           webrtc.trigger('connection-terminated').trigger('ice:connected');
         });
 

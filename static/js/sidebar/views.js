@@ -9,7 +9,14 @@
    * Global app view.
    */
   app.views.AppView = app.views.BaseView.extend({
+
     el: 'body',
+
+    events: {
+      'click a.user-entry': 'clickUserEntry'
+    },
+
+    isInSidebar: false, // default to panel
 
     initialize: function(options) {
       options = this.checkOptions(options, "user", "users", "appStatus", "spa");
@@ -37,6 +44,31 @@
         user: options.user,
         spa: options.spa
       });
+
+      if (options.isInSidebar)
+        this.isInSidebar = options.isInSidebar;
+
+      this.on("resize", this._onResize, this);
+
+      window.addEventListener("unload", this._onUnload.bind(this));
+    },
+
+    _onResize: function(width, height) {
+      if (this.isInSidebar)
+        return;
+      var safetyHeightMargin = 120; // 120px height safety margin
+      this.$el.css("max-height", (height - safetyHeightMargin) + "px");
+    },
+
+    // for debugging, to see if we're getting unload events only from the
+    // panel, or also from contained iframes
+    _onUnload: function(e) {
+      console.log("panel unload called, target =  ", e.target);
+    },
+
+    clickUserEntry: function() {
+      if (!this.isInSidebar)
+        window.close();
     },
 
     render: function() {
@@ -80,7 +112,7 @@
 
     render: function() {
       this.display(this.user.isLoggedIn() && this.spa.supports("pstn-call"));
-    },
+    }
   });
 
   /**
@@ -131,7 +163,8 @@
     tagName: 'li',
 
     template: _.template([
-      '<a href="#" rel="<%= username %>" title="<%= username %>">',
+      '<a class="user-entry" href="#" rel="<%= username %>"',
+      '   title="<%= username %>">',
       '  <div class="avatar">',
       '    <img src="<%= avatar %>">',
       '    <span class="status status-<%= presence %>"></span>',
@@ -263,7 +296,7 @@
         this.$('[name="spa-setup"]').remove();
       } else if (!this.user.get("username")) {
         var iframe = $("<iframe>")
-          .attr("src", "/talkilla-spa-setup.html")
+          .attr("src", "/spa/talkilla/spa_setup.html")
           .attr("id", "signin")
           .attr("name", "spa-setup");
         $("#login p:first").append(iframe);

@@ -21,9 +21,9 @@ describe("WebRTC.DataChannel", function() {
     sandbox.restore();
   });
 
-  describe("events", function() {
+  describe("datachannel events", function() {
 
-    describe("ready", function() {
+    describe("onopen", function() {
 
       it("should trigger a ready event", function(done) {
         var event = {data: tnetbin.encode("somedata")};
@@ -37,7 +37,7 @@ describe("WebRTC.DataChannel", function() {
 
     });
 
-    describe("message", function() {
+    describe("onmessage", function() {
 
       it("should trigger a message event", function(done) {
         var event = {data: tnetbin.encode("somedata")};
@@ -51,7 +51,7 @@ describe("WebRTC.DataChannel", function() {
 
     });
 
-    describe("error", function() {
+    describe("onerror", function() {
 
       it("should trigger an error event", function(done) {
         datachannel.on("error", function(err) {

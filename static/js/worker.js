@@ -1,5 +1,5 @@
 /* global indexedDB, importScripts, SPA, HTTP, ContactsDB, SPADB,
-   CurrentUsers, loadConfig, payloads, Conversation  */
+   CurrentUsers, loadConfig, payloads, Conversation, dump */
 /* jshint unused:false */
 "use strict";
 
@@ -103,8 +103,10 @@ UserData.prototype = {
    * Sends the current user data to Social
    */
   send: function() {
+    var iconURL = this._rootURL + "/img/" + this.statusIcon;
+
     var userData = {
-      iconURL: this._rootURL + "/img/" + this.statusIcon,
+      iconURL: iconURL,
       // XXX for now, we just hard-code the default avatar image.
       portrait: this._rootURL + "/img/default-avatar.png",
       userName: this._name,
@@ -112,8 +114,17 @@ UserData.prototype = {
       profileURL: this._rootURL + "/user.html"
     };
 
+    // This needs to be sent to the browser for Firefox 28 and earlier
+    // (pre bug 935640).
     browserPort.postEvent('social.user-profile', userData);
+
+    // XXX This could be simplified to just send the userName (and renamed).
     tkWorker.ports.broadcastEvent('social.user-profile', userData);
+
+    // This is needed for Firefox 29 onwards (post bug 935640).
+    browserPort.postEvent('social.ambient-notification', {
+      iconURL: iconURL
+    });
   }
 };
 
@@ -244,6 +255,9 @@ function _setupSPA(spa) {
 var handlers = {
   // SocialAPI events
   'social.port-closing': function() {
+    // broadcastDebug won't work here, because the port is dead, so we
+    // use dump
+    dump("social.port-closing called; about to remove port. this = " + this);
     tkWorker.ports.remove(this);
     if (browserPort === this)
       browserPort = undefined;
@@ -365,11 +379,21 @@ var handlers = {
    */
   'talkilla.spa-enable': function(event) {
     var spec = new payloads.SPASpec(event.data);
-    tkWorker.spaDb.add(spec, function(err) {
+
+    function startSPA() {
       // XXX: For now, we only support one SPA.
       spa = new SPA({src: spec.src});
       _setupSPA(spa);
       spa.connect(spec.credentials);
+    }
+
+    tkWorker.spaDb.store(spec, function(err) {
+      if (err)
+        return tkWorker.ports.broadcastError("Error adding SPA", err);
+
+      // Try starting the SPA even if there's an error adding it - at least
+      // the user can possibly get into it.
+      startSPA();
     });
   },
 
@@ -449,6 +473,13 @@ PortCollection.prototype = {
    * @param  {Port} port
    */
   remove: function(port) {
+    // broadcastDebug isn't reliable here, because the port may be dead, so we
+    // use dump
+    try {
+      dump("PortCollection.remove called, id = " + port.id);
+    } catch (ex) {
+      dump("PortCollection.remove logging exception" + ex);
+    }
     if (port && port.id)
       delete this.ports[port.id];
   },
