@@ -95,6 +95,43 @@ describe('Text chat models', function() {
       });
     });
 
+    describe("#answer", function() {
+      var textChat, offer, answer;
+
+      beforeEach(function() {
+        offer = {sdp: "fake", type: "offer"};
+        answer = {sdp: "fake", type: "answer"};
+        textChat = createTextChat();
+        textChat.transport = transport;
+
+        sandbox.stub(media, "answer");
+      });
+
+      it("should create a data channel", function() {
+        textChat.answer(offer);
+
+        sinon.assert.calledOnce(media.createDataChannel);
+      });
+
+      it("should pass the anwser to the media", function() {
+        textChat.answer(offer);
+
+        sinon.assert.calledOnce(media.answer, offer);
+      });
+
+      it("should trigger send-answer with transport data on answer-ready",
+        function(done) {
+          textChat.once("send-answer", function(answerMsg) {
+            expect(answerMsg.answer).to.deep.equal(answer);
+            done();
+          });
+
+          textChat.answer(offer);
+
+          media.trigger("answer-ready", answer);
+        });
+    });
+
     describe("#send", function() {
       var textChat;
 
@@ -102,10 +139,6 @@ describe('Text chat models', function() {
         sandbox.stub(WebRTC.prototype, "initiate");
         textChat = createTextChat();
         textChat.transport = transport;
-      });
-
-      afterEach(function() {
-        transport.off();
       });
 
       it("should send a message over a connected data channel", function() {
