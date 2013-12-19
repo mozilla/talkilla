@@ -62,6 +62,16 @@ describe("SidebarApp", function() {
         sinon.match.has("isInSidebar", false));
     });
 
+    it("should initialize an AppView with spaLoginURL set to the url " +
+       "supplied in options", function() {
+        var url = "http://example.com";
+        new SidebarApp({SPA: {loginURL: url}});
+
+        sinon.assert.calledOnce(app.views.AppView);
+        sinon.assert.calledWithExactly(app.views.AppView,
+          sinon.match.has("spaLoginURL", url));
+      });
+
     it("should create an AppPort", function() {
       var sidebarApp = new SidebarApp();
 

@@ -28,13 +28,18 @@ var SidebarApp = (function(app, $) {
       })
     };
 
+    var spaLoginURL = options.SPA && options.SPA.loginURL ?
+      options.SPA.loginURL :
+      "/spa/talkilla/spa_setup.html";
+
     this.view = new app.views.AppView({
       isInSidebar: this._location.search === "?sidebar",
       appStatus: this.appStatus,
       user: this.user,
       users: this.users,
       services: this.services,
-      spa: this.spa
+      spa: this.spa,
+      spaLoginURL: spaLoginURL
     });
 
     // user events
