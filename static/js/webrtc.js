@@ -551,6 +551,7 @@
 
   WebRTC.DataChannel = function DataChannel(dc) {
     this.dc = this._setupDataChannel(dc);
+    this.queue = [];
   };
 
   _.extend(WebRTC.DataChannel.prototype, Backbone.Events);
@@ -562,7 +563,7 @@
    * @param {short}             id of the data channel to create
    */
   WebRTC.DataChannel.prototype._setupDataChannel = function(dc) {
-    dc.onopen  = this.trigger.bind(this, "ready", this);
+    dc.onopen  = this._onOpen.bind(this);
     dc.onerror = this.trigger.bind(this, "error");
     dc.onclose = this.trigger.bind(this, "close");
     dc.onmessage = function(event) {
@@ -574,14 +575,29 @@
   };
 
   /**
-   * Sends data over data channel.
-   * @param  {Object} data
+   * onopen handler. It flushes all the queued messaged to the
+   * datachannel.
+   */
+  WebRTC.DataChannel.prototype._onOpen = function() {
+    this.queue.forEach(function(message) {
+      this.send(message);
+    }.bind(this));
+
+    this.queue = [];
+  };
+
+  /**
+   * Sends a message over data channel.
+   * @param  {Object} message
    * @public
    */
-  WebRTC.DataChannel.prototype.send = function(data) {
-    data = tnetbin.encode(data);
+  WebRTC.DataChannel.prototype.send = function(message) {
+    if (this.dc.readyState === "connecting")
+      return this.queue.push(message);
+
+    message = tnetbin.encode(message);
     try {
-      this.dc.send(data);
+      this.dc.send(message);
     } catch(err) {
       return this.dc.onerror(err);
     }

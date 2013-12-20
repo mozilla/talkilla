@@ -188,12 +188,13 @@ describe('Text chat models', function() {
       });
 
       it("should send typing message over connected data channel", function() {
-        textChat.add({message: 'test Message'});
         textChat.media.state.current = "ongoing";
+        textChat.add({message: 'test Message'});
         var entry = {
           type: 'chat:typing',
           message: { username: textChat.user.get('username') }
         };
+        textChat.transport.send.reset();
 
         textChat.notifyTyping();
 
@@ -204,6 +205,7 @@ describe('Text chat models', function() {
       it("should not send typing message over uninitiated data channel",
         function() {
           textChat.add({message: 'test Message'});
+          textChat.transport.send.reset();
 
           textChat.notifyTyping();
 

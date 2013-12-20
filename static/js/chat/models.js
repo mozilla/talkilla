@@ -544,15 +544,10 @@
      * @param  {Object} entry
      */
     send: function(entry) {
-      if (this.media.state.current === "ongoing")
-        return this.transport.send(entry);
-
-      if (this.media.state.current !== "pending")
+      if (this.media.state.current === "ready")
         this.initiate({video: false, audio: false});
 
-      this.transport.once("ready", function() {
-        this.send(entry);
-      });
+      this.transport.send(entry);
     },
 
     notifyTyping: function() {

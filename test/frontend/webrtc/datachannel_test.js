@@ -16,23 +16,34 @@ describe("WebRTC.DataChannel", function() {
     sandbox.restore();
   });
 
-  describe("datachannel events", function() {
+  describe("datachannel handlers", function() {
 
-    describe("onopen", function() {
+    describe("dc#onopen", function() {
 
-      it("should trigger a ready event", function(done) {
-        var event = {data: tnetbin.encode("somedata")};
-        datachannel.on("ready", function(dc) {
-          expect(dc).to.equal(datachannel);
-          done();
-        });
+      var messages = ["1st", "2nd", "3rd"];
 
-        datachannel.dc.onopen(event);
+      beforeEach(function() {
+        datachannel.queue = messages;
+      });
+
+      it("should flush the queued messages", function() {
+        var send = datachannel.dc.send;
+        datachannel.dc.onopen();
+
+        sinon.assert.calledThrice(send);
+        sinon.assert.calledWithExactly(send, tnetbin.encode(messages[0]));
+        sinon.assert.calledWithExactly(send, tnetbin.encode(messages[1]));
+        sinon.assert.calledWithExactly(send, tnetbin.encode(messages[2]));
+      });
+
+      it("should empty the queue", function() {
+        datachannel.dc.onopen();
+        expect(datachannel.queue).to.deep.equal([]);
       });
 
     });
 
-    describe("onmessage", function() {
+    describe("dc#onmessage", function() {
 
       it("should trigger a message event", function(done) {
         var event = {data: tnetbin.encode("somedata")};
@@ -46,7 +57,7 @@ describe("WebRTC.DataChannel", function() {
 
     });
 
-    describe("onerror", function() {
+    describe("dc#onerror", function() {
 
       it("should trigger an error event", function(done) {
         datachannel.on("error", function(err) {
@@ -82,6 +93,17 @@ describe("WebRTC.DataChannel", function() {
       });
 
       datachannel.send("some data");
+    });
+
+    it("should queue the message if the datachannel is not ready", function() {
+      var messages = ["1st", "2nd", "3rd"];
+      datachannel.dc.readyState = "connecting";
+      messages.forEach(function(message) {
+        datachannel.send(message);
+      });
+
+      expect(datachannel.queue).to.deep.equal(messages);
+      sinon.assert.notCalled(datachannel.dc.send);
     });
 
   });
