@@ -9,12 +9,7 @@ describe("WebRTC.DataChannel", function() {
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
     var dc = {send: sinon.spy()};
-    var pc = {
-      createDataChannel: function() {
-        return dc;
-      }
-    };
-    datachannel = new WebRTC.DataChannel(pc);
+    datachannel = new WebRTC.DataChannel(dc);
   });
 
   afterEach(function() {

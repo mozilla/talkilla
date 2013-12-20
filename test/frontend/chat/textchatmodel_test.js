@@ -61,7 +61,6 @@ describe('Text chat models', function() {
 
     transport = {send: sinon.spy()};
     _.extend(transport, Backbone.Events);
-    sandbox.stub(WebRTC.prototype, "createDataChannel").returns(transport);
   });
 
   afterEach(function() {
@@ -93,6 +92,14 @@ describe('Text chat models', function() {
 
         expect(textChat.peer).to.be.an.instanceOf(app.models.User);
       });
+
+      it("should listen for 'transport-created' from the media", function() {
+        var textChat = createTextChat();
+
+        media.trigger('transport-created', transport);
+
+        expect(textChat.transport).to.equal(transport);
+      });
     });
 
     describe("#answer", function() {
@@ -105,12 +112,6 @@ describe('Text chat models', function() {
         textChat.transport = transport;
 
         sandbox.stub(media, "answer");
-      });
-
-      it("should create a data channel", function() {
-        textChat.answer(offer);
-
-        sinon.assert.calledOnce(media.createDataChannel);
       });
 
       it("should pass the anwser to the media", function() {
@@ -157,14 +158,12 @@ describe('Text chat models', function() {
         textChat.send({});
 
         sinon.assert.notCalled(media.initiate);
-        sinon.assert.notCalled(media.createDataChannel);
       });
 
       it("should initiate a peer connection if none's ongoing", function() {
         textChat.send({});
 
         sinon.assert.calledOnce(media.initiate);
-        sinon.assert.calledOnce(media.createDataChannel);
       });
 
       it("should buffer a message then send it over data channel once a " +

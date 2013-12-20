@@ -509,6 +509,15 @@
 
       this.on('add', this._onTextChatEntryCreated, this);
       this.on('add', this._onFileTransferCreated, this);
+      this.media.on('transport-created', this._setupTransport, this);
+    },
+
+    _setupTransport: function(transport) {
+      this.transport = transport;
+      this.transport.on('message', this._onMessage, this);
+      this.transport.on('close', function() {
+        this.transport = undefined;
+      }.bind(this));
     },
 
     initiate: function(constraints) {
@@ -519,11 +528,6 @@
         }));
       }, this);
 
-      this.transport = this.media.createDataChannel();
-      this.transport.on('message', this._onMessage, this);
-      this.transport.on('close', function() {
-        this.terminate().reset();
-      }.bind(this));
       this.media.initiate(constraints);
     },
 
@@ -535,11 +539,6 @@
         }));
       }, this);
 
-      this.transport = this.media.createDataChannel();
-      this.transport.on('message', this._onMessage, this);
-      this.transport.on('close', function() {
-        this.terminate().reset();
-      }.bind(this));
       this.media.answer(offer);
     },
 

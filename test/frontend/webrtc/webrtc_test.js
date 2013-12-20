@@ -97,16 +97,6 @@ describe("WebRTC", function() {
       expect(webrtc.state).to.be.an('object');
       expect(webrtc.state.current).to.equal('ready');
     });
-
-    it("should allow creation of a datachannel", function() {
-      var webrtc = new WebRTC();
-      webrtc.initiate();
-      sandbox.stub(webrtc.pc, "createDataChannel").returns({});
-      var datachannel = webrtc.createDataChannel();
-
-      expect(datachannel).to.be.an.instanceOf(WebRTC.DataChannel);
-      sinon.assert.calledOnce(webrtc.pc.createDataChannel);
-    });
   });
 
   describe("constraints property", function() {
@@ -289,12 +279,6 @@ describe("WebRTC", function() {
         webrtc.initiate({video: true}).establish({});
 
         expect(webrtc.upgrade).to.Throw(Error, /needs new media constraints/);
-      });
-
-      it("should transition state to `pending`", function() {
-        webrtc.initiate({video: false}).establish({}).upgrade({video: true});
-
-        expect(webrtc.state.current).to.equal('pending');
       });
 
       it("should initiate a new peer connection using provided constraints",
