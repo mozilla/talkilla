@@ -28,10 +28,6 @@ var SidebarApp = (function(app, $) {
       })
     };
 
-    var spaLoginURL = options.SPA && options.SPA.loginURL ?
-      options.SPA.loginURL :
-      "/spa/talkilla/spa_setup.html";
-
     this.view = new app.views.AppView({
       isInSidebar: this._location.search === "?sidebar",
       appStatus: this.appStatus,
@@ -39,7 +35,7 @@ var SidebarApp = (function(app, $) {
       users: this.users,
       services: this.services,
       spa: this.spa,
-      spaLoginURL: spaLoginURL
+      spaLoginURL: options.SPA.loginURL
     });
 
     // user events
