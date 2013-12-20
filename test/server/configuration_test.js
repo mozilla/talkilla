@@ -82,6 +82,17 @@ describe("Server", function() {
           expect(testConfig).to.have.property('ROOTURL');
           expect(testConfig.ROOTURL).to.be.equal('http://example2.com');
         });
+
+      it("should load the spa config", function() {
+        var testConfig =
+            config.getConfigFromFile(path.join(testConfigRoot,
+                                               'test4.json'), PORT);
+
+        expect(testConfig).to.have.property('SPA');
+        expect(testConfig.SPA).to.have.property('loginURL');
+        expect(testConfig.SPA.loginURL).to.be
+          .equal('/spa/talkilla/spa_setup.html');
+      });
     });
   });
 

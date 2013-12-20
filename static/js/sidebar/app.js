@@ -34,7 +34,8 @@ var SidebarApp = (function(app, $) {
       user: this.user,
       users: this.users,
       services: this.services,
-      spa: this.spa
+      spa: this.spa,
+      spaLoginURL: options.SPA.loginURL
     });
 
     // user events
