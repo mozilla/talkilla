@@ -10,6 +10,10 @@
    *
    * Options are:
    * - {Boolean} forceFake:  Forces fake media streams (default: false)
+   * - {Boolean} enableDataChannel: Set to true to enable the data channel; may
+   *                                be set after construction but only affects
+   *                                new peer connections after it is set
+   *                                (default: false)
    *
    * @param {Object}                   options  Options
    */
@@ -311,9 +315,17 @@
    * @private
    */
   WebRTC.prototype._createAnswer = function() {
+    var constraints = {};
+    if (!this.options.enableDataChannel) {
+      constraints.mandatory = {
+        "MozDontOfferDataChannel": true
+      };
+    }
+
     this.pc.createAnswer(
       this._setAnswerDescription.bind(this),
-      this._handleError.bind(this, 'Unable to create answer')
+      this._handleError.bind(this, 'Unable to create answer'),
+      constraints
     );
 
     return this;
@@ -325,9 +337,17 @@
    * @private
    */
   WebRTC.prototype._createOffer = function() {
+    var constraints = {};
+    if (!this.options.enableDataChannel) {
+      constraints.mandatory = {
+        "MozDontOfferDataChannel": true
+      };
+    }
+
     this.pc.createOffer(
       this._setOfferDescription.bind(this),
-      this._handleError.bind(this, 'Unable to create offer')
+      this._handleError.bind(this, 'Unable to create offer'),
+      constraints
     );
 
     return this;
@@ -508,13 +528,17 @@
    */
   WebRTC.prototype._setupPeerConnection = function() {
     this.pc = new mozRTCPeerConnection();
-    this.dc = this.pc.createDataChannel('dc', {
-      // We set up a pre-negotiated channel with a specific id, this
-      // way we know exactly which channel we're expecting to communicate
-      // with.
-      id: 0,
-      negotiated: true
-    });
+    if (this.options.enableDataChannel) {
+      this.dc = this.pc.createDataChannel('dc', {
+        // We set up a pre-negotiated channel with a specific id, this
+        // way we know exactly which channel we're expecting to communicate
+        // with.
+        id: 0,
+        negotiated: true
+      });
+
+      this.trigger("transport-created", new WebRTC.DataChannel(this.dc));
+    }
 
     this.pc.onaddstream = this._onAddStream.bind(this);
     this.pc.ondatachannel = this._onDataChannel.bind(this);
@@ -523,8 +547,6 @@
       this._onIceConnectionStateChange.bind(this);
     this.pc.onremovestream = this._onRemoveStream.bind(this);
     this.pc.onsignalingstatechange = this._onSignalingStateChange.bind(this);
-
-    this.trigger("transport-created", new WebRTC.DataChannel(this.dc));
   };
 
   WebRTC.DataChannel = function DataChannel(dc) {

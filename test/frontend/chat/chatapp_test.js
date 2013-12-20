@@ -444,8 +444,18 @@ describe("ChatApp", function() {
           function(done) {
             var chatApp = new ChatApp();
             chatApp.appPort.on("talkilla.conversation-open", function() {
-              expect(chatApp.call.get("capabilities"))
+              expect(chatApp.spa.get("capabilities"))
                 .eql(callData.capabilities);
+              done();
+            }).trigger("talkilla.conversation-open", callData);
+          });
+
+        it("should set enableDataChannel based on the SPA capabilities",
+          function(done) {
+            var chatApp = new ChatApp();
+            chatApp.appPort.on("talkilla.conversation-open", function() {
+              expect(chatApp.webrtc.options.enableDataChannel)
+                .eql(true);
               done();
             }).trigger("talkilla.conversation-open", callData);
           });
@@ -456,8 +466,18 @@ describe("ChatApp", function() {
           function(done) {
             var chatApp = new ChatApp();
             chatApp.appPort.on("talkilla.conversation-incoming", function() {
-              expect(chatApp.call.get("capabilities"))
+              expect(chatApp.spa.get("capabilities"))
                 .eql(incomingCallData.capabilities);
+              done();
+            }).trigger("talkilla.conversation-incoming", incomingCallData);
+          });
+
+        it("should set enableDataChannel based on the SPA capabilities",
+          function(done) {
+            var chatApp = new ChatApp();
+            chatApp.appPort.on("talkilla.conversation-incoming", function() {
+              expect(chatApp.webrtc.options.enableDataChannel)
+                .eql(true);
               done();
             }).trigger("talkilla.conversation-incoming", incomingCallData);
           });

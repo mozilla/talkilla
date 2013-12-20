@@ -10,6 +10,7 @@ var ChatApp = (function(app, $, Backbone, _) {
     this.appPort = new AppPort();
     this.user = new app.models.User();
     this.peer = new app.models.User();
+    this.spa = new app.models.SPA();
 
     // Audio library
     this.audioLibrary = new app.utils.AudioLibrary({
@@ -34,6 +35,7 @@ var ChatApp = (function(app, $, Backbone, _) {
     this.callControlsView = new app.views.CallControlsView({
       call: this.call,
       media: this.webrtc,
+      spa: this.spa,
       el: $("#call-controls")
     });
 
@@ -123,7 +125,8 @@ var ChatApp = (function(app, $, Backbone, _) {
    * @param {Object} msg Conversation msg object.
    */
   ChatApp.prototype._onConversationOpen = function(msg) {
-    this.call.set({capabilities: msg.capabilities});
+    this.spa.set({capabilities: msg.capabilities});
+    this.webrtc.options.enableDataChannel = !this.spa.supports("spachannel");
     this.user.set({username: msg.user});
 
     this.peer.set({username: msg.peer.username, presence: msg.peerPresence,
@@ -157,7 +160,8 @@ var ChatApp = (function(app, $, Backbone, _) {
   ChatApp.prototype._onIncomingConversation = function(msg) {
     var sdp = new WebRTC.SDP(msg.offer.offer.sdp);
 
-    this.call.set({capabilities: msg.capabilities});
+    this.spa.set({capabilities: msg.capabilities});
+    this.webrtc.options.enableDataChannel = !this.spa.supports("spachannel");
     this.user.set({username: msg.user});
 
     if (!msg.offer.upgrade)

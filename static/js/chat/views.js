@@ -166,10 +166,11 @@
     },
 
     initialize: function(options) {
-      options = this.checkOptions(options, "call", "media", "el");
+      options = this.checkOptions(options, "call", "media", "spa", "el");
 
       this.media = options.media;
       this.call = options.call;
+      this.spa = options.spa;
 
       this.call.on('state:to:pending state:to:incoming',
                    this._callPending, this);
@@ -246,7 +247,7 @@
       this.$('.btn-speaker-mute').show();
 
       // If the SPA supports it, display the call-move button.
-      if (this.call.supports("move"))
+      if (this.spa.supports("move"))
         this.$('.btn-call-move').show();
     },
 

@@ -46,7 +46,7 @@ describe('Text chat models', function() {
     });
 
     // text chat model dependencies
-    media = new WebRTC();
+    media = new WebRTC({spa: new app.models.SPA()});
     user = new app.models.User();
     peer = new app.models.User();
 
