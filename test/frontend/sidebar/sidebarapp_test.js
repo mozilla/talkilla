@@ -6,10 +6,14 @@ var expect = chai.expect;
 
 describe("SidebarApp", function() {
 
-  var sandbox;
+  var sandbox, defaultOptions;
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
+
+    defaultOptions = {
+      SPA: { loginURL: "http://example.com"}
+    };
 
     // mozSocial "mock"
     window.navigator.mozSocial = {
@@ -37,15 +41,16 @@ describe("SidebarApp", function() {
     });
 
     it("should create an AppView", function() {
-      new SidebarApp();
+      new SidebarApp(defaultOptions);
 
       sinon.assert.calledOnce(app.views.AppView);
     });
 
     it("should initialize an AppView with isInSidebar set to true if the" +
       " location query string is a sidebar parameter", function() {
+      defaultOptions.location = "http://example.com/?sidebar";
 
-      new SidebarApp({location: "http://example.com/?sidebar"});
+      new SidebarApp(defaultOptions);
 
       sinon.assert.calledOnce(app.views.AppView);
       sinon.assert.calledWithExactly(app.views.AppView,
@@ -54,34 +59,44 @@ describe("SidebarApp", function() {
 
     it("should initialize an AppView with isInSidebar set to false if the" +
       " location query string is not a sidebar parameter", function() {
+      defaultOptions.location = "http://example.com";
 
-      new SidebarApp({location: "http://example.com/"});
+      new SidebarApp(defaultOptions);
 
       sinon.assert.calledOnce(app.views.AppView);
       sinon.assert.calledWithExactly(app.views.AppView,
         sinon.match.has("isInSidebar", false));
     });
 
+    it("should initialize an AppView with spaLoginURL set to the url " +
+       "supplied in options", function() {
+        new SidebarApp(defaultOptions);
+
+        sinon.assert.calledOnce(app.views.AppView);
+        sinon.assert.calledWithExactly(app.views.AppView,
+          sinon.match.has("spaLoginURL", defaultOptions.SPA.loginURL));
+      });
+
     it("should create an AppPort", function() {
-      var sidebarApp = new SidebarApp();
+      var sidebarApp = new SidebarApp(defaultOptions);
 
       expect(sidebarApp.appPort).to.be.an.instanceOf(AppPort);
     });
 
     it("should create a user", function() {
-      var sidebarApp = new SidebarApp();
+      var sidebarApp = new SidebarApp(defaultOptions);
 
       expect(sidebarApp.user).to.be.an.instanceOf(app.models.User);
     });
 
     it("should create a user list", function() {
-      var sidebarApp = new SidebarApp();
+      var sidebarApp = new SidebarApp(defaultOptions);
 
       expect(sidebarApp.users).to.be.an.instanceOf(app.models.UserSet);
     });
 
     it("should post talkilla.sidebar-ready to the worker", function() {
-      var sidebarApp = new SidebarApp();
+      var sidebarApp = new SidebarApp(defaultOptions);
 
       sinon.assert.calledOnce(sidebarApp.appPort.post);
       sinon.assert.calledWithExactly(sidebarApp.appPort.post,
@@ -92,7 +107,8 @@ describe("SidebarApp", function() {
       function() {
         sandbox.stub(AppPort.prototype, "on");
         app.options.DEBUG = true;
-        var sidebarApp = new SidebarApp({username: "toto"});
+        defaultOptions.username = "toto";
+        var sidebarApp = new SidebarApp(defaultOptions);
 
         sinon.assert.called(sidebarApp.appPort.on);
         sinon.assert.calledWith(sidebarApp.appPort.on, "talkilla.debug");
@@ -100,7 +116,7 @@ describe("SidebarApp", function() {
 
     it("should listen to the `talkilla.users` event and update user list",
       function() {
-        var sidebarApp = new SidebarApp();
+        var sidebarApp = new SidebarApp(defaultOptions);
 
         sidebarApp.appPort.trigger("talkilla.users", [
           {username: "bob"},
@@ -115,7 +131,7 @@ describe("SidebarApp", function() {
 
   describe("#openConversation", function() {
     it("should post the talkilla.conversation-open event", function() {
-      var sidebarApp = new SidebarApp();
+      var sidebarApp = new SidebarApp(defaultOptions);
 
       sidebarApp.openConversation("jb");
 
@@ -132,7 +148,7 @@ describe("SidebarApp", function() {
     var sidebarApp;
 
     beforeEach(function() {
-      sidebarApp = new SidebarApp();
+      sidebarApp = new SidebarApp(defaultOptions);
       sidebarApp.user.set("username", "toto");
 
       sandbox.stub(sidebarApp.http, "post");
@@ -141,7 +157,7 @@ describe("SidebarApp", function() {
 
     describe("talkilla.spa-connected", function() {
       beforeEach(function() {
-        var sidebarApp = new SidebarApp();
+        var sidebarApp = new SidebarApp(defaultOptions);
         // Skipping events triggered in the constructor
         sidebarApp.appPort.post.reset();
       });

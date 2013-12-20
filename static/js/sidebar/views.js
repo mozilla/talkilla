@@ -32,6 +32,7 @@
 
       this.loginView = new app.views.LoginView({
         appStatus: this.appStatus,
+        spaLoginURL: options.spaLoginURL,
         user: this.user
       });
 
@@ -287,7 +288,8 @@
   app.views.LoginView = app.views.BaseView.extend({
     dependencies: {
       user: app.models.CurrentUser,
-      appStatus: app.models.AppStatus
+      appStatus: app.models.AppStatus,
+      spaLoginURL: String
     },
 
     el: '#login',
@@ -307,7 +309,7 @@
         this.$('[name="spa-setup"]').remove();
       } else if (!this.user.get("username")) {
         var iframe = $("<iframe>")
-          .attr("src", "/spa/talkilla/spa_setup.html")
+          .attr("src", this.spaLoginURL)
           .attr("id", "signin")
           .attr("name", "spa-setup");
         $("#login p:first").append(iframe);

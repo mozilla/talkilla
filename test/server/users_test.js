@@ -5,6 +5,8 @@ var chai = require("chai");
 var expect = chai.expect;
 var sinon = require("sinon");
 
+chai.Assertion.includeStack = true;
+
 var config = require('../../server/config').config;
 var logger = require('../../server/logger');
 var Users = require("../../server/users").Users;

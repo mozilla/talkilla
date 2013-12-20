@@ -7,7 +7,10 @@ describe("SPAView", function() {
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
     spa = new app.models.SPA({capabilities: ["call"]});
-    user = new app.models.CurrentUser({nick: "boriss", presence: "connected"});
+    user = new app.models.CurrentUser({
+      username: "boriss",
+      presence: "connected"
+    });
     view = new app.views.SPAView({user: user, spa: spa});
   });
 
