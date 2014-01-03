@@ -13,13 +13,15 @@
     dependencies: {},
 
     /**
-     * Constructs this view, checking and attaching required dependencies.
+     * Constructs this view, validating and attaching required dependencies.
      *
      * @param  {Object} options Options object
      * @throws {TypeError} If dependency checks fails
      */
     constructor: function(options) {
-      new app.utils.Dependencies(this).checkAll(options || {});
+      var validator = new app.utils.Dependencies(this.dependencies);
+      _.extend(this, validator.validate(options || {}));
+
       Backbone.View.apply(this, arguments);
     }
   });

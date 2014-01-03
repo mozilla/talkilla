@@ -342,80 +342,69 @@ describe('Utils', function() {
   });
 
   describe("app.utils.Dependencies", function() {
-    describe("#constructor", function() {
-      function X(){}
-      function Y(){}
 
-      function check(dependencies, options) {
-        var subject = {dependencies: dependencies};
-        var validator = new app.utils.Dependencies(subject);
-        return validator.checkAll.bind(validator, options);
-      }
+    // test helpers
+    function validator(dependencies, values) {
+      var deps = new app.utils.Dependencies(dependencies);
+      return deps.validate.bind(deps, values);
+    }
 
+    // test types
+    function X(){}
+    function Y(){}
+
+    describe("#validate", function() {
       it("should check for a single required dependency when no option passed",
         function() {
-          expect(check({x: Number}, {}))
+          expect(validator({x: Number}, {}))
             .to.Throw(TypeError, /missing required x$/);
         });
 
       it("should check for a single required dependency", function() {
-        expect(check({x: Number}, {}))
+        expect(validator({x: Number}, {}))
           .to.Throw(TypeError, /missing required x$/);
 
-        expect(check({x: Number}, {user: undefined}))
+        expect(validator({x: Number}, {x: undefined}))
           .to.Throw(TypeError, /missing required x$/);
 
-        expect(check({x: Number}, {user: null}))
+        expect(validator({x: Number}, {x: null}))
           .to.Throw(TypeError, /missing required x$/);
       });
 
       it("should check for multiple required dependencies", function() {
-        expect(check({x: Number, y: String}, {}))
+        expect(validator({x: Number, y: String}, {}))
           .to.Throw(TypeError, /missing required x, y$/);
       });
 
       it("should check for required dependency types", function() {
-        expect(check({x: Number}, {x: "woops"})).to.Throw(
+        expect(validator({x: Number}, {x: "woops"})).to.Throw(
           TypeError, /invalid dependency: x; expected Number$/);
       });
 
       it("should check for a dependency to match at least one of passed types",
         function() {
-          expect(check({x: [X, Y]}, {x: 42})).to.Throw(
+          expect(validator({x: [X, Y]}, {x: 42})).to.Throw(
             TypeError, /invalid dependency: x; expected X, Y$/);
-          expect(check({x: [X, Y]}, {x: new Y()})).to.not.Throw();
-        });
-
-      it("should attach required dependencies as subject properties",
-        function() {
-          expect(check({foo: Number}, {foo: 42})().foo).eql(42);
-          expect(check({x: X}, {x: new X()})().x).to.be.instanceOf(X);
-          expect(check({x: [X, Y]}, {x: new X()})().x).to.be.instanceOf(X);
-          expect(check({x: [X, Y]}, {x: new Y()})().x).to.be.instanceOf(Y);
-        });
-
-      it("shouldn't attach properties if they're not declared as dependencies",
-        function() {
-          expect(check({}, {foo: 42})().foo).to.be.a("undefined");
+          expect(validator({x: [X, Y]}, {x: new Y()})).to.not.Throw();
         });
 
       it("should skip type check if required dependency type is undefined",
         function() {
-          expect(check({user: undefined}, {user: /whatever/})).not.to.Throw();
+          expect(validator({x: undefined}, {x: /whatever/})).not.to.Throw();
         });
 
       it("should check for a String dependency", function() {
-        expect(check({foo: String}, {foo: 42})).to.Throw(
+        expect(validator({foo: String}, {foo: 42})).to.Throw(
           TypeError, /invalid dependency: foo/);
       });
 
       it("should check for a Number dependency", function() {
-        expect(check({foo: Number}, {foo: "x"})).to.Throw(
+        expect(validator({foo: Number}, {foo: "x"})).to.Throw(
           TypeError, /invalid dependency: foo/);
       });
 
       it("should check for a custom constructor dependency", function() {
-        expect(check({foo: X}, {foo: "x"})).to.Throw(
+        expect(validator({foo: X}, {foo: "x"})).to.Throw(
           TypeError, /invalid dependency: foo/);
       });
     });

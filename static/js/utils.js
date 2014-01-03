@@ -208,65 +208,60 @@
   /**
    * Dependency validator. Passed subject should have a dependencies object
    * attached.
-   * @param  {Object} subject Target object
-   * @throws {Error}  If passed subject is not an object, or if declared
-   *                  dependency is not an object.
+   *
+   * @constructor
+   * @param  {Object} rules Dependency rules object
    */
-  app.utils.Dependencies = function Dependencies(subject) {
-    if (typeof subject !== "object" || !subject)
-      throw new Error("Missing subject");
-    this.subject = subject;
-    if (typeof subject.dependencies !== "object")
-      throw new Error("Subject dependencies must be an object");
-    this.dependencies = subject.dependencies || {};
+  app.utils.Dependencies = function Dependencies(rules) {
+    this.rules = rules || {};
   };
 
   app.utils.Dependencies.prototype = {
     /**
-     * Validates all passed options against declared dependencies.
-     * @param  {Object} options
-     * @return {Object} The validated subject
-     * @throws TypeError in case validation fails
+     * Validates all passed values against declared dependencies.
+     *
+     * @return {Object} subject The subject object
+     * @param  {Object} values  The values object
+     * @return {Object}         The validated values object
+     * @throws {TypeError}      If validation fails
      */
-    checkAll: function(options) {
-      if (Object.keys(this.dependencies).length > 0) {
-        this._checkRequiredProperties(options);
-        this._checkRequiredTypes(options);
-      }
-
-      return this.subject;
+    validate: function(values) {
+      this._checkRequiredProperties(values);
+      this._checkRequiredTypes(values);
+      return values;
     },
 
     /**
      * Checks if any of Object values matches any of current dependency type
      * requirements.
-     * @param  {Object} object
+     *
+     * @param  {Object} values The values object
      * @throws {TypeError}
      */
-    _checkRequiredTypes: function(object) {
-      Object.keys(this.dependencies || {}).forEach(function(name) {
-        var types = this.dependencies[name];
+    _checkRequiredTypes: function(values) {
+      Object.keys(this.rules).forEach(function(name) {
+        var types = this.rules[name];
         types = Array.isArray(types) ? types : [types];
-        if (!this._dependencyMatchTypes(object[name], types)) {
+        if (!this._dependencyMatchTypes(values[name], types)) {
           throw new TypeError(
             "invalid dependency: " + name + "; expected " +
             types.map(function(type) { return type && type.name; }).join(", "));
         }
-        this.subject[name] = object[name];
       }, this);
     },
 
     /**
-     * Checks if an Object owns the required keys defined in dependencies.
-     * @param  {Object} object
+     * Checks if a values object owns the required keys defined in dependencies.
+     *
+     * @param  {Object} values The values object
      * @throws {TypeError}
      */
-    _checkRequiredProperties: function(object) {
+    _checkRequiredProperties: function(values) {
       /*jshint eqnull:true*/
-      var diff = _.difference(Object.keys(this.dependencies || {}),
-                              Object.keys(object)
+      var diff = _.difference(Object.keys(this.rules || {}),
+                              Object.keys(values)
                   .filter(function(name) {
-                    return object[name] != null;
+                    return values[name] != null;
                   }));
       if (diff.length > 0)
         throw new TypeError("missing required " + diff.join(", "));
@@ -274,6 +269,7 @@
 
     /**
      * Checks if a given value matches any of the provided type requirements.
+     *
      * @param  {Object} value  The value to check
      * @param  {Array}  types  The list of types to check the value against
      * @return {Boolean}
