@@ -127,6 +127,14 @@ describe("LoginView", function() {
         expect(loginView.$('#signout').is(':visible')).to.equal(false);
       });
 
+    it("should only ever display one sign-in iframe at a time", function() {
+      appStatus.set("workerInitialized", true);
+      loginView.render();
+      loginView.render();
+
+      expect(loginView.$('iframe').length).to.equal(1);
+    });
+
     it("should hide signin and display signout when there is not a username",
       function() {
         appStatus.set("workerInitialized", true);
