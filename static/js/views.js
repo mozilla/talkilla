@@ -6,21 +6,6 @@
   "use strict";
 
   /**
-   * View required option error.
-   * @param {String} msg Error message
-   */
-  var DependencyError = app.views.DependencyError =
-      function DependencyError() {
-        var err = Error.apply(this, arguments);
-        ["message", "stack", "lineNumber", "columnNumber", "fileName"]
-          .forEach(function(prop) {
-            this[prop] = err[prop];
-          }, this);
-        this.name = 'DependencyError';
-      };
-  app.views.DependencyError.prototype = Object.create(Error.prototype);
-
-  /**
    * Base Talkilla view.
    */
   app.views.BaseView = Backbone.View.extend({
@@ -29,12 +14,17 @@
 
     /**
      * Constructs this view, checking and attaching required dependencies.
+     *
+     * @param {Object} options Options object
      */
     constructor: function(options) {
-      if (Object.keys(this.dependencies || {}).length > 0) {
-        this._checkRequiredProperties(options || {});
-        this._checkRequiredTypes(options || {});
+      options = options || {};
+
+      if (Object.keys(this.dependencies).length > 0) {
+        this._checkRequiredProperties(options);
+        this._checkRequiredTypes(options);
       }
+
       Backbone.View.apply(this, arguments);
     },
 
@@ -42,14 +32,14 @@
      * Checks if any of an Object values matches any of current dependency type
      * requirements.
      * @param  {Object} object
-     * @throws {DependencyError}
+     * @throws {TypeError}
      */
     _checkRequiredTypes: function(object) {
       Object.keys(this.dependencies || {}).forEach(function(name) {
         var types = this.dependencies[name];
         types = Array.isArray(types) ? types : [types];
         if (!this._dependencyMatchTypes(object[name], types)) {
-          throw new DependencyError(
+          throw new TypeError(
             "invalid dependency: " + name + "; expected " +
             types.map(function(type) { return type && type.name; }).join(", "));
         }
@@ -60,7 +50,7 @@
     /**
      * Checks if an Object owns the required keys defined in dependencies.
      * @param  {Object} object
-     * @throws {DependencyError}
+     * @throws {TypeError}
      */
     _checkRequiredProperties: function(object) {
       /*jshint eqnull:true*/
@@ -70,7 +60,7 @@
                     return object[name] != null;
                   }));
       if (diff.length > 0)
-        throw new DependencyError("missing required " + diff.join(", "));
+        throw new TypeError("missing required " + diff.join(", "));
     },
 
     /**
@@ -78,7 +68,7 @@
      * @param  {Object} value  The value to check
      * @param  {Array}  types  The list of types to check the value against
      * @return {Boolean}
-     * @throws {DependencyError} If the value doesn't match any types.
+     * @throws {TypeError} If the value doesn't match any types.
      */
     _dependencyMatchTypes: function(value, types) {
       return types.some(function(Type) {

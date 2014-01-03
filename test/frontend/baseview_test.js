@@ -21,28 +21,26 @@ describe("app.views.BaseView", function() {
       function() {
         TestView.prototype.dependencies = {user: app.models.User};
 
-        expect(createTestView()).to.Throw(app.views.DependencyError,
-                                          /missing required user/);
+        expect(createTestView()).to.Throw(TypeError, /missing required user/);
       });
 
     it("should check for a single required dependency", function() {
       TestView.prototype.dependencies = {user: app.models.User};
 
-      expect(createTestView({})).to.Throw(
-        app.views.DependencyError, /missing required user/);
+      expect(createTestView({})).to.Throw(TypeError, /missing required user/);
 
       expect(createTestView({user: undefined})).to.Throw(
-        app.views.DependencyError, /missing required user/);
+        TypeError, /missing required user/);
 
       expect(createTestView({user: null})).to.Throw(
-        app.views.DependencyError, /missing required user/);
+        TypeError, /missing required user/);
     });
 
     it("should check for multiple required dependencies", function() {
       TestView.prototype.dependencies = {user:  app.models.User,
                                          users: app.models.SPA};
 
-      expect(createTestView({})).to.Throw(app.views.DependencyError,
+      expect(createTestView({})).to.Throw(TypeError,
                                           /missing required user, users/);
     });
 
@@ -50,7 +48,7 @@ describe("app.views.BaseView", function() {
       TestView.prototype.dependencies = {user:  app.models.User};
 
       expect(createTestView({user: "woops"})).to.Throw(
-        app.views.DependencyError, /invalid dependency: user/);
+        TypeError, /invalid dependency: user/);
     });
 
     it("should check for a dependency to match at least one of passed types",
@@ -60,7 +58,7 @@ describe("app.views.BaseView", function() {
         };
 
         expect(createTestView({user: "woops"})).to.Throw(
-          app.views.DependencyError, /invalid dependency: user/);
+          TypeError, /invalid dependency: user/);
 
         expect(new TestView({user: new app.models.User()}).user)
                .to.be.instanceOf(app.models.User);
@@ -111,24 +109,11 @@ describe("app.views.BaseView", function() {
         expect(createTestView({user: /whatever/})).not.to.Throw();
       });
 
-    it("should throw a DependencyError having stack information",
-      function(done) {
-        TestView.prototype.dependencies = {foo: String};
-
-        try {
-          createTestView({foo: 42})();
-        } catch(err) {
-          expect(err).to.be.an.instanceOf(app.views.DependencyError);
-          expect(err).to.have.property("stack");
-          done();
-        }
-      });
-
     it("should check for a String dependency", function() {
       TestView.prototype.dependencies = {foo: String};
 
       expect(createTestView({foo: 42})).to.Throw(
-        app.views.DependencyError, /invalid dependency: foo/);
+        TypeError, /invalid dependency: foo/);
       expect(new TestView({foo: "x"}).foo).eql("x");
     });
 
@@ -136,7 +121,7 @@ describe("app.views.BaseView", function() {
       TestView.prototype.dependencies = {foo: Number};
 
       expect(createTestView({foo: "x"})).to.Throw(
-        app.views.DependencyError, /invalid dependency: foo/);
+        TypeError, /invalid dependency: foo/);
       expect(new TestView({foo: 42}).foo).eql(42);
     });
 
@@ -144,7 +129,7 @@ describe("app.views.BaseView", function() {
       TestView.prototype.dependencies = {foo: RegExp};
 
       expect(createTestView({foo: "x"})).to.Throw(
-        app.views.DependencyError, /invalid dependency: foo/);
+        TypeError, /invalid dependency: foo/);
       expect(new TestView({foo: /x/}).foo).eql(/x/);
     });
 
@@ -154,7 +139,7 @@ describe("app.views.BaseView", function() {
       TestView.prototype.dependencies = {foo: Foo};
 
       expect(createTestView({foo: "x"})).to.Throw(
-        app.views.DependencyError, /invalid dependency: foo/);
+        TypeError, /invalid dependency: foo/);
       var foo = new Foo();
       expect(new TestView({foo: foo}).foo).eql(foo);
     });
