@@ -341,4 +341,84 @@ describe('Utils', function() {
 
   });
 
+  describe("app.utils.Dependencies", function() {
+    describe("#constructor", function() {
+      function X(){}
+      function Y(){}
+
+      function check(dependencies, options) {
+        var subject = {dependencies: dependencies};
+        var validator = new app.utils.Dependencies(subject);
+        return validator.checkAll.bind(validator, options);
+      }
+
+      it("should check for a single required dependency when no option passed",
+        function() {
+          expect(check({x: Number}, {}))
+            .to.Throw(TypeError, /missing required x$/);
+        });
+
+      it("should check for a single required dependency", function() {
+        expect(check({x: Number}, {}))
+          .to.Throw(TypeError, /missing required x$/);
+
+        expect(check({x: Number}, {user: undefined}))
+          .to.Throw(TypeError, /missing required x$/);
+
+        expect(check({x: Number}, {user: null}))
+          .to.Throw(TypeError, /missing required x$/);
+      });
+
+      it("should check for multiple required dependencies", function() {
+        expect(check({x: Number, y: String}, {}))
+          .to.Throw(TypeError, /missing required x, y$/);
+      });
+
+      it("should check for required dependency types", function() {
+        expect(check({x: Number}, {x: "woops"})).to.Throw(
+          TypeError, /invalid dependency: x; expected Number$/);
+      });
+
+      it("should check for a dependency to match at least one of passed types",
+        function() {
+          expect(check({x: [X, Y]}, {x: 42})).to.Throw(
+            TypeError, /invalid dependency: x; expected X, Y$/);
+          expect(check({x: [X, Y]}, {x: new Y()})).to.not.Throw();
+        });
+
+      it("should attach required dependencies as subject properties",
+        function() {
+          expect(check({foo: Number}, {foo: 42})().foo).eql(42);
+          expect(check({x: X}, {x: new X()})().x).to.be.instanceOf(X);
+          expect(check({x: [X, Y]}, {x: new X()})().x).to.be.instanceOf(X);
+          expect(check({x: [X, Y]}, {x: new Y()})().x).to.be.instanceOf(Y);
+        });
+
+      it("shouldn't attach properties if they're not declared as dependencies",
+        function() {
+          expect(check({}, {foo: 42})().foo).to.be.a("undefined");
+        });
+
+      it("should skip type check if required dependency type is undefined",
+        function() {
+          expect(check({user: undefined}, {user: /whatever/})).not.to.Throw();
+        });
+
+      it("should check for a String dependency", function() {
+        expect(check({foo: String}, {foo: 42})).to.Throw(
+          TypeError, /invalid dependency: foo/);
+      });
+
+      it("should check for a Number dependency", function() {
+        expect(check({foo: Number}, {foo: "x"})).to.Throw(
+          TypeError, /invalid dependency: foo/);
+      });
+
+      it("should check for a custom constructor dependency", function() {
+        expect(check({foo: X}, {foo: "x"})).to.Throw(
+          TypeError, /invalid dependency: foo/);
+      });
+    });
+  });
+
 });

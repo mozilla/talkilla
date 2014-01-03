@@ -6,6 +6,13 @@
   "use strict";
 
   /**
+   * Base model allowing dependency checks.
+   */
+  app.models.BaseModel = Backbone.Model.extend({
+    dependencies: {}
+  });
+
+  /**
    * Notification model.
    */
   app.models.Notification = Backbone.Model.extend({
