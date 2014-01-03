@@ -47,10 +47,6 @@ describe("Call Model", function() {
       expect(call.state).to.be.an.instanceOf(Object);
     });
 
-    it("should store the media handler", function() {
-      expect(call.media).to.deep.equal(media);
-    });
-
     it("it should have an initial state", function() {
       expect(call.state.current).to.equal('ready');
     });

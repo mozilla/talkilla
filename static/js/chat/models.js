@@ -480,28 +480,19 @@
     }
   });
 
-  app.models.TextChat = Backbone.Collection.extend({
+  app.models.TextChat = app.models.BaseCollection.extend({
+    dependencies: {
+      media: WebRTC,
+      user: app.models.User,
+      peer: app.models.User
+    },
+
     model: app.models.TextChatEntry,
 
-    media: undefined,
     transport: undefined,
-    user: undefined,
-    peer: undefined,
     typingTimeout: undefined,
 
     initialize: function(attributes, options) {
-      if (!options || !options.media)
-        throw new Error('TextChat model needs a `media` option');
-      this.media = options.media;
-
-      if (!options || !options.user)
-        throw new Error('TextChat model needs a `user` option');
-      this.user = options.user;
-
-      if (!options || !options.peer)
-        throw new Error('TextChat model needs a `peer` option');
-      this.peer = options.peer;
-
       this.typeTimeout = options && options.typeTimeout || 5000;
 
       this.on('add', this._onTextChatEntryCreated, this);
