@@ -288,7 +288,7 @@
       this.appStatus = options.appStatus;
       this.spaLoginURL = options.spaLoginURL;
 
-      this.user.on('change', this.render, this);
+      this.user.on('signin signout', this.render, this);
       this.appStatus.on('change:workerInitialized', this.render, this);
     },
 
