@@ -94,7 +94,10 @@ describe("Call Controls View", function() {
       callControlsView = new app.views.CallControlsView({
         el: el,
         media: new WebRTC(),
-        call: new app.models.Call()
+        call: new app.models.Call({}, {
+          media: media,
+          peer: new app.models.User({username: "paul"})
+        })
       });
     });
 

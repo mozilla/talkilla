@@ -11,7 +11,7 @@ describe("Call Model", function() {
     sandbox = sinon.sandbox.create();
     // XXX This should probably be a mock, but sinon mocks don't seem to want
     // to work with Backbone.
-    media = {
+    media = _.extend(new WebRTC(), {
       state: {current: 'ready'},
       answer: sandbox.spy(),
       establish: sandbox.spy(),
@@ -22,9 +22,9 @@ describe("Call Model", function() {
       on: sandbox.spy(),
       once: sandbox.spy(),
       setMuteState: sandbox.spy()
-    };
+    });
 
-    peer = new app.models.User();
+    peer = new app.models.User({username: "larry"});
 
     call = new app.models.Call({}, {media: media, peer: peer});
 
@@ -53,11 +53,6 @@ describe("Call Model", function() {
 
     it("it should have an initial state", function() {
       expect(call.state.current).to.equal('ready');
-    });
-
-    it("should set instance attributes", function() {
-      var call = new app.models.Call({peer: "larry"}, {media: media});
-      expect(call.get("peer")).to.equal("larry");
     });
 
     it("should have a random id", function() {

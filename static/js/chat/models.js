@@ -11,31 +11,28 @@
    * Attributes:
    * - {Object} incomingData
    */
-  app.models.Call = Backbone.Model.extend({
+  app.models.Call = app.models.BaseModel.extend({
+    dependencies: {
+      media: WebRTC,
+      peer: app.models.User
+    },
+
     defaults: {
       currentConstraints: {video: false, audio: false},
       incomingData:       {}
     },
-    timer: undefined,
-    media: undefined,
+
     callid: undefined,
+    timer: undefined,
 
     /**
      * Call model constructor.
      * @param  {Object}     attributes  Model attributes
      * @param  {Object}     options     Model options
-     *
-     * Options:
-     *
-     * - {WebRTC}           media       Media object
-     * - {app.models.User}  peer        The peer for the conversation
      */
-    initialize: function(attributes, options) {
+    initialize: function(attributes) {
       this.set(attributes || {});
       this.callid = app.utils.id();
-
-      this.media = options && options.media;
-      this.peer = options && options.peer;
 
       this.state = StateMachine.create({
         initial: 'ready',

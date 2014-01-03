@@ -9,7 +9,14 @@
    * Base model allowing dependency checks.
    */
   app.models.BaseModel = Backbone.Model.extend({
-    dependencies: {}
+    dependencies: {},
+
+    constructor: function(attributes, options) {
+      var validator = new app.utils.Dependencies(this.dependencies);
+      _.extend(this, validator.validate(options || {}));
+
+      Backbone.Model.apply(this, arguments);
+    }
   });
 
   /**

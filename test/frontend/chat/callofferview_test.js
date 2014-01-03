@@ -18,6 +18,7 @@ describe('Call Offer View', function() {
     // XXX This should probably be a mock, but sinon mocks don't seem to want
     // to work with Backbone.
     call = new app.models.Call({}, {
+      peer: new app.models.User({username: "jb"}),
       media: _.extend(new WebRTC(), {
         constraints: {},
         answer: sandbox.spy(),

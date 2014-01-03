@@ -1,4 +1,4 @@
-/*global app, chai, sinon */
+/*global app, chai, sinon, WebRTC */
 "use strict";
 
 var expect = chai.expect;
@@ -22,18 +22,18 @@ describe("ConversationView", function() {
 
     // XXX This should probably be a mock, but sinon mocks don't seem to want
     // to work with Backbone.
-    var media = {
+    var media = _.extend(new WebRTC(), {
       answer: sandbox.spy(),
       establish: sandbox.spy(),
       initiate: sandbox.spy(),
       terminate: sandbox.spy(),
       on: sandbox.stub()
-    };
+    });
     _.extend(media, Backbone.Events);
 
-    call = new app.models.Call({}, {media: media});
     user = new app.models.User();
     peer = new app.models.User();
+    call = new app.models.Call({}, {media: media, peer: peer});
     sandbox.stub(peer, "on");
     textChat = new app.models.TextChat(null, {
       media: media,
