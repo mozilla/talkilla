@@ -142,7 +142,7 @@ describe("Conversation", function() {
 
         currentConversation.windowOpened(port);
 
-        sinon.assert.calledOnce(port.postEvent);
+        sinon.assert.calledTwice(port.postEvent);
         sinon.assert.calledWith(port.postEvent,
           "talkilla.conversation-incoming", {
           capabilities: [],
@@ -181,7 +181,7 @@ describe("Conversation", function() {
         // fails
         currentConversation.windowOpened(port);
 
-        sinon.assert.calledOnce(port.postEvent);
+        sinon.assert.calledTwice(port.postEvent);
         sinon.assert.calledWith(port.postEvent,
           "talkilla.conversation-incoming", {
           capabilities: [],

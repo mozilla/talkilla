@@ -238,27 +238,6 @@ describe("ChatApp", function() {
     });
 
     describe("#_onIncomingConversation", function() {
-      it("should set the peer", function() {
-        chatApp._onIncomingConversation(incomingCallData);
-
-        expect(chatApp.peer.get("username"))
-          .to.equal(incomingCallData.peer.username);
-      });
-
-      it("should set peer's presence", function() {
-        chatApp._onIncomingConversation(incomingCallData);
-
-        expect(chatApp.peer.get("presence")).eql(incomingCallData.peerPresence);
-      });
-
-      it("should not set the peer if upgrading a call", function() {
-        incomingCallData.offer.upgrade = true;
-
-        chatApp.peer.set({username: "bob"});
-        chatApp._onIncomingConversation(incomingCallData);
-
-        expect(chatApp.peer.get("username")).to.equal("bob");
-      });
 
       it("should set the call as incoming", function() {
         sandbox.stub(chatApp.call, "incoming");
@@ -458,28 +437,6 @@ describe("ChatApp", function() {
                 .eql(true);
               done();
             }).trigger("talkilla.conversation-open", callData);
-          });
-      });
-
-      describe("talkilla.conversation-incoming", function() {
-        it("should set SPA capabilities from incoming conversation context",
-          function(done) {
-            var chatApp = new ChatApp();
-            chatApp.appPort.on("talkilla.conversation-incoming", function() {
-              expect(chatApp.spa.get("capabilities"))
-                .eql(incomingCallData.capabilities);
-              done();
-            }).trigger("talkilla.conversation-incoming", incomingCallData);
-          });
-
-        it("should set enableDataChannel based on the SPA capabilities",
-          function(done) {
-            var chatApp = new ChatApp();
-            chatApp.appPort.on("talkilla.conversation-incoming", function() {
-              expect(chatApp.webrtc.options.enableDataChannel)
-                .eql(true);
-              done();
-            }).trigger("talkilla.conversation-incoming", incomingCallData);
           });
       });
 

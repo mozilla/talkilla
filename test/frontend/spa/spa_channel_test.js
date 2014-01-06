@@ -7,7 +7,7 @@ describe("SPAChannel", function() {
 
   beforeEach(function() {
     appPort = _.extend({post: sinon.spy()}, Backbone.Events);
-    spaChannel = new SPAChannel(appPort);
+    spaChannel = new SPAChannel(appPort, "some peer");
   });
 
   describe("#send", function() {
@@ -17,7 +17,10 @@ describe("SPAChannel", function() {
 
       sinon.assert.calledOnce(appPort.post);
       sinon.assert.calledWithExactly(
-        appPort.post, "talkilla.spa-channel-message", {some: "data"});
+        appPort.post, "talkilla.spa-channel-message", {
+          some: "data",
+          peer: "some peer"
+        });
     });
 
   });

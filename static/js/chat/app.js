@@ -1,4 +1,4 @@
-/*global app, AppPort, WebRTC*/
+/*global app, AppPort, WebRTC, SPAChannel */
 /* jshint unused: false */
 /**
  * Talkilla application.
@@ -97,7 +97,7 @@ var ChatApp = (function(app, $, Backbone, _) {
     this.appPort.on('talkilla.hold', this._onHold, this);
     this.appPort.on('talkilla.resume', this._onResume, this);
     this.appPort.once('talkilla.spa-channel-message',
-                      this._onIncomingTextConversation, this)
+                      this._onIncomingTextConversation, this);
 
     // Outgoing events
     this.call.on('send-offer', this._onSendOffer, this);
