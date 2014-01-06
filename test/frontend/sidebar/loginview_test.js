@@ -29,30 +29,35 @@ describe("LoginView", function() {
   });
 
   describe("#initialize", function() {
+    var loginView;
+
     beforeEach(function() {
       sandbox.stub(app.views.LoginView.prototype, "render");
-    });
-
-    it("should render the view when the user changes", function() {
-      var loginView = new app.views.LoginView({
+      loginView = new app.views.LoginView({
         user: new app.models.CurrentUser(),
         spaLoginURL: "http://talkilla/",
         appStatus: new app.models.AppStatus()
       });
+    });
 
+    it("should render the view when the user signs in", function() {
       loginView.render.reset();
 
-      loginView.user.trigger("change");
+      loginView.user.trigger("signin");
+
+      sinon.assert.calledOnce(loginView.render);
+    });
+
+    it("should render the view when the user signs out", function() {
+      loginView.render.reset();
+
+      loginView.user.trigger("signout");
 
       sinon.assert.calledOnce(loginView.render);
     });
 
     it("should render the view when the user is cleared", function() {
-      var loginView = new app.views.LoginView({
-        user: new app.models.CurrentUser(),
-        spaLoginURL: "http://talkilla/",
-        appStatus: new app.models.AppStatus()
-      });
+      loginView.user.set({'username': 'mark', 'presence': 'connected'});
 
       loginView.render.reset();
 
@@ -62,12 +67,6 @@ describe("LoginView", function() {
     });
 
     it("should render the view when the worker is initialized", function() {
-      var loginView = new app.views.LoginView({
-        user: new app.models.CurrentUser(),
-        spaLoginURL: "http://talkilla/",
-        appStatus: new app.models.AppStatus()
-      });
-
       loginView.render.reset();
 
       loginView.appStatus.set("workerInitialized", true);
@@ -106,6 +105,14 @@ describe("LoginView", function() {
         expect(loginView.$('#signin').is(':visible')).to.equal(true);
         expect(loginView.$('#signout').is(':visible')).to.equal(false);
       });
+
+    it("should only ever display one sign-in iframe at a time", function() {
+      appStatus.set("workerInitialized", true);
+      loginView.render();
+      loginView.render();
+
+      expect(loginView.$('iframe').length).to.equal(1);
+    });
 
     it("should hide signin and display signout when there is not a username",
       function() {
