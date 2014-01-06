@@ -501,10 +501,11 @@
 
       this.on('add', this._onTextChatEntryCreated, this);
       this.on('add', this._onFileTransferCreated, this);
-      this.media.on('transport-created', this._setupTransport, this);
+      this.on('transport', this.setTransport, this);
+      this.media.on('transport-created', this.trigger.bind(this, "transport"));
     },
 
-    _setupTransport: function(transport) {
+    setTransport: function(transport) {
       this.transport = transport;
       this.transport.on('message', this._onMessage, this);
       this.transport.on('close', function() {

@@ -64,6 +64,7 @@ var Conversation = (function() {
         user: this.user.name
       };
 
+      this.port.postEvent("talkilla.conversation-open", msg);
       if (this.offer) {
         // We don't want to send a duplicate incoming message if one has
         // already been queued.
@@ -76,8 +77,6 @@ var Conversation = (function() {
           this.port.postEvent("talkilla.conversation-incoming", msg);
         }
       }
-      else
-        this.port.postEvent("talkilla.conversation-open", msg);
 
       // Now send any queued messages
       this.messageQueue.forEach(function(message) {

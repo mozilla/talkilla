@@ -3,7 +3,8 @@
 var SPAChannel = (function() {
   "use strict";
 
-  function SPAChannel(appPort) {
+  function SPAChannel(appPort, peer) {
+    this.peer = peer;
     this.appPort = appPort;
     this.appPort.on("talkilla.spa-channel-message",
                     this.trigger.bind(this, "message"));
@@ -17,6 +18,7 @@ var SPAChannel = (function() {
    * @public
    */
   SPAChannel.prototype.send = function(data) {
+    data.peer = this.peer;
     this.appPort.post("talkilla.spa-channel-message", data);
   };
 
