@@ -232,6 +232,35 @@ var payloads = (function() {
     }
   };
 
+  /**
+   * SPAChannelMessage payload. Arbitrary message sent through the SPA.
+   *
+   * @param {Object} data
+   *
+   * data attributes:
+   *
+   * - {String} peer, the user to call
+   * - {String} type, the type of the message
+   * - {Object} message, an opaque data structure carrying specific
+   *                     attributes of the message
+   *
+   */
+  function SPAChannelMessage(data) {
+    this.peer = data.peer;
+    this.type = data.type;
+    this.message = data.message;
+  }
+
+  SPAChannelMessage.prototype = {
+    toJSON: function() {
+      return {
+        peer: this.peer,
+        type: this.type,
+        message: this.message
+      };
+    }
+  };
+
   return {
     Offer: Offer,
     Answer: Answer,
@@ -241,6 +270,7 @@ var payloads = (function() {
     IceCandidate: IceCandidate,
     SPASpec: SPASpec,
     Move: Move,
-    MoveAccept: MoveAccept
+    MoveAccept: MoveAccept,
+    SPAChannelMessage: SPAChannelMessage
   };
 })();
