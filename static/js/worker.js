@@ -148,8 +148,23 @@ function _setupSPA(spa) {
       {"capabilities": data.capabilities});
   });
 
-  spa.on("message", function(label, data) {
-    tkWorker.ports.broadcastDebug("spa event: " + label, data);
+  spa.on("message", function(textMsg) {
+    // If we're in a conversation, and it is not with the peer,
+    // then ignore it
+    if (!currentConversation) {
+      currentConversation = new Conversation({
+        capabilities: spa.capabilities,
+        peer: tkWorker.users.get(textMsg.peer),
+        browserPort: browserPort,
+        users: tkWorker.users,
+        user: tkWorker.user
+      });
+      tkWorker.contactsDb.add({username: textMsg.peer}, function(err) {
+        if (err)
+          tkWorker.ports.broadcastError(err);
+      });
+    }
+    currentConversation.handleIncomingText(textMsg);
   });
 
   spa.on("users", function(data) {
@@ -406,6 +421,13 @@ var handlers = {
     // XXX: For now, we only support one SPA
     tkWorker.spaDb.drop();
     tkWorker.closeSession();
+  },
+
+  /**
+   *
+   */
+  'talkilla.spa-channel-message': function(event) {
+    spa.sendMessage(new payloads.SPAChannelMessage(event.data));
   },
 
   'talkilla.initiate-move': function(event) {

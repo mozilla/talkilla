@@ -34,15 +34,11 @@ var SPA = (function() {
         "ice:candidate": payloads.IceCandidate,
         "move-accept": payloads.MoveAccept,
         "hold": payloads.Hold,
-        "resume": payloads.Resume
+        "resume": payloads.Resume,
+        "message": payloads.SPAChannelMessage
       };
 
-      if (topic === "message") {
-        type = data.shift();
-        data = data.shift();
-        this.trigger("message", type, data);
-        this.trigger("message:" + type, data);
-      } else if (topic in topicPayloads) {
+      if (topic in topicPayloads) {
         var Payload = topicPayloads[topic];
         this.trigger(topic, new Payload(data));
       } else {
@@ -104,6 +100,10 @@ var SPA = (function() {
 
     initiateMove: function(moveMsg) {
       this._send("initiate-move", moveMsg.toJSON());
+    },
+
+    sendMessage: function(message) {
+      this._send("message", message.toJSON());
     }
   };
 

@@ -108,6 +108,17 @@ var Conversation = (function() {
       return true;
     },
 
+    handleIncomingText: function(textMsg) {
+      if (this.peer.username !== textMsg.peer)
+        return false;
+
+      this._sendMessage("talkilla.spa-channel-message", {
+        message: textMsg.message
+      });
+
+      return true;
+    },
+
     /**
     * Attempts to send a message to the port, if the port is not known
     * it will queue the message for delivery on window opened.
