@@ -310,7 +310,7 @@ var handlers = {
    */
   'talkilla.sidebar-ready': function(event) {
     this.postEvent('talkilla.worker-ready');
-    if (spa) {
+    if (spa && spa.connected) {
       tkWorker.user.send();
       this.postEvent("talkilla.spa-connected",
                      {capabilities: spa.capabilities});

@@ -173,6 +173,7 @@ describe('handlers', function() {
 
     beforeEach(function() {
       tkWorker.user = new UserData();
+      handlers.postEvent = sinon.spy();
       sandbox.stub(tkWorker.user, "send");
     });
 
@@ -180,34 +181,63 @@ describe('handlers', function() {
       tkWorker.user.reset();
     });
 
-    it("should notify new sidebars of current users presence",
-      function() {
-        var fakeUsersList = [1, 2, 3];
-        sandbox.stub(tkWorker.users, "toArray").returns(fakeUsersList);
+    it("should notify the sidebar the worker is ready", function() {
+      handlers['talkilla.sidebar-ready']({
+        topic: "talkilla.sidebar-ready",
+        data: {}
+      });
 
-        handlers.postEvent = sinon.spy();
+      sinon.assert.calledOnce(handlers.postEvent);
+      sinon.assert.calledWithExactly(handlers.postEvent,
+        "talkilla.worker-ready"
+      );
+    });
+
+    describe("spa connected", function() {
+      beforeEach(function() {
+        spa.connected = true;
+      });
+
+      it("should send the current logged in user's details", function() {
+        handlers['talkilla.sidebar-ready']({
+          topic: "talkilla.sidebar-ready",
+          data: {}
+        });
+
+        sinon.assert.calledOnce(tkWorker.user.send);
+      });
+
+      it("should notify the spa is connected", function() {
+        spa.capabilities = ["call"];
+
         handlers['talkilla.sidebar-ready']({
           topic: "talkilla.sidebar-ready",
           data: {}
         });
 
         sinon.assert.called(handlers.postEvent);
-        sinon.assert.calledWithExactly(
-          handlers.postEvent, "talkilla.users", fakeUsersList);
+        sinon.assert.calledWithExactly(handlers.postEvent,
+          "talkilla.spa-connected",
+          {capabilities: spa.capabilities}
+        );
       });
 
-    it("should notify new sidebars the worker is ready",
-      function() {
-        handlers.postEvent = sinon.spy();
-        handlers['talkilla.sidebar-ready']({
-          topic: "talkilla.sidebar-ready",
-          data: {}
+      it("should notify the sidebar of the list of current users",
+        function() {
+          var fakeUsersList = [1, 2, 3];
+          sandbox.stub(tkWorker.users, "toArray").returns(fakeUsersList);
+
+          handlers['talkilla.sidebar-ready']({
+            topic: "talkilla.sidebar-ready",
+            data: {}
+          });
+
+          sinon.assert.called(handlers.postEvent);
+          sinon.assert.calledWithExactly(
+            handlers.postEvent, "talkilla.users", fakeUsersList
+          );
         });
-
-        sinon.assert.called(handlers.postEvent);
-        sinon.assert.calledWithExactly(
-          handlers.postEvent, "talkilla.worker-ready");
-      });
+    });
 
   });
 

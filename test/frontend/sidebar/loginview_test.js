@@ -45,7 +45,7 @@ describe("LoginView", function() {
       }).to.Throw(/user/);
     });
 
-    it("should render the view when the user change", function() {
+    it("should render the view when the user signs in", function() {
       var loginView = new app.views.LoginView({
         user: new app.models.User(),
         appStatus: new app.models.AppStatus()
@@ -53,7 +53,20 @@ describe("LoginView", function() {
 
       loginView.render.reset();
 
-      loginView.user.trigger("change");
+      loginView.user.trigger("signin");
+
+      sinon.assert.calledOnce(loginView.render);
+    });
+
+    it("should render the view when the user signs out", function() {
+      var loginView = new app.views.LoginView({
+        user: new app.models.User(),
+        appStatus: new app.models.AppStatus()
+      });
+
+      loginView.render.reset();
+
+      loginView.user.trigger("signout");
 
       sinon.assert.calledOnce(loginView.render);
     });
@@ -63,6 +76,8 @@ describe("LoginView", function() {
         user: new app.models.User(),
         appStatus: new app.models.AppStatus()
       });
+
+      loginView.user.set({'username': 'mark', 'presence': 'connected'});
 
       loginView.render.reset();
 
@@ -111,6 +126,14 @@ describe("LoginView", function() {
         expect(loginView.$('#signin').is(':visible')).to.equal(true);
         expect(loginView.$('#signout').is(':visible')).to.equal(false);
       });
+
+    it("should only ever display one sign-in iframe at a time", function() {
+      appStatus.set("workerInitialized", true);
+      loginView.render();
+      loginView.render();
+
+      expect(loginView.$('iframe').length).to.equal(1);
+    });
 
     it("should hide signin and display signout when there is not a username",
       function() {

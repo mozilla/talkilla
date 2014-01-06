@@ -288,7 +288,7 @@
       this.appStatus = options.appStatus;
       this.spaLoginURL = options.spaLoginURL;
 
-      this.user.on('change', this.render, this);
+      this.user.on('signin signout', this.render, this);
       this.appStatus.on('change:workerInitialized', this.render, this);
     },
 
@@ -297,12 +297,13 @@
         this.$('#signout').hide();
         this.$('[name="spa-setup"]').remove();
       } else if (!this.user.get("username")) {
-        var iframe = $("<iframe>")
-          .attr("src", this.spaLoginURL)
-          .attr("id", "signin")
-          .attr("name", "spa-setup");
-        $("#login p:first").append(iframe);
-
+        if (!$('#signin').length) {
+          var iframe = $("<iframe>")
+            .attr("src", this.spaLoginURL)
+            .attr("id", "signin")
+            .attr("name", "spa-setup");
+          $("#login p:first").append(iframe);
+        }
         this.$('#signout').hide().find('.username').text('');
       } else {
         this.$('#signin').hide();
