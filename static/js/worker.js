@@ -152,7 +152,7 @@ function _setupSPA(spa) {
     tkWorker.ports.broadcastDebug("spa event: " + label, data);
   });
 
-  spa.on("message:users", function(data) {
+  spa.on("users", function(data) {
     data.forEach(function(user) {
       tkWorker.users.set(user.nick,
                          {username: user.nick, presence: "connected"});
@@ -161,14 +161,14 @@ function _setupSPA(spa) {
     tkWorker.ports.broadcastEvent("talkilla.users", tkWorker.users.toArray());
   });
 
-  spa.on("message:userJoined", function(userId) {
+  spa.on("userJoined", function(userId) {
     tkWorker.users.set(userId, {username:userId, presence: "connected"});
 
     tkWorker.ports.broadcastEvent("talkilla.users", tkWorker.users.toArray());
     tkWorker.ports.broadcastEvent("talkilla.user-joined", userId);
   });
 
-  spa.on("message:userLeft", function(userId) {
+  spa.on("userLeft", function(userId) {
     if (!tkWorker.users.has(userId))
       return;
 

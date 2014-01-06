@@ -55,7 +55,7 @@ var TalkillaSPA = (function() {
         this.port.post("ice:candidate",
                        (new payloads.IceCandidate(event)));
       else
-        this.port.post("message", [type, event]);
+        this.port.post(type, event);
     },
 
     _onConnect: function(credentials) {
