@@ -163,13 +163,12 @@ describe("SidebarApp", function() {
 
     describe("talkilla.spa-error", function() {
 
-      it("should call clear() on the user model", function() {
+      it("should not call clear() on the user model", function() {
         sandbox.stub(sidebarApp.user, "clear");
 
         sidebarApp.appPort.trigger("talkilla.spa-error");
 
-        sinon.assert.calledOnce(sidebarApp.user.clear);
-        sinon.assert.calledWithExactly(sidebarApp.user.clear);
+        sinon.assert.notCalled(sidebarApp.user.clear);
       });
 
 
