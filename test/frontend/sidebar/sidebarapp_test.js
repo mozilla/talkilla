@@ -161,19 +161,19 @@ describe("SidebarApp", function() {
           });
       });
 
-    describe("talkilla.spa-error", function() {
+    describe("talkilla.error", function() {
 
       it("should not call clear() on the user model", function() {
         sandbox.stub(sidebarApp.user, "clear");
 
-        sidebarApp.appPort.trigger("talkilla.spa-error");
+        sidebarApp.appPort.trigger("talkilla.error");
 
         sinon.assert.notCalled(sidebarApp.user.clear);
       });
 
 
       it("should notify the user of an error", function() {
-        sidebarApp.appPort.trigger("talkilla.spa-error");
+        sidebarApp.appPort.trigger("talkilla.error");
 
         sinon.assert.calledOnce(app.utils.notifyUI);
         sinon.assert.calledWithExactly(app.utils.notifyUI,
