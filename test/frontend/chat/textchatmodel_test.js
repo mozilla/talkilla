@@ -221,6 +221,31 @@ describe('Text chat models', function() {
       });
     });
 
+    describe("#setTransport", function() {
+      var textChat, transport;
+
+      beforeEach(function() {
+        sandbox.stub(WebRTC.prototype, "initiate");
+        textChat = createTextChat();
+        transport = _.extend({}, Backbone.Events);
+      });
+
+      it("should attach the given transport", function() {
+        textChat.setTransport(transport);
+        expect(textChat.transport).to.equal(transport);
+      });
+
+      it("should listen for messages", function() {
+        sandbox.stub(textChat, "_onMessage");
+
+        textChat.setTransport(transport);
+
+        textChat.transport.trigger("message", "a message");
+        sinon.assert.calledOnce(textChat._onMessage, "a message");
+      });
+
+    });
+
   });
 
   describe("#_onMessage", function() {

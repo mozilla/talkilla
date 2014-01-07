@@ -350,6 +350,37 @@ describe("Conversation", function() {
     });
   });
 
+  describe("#handleIncomingText", function() {
+
+    beforeEach(function() {
+      currentConversation = new Conversation({
+        capabilities: {},
+        peer: {username: "lola"},
+        browserPort: browserPort,
+        users: tkWorker.users,
+        user: tkWorker.user
+      });
+      currentConversation.port = {
+        postEvent: sandbox.spy()
+      };
+    });
+
+    it("should foward a message to the conversation", function() {
+      var textMsg = new payloads.SPAChannelMessage({
+        message: "yamessage",
+        peer: "lola"
+      });
+      currentConversation.handleIncomingText(textMsg);
+
+      sinon.assert.calledOnce(currentConversation.port.postEvent)
+      sinon.assert.calledWithExactly(currentConversation.port.postEvent,
+                                     "talkilla.spa-channel-message", {
+                                       message: "yamessage"
+                                     });
+    });
+
+  });
+
   describe("#callAccepted", function() {
     beforeEach(function() {
       currentConversation = new Conversation({

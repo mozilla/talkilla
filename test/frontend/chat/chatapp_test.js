@@ -257,6 +257,24 @@ describe("ChatApp", function() {
       });
     });
 
+    describe("#_onIncomingTextConversation", function() {
+      var msg = {message: "some message"};
+
+      it("should set transport", function() {
+        chatApp._onIncomingTextConversation(msg);
+
+        expect(chatApp.textChat.transport).to.be.an.instanceOf(SPAChannel);
+      });
+
+      it("should forward the event to the transport", function() {
+        sandbox.stub(SPAChannel.prototype, "trigger");
+        chatApp._onIncomingTextConversation(msg);
+        sinon.assert.calledOnce(chatApp.textChat.transport.trigger);
+        sinon.assert.calledWithExactly(
+          chatApp.textChat.transport.trigger, "message", msg.message);
+      });
+    });
+
     describe("#_onCallAccepted", function() {
 
       it("should stop the incoming call sound", function() {

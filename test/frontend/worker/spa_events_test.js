@@ -54,6 +54,48 @@ describe("SPA events", function() {
 
   });
 
+  describe("`message` event", function() {
+
+    beforeEach(function() {
+      browserPort = {postEvent: sandbox.spy()};
+    });
+
+    it("should create a new conversation object with the call data", function() {
+      tkWorker.users.set('alice', {});
+      var textMsg = new payloads.SPAChannelMessage({
+        message: "a message",
+        peer: "alice"
+      });
+
+      spa.trigger("message", textMsg);
+
+      expect(currentConversation).to.be.an.instanceOf(Conversation);
+    });
+
+    it("should try to re-use an existing conversation object",
+      function() {
+        var textMsg = new payloads.SPAChannelMessage({
+          message: "another message",
+          peer: "alice"
+        });
+        currentConversation = new Conversation({
+          capabilities: {},
+          peer: spa,
+          browserPort: browserPort,
+          users: tkWorker.users,
+          user: tkWorker.user
+        });
+        sandbox.stub(currentConversation, "handleIncomingText");
+
+        spa.trigger("message", textMsg);
+
+        sinon.assert.calledOnce(currentConversation.handleIncomingText);
+        sinon.assert.calledWith(currentConversation.handleIncomingText,
+                                textMsg);
+      });
+
+  });
+
   describe("`users` event", function() {
     beforeEach(function() {
       sandbox.stub(tkWorker.ports, "broadcastEvent");
