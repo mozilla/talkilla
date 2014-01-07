@@ -17,8 +17,6 @@ var SidebarApp = (function(app, $) {
     this.users = new app.models.UserSet();
     this.spa = new app.models.SPA();
 
-    this.reconnecting = false; // true if we are doing a reconnection.
-
     this.services = {
       google: new GoogleContacts({
         appPort: this.appPort
@@ -41,13 +39,17 @@ var SidebarApp = (function(app, $) {
     this.appPort.on("talkilla.users", this._onUserListReceived, this);
     this.appPort.on("talkilla.spa-connected", this._onSPAConnected, this);
     this.appPort.on("talkilla.error", this._onError, this);
-    this.appPort.on("talkilla.server-reconnection",
-                 this._onServerReconnection, this);
     this.appPort.on("talkilla.chat-window-ready",
                  this._onChatWindowReady, this);
     this.appPort.on("talkilla.worker-ready", this._onWorkerReady, this);
     this.appPort.on("social.user-profile", this._onUserProfile, this);
     this.appPort.on("talkilla.reauth-needed", this._onReauthNeeded, this);
+
+    // Transfer events to the view.
+    // XXX. Stop proxying to a method here, and send an event to the
+    // view instead.
+    this.appPort.on("talkilla.server-reconnection",
+                    this.view._onServerReconnection, this.view);
 
     // SPA model events
     this.spa.on("dial", this.openConversation, this);
@@ -105,7 +107,7 @@ var SidebarApp = (function(app, $) {
 
   SidebarApp.prototype._onSPAConnected = function(event) {
     // Dismiss all the reconnection messages.
-    this.view.notifications.clear();
+    this.firstReconnection = undefined;
 
     if (this.reconnecting === true){
       app.utils.notifyUI("Reconnected to the server.", "success", 2000);
@@ -115,23 +117,6 @@ var SidebarApp = (function(app, $) {
     this.user.set({presence: "connected"});
     if (event && event.capabilities)
       this.spa.set({capabilities: event.capabilities});
-  };
-
-  SidebarApp.prototype._onServerReconnection = function(event) {
-    // Only notify the users there is a server-connection problem after
-    // trying for some time.
-    if (event.attempt >= 11){
-      this.reconnecting = true;
-      var timeout = event.timeout / 1000;
-      app.utils.notifyUI("We lost the connection with the server. " +
-                         "Attempting a reconnection in " + timeout + "s...",
-                         "error", event.timeout);
-
-      // Show all the users as disconnected.
-      this.view.users.each(function(user) {
-        user.set("presence", "disconnected");
-      });
-    }
   };
 
   SidebarApp.prototype._onError = function(error) {

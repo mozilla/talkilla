@@ -14,10 +14,6 @@
     initialize: function(options) {
       options = this.checkOptions(options, "user", "users", "appStatus", "spa");
 
-      this.notifications = new app.views.NotificationsView({
-        user: options.user
-      });
-
       this.login = new app.views.LoginView({
         appStatus: options.appStatus,
         user: options.user
@@ -37,6 +33,16 @@
         user: options.user,
         spa: options.spa
       });
+
+      this.notifications = new app.views.NotificationsView({
+        user: options.user,
+        spa: options.spa
+      });
+    },
+
+    _onServerReconnection: function() {
+      this.notifications.onServerReconnection();
+      this.users.onServerReconnection();
     },
 
     render: function() {
@@ -61,6 +67,12 @@
     initialize: function(options) {
       options = this.checkOptions(options, "user", "spa");
 
+      // true if we are attempting a reconnection.
+      this.reconnecting = false;
+
+      // Date when we first tried to reconnect.
+      this.firstReconnection = undefined;
+
       this.spa = options.spa.on("change:capabilities", this.render, this);
       this.user = options.user.on('signin signout', this.render, this);
     },
@@ -81,6 +93,21 @@
     render: function() {
       this.display(this.user.isLoggedIn() && this.spa.supports("pstn-call"));
     },
+
+    onServerReconnection: function(event) {
+      if (this.firstReconnection === undefined){
+        this.firstReconnection = new Date();
+      }
+      // Only notify the users there is a server-connection problem after
+      // trying for some time (10s)
+      if (new Date() - this.firstReconnection >= 10000){
+        this.reconnecting = true;
+        var timeout = event.timeout / 1000;
+        app.utils.notifyUI("We lost the connection with the server. " +
+                           "Attempting a reconnection in " + timeout + "s...",
+                           "error", event.timeout);
+      }
+    },
   });
 
   /**
@@ -94,8 +121,10 @@
     initialize: function(options) {
       options = this.checkOptions(options, "user");
       this.user = options.user;
+      this.spa = options.spa;
 
       this.user.on('signin signout', this.clear, this);
+      this.spa.on('connected', this.clear, this);
     },
 
     /**
@@ -208,6 +237,13 @@
                      callee.get('nick') === user.get('nick'))
         }));
       }.bind(this));
+    },
+
+    onServerReconnection: function() {
+      // Show all the users as disconnected.
+      this.collection.each(function(user) {
+        user.set("presence", "disconnected");
+      });
     },
 
     render: function() {

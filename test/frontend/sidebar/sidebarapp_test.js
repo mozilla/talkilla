@@ -143,20 +143,23 @@ describe("SidebarApp", function() {
     });
 
     describe("talkilla.server-reconnection", function() {
-      var sidebarapp;
+        var sidebarApp;
 
-      beforeEach(function() {
-        sidebarapp = new SidebarApp();
-        sidebarApp.appPort.post.reset();
+        beforeEach(function() {
+          app.views.AppView.prototype._onServerReconnection = sandbox.stub();
+          sidebarApp = new SidebarApp();
+          sidebarApp.appPort.post.reset();
+        });
+
+        it("should call the onServerReconnection method on the view",
+          function() {
+            sidebarApp.appPort.trigger("talkilla.server-reconnection",
+                                       {timeout: 42, attempt: 2});
+            sinon.assert.calledOnce(sidebarApp.view._onServerReconnection);
+            sinon.assert.calledWithExactly(
+              sidebarApp.view._onServerReconnection, {timeout: 42, attempt: 2});
+          });
       });
-
-      it("should set the users status to disconnected", function() {
-        sidebarapp.appPort.trigger("talkilla.server-reconnection",
-                                   {attempt: 11, timeout:42});
-        console.log("oh yeah");
-      });
-
-    });
 
     describe("talkilla.spa-error", function() {
 

@@ -58,7 +58,7 @@ var Server = (function() {
       } else if (this.connectionAttempts <= 10)
         timeout = 1000; // One second.
       else {
-        timeout = 1000 * 4; // One minute.
+        timeout = 1000 * 60; // One minute.
       }
       this.trigger("reconnection", {"attempt": this.connectionAttempts,
                                     "timeout": timeout});

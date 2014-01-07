@@ -314,7 +314,7 @@ describe("SPA events", function() {
       expect(tkWorker.user.connected).to.be.equal(true);
     });
 
-    it("should broadcast a `talkilla.presence-unavailable` event", function() {
+    it("should broadcast a `talkilla.server-reconnection` event", function() {
       tkWorker.user.name = "harvey";
       sandbox.stub(tkWorker.ports, "broadcastEvent");
 
@@ -322,7 +322,7 @@ describe("SPA events", function() {
 
       sinon.assert.calledOnce(tkWorker.ports.broadcastEvent);
       sinon.assert.calledWithExactly(
-        tkWorker.ports.broadcastEvent, "talkilla.presence-unavailable",
+        tkWorker.ports.broadcastEvent, "talkilla.server-reconnection",
         {timeout:42, attempt: 1}
       );
     });
@@ -331,7 +331,7 @@ describe("SPA events", function() {
       sandbox.stub(tkWorker, "closeSession");
 
       spa.trigger("reconnection", {code: 1006});
-      sinon.assert.not.called(tkWorker.closeSession);
+      sinon.assert.notCalled(tkWorker.closeSession);
     });
   });
 
