@@ -1,5 +1,5 @@
 /*global expect, sinon, currentConversation:true, browserPort:true,
-  Conversation, SPA, tkWorker */
+  Conversation, SPA, tkWorker, payloads */
 /* jshint expr:true */
 "use strict";
 
@@ -372,11 +372,12 @@ describe("Conversation", function() {
       });
       currentConversation.handleIncomingText(textMsg);
 
-      sinon.assert.calledOnce(currentConversation.port.postEvent)
-      sinon.assert.calledWithExactly(currentConversation.port.postEvent,
-                                     "talkilla.spa-channel-message", {
-                                       message: "yamessage"
-                                     });
+      sinon.assert.calledOnce(currentConversation.port.postEvent);
+      sinon.assert.calledWithExactly(
+        currentConversation.port.postEvent,
+        "talkilla.spa-channel-message", {
+          message: "yamessage"
+        });
     });
 
   });

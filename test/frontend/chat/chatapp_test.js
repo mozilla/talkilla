@@ -1,4 +1,4 @@
-/*global app, chai, ChatApp, sinon, WebRTC, payloads */
+/*global app, chai, ChatApp, sinon, WebRTC, payloads, SPAChannel */
 /* jshint expr:true */
 "use strict";
 
