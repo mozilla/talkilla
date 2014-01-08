@@ -166,11 +166,9 @@ describe("ChatApp", function() {
   });
 
   it("should initialize a peer model", function() {
-    sandbox.stub(app.models, "User").returns({on: sandbox.spy()});
-
     chatApp = new ChatApp();
 
-    sinon.assert.called(app.models.User);
+    expect(chatApp.peer).to.be.a.instanceOf(app.models.User);
   });
 
   describe("ChatApp (constructed)", function () {
@@ -180,10 +178,8 @@ describe("ChatApp", function() {
       callFixture = $('<div id="call"></div>');
       $("#fixtures").append(callFixture);
 
-      sandbox.stub(app.utils, "AudioLibrary").returns({
-        play: sandbox.spy(),
-        stop: sandbox.spy()
-      });
+      sandbox.stub(app.utils.AudioLibrary.prototype, "play");
+      sandbox.stub(app.utils.AudioLibrary.prototype, "stop");
 
       chatApp = new ChatApp();
 

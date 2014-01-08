@@ -22,46 +22,21 @@ describe("AppView", function() {
 
   describe("#initialize", function() {
 
-    describe("required parameters", function() {
-      it("should require an appStatus parameter", function() {
-        expect(function() {
-          new app.views.AppView({users: [], user: []});
-        }).to.Throw(/appStatus/);
-      });
-
-      it("should require a user parameter", function() {
-        expect(function() {
-          new app.views.AppView({users: [], appStatus: []});
-        }).to.Throw(/user/);
-      });
-
-      it("should require a users parameter", function() {
-        expect(function() {
-          new app.views.AppView({user: {}, appStatus: []});
-        }).to.Throw(/users/);
-      });
-
-      it("should require a spa parameter", function() {
-        expect(function() {
-          new app.views.AppView({user: {}, users: {}, appStatus: []});
-        }).to.Throw(/spa/);
-      });
-    });
-
     describe("constructed properties", function() {
       var appView, appViewOptions;
 
       beforeEach(function() {
         var $el = $("<div></div>");
         $("#fixtures").append($el);
-        appViewOptions =           {
-          el: $el.get()[0],
-          user: {},
-          users: [],
-          appStatus: [],
-          spa: {}
-        };
 
+        appViewOptions = {
+          el: $el.get()[0],
+          user: new app.models.CurrentUser(),
+          users: new app.models.UserSet(),
+          appStatus: new app.models.AppStatus(),
+          spa: new app.models.SPA(),
+          services: {}
+        };
       });
 
       afterEach(function() {
@@ -71,26 +46,26 @@ describe("AppView", function() {
       it("should set a notifications property", function() {
         appView = new app.views.AppView(appViewOptions);
 
-        expect(appView.notifications).to.be.an.instanceOf(
+        expect(appView.notificationsView).to.be.an.instanceOf(
           app.views.NotificationsView);
       });
 
       it("should set a login property", function() {
         appView = new app.views.AppView(appViewOptions);
 
-        expect(appView.login).to.be.an.instanceOf(app.views.LoginView);
+        expect(appView.loginView).to.be.an.instanceOf(app.views.LoginView);
       });
 
       it("should set a users property", function() {
         appView = new app.views.AppView(appViewOptions);
 
-        expect(appView.users).to.be.an.instanceOf(app.views.UsersView);
+        expect(appView.usersView).to.be.an.instanceOf(app.views.UsersView);
       });
 
       it("should set an spa property", function() {
         appView = new app.views.AppView(appViewOptions);
 
-        expect(appView.spa).to.be.an.instanceOf(app.views.SPAView);
+        expect(appView.spaView).to.be.an.instanceOf(app.views.SPAView);
       });
 
       it("should set isInSidebar to false if no isInSidebar option is given",
@@ -127,10 +102,11 @@ describe("AppView", function() {
       $("#fixtures").append($el);
       appViewOptions = {
         el: $el.get()[0],
-        user: {},
-        users: [],
-        appStatus: [],
-        spa: {}
+        user: new app.models.CurrentUser(),
+        users: new app.models.UserSet(),
+        appStatus: new app.models.AppStatus(),
+        spa: new app.models.SPA(),
+        services: {}
       };
       sandbox.stub(window, "close");
     });

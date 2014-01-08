@@ -81,20 +81,6 @@ describe('Text chat models', function() {
 
   describe("app.models.TextChat", function() {
 
-    describe("constructor", function() {
-      it("should accept a `media` option", function() {
-        var textChat = createTextChat();
-
-        expect(textChat.media).to.be.an.instanceOf(WebRTC);
-      });
-
-      it("should accept a `peer` option", function() {
-        var textChat = createTextChat();
-
-        expect(textChat.peer).to.be.an.instanceOf(app.models.User);
-      });
-    });
-
     describe("#answer", function() {
       var textChat, offer, answer;
 

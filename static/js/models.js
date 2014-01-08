@@ -6,6 +6,34 @@
   "use strict";
 
   /**
+   * Base model allowing dependency checks.
+   */
+  app.models.BaseModel = Backbone.Model.extend({
+    dependencies: {},
+
+    constructor: function(attributes, options) {
+      var validator = new app.utils.Dependencies(this.dependencies);
+      _.extend(this, validator.validate(options || {}));
+
+      Backbone.Model.apply(this, arguments);
+    }
+  });
+
+  /**
+   * Base collection allowing dependency checks.
+   */
+  app.models.BaseCollection = Backbone.Collection.extend({
+    dependencies: {},
+
+    constructor: function(models, options) {
+      var validator = new app.utils.Dependencies(this.dependencies);
+      _.extend(this, validator.validate(options || {}));
+
+      Backbone.Collection.apply(this, arguments);
+    }
+  });
+
+  /**
    * Notification model.
    */
   app.models.Notification = Backbone.Model.extend({
