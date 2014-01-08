@@ -143,21 +143,20 @@ describe("SidebarApp", function() {
     });
 
     describe("talkilla.server-reconnection", function() {
-        var sidebarApp;
-
         beforeEach(function() {
-          app.views.AppView.prototype._onServerReconnection = sandbox.stub();
-          sidebarApp = new SidebarApp();
+          sandbox.stub(sidebarApp.appStatus, "ongoingReconnection");
           sidebarApp.appPort.post.reset();
         });
 
-        it("should call the onServerReconnection method on the view",
+        it("should call the ongoingReconnection method on the model",
           function() {
             sidebarApp.appPort.trigger("talkilla.server-reconnection",
                                        {timeout: 42, attempt: 2});
-            sinon.assert.calledOnce(sidebarApp.view._onServerReconnection);
+            sinon.assert.calledOnce(sidebarApp.appStatus.ongoingReconnection);
             sinon.assert.calledWithExactly(
-              sidebarApp.view._onServerReconnection, {timeout: 42, attempt: 2});
+              sidebarApp.appStatus.ongoingReconnection,
+              {timeout: 42, attempt: 2}
+            );
           });
       });
 

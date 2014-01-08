@@ -45,11 +45,10 @@ var SidebarApp = (function(app, $) {
     this.appPort.on("social.user-profile", this._onUserProfile, this);
     this.appPort.on("talkilla.reauth-needed", this._onReauthNeeded, this);
 
-    // Transfer events to the view.
-    // XXX. Stop proxying to a method here, and send an event to the
-    // view instead.
-    this.appPort.on("talkilla.server-reconnection",
-                    this.view._onServerReconnection, this.view);
+    // Transfer events to the model.
+    this.appPort.on("talkilla.server-reconnection", function(event) {
+      this.appStatus.ongoingReconnection(event);
+    }, this);
 
     // SPA model events
     this.spa.on("dial", this.openConversation, this);
@@ -137,6 +136,10 @@ var SidebarApp = (function(app, $) {
 
   SidebarApp.prototype._onUserListReceived = function(users) {
     this.users.reset(users);
+  };
+
+  SidebarApp.prototype._onServerReconnection = function(event) {
+    this.appStatus.ongoingReconnection(event);
   };
 
   SidebarApp.prototype._setupDebugLogging = function() {

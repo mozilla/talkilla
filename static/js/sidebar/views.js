@@ -21,7 +21,8 @@
 
       this.users = new app.views.UsersView({
         user: options.user,
-        collection: options && options.users
+        collection: options && options.users,
+        appStatus: options.appStatus
       });
 
       this.importButton = new app.views.ImportContactsView({
@@ -36,13 +37,8 @@
 
       this.notifications = new app.views.NotificationsView({
         user: options.user,
-        spa: options.spa
+        appStatus: options.appStatus
       });
-    },
-
-    _onServerReconnection: function() {
-      this.notifications.onServerReconnection();
-      this.users.onServerReconnection();
     },
 
     render: function() {
@@ -92,22 +88,7 @@
 
     render: function() {
       this.display(this.user.isLoggedIn() && this.spa.supports("pstn-call"));
-    },
-
-    onServerReconnection: function(event) {
-      if (this.firstReconnection === undefined){
-        this.firstReconnection = new Date();
-      }
-      // Only notify the users there is a server-connection problem after
-      // trying for some time (10s)
-      if (new Date() - this.firstReconnection >= 10000){
-        this.reconnecting = true;
-        var timeout = event.timeout / 1000;
-        app.utils.notifyUI("We lost the connection with the server. " +
-                           "Attempting a reconnection in " + timeout + "s...",
-                           "error", event.timeout);
-      }
-    },
+    }
   });
 
   /**
@@ -119,12 +100,24 @@
     notifications: [],
 
     initialize: function(options) {
-      options = this.checkOptions(options, "user");
+      options = this.checkOptions(options, "user", "appStatus");
       this.user = options.user;
-      this.spa = options.spa;
+      this.appStatus = options.appStatus;
 
       this.user.on('signin signout', this.clear, this);
-      this.spa.on('connected', this.clear, this);
+      this.appStatus.on('reconnecting', this.notifyReconnection, this);
+    },
+
+    notifyReconnection: function(event) {
+      console.log("notifyReconnection called", event);
+      var timeout = event.timeout / 1000;
+      app.utils.notifyUI("We lost the connection with the server. " +
+                         "Attempting a reconnection in " + timeout + "s...",
+                         "error", event.timeout);
+      // XXX Here we clear all the notifications but we only want to clear
+      // the reconnection ones. Adding a filtering mechanism to the notifs
+      // could solve the problem.
+      this.clear();
     },
 
     /**
@@ -208,10 +201,12 @@
     activeNotification: null,
 
     initialize: function(options) {
-      options = this.checkOptions(options, "user", "collection");
+      options = this.checkOptions(options, "user", "collection", "appStatus");
 
       this.user = options.user;
       this.collection.on('reset change', this.render, this);
+      options.appStatus.on("reconnecting",
+        this.updateUsersPresence.bind(this, "disconnected"));
     },
 
     /**
@@ -239,10 +234,10 @@
       }.bind(this));
     },
 
-    onServerReconnection: function() {
+    updateUsersPresence: function(status) {
       // Show all the users as disconnected.
       this.collection.each(function(user) {
-        user.set("presence", "disconnected");
+        user.set("presence", status);
       });
     },
 
