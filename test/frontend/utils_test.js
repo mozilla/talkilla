@@ -360,18 +360,18 @@ describe('Utils', function() {
             .to.Throw(TypeError, /missing required x$/);
         });
 
-      it("should check for a single required dependency", function() {
+      it("should check for a missing required dependency", function() {
         expect(validator({x: Number}, {}))
-          .to.Throw(TypeError, /missing required x$/);
-
-        expect(validator({x: Number}, {x: undefined}))
-          .to.Throw(TypeError, /missing required x$/);
-
-        expect(validator({x: Number}, {x: null}))
           .to.Throw(TypeError, /missing required x$/);
       });
 
-      it("should check for multiple required dependencies", function() {
+      it("should check for a missing required dependency, undefined passed",
+        function() {
+          expect(validator({x: Number}, {x: undefined}))
+            .to.Throw(TypeError, /missing required x$/);
+        });
+
+      it("should check for multiple missing required dependencies", function() {
         expect(validator({x: Number, y: String}, {}))
           .to.Throw(TypeError, /missing required x, y$/);
       });

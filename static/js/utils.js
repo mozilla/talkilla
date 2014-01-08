@@ -261,9 +261,8 @@
      */
     _checkRequiredProperties: function(values) {
       /*jshint eqnull:true*/
-      // filter out null & undefined values
       var settedValues = Object.keys(values).filter(function(name) {
-        return values[name] !== undefined && values[name] !== null;
+        return typeof values[name] !== "undefined";
       });
       var diff = _.difference(Object.keys(this.rules), settedValues);
       if (diff.length > 0)
