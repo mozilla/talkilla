@@ -220,7 +220,6 @@
     /**
      * Validates all passed values against declared dependencies.
      *
-     * @return {Object} subject The subject object
      * @param  {Object} values  The values object
      * @return {Object}         The validated values object
      * @throws {TypeError}      If validation fails
