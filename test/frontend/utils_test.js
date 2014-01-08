@@ -407,6 +407,11 @@ describe('Utils', function() {
         expect(validator({foo: X}, {foo: "x"})).to.Throw(
           TypeError, /invalid dependency: foo/);
       });
+
+      it("should check for a null dependency", function() {
+        expect(validator({foo: null}, {foo: "x"})).to.Throw(
+          TypeError, /invalid dependency: foo; expected null$/);
+      });
     });
   });
 

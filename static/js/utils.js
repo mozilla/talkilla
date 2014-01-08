@@ -206,8 +206,7 @@
   };
 
   /**
-   * Dependency validator. Passed subject should have a dependencies object
-   * attached.
+   * Dependency validator.
    *
    * @constructor
    * @param  {Object} rules Dependency rules object
@@ -244,7 +243,11 @@
         if (!this._dependencyMatchTypes(values[name], types)) {
           throw new TypeError(
             "invalid dependency: " + name + "; expected " +
-            types.map(function(type) { return type && type.name; }).join(", "));
+            types.map(function(type) {
+              if (type === null)
+                return "null";
+              return type && type.name;
+            }).join(", "));
         }
       }, this);
     },
@@ -278,9 +281,14 @@
     _dependencyMatchTypes: function(value, types) {
       return types.some(function(Type) {
         /*jshint eqeqeq:false*/
-        return typeof Type === "undefined" ||       // skip checking
-               value.constructor == Type   ||       // native types
-               Type.prototype.isPrototypeOf(value); // custom types
+        try {
+          return typeof Type === "undefined"     ||   // skip checking
+                 Type === null && value === null ||   // null type
+                 value.constructor == Type       ||   // native type
+                 Type.prototype.isPrototypeOf(value); // custom type
+        } catch (e) {
+          return false;
+        }
       });
     }
   };
