@@ -80,28 +80,6 @@ describe('Text chat models', function() {
 
   describe("app.models.TextChat", function() {
 
-    describe("constructor", function() {
-      it("should accept a `media` option", function() {
-        var textChat = createTextChat();
-
-        expect(textChat.media).to.be.an.instanceOf(WebRTC);
-      });
-
-      it("should accept a `peer` option", function() {
-        var textChat = createTextChat();
-
-        expect(textChat.peer).to.be.an.instanceOf(app.models.User);
-      });
-
-      it("should listen for 'transport-created' from the media", function() {
-        var textChat = createTextChat();
-
-        media.trigger('transport-created', transport);
-
-        expect(textChat.transport).to.equal(transport);
-      });
-    });
-
     describe("#answer", function() {
       var textChat, offer, answer;
 

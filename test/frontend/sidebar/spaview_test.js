@@ -1,7 +1,5 @@
-/*global app, chai, sinon */
+/*global app, sinon */
 "use strict";
-
-var expect = chai.expect;
 
 describe("SPAView", function() {
   var sandbox, view, user, spa;
@@ -9,26 +7,15 @@ describe("SPAView", function() {
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
     spa = new app.models.SPA({capabilities: ["call"]});
-    user = new app.models.User({username: "boriss", presence: "connected"});
+    user = new app.models.CurrentUser({
+      username: "boriss",
+      presence: "connected"
+    });
     view = new app.views.SPAView({user: user, spa: spa});
   });
 
   afterEach(function() {
     sandbox.restore();
-  });
-
-  describe("#initialize", function() {
-    it("should require a user parameter", function() {
-      expect(function() {
-        new app.views.SPAView({});
-      }).to.Throw(/user/);
-    });
-
-    it("should require a spa parameter", function() {
-      expect(function() {
-        new app.views.SPAView({user: {}});
-      }).to.Throw(/spa/);
-    });
   });
 
   describe("#dial", function() {

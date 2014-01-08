@@ -1,4 +1,4 @@
-/*global app, chai, sinon  */
+/*global app, chai, sinon, WebRTC  */
 /* jshint expr:true */
 "use strict";
 
@@ -14,14 +14,17 @@ describe("CallView", function() {
     sandbox = sinon.sandbox.create();
     // XXX This should probably be a mock, but sinon mocks don't seem to want
     // to work with Backbone.
-    media = {
+    media = _.extend(new WebRTC(), {
       answer: sandbox.spy(),
       establish: sandbox.spy(),
       initiate: sandbox.spy(),
       terminate: sandbox.spy(),
       on: sandbox.stub()
-    };
-    call = new app.models.Call({}, {media: media});
+    });
+    call = new app.models.Call({}, {
+      peer: new app.models.User({username: "mark"}),
+      media: media
+    });
   });
 
   afterEach(function() {
@@ -32,13 +35,6 @@ describe("CallView", function() {
   });
 
   describe("#initialize", function() {
-
-    it("should attach a given call model", function() {
-      var callView = new app.views.CallView({el: el, call: call});
-
-      expect(callView.call).to.equal(call);
-    });
-
     describe("Change events", function() {
       var callView;
 
