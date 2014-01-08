@@ -251,17 +251,18 @@
 
     /**
      * Checks if a values object owns the required keys defined in dependencies.
+     * Values attached to these properties shouldn't be null nor undefined.
      *
      * @param  {Object} values The values object
-     * @throws {TypeError}
+     * @throws {TypeError} If any dependency is missing.
      */
     _checkRequiredProperties: function(values) {
       /*jshint eqnull:true*/
-      var diff = _.difference(Object.keys(this.rules || {}),
-                              Object.keys(values)
-                  .filter(function(name) {
-                    return values[name] != null;
-                  }));
+      // filter out null & undefined values
+      var settedValues = Object.keys(values).filter(function(name) {
+        return values[name] != null;
+      });
+      var diff = _.difference(Object.keys(this.rules), settedValues);
       if (diff.length > 0)
         throw new TypeError("missing required " + diff.join(", "));
     },
