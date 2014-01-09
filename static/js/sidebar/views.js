@@ -142,7 +142,9 @@
     initialize: function() {
       this.user.on('signin signout', this.clear, this);
       this.appStatus.on("change:reconnecting", function(appStatus) {
-        this.notifyReconnectionPending(appStatus.get("reconnecting"));
+        if (appStatus.get("reconnecting") !== false){
+          this.notifyReconnectionPending(appStatus.get("reconnecting"));
+        }
       }, this);
 
       this.appStatus.on("change:connected", function(appStatus) {
@@ -259,8 +261,9 @@
 
     initialize: function() {
       this.collection.on("reset change", this.render, this);
-      this.appStatus.on("change:reconnecting",
-                        this.updateUsersPresence.bind(this, "disconnected"));
+      this.appStatus.on("change:reconnecting", function() {
+        this.updateUsersPresence("disconnected");
+      }, this);
     },
 
     /**

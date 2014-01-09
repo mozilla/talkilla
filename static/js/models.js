@@ -93,8 +93,8 @@
     },
 
     /**
-     * Overrides Backbone.Model#toJSON to include dynamically generated atribute
-     * values.
+     * Overrides Backbone.Model#toJSON to include dynamically generated
+     * attribute values.
      * @overrides Backbone.Model.prototype.toJSON
      * @return {Object}
      */
