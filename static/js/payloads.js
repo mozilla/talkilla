@@ -248,7 +248,7 @@ var payloads = (function() {
     this.timeout = data.timeout;
   }
 
-  Answer.prototype = {
+  Reconnection.prototype = {
     toJSON: function() {
       return {
         attempt: this.attempt,
