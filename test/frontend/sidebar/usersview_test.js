@@ -10,7 +10,8 @@ describe("UsersView", function() {
 
     usersView = new app.views.UsersView({
       user: new app.models.CurrentUser(),
-      collection: new app.models.UserSet()
+      collection: new app.models.UserSet(),
+      appStatus: new app.models.AppStatus()
     });
   });
 
