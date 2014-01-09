@@ -28,7 +28,7 @@ describe("TalkillaSPASetup", function() {
       function() {
         var spec = new payloads.SPASpec({
           name: "TalkillaSPA",
-          src: "/js/spa/talkilla_worker.js",
+          src: "/spa/talkilla/js/worker.js",
           credentials: {email: "foo"}
         });
         sandbox.stub(setup.http, "post", function(path, data, callback) {

@@ -70,7 +70,13 @@ describe('handlers', function() {
 
     it("should clear the current conversation on receiving " +
        "social.port-closing for the conversation port", function() {
-        currentConversation = new Conversation({}, spa);
+        currentConversation = new Conversation({
+          capabilities: spa.capabilities,
+          peer: spa,
+          browserPort: browserPort,
+          users: tkWorker.users,
+          user: tkWorker.user
+        });
         currentConversation.port = port;
 
         handlers['social.port-closing'].bind(port)();
@@ -101,14 +107,36 @@ describe('handlers', function() {
 
     it("should create a new conversation object when receiving a " +
        "talkilla.conversation-open event", function() {
+        var offerMsg = new payloads.Offer({
+          offer: "fake offer",
+          peer: "alice"
+        });
+        tkWorker.users.set("alice", {});
         handlers.postEvent = sinon.spy();
         handlers['talkilla.conversation-open']({
           topic: "talkilla.conversation-open",
-          data: {}
+          data: offerMsg
         });
 
         expect(currentConversation).to.be.an.instanceOf(Conversation);
       });
+
+    it("should store the contact", function() {
+      sandbox.stub(tkWorker.contactsDb, "add");
+      var offerMsg = new payloads.Offer({
+        offer: "fake offer",
+        peer: "alice"
+      });
+      tkWorker.users.set("alice", {});
+      handlers.postEvent = sinon.spy();
+      handlers['talkilla.conversation-open']({
+        topic: "talkilla.conversation-open",
+        data: offerMsg
+      });
+
+      sinon.assert.calledOnce(tkWorker.contactsDb.add);
+      sinon.assert.calledWith(tkWorker.contactsDb.add, {username: "alice"});
+    });
   });
 
   describe("talkilla.chat-window-ready", function() {
@@ -145,6 +173,7 @@ describe('handlers', function() {
 
     beforeEach(function() {
       tkWorker.user = new UserData();
+      handlers.postEvent = sinon.spy();
       sandbox.stub(tkWorker.user, "send");
     });
 
@@ -152,48 +181,94 @@ describe('handlers', function() {
       tkWorker.user.reset();
     });
 
-    it("should notify new sidebars of current users presence",
-      function() {
-        var fakeUsersList = [1, 2, 3];
-        sandbox.stub(tkWorker.users, "toArray").returns(fakeUsersList);
+    it("should notify the sidebar the worker is ready", function() {
+      handlers['talkilla.sidebar-ready']({
+        topic: "talkilla.sidebar-ready",
+        data: {}
+      });
 
-        handlers.postEvent = sinon.spy();
+      sinon.assert.calledOnce(handlers.postEvent);
+      sinon.assert.calledWithExactly(handlers.postEvent,
+        "talkilla.worker-ready"
+      );
+    });
+
+    describe("spa connected", function() {
+      beforeEach(function() {
+        spa.connected = true;
+      });
+
+      it("should send the current logged in user's details", function() {
+        handlers['talkilla.sidebar-ready']({
+          topic: "talkilla.sidebar-ready",
+          data: {}
+        });
+
+        sinon.assert.calledOnce(tkWorker.user.send);
+      });
+
+      it("should notify the spa is connected", function() {
+        spa.capabilities = ["call"];
+
         handlers['talkilla.sidebar-ready']({
           topic: "talkilla.sidebar-ready",
           data: {}
         });
 
         sinon.assert.called(handlers.postEvent);
-        sinon.assert.calledWithExactly(
-          handlers.postEvent, "talkilla.users", fakeUsersList);
+        sinon.assert.calledWithExactly(handlers.postEvent,
+          "talkilla.spa-connected",
+          {capabilities: spa.capabilities}
+        );
       });
 
-    it("should notify new sidebars the worker is ready",
-      function() {
-        handlers.postEvent = sinon.spy();
-        handlers['talkilla.sidebar-ready']({
-          topic: "talkilla.sidebar-ready",
-          data: {}
+      it("should notify the sidebar of the list of current users",
+        function() {
+          var fakeUsersList = [1, 2, 3];
+          sandbox.stub(tkWorker.users, "toArray").returns(fakeUsersList);
+
+          handlers['talkilla.sidebar-ready']({
+            topic: "talkilla.sidebar-ready",
+            data: {}
+          });
+
+          sinon.assert.called(handlers.postEvent);
+          sinon.assert.calledWithExactly(
+            handlers.postEvent, "talkilla.users", fakeUsersList
+          );
         });
-
-        sinon.assert.called(handlers.postEvent);
-        sinon.assert.calledWithExactly(
-          handlers.postEvent, "talkilla.worker-ready");
-      });
+    });
 
   });
 
   describe("talkilla.spa-enable", function() {
 
-    var spa;
+    var spa, spaSpec;
 
     beforeEach(function() {
       spa = {connect: sinon.spy(), on: function() {}};
+      spaSpec = {
+        src: "/path/to/spa",
+        name: "spa",
+        credentials: "fake credentials"
+      };
       sandbox.stub(window, "SPA").returns(spa);
     });
 
+    it("should store the SPA in the database", function() {
+      sandbox.stub(tkWorker.spaDb, "store");
+
+      handlers["talkilla.spa-enable"]({
+        data: spaSpec
+      });
+
+      sinon.assert.calledOnce(tkWorker.spaDb.store);
+      sinon.assert.calledWith(tkWorker.spaDb.store,
+                              new payloads.SPASpec(spaSpec));
+    });
+
     it("should instantiate a new SPA with the given src", function() {
-      sandbox.stub(tkWorker.spaDb, "add", function(spec, callback) {
+      sandbox.stub(tkWorker.spaDb, "store", function(spec, callback) {
         callback(null, spec);
 
         sinon.assert.calledOnce(SPA);
@@ -206,7 +281,7 @@ describe('handlers', function() {
     });
 
     it("should connect the created SPA with given credentials", function() {
-      sandbox.stub(tkWorker.spaDb, "add", function(spec, callback) {
+      sandbox.stub(tkWorker.spaDb, "store", function(spec, callback) {
         callback(null, spec);
 
         sinon.assert.calledOnce(spa.connect);

@@ -6,35 +6,23 @@
   "use strict";
 
   /**
-   * View required option error.
-   * @param {String} msg Error message
-   */
-  app.views.ViewOptionError = function ViewOptionError(msg) {
-    Error.call(this);
-    this.message = msg;
-    this.name = 'ViewOptionError';
-  };
-  app.views.ViewOptionError.prototype = Object.create(Error.prototype);
-
-  /**
    * Base Talkilla view.
    */
   app.views.BaseView = Backbone.View.extend({
+    // default dependencies (none)
+    dependencies: {},
+
     /**
-     * Checks that an options object owns properties passed as arguments.
-     * @param  {Object}   options   Options object
-     * @param  {[]String}           Property names as remaining arguments
-     * @return {Object}             Checked options object
-     * @throws {ViewOptionError} If object doesn't own an expected property
+     * Constructs this view, validating and attaching required dependencies.
+     *
+     * @param  {Object} options Options object
+     * @throws {TypeError} If dependency checks fails
      */
-    checkOptions: function(options) {
-      options = options || {};
-      var requirements = [].slice.call(arguments, 1);
-      var diff = _.difference(requirements, Object.keys(options));
-      if (diff.length > 0)
-        throw new app.views.ViewOptionError("missing required options: " +
-                                            diff.join(", "));
-      return options;
+    constructor: function(options) {
+      var validator = new app.utils.Dependencies(this.dependencies);
+      _.extend(this, validator.validate(options || {}));
+
+      Backbone.View.apply(this, arguments);
     }
   });
 

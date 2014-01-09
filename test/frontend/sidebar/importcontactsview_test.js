@@ -1,10 +1,10 @@
-/*global app, chai, sinon */
+/*global app, chai, sinon, GoogleContacts */
 "use strict";
 
 var expect = chai.expect;
 
 describe("ImportContactsView", function() {
-  var sandbox, user;
+  var sandbox, user, googleService;
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
@@ -13,7 +13,8 @@ describe("ImportContactsView", function() {
       '  <button>Load your contacts</button>',
       '</div>',
     ].join(''));
-    user = new app.models.User();
+    user = new app.models.CurrentUser();
+    googleService = new GoogleContacts();
   });
 
   afterEach(function() {
@@ -29,7 +30,7 @@ describe("ImportContactsView", function() {
     it("should render the view when the user signs in", function() {
       var importView = new app.views.ImportContactsView({
         user: user,
-        service: {}
+        service: googleService
       });
       importView.render.reset();
 
@@ -41,7 +42,7 @@ describe("ImportContactsView", function() {
     it("should render the view when the user signs out", function() {
       var importView = new app.views.ImportContactsView({
         user: user,
-        service: {}
+        service: googleService
       });
       importView.render.reset();
 
@@ -53,15 +54,15 @@ describe("ImportContactsView", function() {
 
   describe("#loadGoogleContacts", function() {
     it("should start google contacts API authorization process", function() {
-      var fakeService = {loadContacts: sinon.spy()};
+      googleService.loadContacts = sandbox.spy();
       var importView = new app.views.ImportContactsView({
         user: user,
-        service: fakeService
+        service: googleService
       });
 
       importView.loadGoogleContacts();
 
-      sinon.assert.calledOnce(fakeService.loadContacts);
+      sinon.assert.calledOnce(googleService.loadContacts);
     });
   });
 
@@ -69,10 +70,10 @@ describe("ImportContactsView", function() {
     var importView, user;
 
     beforeEach(function() {
-      user = new app.models.User();
+      user = new app.models.CurrentUser();
       importView = new app.views.ImportContactsView({
         user: user,
-        service: {}
+        service: googleService
       });
     });
 
@@ -81,12 +82,13 @@ describe("ImportContactsView", function() {
     });
 
     it("should be displayed when user signs out", function() {
-      user.set({nick: undefined, presence: "disconnected"}).trigger("signout");
+      user.set({username: undefined, presence: "disconnected"})
+          .trigger("signout");
       expect(importView.render().$el.is(':visible')).to.equal(false);
     });
 
     it("should be displayed when user signs in", function() {
-      user.set({nick: "james", presence: "connected"}).trigger("signin");
+      user.set({username: "james", presence: "connected"}).trigger("signin");
       expect(importView.render().$el.is(':visible')).to.equal(true);
     });
   });

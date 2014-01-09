@@ -1,4 +1,4 @@
-/*global app, chai, sinon */
+/*global app, chai, sinon, WebRTC */
 "use strict";
 
 var expect = chai.expect;
@@ -22,18 +22,18 @@ describe("ConversationView", function() {
 
     // XXX This should probably be a mock, but sinon mocks don't seem to want
     // to work with Backbone.
-    var media = {
+    var media = _.extend(new WebRTC(), {
       answer: sandbox.spy(),
       establish: sandbox.spy(),
       initiate: sandbox.spy(),
       terminate: sandbox.spy(),
       on: sandbox.stub()
-    };
+    });
     _.extend(media, Backbone.Events);
 
-    call = new app.models.Call({}, {media: media});
     user = new app.models.User();
     peer = new app.models.User();
+    call = new app.models.Call({}, {media: media, peer: peer});
     sandbox.stub(peer, "on");
     textChat = new app.models.TextChat(null, {
       media: media,
@@ -49,52 +49,7 @@ describe("ConversationView", function() {
   });
 
   describe("#initialize", function() {
-
-    it("should attach a given call model", function() {
-      var view = new app.views.ConversationView({
-        call: call,
-        peer: peer,
-        user: user,
-        textChat: textChat
-      });
-
-      expect(view.call).to.equal(call);
-    });
-
-    it("should attach a given peer model", function() {
-      var view = new app.views.ConversationView({
-        call: call,
-        peer: peer,
-        user: user,
-        textChat: textChat
-      });
-
-      expect(view.peer).to.equal(peer);
-    });
-
-    it("should attach a given user model", function() {
-      var view = new app.views.ConversationView({
-        call: call,
-        peer: peer,
-        user: user,
-        textChat: textChat
-      });
-
-      expect(view.user).to.equal(user);
-    });
-
-    it("should have a textChat model", function() {
-      var view = new app.views.ConversationView({
-        call: call,
-        peer: peer,
-        user: user,
-        textChat: textChat
-      });
-
-      expect(view.textChat).to.equal(textChat);
-    });
-
-    it("should listen to peer's nick change", function() {
+    it("should listen to peer's username change", function() {
       new app.views.ConversationView({
         call: call,
         peer: peer,
@@ -103,7 +58,7 @@ describe("ConversationView", function() {
       });
 
       sinon.assert.called(peer.on);
-      sinon.assert.calledWith(peer.on, "change:nick");
+      sinon.assert.calledWith(peer.on, "change:username");
     });
 
     it("should listen to peer's presence change", function() {
@@ -120,7 +75,7 @@ describe("ConversationView", function() {
 
     it("should update the document title on change of the peer's details",
       function() {
-        peer.set({nick: "nick"});
+        peer.set({username: "username"});
         new app.views.ConversationView({
           call: call,
           peer: peer,
@@ -130,7 +85,7 @@ describe("ConversationView", function() {
 
         peer.on.args[0][1](peer);
 
-        expect(document.title).to.be.equal("nick");
+        expect(document.title).to.be.equal("username");
       });
 
     it("should update presence icon when peer's is connected", function() {
@@ -417,7 +372,7 @@ describe("ConversationView", function() {
         el: '#fixtures'
       });
 
-      peer.set("nick", "hardfire");
+      peer.set("username", "hardfire");
       clock = sinon.useFakeTimers();
     });
 

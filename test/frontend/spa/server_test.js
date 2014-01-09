@@ -33,7 +33,7 @@ describe("Server", function() {
     });
 
     it("should trigger a connected event", function(done) {
-      sandbox.stub(server.http, "post", function(method, nick, callback) {
+      sandbox.stub(server.http, "post", function(method, data, callback) {
         callback(null, "[]");
       });
       server.on("connected", function() {
@@ -45,7 +45,7 @@ describe("Server", function() {
 
     it("should trigger a network-error event if the request has been aborted",
       function(done) {
-        sandbox.stub(server.http, "post", function(method, nick, callback) {
+        sandbox.stub(server.http, "post", function(method, data, callback) {
           callback(0, "request aborted");
         });
         server.on("network-error", function() {
@@ -57,7 +57,7 @@ describe("Server", function() {
 
     it("should trigger a unauthorized event if the request returns a 400",
       function(done) {
-        sandbox.stub(server.http, "post", function(method, nick, callback) {
+        sandbox.stub(server.http, "post", function(method, data, callback) {
           callback(400, "bad request");
         });
         server.on("unauthorized", function() {
@@ -68,7 +68,7 @@ describe("Server", function() {
       });
 
     it("should call #_longPolling", function(done) {
-      sandbox.stub(server.http, "post", function(method, nick, callback) {
+      sandbox.stub(server.http, "post", function(method, data, callback) {
         callback(null, "[]");
         sinon.assert.calledOnce(server._longPolling);
         sinon.assert.calledWithExactly(server._longPolling, []);
@@ -276,7 +276,6 @@ describe("Server", function() {
       });
       var callback = function() {};
       sandbox.stub(server.http, "post");
-      server.nick = "lloyd";
       server.iceCandidate(iceCandidateMsg, callback);
 
       sinon.assert.calledOnce(server.http.post);

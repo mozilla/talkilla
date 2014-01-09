@@ -72,9 +72,9 @@ describe("SPA events", function() {
       ]);
 
       expect(tkWorker.users.all()).to.deep.equal({
-        jb: {presence: "disconnected"},
-        james: {presence: "connected"},
-        harvey: {presence: "connected"}
+        jb: {username:"jb", presence: "disconnected"},
+        james: {username:"james", presence: "connected"},
+        harvey: {username:"harvey", presence: "connected"}
       });
     });
 
@@ -85,7 +85,7 @@ describe("SPA events", function() {
         sinon.assert.calledOnce(tkWorker.ports.broadcastEvent);
         sinon.assert.calledWith(
           tkWorker.ports.broadcastEvent, "talkilla.users", [
-            { nick: "jb", presence: "connected" }
+            { username: "jb", presence: "connected" }
           ]);
       });
 
@@ -101,7 +101,7 @@ describe("SPA events", function() {
 
       sinon.assert.called(tkWorker.ports.broadcastEvent);
       sinon.assert.calledWith(tkWorker.ports.broadcastEvent, "talkilla.users", [
-        {nick: "foo", presence: "connected"}
+        {username: "foo", presence: "connected"}
       ]);
     });
 
@@ -138,7 +138,7 @@ describe("SPA events", function() {
 
       sinon.assert.called(tkWorker.ports.broadcastEvent);
       sinon.assert.calledWith(tkWorker.ports.broadcastEvent, "talkilla.users", [
-        {nick: "foo", presence: "disconnected"}
+        {username: "foo", presence: "disconnected"}
       ]);
     });
 
@@ -166,6 +166,7 @@ describe("SPA events", function() {
 
     it("should create a new conversation object with the call data",
       function() {
+      tkWorker.users.set('alice',{});
       var offerMsg = new payloads.Offer({offer: "fake offer", peer: "alice"});
 
       spa.trigger("offer", offerMsg);
@@ -179,7 +180,13 @@ describe("SPA events", function() {
           offer: "fake offer",
           peer: "alice"
         });
-        currentConversation = new Conversation({peer: "florian"}, spa);
+        currentConversation = new Conversation({
+          capabilities: {},
+          peer: spa,
+          browserPort: browserPort,
+          users: tkWorker.users,
+          user: tkWorker.user
+        });
         sandbox.stub(currentConversation, "handleIncomingCall");
 
         spa.trigger("offer", offerMsg);

@@ -11,7 +11,7 @@ describe("Call Model", function() {
     sandbox = sinon.sandbox.create();
     // XXX This should probably be a mock, but sinon mocks don't seem to want
     // to work with Backbone.
-    media = {
+    media = _.extend(new WebRTC(), {
       state: {current: 'ready'},
       answer: sandbox.spy(),
       establish: sandbox.spy(),
@@ -22,9 +22,9 @@ describe("Call Model", function() {
       on: sandbox.spy(),
       once: sandbox.spy(),
       setMuteState: sandbox.spy()
-    };
+    });
 
-    peer = new app.models.User();
+    peer = new app.models.User({username: "larry"});
 
     call = new app.models.Call({}, {media: media, peer: peer});
 
@@ -47,17 +47,8 @@ describe("Call Model", function() {
       expect(call.state).to.be.an.instanceOf(Object);
     });
 
-    it("should store the media handler", function() {
-      expect(call.media).to.deep.equal(media);
-    });
-
     it("it should have an initial state", function() {
       expect(call.state.current).to.equal('ready');
-    });
-
-    it("should set instance attributes", function() {
-      var call = new app.models.Call({peer: "larry"}, {media: media});
-      expect(call.get("peer")).to.equal("larry");
     });
 
     it("should have a random id", function() {
@@ -123,7 +114,7 @@ describe("Call Model", function() {
 
       beforeEach(function() {
         call.media = _.extend(media, Backbone.Events);
-        peer.set("nick", "larry");
+        peer.set("username", "larry");
 
         call.start({});
       });
@@ -175,7 +166,7 @@ describe("Call Model", function() {
 
       beforeEach(function() {
         call.media = _.extend(media, Backbone.Events);
-        peer.set("nick", "larry");
+        peer.set("username", "larry");
 
         call.start({});
       });
@@ -247,7 +238,7 @@ describe("Call Model", function() {
     it("should trigger send-answer with transport data on answer-ready",
       function(done) {
         call.media = _.extend(media, Backbone.Events);
-        peer.set("nick", "larry");
+        peer.set("username", "larry");
         var fakeAnswer = {peer: "larry", answer: {fake: true}};
         call.once("send-answer", function(data) {
           expect(data.answer).to.deep.equal(fakeAnswer);
@@ -303,7 +294,7 @@ describe("Call Model", function() {
   describe("#timeout", function() {
     beforeEach(function() {
       call.start({});
-      call.peer.set("nick", "Mark");
+      call.peer.set("username", "Mark");
       call.callid = 2;
     });
 
@@ -389,7 +380,7 @@ describe("Call Model", function() {
 
     it("should trigger send-hangup", function(done) {
       call.start({});
-      call.peer.set("nick", "Mark");
+      call.peer.set("username", "Mark");
       call.callid = 2;
 
       call.on("send-hangup", function(hangupMsg) {
@@ -405,7 +396,7 @@ describe("Call Model", function() {
 
   describe("#move", function() {
     it("should trigger an initiate-move event", function(done) {
-      call.peer.set("nick", "alexis");
+      call.peer.set("username", "alexis");
       call.callid = 1337;
 
       call.on("initiate-move", function(moveMsg) {

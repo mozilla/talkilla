@@ -6,7 +6,7 @@ describe("NotificationsView", function() {
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
-    user = new app.models.User();
+    user = new app.models.CurrentUser();
     sandbox.stub(app.utils, "notifyUI");
   });
 

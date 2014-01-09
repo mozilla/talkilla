@@ -3,38 +3,40 @@
 
 var expect = chai.expect;
 
-describe("app.views", function() {
-  describe("app.views.BaseView", function() {
-    describe("#checkOptions", function() {
-      var view;
+describe("app.views.BaseView", function() {
+  describe("#constructor", function() {
+    var TestView;
 
-      beforeEach(function() {
-        view = new app.views.BaseView();
-      });
-
-      it("should throw a ViewOptionError when option is missing", function() {
-        expect(function() {
-          view.checkOptions({}, "foo");
-        }).to.Throw(app.views.ViewOptionError, /foo/);
-      });
-
-      it("should throw a ViewOptionError when options are missing", function() {
-        expect(function() {
-          view.checkOptions({}, "foo", "bar", "baz");
-        }).to.Throw(app.views.ViewOptionError, /foo, bar, baz/);
-      });
-
-      it("shouldn't throw when a required option is present", function() {
-        expect(function() {
-          view.checkOptions({foo: 42}, "foo");
-        }).not.to.Throw();
-      });
-
-      it("shouldn't throw when required options are present", function() {
-        expect(function() {
-          view.checkOptions({foo: 42, bar: 1337}, "foo", "bar");
-        }).not.to.Throw();
-      });
+    beforeEach(function() {
+      TestView = app.views.BaseView.extend({});
     });
+
+    it("should set required dependencies as view properties", function() {
+      TestView.prototype.dependencies = {user: app.models.User,
+                                         spa:  app.models.SPA};
+      var user = new app.models.User({nick: "niko"});
+      var spa = new app.models.SPA();
+
+      var view = new TestView({user: user, spa: spa});
+
+      expect(view.user).eql(user);
+      expect(view.spa).eql(spa);
+    });
+
+    it("should have performed checks and sets on initialisation",
+      function(done) {
+        TestView.prototype.dependencies = {user: app.models.User,
+                                           spa: app.models.SPA};
+        var user = new app.models.User({nick: "niko"});
+        var spa = new app.models.SPA();
+
+        TestView.prototype.initialize = function() {
+          expect(this.user).eql(user);
+          expect(this.spa).eql(spa);
+          done();
+        };
+
+        new TestView({user: user, spa: spa});
+      });
   });
 });

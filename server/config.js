@@ -45,6 +45,21 @@ function setupUrls(config) {
   return config;
 }
 
+function setupSPA(config) {
+  // Default to talkilla's spa
+  var spaName = 'talkilla';
+  if (process.env.SPA_NAME)
+    spaName = process.env.SPA_NAME;
+
+  var spaFile = path.join(__dirname, '..', "static", "spa", spaName,
+                          'config.json');
+  var spaConfig = JSON.parse(fs.readFileSync(spaFile));
+
+  config.SPA = spaConfig;
+
+  return config;
+}
+
 /**
  * Retrieves a configuration object from a JSON file.
  *
@@ -65,6 +80,8 @@ function getConfigFromFile(file) {
       config = merge(config, JSON.parse(fs.readFileSync(localConfigFile)));
     }
   }
+
+  config = setupSPA(config);
 
   return setupUrls(config);
 }

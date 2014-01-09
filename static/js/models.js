@@ -6,6 +6,34 @@
   "use strict";
 
   /**
+   * Base model allowing dependency checks.
+   */
+  app.models.BaseModel = Backbone.Model.extend({
+    dependencies: {},
+
+    constructor: function(attributes, options) {
+      var validator = new app.utils.Dependencies(this.dependencies);
+      _.extend(this, validator.validate(options || {}));
+
+      Backbone.Model.apply(this, arguments);
+    }
+  });
+
+  /**
+   * Base collection allowing dependency checks.
+   */
+  app.models.BaseCollection = Backbone.Collection.extend({
+    dependencies: {},
+
+    constructor: function(models, options) {
+      var validator = new app.utils.Dependencies(this.dependencies);
+      _.extend(this, validator.validate(options || {}));
+
+      Backbone.Collection.apply(this, arguments);
+    }
+  });
+
+  /**
    * Notification model.
    */
   app.models.Notification = Backbone.Model.extend({
@@ -48,7 +76,8 @@
    * User model.
    */
   app.models.User = Backbone.Model.extend({
-    defaults: {nick: undefined,
+    defaults: {username: undefined,
+               fullName: undefined,
                avatar: "img/default-avatar.png",
                presence: "disconnected"},
 
@@ -64,11 +93,50 @@
     },
 
     /**
+     * Overrides Backbone.Model#toJSON to include dynamically generated atribute
+     * values.
+     * @overrides Backbone.Model.prototype.toJSON
+     * @return {Object}
+     */
+    toJSON: function() {
+      return _.extend(Backbone.Model.prototype.toJSON.call(this), {
+        fullName: this.get("fullName")
+      });
+    },
+
+    /**
+     * Overrides Backbone.Model#get to check if a method exists within the
+     * current prototype to retrieve an attribute value, process it and returns
+     * the resulting value.
+     *
+     * Fallbacks to standard Backbone.Model#get behavior when a string is passed
+     * in.
+     *
+     * @param    {String|Function}  attribute  Attribute
+     * @override {Backbone.Model.prototype.get}
+     * @return   {any}
+     */
+    get: function(attribute) {
+      if (typeof this[attribute] === "function")
+        return this[attribute]();
+      return Backbone.Model.prototype.get.call(this, attribute);
+    },
+
+    /**
+     * Returns user full name when the attribute is available, or the username
+     * by default.
+     * @return {String}
+     */
+    fullName: function() {
+      return this.attributes.fullName || this.get("username");
+    },
+
+    /**
      * Returns true if the user is logged in.
      */
     isLoggedIn: function() {
       return this.get('presence') !== "disconnected" &&
-        this.get('nick') !== undefined;
+        this.get('username') !== undefined;
     },
 
     /**
@@ -77,7 +145,7 @@
      */
     wasLoggedIn: function() {
       return this.previous('presence') !== "disconnected" &&
-        this.previous('nick') !== undefined;
+        this.previous('username') !== undefined;
     }
   });
 

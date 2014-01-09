@@ -1,4 +1,4 @@
-/*global app, sidebarApp */
+/*global app, sidebarApp, GoogleContacts*/
 /**
  * Talkilla Backbone views.
  */
@@ -9,43 +9,81 @@
    * Global app view.
    */
   app.views.AppView = app.views.BaseView.extend({
+    dependencies: {
+      appStatus: app.models.AppStatus,
+      services:  Object,
+      spa:       app.models.SPA,
+      user:      app.models.CurrentUser,
+      users:     app.models.UserSet
+    },
+
     el: 'body',
 
+    events: {
+      'click a.user-entry': 'clickUserEntry'
+    },
+
+    isInSidebar: false, // default to panel
+
     initialize: function(options) {
-      options = this.checkOptions(options, "user", "users", "appStatus", "spa");
-
-      this.login = new app.views.LoginView({
-        appStatus: options.appStatus,
-        user: options.user
+      this.loginView = new app.views.LoginView({
+        appStatus: this.appStatus,
+        spaLoginURL: this.spaLoginURL,
+        user: this.user
       });
 
-      this.users = new app.views.UsersView({
-        user: options.user,
-        collection: options && options.users,
-        appStatus: options.appStatus
+      this.usersView = new app.views.UsersView({
+        user: this.user,
+        collection: this.users,
+        appStatus: this.appStatus
       });
 
-      this.importButton = new app.views.ImportContactsView({
-        user: options.user,
-        service: options.services && options.services.google
+      this.importButtonView = new app.views.ImportContactsView({
+        user: this.user,
+        service: this.services.google
       });
 
-      this.spa = new app.views.SPAView({
-        user: options.user,
-        spa: options.spa
+      this.spaView = new app.views.SPAView({
+        user: this.user,
+        spa: this.spa
       });
 
-      this.notifications = new app.views.NotificationsView({
-        user: options.user,
-        appStatus: options.appStatus
+      this.notificationsView = new app.views.NotificationsView({
+        user: this.user,
+        appStatus: this.appStatus
       });
+
+      if (options.isInSidebar)
+        this.isInSidebar = options.isInSidebar;
+
+      this.on("resize", this._onResize, this);
+
+      window.addEventListener("unload", this._onUnload.bind(this));
+    },
+
+    _onResize: function(width, height) {
+      if (this.isInSidebar)
+        return;
+      var safetyHeightMargin = 120; // 120px height safety margin
+      this.$el.css("max-height", (height - safetyHeightMargin) + "px");
+    },
+
+    // for debugging, to see if we're getting unload events only from the
+    // panel, or also from contained iframes
+    _onUnload: function(e) {
+      console.log("panel unload called, target =  ", e.target);
+    },
+
+    clickUserEntry: function() {
+      if (!this.isInSidebar)
+        window.close();
     },
 
     render: function() {
-      this.login.render();
-      this.users.render();
-      this.importButton.render();
-      this.spa.render();
+      this.loginView.render();
+      this.usersView.render();
+      this.importButtonView.render();
+      this.spaView.render();
       return this;
     }
   });
@@ -54,23 +92,26 @@
    * SPA view.
    */
   app.views.SPAView = app.views.BaseView.extend({
+    dependencies: {
+      spa: app.models.SPA,
+      user: app.models.CurrentUser
+    },
+
     el: "#pstn-dialin",
 
     events: {
       "submit form": "dial"
     },
 
-    initialize: function(options) {
-      options = this.checkOptions(options, "user", "spa");
-
+    initialize: function() {
       // true if we are attempting a reconnection.
       this.reconnecting = false;
 
       // Date when we first tried to reconnect.
       this.firstReconnection = undefined;
 
-      this.spa = options.spa.on("change:capabilities", this.render, this);
-      this.user = options.user.on('signin signout', this.render, this);
+      this.spa.on("change:capabilities", this.render, this);
+      this.user.on('signin signout', this.render, this);
     },
 
     dial: function(event) {
@@ -95,15 +136,16 @@
    * Notifications list view.
    */
   app.views.NotificationsView = app.views.BaseView.extend({
+    dependencies: {
+      user: app.models.CurrentUser,
+      appStatus: app.models.AppStatus
+    },
+
     el: '#messages',
 
     notifications: [],
 
-    initialize: function(options) {
-      options = this.checkOptions(options, "user", "appStatus");
-      this.user = options.user;
-      this.appStatus = options.appStatus;
-
+    initialize: function() {
       this.user.on('signin signout', this.clear, this);
       this.appStatus.on('reconnecting', this.notifyReconnection, this);
     },
@@ -159,12 +201,13 @@
     tagName: 'li',
 
     template: _.template([
-      '<a href="#" rel="<%= nick %>">',
+      '<a class="user-entry" href="#" rel="<%= username %>"',
+      '   title="<%= username %>">',
       '  <div class="avatar">',
       '    <img src="<%= avatar %>">',
       '    <span class="status status-<%= presence %>"></span>',
       '  </div>',
-      '  <span class="username"><%= nick %></span>',
+      '  <span class="username"><%= fullName %></span>',
       '</a>'
     ].join('')),
 
@@ -195,18 +238,21 @@
    * User list view.
    */
   app.views.UsersView = app.views.BaseView.extend({
+    dependencies: {
+      user: app.models.CurrentUser,
+      collection: app.models.UserSet,
+      appStatus: app.models.AppStatus
+    },
+
     el: '#users',
 
     views: [],
     activeNotification: null,
 
-    initialize: function(options) {
-      options = this.checkOptions(options, "user", "collection", "appStatus");
-
-      this.user = options.user;
+    initialize: function() {
       this.collection.on('reset change', this.render, this);
-      options.appStatus.on("reconnecting",
-        this.updateUsersPresence.bind(this, "disconnected"));
+      this.appStatus.on("reconnecting",
+                        this.updateUsersPresence.bind(this, "disconnected"));
     },
 
     /**
@@ -223,13 +269,13 @@
         // filter out current signed in user, if any
         if (!session.isLoggedIn())
           return false;
-        return user.get('nick') === session.get('nick');
+        return user.get('username') === session.get('username');
       }).each(function(user) {
         // create a dedicated list entry for each user
         this.views.push(new app.views.UserEntryView({
           model:  user,
           active: !!(callee &&
-                     callee.get('nick') === user.get('nick'))
+                     callee.get('username') === user.get('username'))
         }));
       }.bind(this));
     },
@@ -278,19 +324,20 @@
    * Login/logout forms view.
    */
   app.views.LoginView = app.views.BaseView.extend({
+    dependencies: {
+      user: app.models.CurrentUser,
+      appStatus: app.models.AppStatus,
+      spaLoginURL: String
+    },
+
     el: '#login',
 
     events: {
       'submit form#signout': 'signout'
     },
 
-    initialize: function(options) {
-      options = this.checkOptions(options, "user", "appStatus");
-
-      this.user = options.user;
-      this.appStatus = options.appStatus;
-
-      this.user.on('change', this.render, this);
+    initialize: function() {
+      this.user.on('signin signout', this.render, this);
       this.appStatus.on('change:workerInitialized', this.render, this);
     },
 
@@ -298,18 +345,20 @@
       if (!this.appStatus.get('workerInitialized')) {
         this.$('#signout').hide();
         this.$('[name="spa-setup"]').remove();
-      } else if (!this.user.get("nick")) {
-        var iframe = $("<iframe>")
-          .attr("src", "/talkilla-spa-setup.html")
-          .attr("id", "signin")
-          .attr("name", "spa-setup");
-        $("#login p:first").append(iframe);
-
-        this.$('#signout').hide().find('.nick').text('');
+      } else if (!this.user.get("username")) {
+        if (!$('#signin').length) {
+          var iframe = $("<iframe>")
+            .attr("src", this.spaLoginURL)
+            .attr("id", "signin")
+            .attr("name", "spa-setup");
+          $("#login p:first").append(iframe);
+        }
+        this.$('#signout').hide().find('.username').text('');
       } else {
         this.$('#signin').hide();
         this.$('[name="spa-setup"]').remove();
-        this.$('#signout').show().find('.nick').text(this.user.get('nick'));
+        this.$('#signout').show().find('.username')
+            .text(this.user.get('username'));
       }
       return this;
     },
@@ -326,18 +375,18 @@
   });
 
   app.views.ImportContactsView = app.views.BaseView.extend({
+    dependencies: {
+      user: app.models.CurrentUser,
+      service: GoogleContacts
+    },
+
     el: "#import-contacts",
 
     events: {
       "click button": 'loadGoogleContacts'
     },
 
-    initialize: function(options) {
-      options = this.checkOptions(options, "user", "service");
-
-      this.user = options.user;
-      this.service = options.service;
-
+    initialize: function() {
       this.user.on('signin signout', this.render, this);
     },
 

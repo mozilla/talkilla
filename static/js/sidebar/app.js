@@ -1,4 +1,4 @@
-/*global app, AppPort, GoogleContacts, HTTP, payloads */
+/*global app, AppPort, GoogleContacts, HTTP, URL, payloads */
 /* jshint unused: false */
 /**
  * Sidebar application.
@@ -8,6 +8,11 @@ var SidebarApp = (function(app, $) {
 
   function SidebarApp(options) {
     options = options || {};
+
+    if (options.location)
+      this._location = new URL(options.location);
+    else
+      this._location = window.location;
 
     this.http = new HTTP();
     this.appPort = new AppPort();
@@ -24,11 +29,13 @@ var SidebarApp = (function(app, $) {
     };
 
     this.view = new app.views.AppView({
+      isInSidebar: this._location.search === "?sidebar",
       appStatus: this.appStatus,
       user: this.user,
       users: this.users,
       services: this.services,
-      spa: this.spa
+      spa: this.spa,
+      spaLoginURL: options.SPA.loginURL
     });
 
     // user events
@@ -39,11 +46,14 @@ var SidebarApp = (function(app, $) {
     this.appPort.on("talkilla.users", this._onUserListReceived, this);
     this.appPort.on("talkilla.spa-connected", this._onSPAConnected, this);
     this.appPort.on("talkilla.error", this._onError, this);
-    this.appPort.on("talkilla.chat-window-ready",
-                 this._onChatWindowReady, this);
+
+    this.appPort.on("talkilla.spa-error", this._onSPAError, this);
+    this.appPort.on("talkilla.presence-unavailable",
+                 this._onPresenceUnavailable, this);
     this.appPort.on("talkilla.worker-ready", this._onWorkerReady, this);
     this.appPort.on("social.user-profile", this._onUserProfile, this);
-    this.appPort.on("talkilla.reauth-needed", this._onReauthNeeded, this);
+    this.appPort.on('talkilla.reauth-needed', this._onReauthNeeded, this);
+    this.appPort.on('social.port-closing', this._onSocialPortClosing(), this);
 
     // Transfer events to the model.
     this.appPort.on("talkilla.server-reconnection", function(event) {
@@ -54,6 +64,7 @@ var SidebarApp = (function(app, $) {
     this.spa.on("dial", this.openConversation, this);
 
     window.addEventListener("message", this._onSPASetup.bind(this), false);
+    window.addEventListener("resize", this._onWindowResized.bind(this), false);
 
     this.appPort.post("talkilla.sidebar-ready");
 
@@ -67,13 +78,36 @@ var SidebarApp = (function(app, $) {
     this.services.google.initialize();
   };
 
+  SidebarApp.prototype._onWindowResized = function() {
+    this.view.trigger("resize", window.outerWidth, window.outerHeight);
+  };
+
   SidebarApp.prototype._onUserProfile = function(userData) {
-    this.user.set({nick: userData.userName});
+    this.user.set({username: userData.userName});
+  };
+
+  SidebarApp.prototype._onSocialPortClosing = function() {
+    console.log("social.port-closing message received by sidebar app");
   };
 
   SidebarApp.prototype._onUserSignoutRequested = function() {
-    this.appPort.post("talkilla.spa-forget-credentials", "TalkillaSPA");
-    this.appPort.post("talkilla.spa-disable", "TalkillaSPA");
+    try {
+      this.appPort.post("talkilla.spa-forget-credentials", "TalkillaSPA");
+      this.appPort.post("talkilla.spa-disable", "TalkillaSPA");
+    } catch (ex) {
+      console.log("exception " + ex + " caught; will invoke debugger");
+
+      /* If we get here, that means that the hard-to-reproduce intermittent
+       * where logging out fails to work has happened.  Let's give ourselves
+       * a chance to debug...
+       *
+       * Once we're convinced this bug is fixed, we will probably want to
+       * remove this code.
+       */
+      if (app.options.DEBUG)
+        /* jshint -W087 */
+        debugger;
+    }
     // XXX: we may want to synchronize this with the TkWorker#close
     // method from the shared worker.
     this.user.clear();

@@ -8,7 +8,7 @@ describe("ChatApp", function() {
   var sandbox, chatApp, AppPortStub, incomingCallData;
   var callData = {
     capabilities: ["call", "move"],
-    peer: "bob",
+    peer: {username: "bob", presence: "connected"},
     peerPresence: "connected"
   };
   var fakeOffer = {type: "offer", sdp: "\nm=video aaa\nm=audio bbb"};
@@ -20,11 +20,11 @@ describe("ChatApp", function() {
 
     incomingCallData = {
       capabilities: ["call", "move"],
-      peer: "alice",
+      peer: {username: "alice", presence: "connected"},
       peerPresence: "connected",
       offer: {
         callid: 2,
-        peer: "alice",
+        peer: {username: "alice", presence: "connected"},
         offer: {type: "answer", sdp: "fake"}
       },
       user: "bob"
@@ -166,11 +166,9 @@ describe("ChatApp", function() {
   });
 
   it("should initialize a peer model", function() {
-    sandbox.stub(app.models, "User").returns({on: sandbox.spy()});
-
     chatApp = new ChatApp();
 
-    sinon.assert.called(app.models.User);
+    expect(chatApp.peer).to.be.a.instanceOf(app.models.User);
   });
 
   describe("ChatApp (constructed)", function () {
@@ -180,10 +178,8 @@ describe("ChatApp", function() {
       callFixture = $('<div id="call"></div>');
       $("#fixtures").append(callFixture);
 
-      sandbox.stub(app.utils, "AudioLibrary").returns({
-        play: sandbox.spy(),
-        stop: sandbox.spy()
-      });
+      sandbox.stub(app.utils.AudioLibrary.prototype, "play");
+      sandbox.stub(app.utils.AudioLibrary.prototype, "stop");
 
       chatApp = new ChatApp();
 
@@ -219,7 +215,7 @@ describe("ChatApp", function() {
       it("should set the peer", function() {
         chatApp._onConversationOpen(callData);
 
-        expect(chatApp.peer.get("nick")).to.equal(callData.peer);
+        expect(chatApp.peer.get("username")).to.equal(callData.peer.username);
       });
 
       it("should set peer's presence", function() {
@@ -241,7 +237,8 @@ describe("ChatApp", function() {
       it("should set the peer", function() {
         chatApp._onIncomingConversation(incomingCallData);
 
-        expect(chatApp.peer.get("nick")).to.equal(incomingCallData.peer);
+        expect(chatApp.peer.get("username"))
+          .to.equal(incomingCallData.peer.username);
       });
 
       it("should set peer's presence", function() {
@@ -253,10 +250,10 @@ describe("ChatApp", function() {
       it("should not set the peer if upgrading a call", function() {
         incomingCallData.offer.upgrade = true;
 
-        chatApp.peer.set({nick: "bob"});
+        chatApp.peer.set({username: "bob"});
         chatApp._onIncomingConversation(incomingCallData);
 
-        expect(chatApp.peer.get("nick")).to.equal("bob");
+        expect(chatApp.peer.get("username")).to.equal("bob");
       });
 
       it("should set the call as incoming", function() {
@@ -417,7 +414,7 @@ describe("ChatApp", function() {
 
     describe("#_onUserJoined", function() {
       it("should update peer's presence information when joining", function() {
-        chatApp.peer.set({nick: "niko", presence: "disconnected"});
+        chatApp.peer.set({username: "niko", presence: "disconnected"});
 
         chatApp._onUserJoined("niko");
 
@@ -427,7 +424,7 @@ describe("ChatApp", function() {
 
     describe("#_onUserLeft", function() {
       it("should update peer's presence information when leaving", function() {
-        chatApp.peer.set({nick: "niko", presence: "connected"});
+        chatApp.peer.set({username: "niko", presence: "connected"});
 
         chatApp._onUserLeft("niko");
 
@@ -469,7 +466,7 @@ describe("ChatApp", function() {
             peer: "lloyd",
             candidate: "dummy"
           });
-          chatApp.peer.set("nick", "lloyd");
+          chatApp.peer.set("username", "lloyd");
 
           chatApp.webrtc.trigger("ice:candidate-ready", "dummy");
 
