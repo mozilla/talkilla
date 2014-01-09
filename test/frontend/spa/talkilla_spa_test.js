@@ -1,4 +1,4 @@
-/* global sinon, SPAPort, Server, TalkillaSPA, expect */
+/* global sinon, SPAPort, Server, TalkillaSPA, expect, payloads */
 /* jshint unused:false */
 "use strict";
 
@@ -45,7 +45,7 @@ describe("TalkillaSPA", function() {
 
       sinon.assert.calledOnce(spa.port.post);
       sinon.assert.calledWithExactly(
-        spa.port.post, "reconnection", event);
+        spa.port.post, "reconnection", new payloads.Reconnection(event));
     });
 
     it("should post a reauth-needed event to the port", function() {
