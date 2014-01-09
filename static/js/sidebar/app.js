@@ -118,10 +118,6 @@ var SidebarApp = (function(app, $) {
     this.appPort.post("talkilla.conversation-open", {peer: peer});
   };
 
-  SidebarApp.prototype._onChatWindowReady = function() {
-    this.appPort.post("talkilla.user-nick", {nick: this.user.get("nick")});
-  };
-
   SidebarApp.prototype._onSPASetup = function(event) {
     // This handler is attached to any message the window receives.
     // This is why we exclude messages not coming from the setup page
