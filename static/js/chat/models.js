@@ -1,4 +1,4 @@
-/*global app, StateMachine, tnetbin, WebRTC */
+/*global app, StateMachine, tnetbin, WebRTC, SPAChannel */
 /**
  * ChatApp models and collections.
  */
@@ -532,15 +532,19 @@
      * @param  {Object} entry
      */
     send: function(entry) {
-      if (this.media.state.current === "ready")
+      if (!(this.transport instanceof SPAChannel) &&
+          this.media.state.current === "ready")
         this.initiate({video: false, audio: false});
 
       this.transport.send(entry);
     },
 
     notifyTyping: function() {
-      if (!this.length || this.media.state.current !== "ongoing")
+      if (!this.length ||
+          !(this.transport instanceof SPAChannel) &&
+          this.media.state.current !== "ongoing")
         return;
+
       this.transport.send({
         type: "chat:typing",
         message: { username: this.user.get("username") }

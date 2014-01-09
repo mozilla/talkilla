@@ -3,6 +3,12 @@
 var SPAChannel = (function() {
   "use strict";
 
+  /**
+   * SPAChannel object constructor.
+   *
+   * @param {appPort} appPort: the port of an application
+   * @param {String}  peer:    the peer to send the data to
+   */
   function SPAChannel(appPort, peer) {
     this.peer = peer;
     this.appPort = appPort;
@@ -13,8 +19,11 @@ var SPAChannel = (function() {
   _.extend(SPAChannel.prototype, Backbone.Events);
 
   /**
-   * Sends data over data channel.
-   * @param  {Object} data
+   * Sends data to the SPA to be forwarded to the peer. The given data
+   * will be automatically "augmented" with a peer attribute to be
+   * routed correctly.
+   *
+   * @param  {Object} data arbitrary object
    * @public
    */
   SPAChannel.prototype.send = function(data) {
@@ -24,3 +33,4 @@ var SPAChannel = (function() {
 
   return SPAChannel;
 }());
+

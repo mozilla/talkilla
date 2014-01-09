@@ -29,7 +29,7 @@ describe("SPAChannel", function() {
 
     describe("message", function() {
 
-      it("should trigger a message event when receiving a" +
+      it("should trigger a message event when receiving a " +
         "talkilla.spa-channel-message event", function(done) {
           spaChannel.on("message", function(data) {
             expect(data).to.deep.equal({some: "data"});

@@ -592,7 +592,7 @@
    * @public
    */
   WebRTC.DataChannel.prototype.send = function(message) {
-    if (this.dc.readyState === "connecting")
+    if (this.dc.readyState !== "open")
       return this.queue.push(message);
 
     message = tnetbin.encode(message);

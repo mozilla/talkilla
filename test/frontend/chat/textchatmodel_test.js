@@ -222,6 +222,13 @@ describe('Text chat models', function() {
         sinon.assert.calledOnce(textChat._onMessage, "a message");
       });
 
+      it("should remove the transport once it's closed", function() {
+        textChat.setTransport(transport);
+
+        textChat.transport.trigger("close");
+        expect(textChat.transport).to.equal(undefined);
+      });
+
     });
 
   });

@@ -424,7 +424,10 @@ var handlers = {
   },
 
   /**
+   * Called when receiving an arbitrary message that needs to go
+   * through the SPA.
    *
+   * @param {Object} event.data arbitrary data.
    */
   'talkilla.spa-channel-message': function(event) {
     spa.sendMessage(new payloads.SPAChannelMessage(event.data));

@@ -463,7 +463,7 @@ describe("WebRTC", function() {
           expect(webrtc.pc.createAnswer.args[0][2]).eql({});
         });
 
-      it("should create an offer from the peer connection without data " +
+      it("should create an answer from the peer connection without data " +
         "channel, if enableDataChannel is false", function() {
           sandbox.stub(WebRTC.prototype, "_setupPeerConnection", function() {
             this.pc = {
@@ -477,7 +477,7 @@ describe("WebRTC", function() {
 
           webrtc.options.enableDataChannel = false;
           webrtc.state.current = "ongoing";
-          webrtc.answer(fakeOffer);
+          webrtc.answer(fakeAnswer);
 
           sinon.assert.calledOnce(webrtc.pc.createAnswer);
           expect(webrtc.pc.createAnswer.args[0][2]).eql({ mandatory: {

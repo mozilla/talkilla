@@ -231,6 +231,15 @@ describe("ChatApp", function() {
 
         sinon.assert.calledWith(chatApp.peer.trigger, "change:presence");
       });
+
+      it("should set the textchat transport if datachannel is not supported",
+        function() {
+          sandbox.stub(chatApp.spa, "supports").returns(true);
+
+          chatApp._onConversationOpen(callData);
+
+          expect(chatApp.textChat.transport).to.be.an.instanceOf(SPAChannel);
+        });
     });
 
     describe("#_onIncomingConversation", function() {

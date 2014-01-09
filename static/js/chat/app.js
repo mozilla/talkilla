@@ -138,7 +138,7 @@ var ChatApp = (function(app, $, Backbone, _) {
              .trigger('change:username', this.peer)
              .trigger('change:presence', this.peer);
 
-    if (!this.spa.supports("datachannel") && this.spa.supports("spachannel"))
+    if (this.spa.supports("spachannel"))
       this.textChat.setTransport(
         new SPAChannel(this.appPort, this.peer.get("username")));
   };
