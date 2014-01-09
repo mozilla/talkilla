@@ -37,7 +37,7 @@ describe("NotificationsView", function() {
     });
   });
 
-  describe("#notifyReconnection", function() {
+  describe("#notifyReconnectionPending", function() {
     beforeEach(function() {
       view = new app.views.NotificationsView({
         user: user,
@@ -46,18 +46,33 @@ describe("NotificationsView", function() {
     });
 
     it("should notify the UI", function() {
-      view.notifyReconnection({timeout: 42, attempt: 2});
+      view.notifyReconnectionPending({timeout: 42, attempt: 2});
 
       sinon.assert.calledOnce(app.utils.notifyUI);
       sinon.assert.calledWithMatch(app.utils.notifyUI, /0\.042s/,
                                    "error", 42);
+    });
+  });
 
+  describe("#notifyReconnectionSuccess", function() {
+    beforeEach(function() {
+      sandbox.stub(view, "notifyReconnectionPending");
+      view = new app.views.NotificationsView({
+        user: user,
+        appStatus: new app.models.AppStatus()
+      });
     });
 
-    it("should call #clear", function() {
-      sandbox.stub(view, "clear");
-      view.notifyReconnection({timeout: 42, attempt: 2});
+    it("should notify the UI if a reconnection is pending", function() {
+      view.notifyReconnectionSuccess();
+      sinon.assert.calledOnce(app.utils.notifyUI);
+      sinon.assert.calledWithMatch(app.utils.notifyUI, /Reconnected/,
+                                   "success", 2000);
+    });
 
+    it("should call clear() if a reconnection is pending", function() {
+      sandbox.stub(view, "clear");
+      view.notifyReconnectionSuccess();
       sinon.assert.calledOnce(view.clear);
       sinon.assert.calledWithExactly(view.clear);
     });

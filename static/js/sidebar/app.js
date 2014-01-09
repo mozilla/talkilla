@@ -139,13 +139,7 @@ var SidebarApp = (function(app, $) {
   };
 
   SidebarApp.prototype._onSPAConnected = function(event) {
-    // Dismiss all the reconnection messages.
-    this.firstReconnection = undefined;
-
-    if (this.reconnecting === true){
-      app.utils.notifyUI("Reconnected to the server.", "success", 2000);
-      this.reconnecting = false;
-    }
+    this.appStatus.set('connected', true);
 
     this.user.set({presence: "connected"});
     if (event && event.capabilities)
@@ -170,10 +164,6 @@ var SidebarApp = (function(app, $) {
 
   SidebarApp.prototype._onUserListReceived = function(users) {
     this.users.reset(users);
-  };
-
-  SidebarApp.prototype._onServerReconnection = function(event) {
-    this.appStatus.ongoingReconnection(event);
   };
 
   SidebarApp.prototype._setupDebugLogging = function() {

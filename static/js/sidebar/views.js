@@ -104,12 +104,6 @@
     },
 
     initialize: function() {
-      // true if we are attempting a reconnection.
-      this.reconnecting = false;
-
-      // Date when we first tried to reconnect.
-      this.firstReconnection = undefined;
-
       this.spa.on("change:capabilities", this.render, this);
       this.user.on('signin signout', this.render, this);
     },
@@ -147,19 +141,33 @@
 
     initialize: function() {
       this.user.on('signin signout', this.clear, this);
-      this.appStatus.on('reconnecting', this.notifyReconnection, this);
+      this.appStatus.on("change:reconnecting", function(appStatus) {
+        this.notifyReconnectionPending(appStatus.get("reconnecting"));
+      }, this);
+
+      this.appStatus.on("change:connected", function(appStatus) {
+        if (appStatus.get("connected") === true){
+          this.notifyReconnectionSuccess();
+        }
+      }, this);
     },
 
-    notifyReconnection: function(event) {
-      console.log("notifyReconnection called", event);
-      var timeout = event.timeout / 1000;
-      app.utils.notifyUI("We lost the connection with the server. " +
-                         "Attempting a reconnection in " + timeout + "s...",
-                         "error", event.timeout);
-      // XXX Here we clear all the notifications but we only want to clear
-      // the reconnection ones. Adding a filtering mechanism to the notifs
-      // could solve the problem.
+    notifyReconnectionSuccess: function() {
+      this.appStatus.set("reconnecting", false);
+      this.appStatus.set("firstReconnection", undefined);
+      // XXX We should only clear reconnection notifications here.
       this.clear();
+      app.utils.notifyUI("Reconnected to the server.", "success", 2000);
+    },
+
+    notifyReconnectionPending: function(event) {
+      var timeout = event.timeout;
+      var msg = "We lost the connection with the server. " +
+                "Attempting a reconnection in " +
+                timeout / 1000 + "s...";
+
+      app.utils.notifyUI(msg, "error", timeout);
+      console.log(msg);
     },
 
     /**
@@ -250,8 +258,8 @@
     activeNotification: null,
 
     initialize: function() {
-      this.collection.on('reset change', this.render, this);
-      this.appStatus.on("reconnecting",
+      this.collection.on("reset change", this.render, this);
+      this.appStatus.on("change:reconnecting",
                         this.updateUsersPresence.bind(this, "disconnected"));
     },
 

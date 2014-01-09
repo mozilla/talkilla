@@ -24,7 +24,7 @@ describe("app.models.AppStatus", function() {
 			appStatus.ongoingReconnection({timeout: 42, attempt: 1});
 			clock.tick(10001);
 			appStatus.ongoingReconnection({timeout: 42, attempt: 2});
-			expect(appStatus.get("reconnecting")).eql(42);
+			expect(appStatus.get("reconnecting")).eql({timeout: 42, attempt: 2});
 		});
 	});
 });
