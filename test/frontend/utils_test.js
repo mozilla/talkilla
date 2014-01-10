@@ -341,11 +341,11 @@ describe('Utils', function() {
 
   });
 
-  describe("app.utils.Dependencies", function() {
+  describe("app.utils.Validator", function() {
 
     // test helpers
     function validator(dependencies, values) {
-      var deps = new app.utils.Dependencies(dependencies);
+      var deps = new app.utils.Validator(dependencies);
       return deps.validate.bind(deps, values);
     }
 

@@ -206,16 +206,16 @@
   };
 
   /**
-   * Dependency validator.
+   * Simple object validator.
    *
    * @constructor
-   * @param  {Object} rules Dependency rules object
+   * @param  {Object} rules Rules object
    */
-  app.utils.Dependencies = function Dependencies(rules) {
+  app.utils.Validator = function Validator(rules) {
     this.rules = rules || {};
   };
 
-  app.utils.Dependencies.prototype = {
+  app.utils.Validator.prototype = {
     /**
      * Validates all passed values against declared dependencies.
      *

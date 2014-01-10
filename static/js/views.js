@@ -19,7 +19,7 @@
      * @throws {TypeError} If dependency checks fails
      */
     constructor: function(options) {
-      var validator = new app.utils.Dependencies(this.dependencies);
+      var validator = new app.utils.Validator(this.dependencies);
       _.extend(this, validator.validate(options || {}));
 
       Backbone.View.apply(this, arguments);
