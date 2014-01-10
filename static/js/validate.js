@@ -1,6 +1,12 @@
 (function(exports) {
   "use strict";
 
+  function difference(arr1, arr2) {
+    return arr1.filter(function(item) {
+      return arr2.indexOf(item) === -1;
+    });
+  }
+
   /**
    * Simple object validator.
    *
@@ -59,7 +65,7 @@
       var settedValues = Object.keys(values).filter(function(name) {
         return typeof values[name] !== "undefined";
       });
-      var diff = _.difference(Object.keys(this.rules), settedValues);
+      var diff = difference(Object.keys(this.rules), settedValues);
       if (diff.length > 0)
         throw new TypeError("missing required " + diff.join(", "));
     },
