@@ -13,9 +13,6 @@ importScripts('worker/conversation.js');
 var gConfig = loadConfig();
 var browserPort;
 var currentConversation;
-// XXX This should definitely not be exposed globally as we'll need
-// to support multiple SPAs in a near future.
-var spa;
 // XXX Initialised at end of file whilst we move everything
 // into it.
 var tkWorker;
@@ -207,7 +204,7 @@ function _setupSPA(spa) {
       return;
     }
     currentConversation = new Conversation({
-      capabilities: spa.capabilities,
+      capabilities: tkWorker.spa.capabilities,
       peer: tkWorker.users.get(offerMsg.peer),
       offer: offerMsg,
       browserPort: browserPort,
@@ -301,7 +298,7 @@ var handlers = {
     // XXX Temporarily work around to only allow one call at a time.
     if (!currentConversation){
       currentConversation = new Conversation({
-        capabilities: spa.capabilities,
+        capabilities: tkWorker.spa.capabilities,
         peer: tkWorker.users.get(event.data.peer),
         browserPort: browserPort,
         users: tkWorker.users,
@@ -325,10 +322,10 @@ var handlers = {
    */
   'talkilla.sidebar-ready': function(event) {
     this.postEvent('talkilla.worker-ready');
-    if (spa && spa.connected) {
+    if (tkWorker.spa && tkWorker.spa.connected) {
       tkWorker.user.send();
       this.postEvent("talkilla.spa-connected",
-                     {capabilities: spa.capabilities});
+                     {capabilities: tkWorker.spa.capabilities});
       this.postEvent('talkilla.users', tkWorker.users.toArray());
     }
   },
@@ -341,7 +338,7 @@ var handlers = {
    */
   'talkilla.call-offer': function(event) {
     var offerMsg = new payloads.Offer(event.data);
-    spa.callOffer(offerMsg);
+    tkWorker.spa.callOffer(offerMsg);
   },
 
   /**
@@ -352,7 +349,7 @@ var handlers = {
    */
   'talkilla.call-answer': function(event) {
     var answerMsg = new payloads.Answer(event.data);
-    spa.callAnswer(answerMsg);
+    tkWorker.spa.callAnswer(answerMsg);
   },
 
   /**
@@ -362,7 +359,7 @@ var handlers = {
    * payloads.Hangup.
    */
   'talkilla.call-hangup': function (event) {
-    spa.callHangup(new payloads.Hangup(event.data));
+    tkWorker.spa.callHangup(new payloads.Hangup(event.data));
   },
 
   /**
@@ -372,7 +369,7 @@ var handlers = {
    * payloads.IceCandidate.
    */
   'talkilla.ice-candidate': function(event) {
-    spa.iceCandidate(new payloads.IceCandidate(event.data));
+    tkWorker.spa.iceCandidate(new payloads.IceCandidate(event.data));
   },
 
   /**
@@ -383,7 +380,7 @@ var handlers = {
   'talkilla.spa-forget-credentials': function(event) {
     // XXX: For now we have only one SPA so we don't need to use
     // event.data.
-    spa.forgetCredentials();
+    tkWorker.spa.forgetCredentials();
   },
 
   /**
@@ -395,20 +392,13 @@ var handlers = {
   'talkilla.spa-enable': function(event) {
     var spec = new payloads.SPASpec(event.data);
 
-    function startSPA() {
-      // XXX: For now, we only support one SPA.
-      spa = new SPA({src: spec.src});
-      _setupSPA(spa);
-      spa.connect(spec.credentials);
-    }
-
     tkWorker.spaDb.store(spec, function(err) {
       if (err)
         return tkWorker.ports.broadcastError("Error adding SPA", err);
 
       // Try starting the SPA even if there's an error adding it - at least
       // the user can possibly get into it.
-      startSPA();
+      tkWorker.createSPA(spec);
     });
   },
 
@@ -430,11 +420,11 @@ var handlers = {
    * @param {Object} event.data arbitrary data.
    */
   'talkilla.spa-channel-message': function(event) {
-    spa.sendMessage(new payloads.SPAChannelMessage(event.data));
+    tkWorker.spa.sendMessage(new payloads.SPAChannelMessage(event.data));
   },
 
   'talkilla.initiate-move': function(event) {
-    spa.initiateMove(new payloads.Move(event.data));
+    tkWorker.spa.initiateMove(new payloads.Move(event.data));
   }
 };
 
@@ -571,6 +561,8 @@ function TkWorker(options) {
   this.user = options.user;
   this.users = options.users || new CurrentUsers();
   this.ports = options.ports;
+  // XXX In future, this may switch to supporting multiple SPAs
+  this.spa = undefined;
 }
 
 TkWorker.prototype = {
@@ -636,16 +628,31 @@ TkWorker.prototype = {
     this.ports.broadcastEvent("talkilla.users", this.users.toArray());
   },
 
+  /**
+   * Creates the SPA object.
+   * XXX Assumes there is a single SPA, in future this may change.
+   *
+   * @param {payloads.SPASpec} spec The SPA specification
+   */
+  createSPA: function(spec) {
+    this.spa = new SPA({src: spec.src});
+    _setupSPA(this.spa);
+    this.spa.connect(spec.credentials);
+  },
+
+  /**
+   * Loads the SPA database.
+   * XXX Assumes there is a single SPA, in future this may change.
+   *
+   * @param {payloads.SPASpec} spec The SPA specification
+   */
   loadSPAs: function(callback) {
     this.spaDb.all(function(err, specs) {
       tkWorker.ports.broadcastDebug("loaded specs", specs);
       specs.forEach(function(specData) {
         var spec = new payloads.SPASpec(specData);
 
-        // XXX: For now, we only support one SPA.
-        spa = new SPA({src: spec.src});
-        _setupSPA(spa);
-        spa.connect(spec.credentials);
+        tkWorker.createSPA(spec);
 
         if (callback)
           callback();
