@@ -17,6 +17,7 @@ var TalkillaSPA = (function() {
     this.port.on("hangup", this._onCallHangup.bind(this));
     this.port.on("ice:candidate", this._onIceCandidate.bind(this));
     this.port.on("forget-credentials", this._onForgetCredentials.bind(this));
+    this.port.on("message", this._onMessage.bind(this));
 
     this.server.on("connected", this._onServerEvent.bind(this, "connected"));
     this.server.on("unauthorized",
@@ -27,6 +28,10 @@ var TalkillaSPA = (function() {
   }
 
   TalkillaSPA.prototype = {
+    _onMessage: function(message) {
+      // The Talkilla SPA does not support SPAChannel
+    },
+
     _onServerEvent: function(type, event) {
       if (type === "unauthorized")
         this.port.post("reauth-needed");
@@ -55,7 +60,7 @@ var TalkillaSPA = (function() {
         this.port.post("ice:candidate",
                        (new payloads.IceCandidate(event)));
       else
-        this.port.post("message", [type, event]);
+        this.port.post(type, event);
     },
 
     _onConnect: function(credentials) {

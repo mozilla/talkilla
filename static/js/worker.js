@@ -148,11 +148,26 @@ function _setupSPA(spa) {
       {"capabilities": data.capabilities});
   });
 
-  spa.on("message", function(label, data) {
-    tkWorker.ports.broadcastDebug("spa event: " + label, data);
+  spa.on("message", function(textMsg) {
+    // If we're in a conversation, and it is not with the peer,
+    // then ignore it
+    if (!currentConversation) {
+      currentConversation = new Conversation({
+        capabilities: spa.capabilities,
+        peer: tkWorker.users.get(textMsg.peer),
+        browserPort: browserPort,
+        users: tkWorker.users,
+        user: tkWorker.user
+      });
+      tkWorker.contactsDb.add({username: textMsg.peer}, function(err) {
+        if (err)
+          tkWorker.ports.broadcastError(err);
+      });
+    }
+    currentConversation.handleIncomingText(textMsg);
   });
 
-  spa.on("message:users", function(data) {
+  spa.on("users", function(data) {
     data.forEach(function(user) {
       tkWorker.users.set(user.nick,
                          {username: user.nick, presence: "connected"});
@@ -161,14 +176,14 @@ function _setupSPA(spa) {
     tkWorker.ports.broadcastEvent("talkilla.users", tkWorker.users.toArray());
   });
 
-  spa.on("message:userJoined", function(userId) {
+  spa.on("userJoined", function(userId) {
     tkWorker.users.set(userId, {username:userId, presence: "connected"});
 
     tkWorker.ports.broadcastEvent("talkilla.users", tkWorker.users.toArray());
     tkWorker.ports.broadcastEvent("talkilla.user-joined", userId);
   });
 
-  spa.on("message:userLeft", function(userId) {
+  spa.on("userLeft", function(userId) {
     if (!tkWorker.users.has(userId))
       return;
 
@@ -406,6 +421,16 @@ var handlers = {
     // XXX: For now, we only support one SPA
     tkWorker.spaDb.drop();
     tkWorker.closeSession();
+  },
+
+  /**
+   * Called when receiving an arbitrary message that needs to go
+   * through the SPA.
+   *
+   * @param {Object} event.data arbitrary data.
+   */
+  'talkilla.spa-channel-message': function(event) {
+    spa.sendMessage(new payloads.SPAChannelMessage(event.data));
   },
 
   'talkilla.initiate-move': function(event) {

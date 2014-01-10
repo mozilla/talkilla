@@ -157,6 +157,7 @@
   app.views.CallControlsView = app.views.BaseView.extend({
     dependencies: {
       call:  app.models.Call,
+      spa:   app.models.SPA,
       media: WebRTC,
       el:    [String, jQuery]
     },
@@ -246,7 +247,7 @@
       this.$('.btn-speaker-mute').show();
 
       // If the SPA supports it, display the call-move button.
-      if (this.call.supports("move"))
+      if (this.spa.supports("move"))
         this.$('.btn-call-move').show();
     },
 

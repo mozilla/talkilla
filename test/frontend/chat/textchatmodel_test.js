@@ -46,7 +46,7 @@ describe('Text chat models', function() {
     });
 
     // text chat model dependencies
-    media = new WebRTC();
+    media = new WebRTC({spa: new app.models.SPA()});
     user = new app.models.User();
     peer = new app.models.User();
 
@@ -61,7 +61,6 @@ describe('Text chat models', function() {
 
     transport = {send: sinon.spy()};
     _.extend(transport, Backbone.Events);
-    sandbox.stub(WebRTC.prototype, "createDataChannel").returns(transport);
   });
 
   afterEach(function() {
@@ -91,12 +90,6 @@ describe('Text chat models', function() {
         textChat.transport = transport;
 
         sandbox.stub(media, "answer");
-      });
-
-      it("should create a data channel", function() {
-        textChat.answer(offer);
-
-        sinon.assert.calledOnce(media.createDataChannel);
       });
 
       it("should pass the anwser to the media", function() {
@@ -143,14 +136,12 @@ describe('Text chat models', function() {
         textChat.send({});
 
         sinon.assert.notCalled(media.initiate);
-        sinon.assert.notCalled(media.createDataChannel);
       });
 
       it("should initiate a peer connection if none's ongoing", function() {
         textChat.send({});
 
         sinon.assert.calledOnce(media.initiate);
-        sinon.assert.calledOnce(media.createDataChannel);
       });
 
       it("should buffer a message then send it over data channel once a " +
@@ -175,12 +166,13 @@ describe('Text chat models', function() {
       });
 
       it("should send typing message over connected data channel", function() {
-        textChat.add({message: 'test Message'});
         textChat.media.state.current = "ongoing";
+        textChat.add({message: 'test Message'});
         var entry = {
           type: 'chat:typing',
           message: { username: textChat.user.get('username') }
         };
+        textChat.transport.send.reset();
 
         textChat.notifyTyping();
 
@@ -191,6 +183,7 @@ describe('Text chat models', function() {
       it("should not send typing message over uninitiated data channel",
         function() {
           textChat.add({message: 'test Message'});
+          textChat.transport.send.reset();
 
           textChat.notifyTyping();
 
@@ -204,6 +197,38 @@ describe('Text chat models', function() {
 
         sinon.assert.notCalled(textChat.transport.send);
       });
+    });
+
+    describe("#setTransport", function() {
+      var textChat, transport;
+
+      beforeEach(function() {
+        sandbox.stub(WebRTC.prototype, "initiate");
+        textChat = createTextChat();
+        transport = _.extend({}, Backbone.Events);
+      });
+
+      it("should attach the given transport", function() {
+        textChat.setTransport(transport);
+        expect(textChat.transport).to.equal(transport);
+      });
+
+      it("should listen for messages", function() {
+        sandbox.stub(textChat, "_onMessage");
+
+        textChat.setTransport(transport);
+
+        textChat.transport.trigger("message", "a message");
+        sinon.assert.calledOnce(textChat._onMessage, "a message");
+      });
+
+      it("should remove the transport once it's closed", function() {
+        textChat.setTransport(transport);
+
+        textChat.transport.trigger("close");
+        expect(textChat.transport).to.equal(undefined);
+      });
+
     });
 
   });

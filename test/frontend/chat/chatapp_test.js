@@ -1,4 +1,4 @@
-/*global app, chai, ChatApp, sinon, WebRTC, payloads */
+/*global app, chai, ChatApp, sinon, WebRTC, payloads, SPAChannel */
 /* jshint expr:true */
 "use strict";
 
@@ -231,30 +231,18 @@ describe("ChatApp", function() {
 
         sinon.assert.calledWith(chatApp.peer.trigger, "change:presence");
       });
+
+      it("should set the textchat transport if datachannel is not supported",
+        function() {
+          sandbox.stub(chatApp.spa, "supports").returns(true);
+
+          chatApp._onConversationOpen(callData);
+
+          expect(chatApp.textChat.transport).to.be.an.instanceOf(SPAChannel);
+        });
     });
 
     describe("#_onIncomingConversation", function() {
-      it("should set the peer", function() {
-        chatApp._onIncomingConversation(incomingCallData);
-
-        expect(chatApp.peer.get("username"))
-          .to.equal(incomingCallData.peer.username);
-      });
-
-      it("should set peer's presence", function() {
-        chatApp._onIncomingConversation(incomingCallData);
-
-        expect(chatApp.peer.get("presence")).eql(incomingCallData.peerPresence);
-      });
-
-      it("should not set the peer if upgrading a call", function() {
-        incomingCallData.offer.upgrade = true;
-
-        chatApp.peer.set({username: "bob"});
-        chatApp._onIncomingConversation(incomingCallData);
-
-        expect(chatApp.peer.get("username")).to.equal("bob");
-      });
 
       it("should set the call as incoming", function() {
         sandbox.stub(chatApp.call, "incoming");
@@ -271,6 +259,24 @@ describe("ChatApp", function() {
 
         sinon.assert.calledOnce(chatApp.audioLibrary.play);
         sinon.assert.calledWithExactly(chatApp.audioLibrary.play, "incoming");
+      });
+    });
+
+    describe("#_onIncomingTextConversation", function() {
+      var msg = {message: "some message"};
+
+      it("should set transport", function() {
+        chatApp._onIncomingTextConversation(msg);
+
+        expect(chatApp.textChat.transport).to.be.an.instanceOf(SPAChannel);
+      });
+
+      it("should forward the event to the transport", function() {
+        sandbox.stub(SPAChannel.prototype, "trigger");
+        chatApp._onIncomingTextConversation(msg);
+        sinon.assert.calledOnce(chatApp.textChat.transport.trigger);
+        sinon.assert.calledWithExactly(
+          chatApp.textChat.transport.trigger, "message", msg.message);
       });
     });
 
@@ -440,22 +446,20 @@ describe("ChatApp", function() {
           function(done) {
             var chatApp = new ChatApp();
             chatApp.appPort.on("talkilla.conversation-open", function() {
-              expect(chatApp.call.get("capabilities"))
+              expect(chatApp.spa.get("capabilities"))
                 .eql(callData.capabilities);
               done();
             }).trigger("talkilla.conversation-open", callData);
           });
-      });
 
-      describe("talkilla.conversation-incoming", function() {
-        it("should set SPA capabilities from incoming conversation context",
+        it("should set enableDataChannel based on the SPA capabilities",
           function(done) {
             var chatApp = new ChatApp();
-            chatApp.appPort.on("talkilla.conversation-incoming", function() {
-              expect(chatApp.call.get("capabilities"))
-                .eql(incomingCallData.capabilities);
+            chatApp.appPort.on("talkilla.conversation-open", function() {
+              expect(chatApp.webrtc.options.enableDataChannel)
+                .eql(true);
               done();
-            }).trigger("talkilla.conversation-incoming", incomingCallData);
+            }).trigger("talkilla.conversation-open", callData);
           });
       });
 

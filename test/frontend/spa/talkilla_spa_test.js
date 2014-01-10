@@ -69,7 +69,7 @@ describe("TalkillaSPA", function() {
 
       sinon.assert.calledOnce(spa.port.post);
       sinon.assert.calledWithExactly(
-        spa.port.post, "message", ["a type", "fake event"]);
+        spa.port.post, "a type", "fake event");
     });
 
   });
