@@ -1,4 +1,4 @@
-/*global app*/
+/*global app, Validator*/
 /**
  * Talkilla Backbone views.
  */
@@ -19,7 +19,7 @@
      * @throws {TypeError} If dependency checks fails
      */
     constructor: function(options) {
-      var validator = new app.utils.Validator(this.dependencies);
+      var validator = new Validator(this.dependencies);
       _.extend(this, validator.validate(options || {}));
 
       Backbone.View.apply(this, arguments);

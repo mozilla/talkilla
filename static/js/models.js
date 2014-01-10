@@ -1,4 +1,4 @@
-/*global app */
+/*global app, Validator */
 /**
  * Talkilla models and collections.
  */
@@ -12,7 +12,7 @@
     dependencies: {},
 
     constructor: function(attributes, options) {
-      var validator = new app.utils.Validator(this.dependencies);
+      var validator = new Validator(this.dependencies);
       _.extend(this, validator.validate(options || {}));
 
       Backbone.Model.apply(this, arguments);
@@ -26,7 +26,7 @@
     dependencies: {},
 
     constructor: function(models, options) {
-      var validator = new app.utils.Validator(this.dependencies);
+      var validator = new Validator(this.dependencies);
       _.extend(this, validator.validate(options || {}));
 
       Backbone.Collection.apply(this, arguments);
