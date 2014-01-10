@@ -1,5 +1,5 @@
 /*global chai, sinon, Port, handlers, currentConversation:true, UserData,
-  browserPort:true, tkWorker, Conversation, SPA, spa:true, payloads */
+  browserPort:true, tkWorker, Conversation, SPA, payloads */
 /* jshint expr:true */
 "use strict";
 
@@ -13,7 +13,7 @@ describe('handlers', function() {
     sandbox.stub(window, "SPAPort");
     sandbox.stub(window, "Server");
     sandbox.stub(window, "Worker").returns({postMessage: sinon.spy()});
-    spa = new SPA({src: "example.com"});
+    tkWorker.spa = new SPA({src: "example.com"});
     browserPort = {postEvent: sandbox.spy()};
   });
 
@@ -71,8 +71,8 @@ describe('handlers', function() {
     it("should clear the current conversation on receiving " +
        "social.port-closing for the conversation port", function() {
         currentConversation = new Conversation({
-          capabilities: spa.capabilities,
-          peer: spa,
+          capabilities: tkWorker.spa.capabilities,
+          peer: tkWorker.spa,
           browserPort: browserPort,
           users: tkWorker.users,
           user: tkWorker.user
@@ -195,7 +195,7 @@ describe('handlers', function() {
 
     describe("spa connected", function() {
       beforeEach(function() {
-        spa.connected = true;
+        tkWorker.spa.connected = true;
       });
 
       it("should send the current logged in user's details", function() {
@@ -208,7 +208,7 @@ describe('handlers', function() {
       });
 
       it("should notify the spa is connected", function() {
-        spa.capabilities = ["call"];
+        tkWorker.spa.capabilities = ["call"];
 
         handlers['talkilla.sidebar-ready']({
           topic: "talkilla.sidebar-ready",
@@ -218,7 +218,7 @@ describe('handlers', function() {
         sinon.assert.called(handlers.postEvent);
         sinon.assert.calledWithExactly(handlers.postEvent,
           "talkilla.spa-connected",
-          {capabilities: spa.capabilities}
+          {capabilities: tkWorker.spa.capabilities}
         );
       });
 
@@ -297,13 +297,13 @@ describe('handlers', function() {
 
   describe("talkilla.initiate-move", function() {
     it("should notify the SPA a call moving is initiated", function() {
-      sandbox.stub(spa, "initiateMove");
+      sandbox.stub(tkWorker.spa, "initiateMove");
       var moveMsg = new payloads.Move({peer: "chuck", callid: 42});
 
       handlers["talkilla.initiate-move"]({data: moveMsg});
 
-      sinon.assert.calledOnce(spa.initiateMove);
-      sinon.assert.calledWithExactly(spa.initiateMove, moveMsg);
+      sinon.assert.calledOnce(tkWorker.spa.initiateMove);
+      sinon.assert.calledWithExactly(tkWorker.spa.initiateMove, moveMsg);
     });
   });
 
@@ -312,12 +312,12 @@ describe('handlers', function() {
     it("should forward the message to the SPA", function() {
       var data = {message: "yet another message", peer: "lola"};
       var textMsg = new payloads.SPAChannelMessage(data);
-      sandbox.stub(spa, "sendMessage");
+      sandbox.stub(tkWorker.spa, "sendMessage");
 
       handlers["talkilla.spa-channel-message"]({data: data});
 
-      sinon.assert.calledOnce(spa.sendMessage);
-      sinon.assert.calledWithExactly(spa.sendMessage, textMsg);
+      sinon.assert.calledOnce(tkWorker.spa.sendMessage);
+      sinon.assert.calledWithExactly(tkWorker.spa.sendMessage, textMsg);
     });
 
   });
@@ -327,7 +327,7 @@ describe('handlers', function() {
     it("should send an offer when receiving a talkilla.call-offer event",
       function() {
         tkWorker.user.name = "tom";
-        sandbox.stub(spa, "callOffer");
+        sandbox.stub(tkWorker.spa, "callOffer");
         var offerMsg = new payloads.Offer({
           peer: "tom",
           offer: { sdp: "sdp", type: "type" }
@@ -338,8 +338,8 @@ describe('handlers', function() {
           data: offerMsg
         });
 
-        sinon.assert.calledOnce(spa.callOffer);
-        sinon.assert.calledWithExactly(spa.callOffer, offerMsg);
+        sinon.assert.calledOnce(tkWorker.spa.callOffer);
+        sinon.assert.calledWithExactly(tkWorker.spa.callOffer, offerMsg);
       });
   });
 
@@ -347,7 +347,7 @@ describe('handlers', function() {
     it("should send a websocket message when receiving talkilla.call-answer",
       function() {
         tkWorker.user.name = "fred";
-        sandbox.stub(spa, "callAnswer");
+        sandbox.stub(tkWorker.spa, "callAnswer");
         var answerMsg = new payloads.Answer({
           answer: "fake answer",
           peer: "fred"
@@ -358,9 +358,9 @@ describe('handlers', function() {
           data: answerMsg
         });
 
-        sinon.assert.calledOnce(spa.callAnswer);
+        sinon.assert.calledOnce(tkWorker.spa.callAnswer);
         sinon.assert.calledWithExactly(
-          spa.callAnswer, answerMsg);
+          tkWorker.spa.callAnswer, answerMsg);
       });
   });
 
@@ -373,15 +373,15 @@ describe('handlers', function() {
       function() {
         var hangupMsg = new payloads.Hangup({peer: "florian"});
         tkWorker.user.name = "florian";
-        sandbox.stub(spa, "callHangup");
+        sandbox.stub(tkWorker.spa, "callHangup");
 
         handlers['talkilla.call-hangup']({
           topic: "talkilla.call-hangup",
           data: hangupMsg.toJSON()
         });
 
-        sinon.assert.calledOnce(spa.callHangup);
-        sinon.assert.calledWithExactly(spa.callHangup, hangupMsg);
+        sinon.assert.calledOnce(tkWorker.spa.callHangup);
+        sinon.assert.calledWithExactly(tkWorker.spa.callHangup, hangupMsg);
       });
   });
 
@@ -391,7 +391,7 @@ describe('handlers', function() {
 
     it("should pass the ice candidate to the spa",
       function() {
-        sandbox.stub(spa, "iceCandidate");
+        sandbox.stub(tkWorker.spa, "iceCandidate");
         var iceCandidateMsg = new payloads.IceCandidate({
           peer: "lloyd",
           candidate: "dummy"
@@ -402,22 +402,23 @@ describe('handlers', function() {
           data: iceCandidateMsg
         });
 
-        sinon.assert.calledOnce(spa.iceCandidate);
-        sinon.assert.calledWithExactly(spa.iceCandidate, iceCandidateMsg);
+        sinon.assert.calledOnce(tkWorker.spa.iceCandidate);
+        sinon.assert.calledWithExactly(
+          tkWorker.spa.iceCandidate, iceCandidateMsg);
       });
   });
 
   describe("talkilla.spa-forget-credentials", function() {
 
     it("should make the spa forget credentials", function() {
-      sandbox.stub(spa, "forgetCredentials");
+      sandbox.stub(tkWorker.spa, "forgetCredentials");
       handlers['talkilla.spa-forget-credentials']({
         topic: "talkilla.spa-forget-credentials",
         data: "TalkillaSPA" // XXX: part of the interface but not used
                             // for now.
       });
 
-      sinon.assert.calledOnce(spa.forgetCredentials);
+      sinon.assert.calledOnce(tkWorker.spa.forgetCredentials);
     });
 
   });
