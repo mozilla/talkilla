@@ -154,14 +154,6 @@
       }, this);
     },
 
-    notifyReconnectionSuccess: function() {
-      this.appStatus.set("reconnecting", false);
-      this.appStatus.set("firstReconnection", undefined);
-      // XXX We should only clear reconnection notifications here.
-      this.clear();
-      app.utils.notifyUI("Reconnected to the server.", "success", 2000);
-    },
-
     notifyReconnectionPending: function(event) {
       var timeout = event.timeout;
       var msg = "We lost the connection with the server. " +
@@ -170,6 +162,14 @@
 
       app.utils.notifyUI(msg, "error", timeout);
       console.log(msg);
+    },
+
+    notifyReconnectionSuccess: function() {
+      this.appStatus.set("reconnecting", false);
+      this.appStatus.set("firstReconnection", undefined);
+      // XXX We should only clear reconnection notifications here.
+      this.clear();
+      app.utils.notifyUI("Reconnected to the server.", "success", 2000);
     },
 
     /**
@@ -261,8 +261,9 @@
 
     initialize: function() {
       this.collection.on("reset change", this.render, this);
-      this.appStatus.on("change:reconnecting", function() {
-        this.updateUsersPresence("disconnected");
+      this.appStatus.on("change:reconnecting", function(appStatus) {
+        if (appStatus.get("reconnecting") !== false)
+          this.updateUsersPresence("disconnected");
       }, this);
     },
 
