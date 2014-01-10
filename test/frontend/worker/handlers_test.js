@@ -178,10 +178,12 @@ describe('handlers', function() {
     });
 
     afterEach(function() {
+      tkWorker.initialized = false;
       tkWorker.user.reset();
     });
 
     it("should notify the sidebar the worker is ready", function() {
+      tkWorker.initialized = true;
       handlers['talkilla.sidebar-ready']({
         topic: "talkilla.sidebar-ready",
         data: {}
@@ -193,8 +195,19 @@ describe('handlers', function() {
       );
     });
 
+    it("should not notify the sidebar if the worker is not initialized",
+      function(){
+        handlers['talkilla.sidebar-ready']({
+          topic: "talkilla.sidebar-ready",
+          data: {}
+        });
+
+        sinon.assert.notCalled(handlers.postEvent);
+      });
+
     describe("spa connected", function() {
       beforeEach(function() {
+        tkWorker.initialized = true;
         tkWorker.spa.connected = true;
       });
 
