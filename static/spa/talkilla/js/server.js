@@ -80,7 +80,6 @@ var Server = (function() {
     _longPolling: function(events) {
       events.forEach(function(event) {
         this.trigger("message", event.topic, event.data);
-        this.trigger("message:" + event.topic, event.data);
       }.bind(this));
 
       // XXX Timeout value to depend on LONG_POLLING_TIMEOUT.

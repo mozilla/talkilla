@@ -205,4 +205,22 @@ describe("SPA", function() {
     });
 
   });
+
+  describe("#sendMessage", function() {
+
+    it("should send a message to the spa", function() {
+      var textMsg = new payloads.SPAChannelMessage({
+        message: "some message",
+        peer: "some peer"
+      });
+      spa.sendMessage(textMsg);
+
+      sinon.assert.calledOnce(spa.worker.postMessage);
+      sinon.assert.calledWithExactly(spa.worker.postMessage, {
+        topic: "message",
+        data: textMsg.toJSON()
+      });
+    });
+
+  });
 });

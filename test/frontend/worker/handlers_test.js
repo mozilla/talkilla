@@ -307,6 +307,21 @@ describe('handlers', function() {
     });
   });
 
+  describe("talkilla.spa-channel-message", function() {
+
+    it("should forward the message to the SPA", function() {
+      var data = {message: "yet another message", peer: "lola"};
+      var textMsg = new payloads.SPAChannelMessage(data);
+      sandbox.stub(spa, "sendMessage");
+
+      handlers["talkilla.spa-channel-message"]({data: data});
+
+      sinon.assert.calledOnce(spa.sendMessage);
+      sinon.assert.calledWithExactly(spa.sendMessage, textMsg);
+    });
+
+  });
+
   describe("talkilla.call-offer", function() {
 
     it("should send an offer when receiving a talkilla.call-offer event",
