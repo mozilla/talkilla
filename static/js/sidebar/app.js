@@ -55,7 +55,7 @@ var SidebarApp = (function(app, $) {
     this.appPort.on('talkilla.reauth-needed', this._onReauthNeeded, this);
     this.appPort.on('social.port-closing', this._onSocialPortClosing(), this);
 
-    // Transfer events to the model.
+    // Forward events to the model.
     this.appPort.on("talkilla.server-reconnection", function(event) {
       this.appStatus.ongoingReconnection(event);
     }, this);
