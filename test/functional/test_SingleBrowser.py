@@ -4,7 +4,7 @@
 import mixins
 import unittest
 
-from browser_test import SingleNodeBrowserTest
+from browser_test import SingleNodeBrowserTest, debug_on  # NOQA
 
 
 class SingleBrowserTest(mixins.WithSingleBob, SingleNodeBrowserTest):
