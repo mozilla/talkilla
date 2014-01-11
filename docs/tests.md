@@ -4,7 +4,8 @@ Talkilla Automated Tests
 The Talkilla repository contains various levels of tests:
 
 * Lint tests
-  * These are used to ensure that the code uses the general standards defined in the Coding Style of the (Contributing document)[../CONTRIBUTING.md]
+  * These are used to ensure that the code uses the general standards
+  defined in the Coding Style of the [Contributing document](../CONTRIBUTING.md)
 * Mocha tests
   * These are unit tests to test the Talkilla node.js server
 * Front-end tests
