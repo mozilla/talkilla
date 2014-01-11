@@ -90,12 +90,13 @@ To get full debug output from selenium and Firefox, specify FULL_SELENIUM_DEBUG 
 To debug an intermittently failing test, run an individual test for (e.g.) 20
 runs with logging, and stop in the Python debugger when it fails.
 
+* just above the decl of the test (test_video_call, in this case),
+  add a line with @debug_on()
 ```bash
-# just above the decl of the test (test_video_call, in this case), add a line with @debug_on()
 $ FULL_SELENIUM_DEBUG=1 REPEAT_TEST="test/functional/test_MultipleBrowsers.py MultipleBrowsersTest.test_video_call" REPEAT_TIMES=20 make selenium-repeat
-# debug to your heart's content
-# remove the @debug_on()
 ```
+* debug to your heart's content
+* remove the @debug_on()
 
 Working With Individual Functional Test Files
 ---------------------------------------------
