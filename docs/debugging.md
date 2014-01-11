@@ -74,7 +74,7 @@ There are a couple of known issues:
 
 * It cannot currently be used for debugging the sub-workers e.g. the SPAs
   ([bug 757133](https://bugzilla.mozilla.org/show_bug.cgi?id=757133))
-* There is also a known issue ([bug 958752] (https://bugzilla.mozilla.org/show_bug.cgi?id=958752))where closing and re-opening a panel causes already-set breakpoints not to fire.
+* There is also a known issue ([bug 958752] (https://bugzilla.mozilla.org/show_bug.cgi?id=958752)) where closing and re-opening a panel causes already-set breakpoints not to fire.
   * This bug has the side effect that it's not possible to set breakpoints using the UI in the code that runs while the panel is being setup (eg constructors).  This can be worked around by temporarily adding a "debugger;" command where you need to break.
 
 To use the remote debugger:
