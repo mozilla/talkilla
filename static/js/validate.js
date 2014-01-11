@@ -1,6 +1,13 @@
 (function(exports) {
   "use strict";
 
+  /**
+   * Computes the difference between two arrays.
+   *
+   * @param  {Array} arr1 First array
+   * @param  {Array} arr2 Second array
+   * @return {Array}      Array difference
+   */
   function difference(arr1, arr2) {
     return arr1.filter(function(item) {
       return arr2.indexOf(item) === -1;
@@ -8,13 +15,30 @@
   }
 
   /**
-   * Simple object validator.
+   * Retrieves the type name of an object or constructor. Fallback to "unknown"
+   * when it fails.
+   *
+   * @param  {Object} obj
+   * @return {String}
+   */
+  function typeName(obj) {
+    if (obj === null)
+      return "null";
+    if (typeof obj === "function")
+      return obj.name || obj.toString().match(/^function\s?([^\s(]*)/)[1];
+    if (typeof obj.constructor === "function")
+      return typeName(obj.constructor);
+    return "unknown";
+  }
+
+  /**
+   * Simple typed values validator.
    *
    * @constructor
-   * @param  {Object} rules Rules object
+   * @param  {Object} schema Validation schema
    */
-  function Validator(rules) {
-    this.rules = rules || {};
+  function Validator(schema) {
+    this.schema = schema || {};
   }
 
   Validator.prototype = {
@@ -39,17 +63,13 @@
      * @throws {TypeError}
      */
     _checkRequiredTypes: function(values) {
-      Object.keys(this.rules).forEach(function(name) {
-        var types = this.rules[name];
+      Object.keys(this.schema).forEach(function(name) {
+        var types = this.schema[name];
         types = Array.isArray(types) ? types : [types];
         if (!this._dependencyMatchTypes(values[name], types)) {
-          throw new TypeError(
-            "invalid dependency: " + name + "; expected " +
-            types.map(function(type) {
-              if (type === null)
-                return "null";
-              return type && type.name;
-            }).join(", "));
+          throw new TypeError("invalid dependency: " + name +
+                              "; expected " + types.map(typeName).join(", ") +
+                              ", got " + typeName(values[name]));
         }
       }, this);
     },
@@ -62,10 +82,10 @@
      * @throws {TypeError} If any dependency is missing.
      */
     _checkRequiredProperties: function(values) {
-      var settedValues = Object.keys(values).filter(function(name) {
+      var definedProperties = Object.keys(values).filter(function(name) {
         return typeof values[name] !== "undefined";
       });
-      var diff = difference(Object.keys(this.rules), settedValues);
+      var diff = difference(Object.keys(this.schema), definedProperties);
       if (diff.length > 0)
         throw new TypeError("missing required " + diff.join(", "));
     },

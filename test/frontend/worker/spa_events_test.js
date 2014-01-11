@@ -167,7 +167,12 @@ describe("SPA events", function() {
     it("should create a new conversation object with the call data",
       function() {
       tkWorker.users.set('alice',{});
-      var offerMsg = new payloads.Offer({offer: "fake offer", peer: "alice"});
+      var offerMsg = new payloads.Offer({
+        callid: 42,
+        offer: new mozRTCSessionDescription({}),
+        peer: "alice",
+        upgrade: false
+      });
 
       spa.trigger("offer", offerMsg);
 
@@ -177,8 +182,10 @@ describe("SPA events", function() {
     it("should try to re-use an existing conversation object",
       function() {
         var offerMsg = new payloads.Offer({
-          offer: "fake offer",
-          peer: "alice"
+          callid: 42,
+          offer: new mozRTCSessionDescription({}),
+          peer: "alice",
+          upgrade: false
         });
         currentConversation = new Conversation({
           capabilities: {},
@@ -201,7 +208,7 @@ describe("SPA events", function() {
 
     it("should call callAccepted on the conversation", function () {
       var answerMsg = new payloads.Answer({
-        answer: "fake answer",
+        answer: new mozRTCSessionDescription({}),
         peer: "alice"
       });
 
@@ -226,7 +233,7 @@ describe("SPA events", function() {
     });
 
     it("should call callHangup on the conversation", function() {
-      var hangupMsg = new payloads.Hangup({peer: "bar"});
+      var hangupMsg = new payloads.Hangup({callid: 42, peer: "bar"});
       sandbox.stub(currentConversation, "callHangup");
 
       spa.trigger("hangup", hangupMsg);
@@ -245,7 +252,7 @@ describe("SPA events", function() {
     });
 
     it("should call hold on the conversation", function() {
-      var holdMsg = new payloads.Hold({peer: "bar"});
+      var holdMsg = new payloads.Hold({callid: 42, peer: "bar"});
       sandbox.stub(currentConversation, "hold");
 
       spa.trigger("hold", holdMsg);
@@ -264,7 +271,11 @@ describe("SPA events", function() {
     });
 
     it("should call resume on the conversation", function() {
-      var resumeMsg = new payloads.Resume({peer: "bar", media: {video: true}});
+      var resumeMsg = new payloads.Resume({
+        callid: 42,
+        peer: "bar",
+        media: {video: true}
+      });
       sandbox.stub(currentConversation, "resume");
 
       spa.trigger("resume", resumeMsg);
@@ -287,7 +298,7 @@ describe("SPA events", function() {
 
       var iceCandidateMsg = new payloads.IceCandidate({
         peer: "lloyd",
-        candidate: "dummy"
+        candidate: new mozRTCIceCandidate()
       });
 
       spa.trigger("ice:candidate", iceCandidateMsg);
@@ -311,7 +322,7 @@ describe("SPA events", function() {
       sinon.assert.calledOnce(tkWorker.ports.broadcastEvent);
       sinon.assert.calledWithExactly(tkWorker.ports.broadcastEvent,
                                      "talkilla.move-accept",
-                                     moveAcceptMsg.toJSON());
+                                     moveAcceptMsg);
     });
   });
 

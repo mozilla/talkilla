@@ -29,6 +29,7 @@
 
     // firefox stuff not covered by "browser" option
     "indexedDB": true,
+    "mozRTCIceCandidate": false,
     "mozRTCPeerConnection": false,
     "mozRTCSessionDescription": false,
 

@@ -93,15 +93,22 @@ describe("TalkillaSPA", function() {
 
     it("should send an offer to the server",
       function(done) {
+        var fakeOffer = new mozRTCSessionDescription({});
+
         sandbox.stub(spa.server, "callOffer", function(data) {
-          expect(data.offer).to.equal("fake offer data");
+          expect(data.offer).to.equal(fakeOffer);
           expect(data.peer).to.equal("foo");
 
           done();
         });
         sandbox.stub(spa.port, "post");
 
-        spa.port.trigger("offer", {offer: "fake offer data", peer: "foo"});
+        spa.port.trigger("offer", {
+          callid: 42,
+          offer: fakeOffer,
+          peer: "foo",
+          upgrade: false
+        });
       });
 
   });
@@ -110,17 +117,18 @@ describe("TalkillaSPA", function() {
 
     it("should send an answer to the server",
       function(done) {
-        sandbox.stub(spa.server, "callAccepted",
-          function(answerMsg, callback) {
-            expect(answerMsg.answer).to.equal("fake answer data");
-            expect(answerMsg.peer).to.equal("foo");
+        var fakeAnswer = new mozRTCSessionDescription({});
 
-            done();
-          });
+        sandbox.stub(spa.server, "callAccepted", function(data, callback) {
+          expect(data.answer).to.equal(fakeAnswer);
+          expect(data.peer).to.equal("foo");
+
+          done();
+        });
         sandbox.stub(spa.port, "post");
 
         spa.port.trigger("answer", {
-          answer: "fake answer data",
+          answer: fakeAnswer,
           peer: "foo"
         });
       });
@@ -137,7 +145,7 @@ describe("TalkillaSPA", function() {
         });
         sandbox.stub(spa.port, "post");
 
-        spa.port.trigger("hangup", {peer: "foo"});
+        spa.port.trigger("hangup", {callid: 42, peer: "foo"});
       });
 
   });
@@ -146,9 +154,7 @@ describe("TalkillaSPA", function() {
 
     it("should send an iceCandidate to the server",
       function(done) {
-        var candidate = {
-          candidate: "dummy"
-        };
+        var candidate = new mozRTCIceCandidate();
 
         sandbox.stub(spa.server, "iceCandidate", function(data) {
           expect(data.peer).to.equal("foo");

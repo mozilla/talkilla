@@ -16,8 +16,14 @@ describe('Text chat models', function() {
     };
   }
 
-  var fakeOffer = {type: "offer", sdp: fakeSDP("\nm=video aaa\nm=audio bbb")};
-  var fakeAnswer = {type: "answer", sdp: fakeSDP("\nm=video ccc\nm=audio ddd")};
+  var fakeOffer = new mozRTCSessionDescription({
+    type: "offer",
+    sdp: fakeSDP("\nm=video aaa\nm=audio bbb")
+  });
+  var fakeAnswer = new mozRTCSessionDescription({
+    type: "answer",
+    sdp: fakeSDP("\nm=video ccc\nm=audio ddd")
+  });
   var fakeDataChannel = {fakeDataChannel: true};
 
   beforeEach(function() {
@@ -47,8 +53,8 @@ describe('Text chat models', function() {
 
     // text chat model dependencies
     media = new WebRTC();
-    user = new app.models.User();
-    peer = new app.models.User();
+    user = new app.models.User({username: "yoda"});
+    peer = new app.models.User({username: "obiwan"});
 
     // object creation helper
     createTextChat = function() {
@@ -85,8 +91,8 @@ describe('Text chat models', function() {
       var textChat, offer, answer;
 
       beforeEach(function() {
-        offer = {sdp: "fake", type: "offer"};
-        answer = {sdp: "fake", type: "answer"};
+        offer = new mozRTCSessionDescription({});
+        answer = new mozRTCSessionDescription({});
         textChat = createTextChat();
         textChat.transport = transport;
 
@@ -238,7 +244,7 @@ describe('Text chat models', function() {
         sinon.assert.calledOnce(newFileTransfer);
       });
 
-    it("should append data to a previous started file transfer", function() {
+    it("should append data to a previously started file transfer", function() {
       var transfer = new app.models.FileTransfer({filename: "foo", size: 10});
       var chunk = new ArrayBuffer(22*2);
       var event = {

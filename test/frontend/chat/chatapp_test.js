@@ -24,8 +24,9 @@ describe("ChatApp", function() {
       peerPresence: "connected",
       offer: {
         callid: 2,
-        peer: {username: "alice", presence: "connected"},
-        offer: {type: "answer", sdp: "fake"}
+        peer: "alice",
+        offer: new mozRTCSessionDescription({}),
+        upgrade: false
       },
       user: "bob"
     };
@@ -234,6 +235,15 @@ describe("ChatApp", function() {
     });
 
     describe("#_onIncomingConversation", function() {
+      var constraints = {video: false, audio: true};
+
+      beforeEach(function() {
+        sandbox.stub(WebRTC, "SDP").returns({
+          constraints: constraints,
+          only: function() { return false; }
+        });
+      });
+
       it("should set the peer", function() {
         chatApp._onIncomingConversation(incomingCallData);
 
@@ -319,7 +329,7 @@ describe("ChatApp", function() {
         hangupData = new app.payloads.Hangup({
           peer: "foo",
           callid: 1
-        }).toJSON();
+        });
         chatApp.call.callid = 1;
 
         sandbox.stub(chatApp.call, "hangup");
@@ -373,8 +383,10 @@ describe("ChatApp", function() {
       it("should post an event to the worker when onSendOffer is called",
         function() {
           var offerMsg = new payloads.Offer({
-            offer: "fake offer",
-            peer: "leila"
+            callid: 42,
+            offer: new mozRTCSessionDescription({}),
+            peer: "leila",
+            upgrade: false
           });
           chatApp._onSendOffer(offerMsg);
 
@@ -388,8 +400,8 @@ describe("ChatApp", function() {
       it("should post an event to the worker when onSendAnswer is triggered",
         function() {
           var answerMsg = new payloads.Answer({
-            answer: "fake answer",
-            peer: "lisa"
+            answer: new mozRTCSessionDescription({}),
+            peer: "lisa", // XXX: unsure it shouldn't be an object like in offer
           });
 
           chatApp._onSendAnswer(answerMsg);
@@ -433,6 +445,14 @@ describe("ChatApp", function() {
     });
 
     describe("Events", function() {
+      var constraints = {video: false, audio: true};
+
+      beforeEach(function() {
+        sandbox.stub(WebRTC, "SDP").returns({
+          constraints: constraints,
+          only: function() { return false; }
+        });
+      });
 
       // XXX: Other event listener tests should be migrated to this formalism.
       describe("talkilla.conversation-open", function() {
@@ -462,13 +482,14 @@ describe("ChatApp", function() {
       describe("ice:candidate-ready", function() {
         it("should post a talkilla:ice-candidate message to the worker",
           function() {
+          var candidate = new mozRTCIceCandidate();
           var iceCandidateMsg = new payloads.IceCandidate({
             peer: "lloyd",
-            candidate: "dummy"
+            candidate: candidate
           });
           chatApp.peer.set("username", "lloyd");
 
-          chatApp.webrtc.trigger("ice:candidate-ready", "dummy");
+          chatApp.webrtc.trigger("ice:candidate-ready", candidate);
 
           sinon.assert.called(AppPortStub.post);
           sinon.assert.calledWith(AppPortStub.post,
@@ -519,7 +540,7 @@ describe("ChatApp", function() {
           sinon.assert.called(AppPortStub.post);
           sinon.assert.calledWith(AppPortStub.post,
                                   "talkilla.initiate-move",
-                                  moveMsg.toJSON());
+                                  moveMsg);
         });
       });
 

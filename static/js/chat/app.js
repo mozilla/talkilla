@@ -139,7 +139,7 @@ var ChatApp = (function(app, $, Backbone, _) {
   };
 
   ChatApp.prototype._onInitiateMove = function(moveMsg) {
-    this.appPort.post('talkilla.initiate-move', moveMsg.toJSON());
+    this.appPort.post('talkilla.initiate-move', moveMsg);
   };
 
   ChatApp.prototype._onCallEstablishment = function(data) {
@@ -160,9 +160,13 @@ var ChatApp = (function(app, $, Backbone, _) {
     this.call.set({capabilities: msg.capabilities});
     this.user.set({username: msg.user});
 
-    if (!msg.offer.upgrade)
-      this.peer.set({username: msg.peer.username, fullName: msg.peer.fullName,
-                    presence: msg.peerPresence});
+    if (!msg.offer.upgrade) {
+      this.peer.set({
+        username: msg.peer.username,
+        fullName: msg.peer.fullName,
+        presence: msg.peerPresence
+      });
+    }
 
     // incoming text chat conversation
     if (sdp.only("datachannel"))

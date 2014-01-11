@@ -1,69 +1,63 @@
+/* global Validator */
 /* jshint unused:false */
 
 var payloads = (function() {
   "use strict";
 
   /**
-   * Offer payload.
+   * Data payload. Accepts a values object and a validation schema object,
+   * validates the values against it and attaches validated values as instance
+   * properties.
    *
-   * @param {Object} data
-   *
-   * data attributes:
-   *
-   * - {Integer} callid, the id of the call being initiated
-   * - {String} peer, the user to call
-   * - {mozRTCSessionDescription} offer, a sdp offer
-   *
-   * Optional attributes:
-   *
-   * - {Boolean} textChat, does the call involve text chat?
-   * - {Boolean} upgrade, is the call an upgrade?
-   *
+   * @constructor
+   * @param {Object} values Values object
+   * @param {Object} schema Validation schema
    */
-  function Offer(data) {
-    this.callid   = data.callid;
-    this.peer     = data.peer;
-    this.offer    = data.offer;
+  function Payload(values, schema) {
+    var validatedData = new Validator(schema || {}).validate(values || {});
+    for (var prop in validatedData)
+      this[prop] = validatedData[prop];
   }
 
-  Offer.prototype = {
-    toJSON: function() {
-      return {
-        callid: this.callid,
-        peer: this.peer,
-        offer: this.offer
-      };
-    }
+  /**
+   * Creates a new Payload constructor featuring a given data validation schema.
+   *
+   * @param  {Object} schema Validationn schema
+   * @return {Function} A Payload constructor
+   */
+  Payload.define = function(schema) {
+    var PayloadCtor = function(values) {
+      Payload.call(this, values, schema);
+    };
+    PayloadCtor.prototype = Object.create(Payload.prototype);
+    return PayloadCtor;
   };
+
+  /**
+   * Offer payload.
+   *
+   * - {Integer} callid, the id of the call being initiated
+   * - {String} peer, the username to call
+   * - {mozRTCSessionDescription} offer, a sdp offer
+   * - {Boolean} upgrade, is this a call upgrade
+   */
+  var Offer = Payload.define({
+    callid:  Number,
+    peer:    String,
+    offer:   mozRTCSessionDescription,
+    upgrade: Boolean
+  });
 
   /**
    * Answer payload.
    *
-   * @param {Object} data
-   *
-   * data attributes:
-   *
    * - {String} peer, the user to call
    * - {mozRTCSessionDescription} answer, a sdp answer
-   *
-   * Optional attributes:
-   *
-   * - {Boolean} textChat, does the call involve text chat?
-   *
    */
-  function Answer(data) {
-    this.peer     = data.peer;
-    this.answer   = data.answer;
-  }
-
-  Answer.prototype = {
-    toJSON: function() {
-      return {
-        peer: this.peer,
-        answer: this.answer
-      };
-    }
-  };
+  var Answer = Payload.define({
+    peer:   String,
+    answer: mozRTCSessionDescription
+  });
 
   /**
    * Hangup payload.
@@ -74,91 +68,47 @@ var payloads = (function() {
    *
    * - {Integer} callid, the id of the call being initiated
    * - {String} peer, the user to call
-   *
    */
-  function Hangup(data) {
-    this.callid = data.callid;
-    this.peer = data.peer;
-  }
-
-  Hangup.prototype = {
-    toJSON: function() {
-      return {peer: this.peer, callid: this.callid};
-    }
-  };
+  var Hangup = Payload.define({
+    callid: Number,
+    peer:   String
+  });
 
   /**
    * Move payload.
    *
-   * @param {Object} data
-   *
-   * data attributes:
-   *
    * - {Integer} callid, the id of the call being initiated
    * - {String} peer, the user to call
-   *
    */
-  function Move(data) {
-    this.callid = data.callid;
-    this.peer = data.peer;
-  }
-
-  Move.prototype = {
-    toJSON: function() {
-      return {peer: this.peer, callid: this.callid};
-    }
-  };
+  var Move = Payload.define({
+    callid: Number,
+    peer:   String
+  });
 
   /**
    * Move accept payload.
    *
-   * @param {Object} data
-   *
-   * data attributes:
-   *
    * - {Integer} callid, the id of the call being initiated
    * - {String} peer, the user to call
-   *
    */
-  function MoveAccept(data) {
-    this.callid = data.callid;
-    this.peer = data.peer;
-  }
-
-  MoveAccept.prototype = {
-    toJSON: function() {
-      return {peer: this.peer, callid: this.callid};
-    }
-  };
+  var MoveAccept = Payload.define({
+    callid: Number,
+    peer:   String
+  });
 
   /**
    * Hold payload.
    *
-   * @param {Object} data
-   *
-   * data attributes:
-   *
    * - {Integer} callid, the id of the call being initiated
    * - {String} peer, the user to call
-   *
    */
-  function Hold(data) {
-    this.callid = data.callid;
-    this.peer = data.peer;
-  }
-
-  Hold.prototype = {
-    toJSON: function() {
-      return {peer: this.peer, callid: this.callid};
-    }
-  };
+  var Hold = Payload.define({
+    callid: Number,
+    peer:   String
+  });
 
   /**
    * Resume payload.
-   *
-   * @param {Object} data
-   *
-   * data attributes:
    *
    * - {Integer} callid, the id of the call being initiated
    * - {String} peer, the user to call
@@ -166,73 +116,38 @@ var payloads = (function() {
    *                  is a boolean and should be set to true to
    *                  resume with video
    */
-  function Resume(data) {
-    this.callid = data.callid;
-    this.peer = data.peer;
-    this.media = { video: data.media.video };
-  }
-
-  Resume.prototype = {
-    toJSON: function() {
-      return {peer: this.peer, callid: this.callid, media: {
-        video: this.media.video
-      }};
-    }
-  };
+  var Resume = Payload.define({
+    callid: Number,
+    peer:   String,
+    media:  Object // XXX subvalidation?
+  });
 
   /**
    * IceCandidate payload.
    *
-   * @param {Object} data
-   *
-   * data attributes:
-   *
    * - {String} peer, the user to call
    * - {mozRTCIceCandidate} candidate, an ICE candidate
-   *
    */
-  function IceCandidate(data) {
-    this.peer = data.peer;
-    this.candidate = data.candidate;
-  }
-
-  IceCandidate.prototype = {
-    toJSON: function() {
-      return {
-        peer: this.peer,
-        candidate: this.candidate
-      };
-    }
-  };
+  var IceCandidate = Payload.define({
+    peer:      String,
+    candidate: mozRTCIceCandidate
+  });
 
   /**
    * SPASpec payload. This is an object describing a particular SPA.
    *
-   * @param {Object} data
-   *
-   * data attributes:
-   *
+   * - {String} name, the SPA name
    * - {String} src, the url from which to load the SPA
    * - {Object} credentials, an opaque data structure carrying credentials
-   *
    */
-  function SPASpec(data) {
-    this.name = data.name;
-    this.src = data.src;
-    this.credentials = data.credentials;
-  }
-
-  SPASpec.prototype = {
-    toJSON: function() {
-      return {
-        name: this.name,
-        src: this.src,
-        credentials: this.credentials
-      };
-    }
-  };
+  var SPASpec = Payload.define({
+    name:        String,
+    src:         String,
+    credentials: Object
+  });
 
   return {
+    Payload: Payload,
     Offer: Offer,
     Answer: Answer,
     Hangup: Hangup,

@@ -244,7 +244,7 @@ describe("Server", function() {
     it("should send an ice candidate", function() {
       var iceCandidateMsg = new payloads.IceCandidate({
         peer: "lloyd",
-        candidate: "dummy"
+        candidate: new mozRTCIceCandidate()
       });
       var callback = function() {};
       sandbox.stub(server.http, "post");

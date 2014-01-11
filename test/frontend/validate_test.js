@@ -40,13 +40,13 @@ describe('Validator', function() {
 
     it("should check for required dependency types", function() {
       expect(create({x: Number}, {x: "woops"})).to.Throw(
-        TypeError, /invalid dependency: x; expected Number$/);
+        TypeError, /invalid dependency: x; expected Number, got String$/);
     });
 
     it("should check for a dependency to match at least one of passed types",
       function() {
         expect(create({x: [X, Y]}, {x: 42})).to.Throw(
-          TypeError, /invalid dependency: x; expected X, Y$/);
+          TypeError, /invalid dependency: x; expected X, Y, got Number$/);
         expect(create({x: [X, Y]}, {x: new Y()})).to.not.Throw();
       });
 
@@ -66,13 +66,19 @@ describe('Validator', function() {
     });
 
     it("should check for a custom constructor dependency", function() {
-      expect(create({foo: X}, {foo: "x"})).to.Throw(
-        TypeError, /invalid dependency: foo/);
+      expect(create({foo: X}, {foo: null})).to.Throw(
+        TypeError, /invalid dependency: foo; expected X, got null$/);
+    });
+
+    it("should check for a native constructor dependency", function() {
+      expect(create({foo: mozRTCSessionDescription}, {foo: "x"}))
+        .to.Throw(TypeError,
+                  /invalid dependency: foo; expected mozRTCSessionDescription/);
     });
 
     it("should check for a null dependency", function() {
       expect(create({foo: null}, {foo: "x"})).to.Throw(
-        TypeError, /invalid dependency: foo; expected null$/);
+        TypeError, /invalid dependency: foo; expected null, got String$/);
     });
   });
 });

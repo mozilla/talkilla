@@ -108,7 +108,7 @@ var SPA = (function() {
     },
 
     initiateMove: function(moveMsg) {
-      this._send("initiate-move", moveMsg.toJSON());
+      this._send("initiate-move", moveMsg);
     }
   };
 
