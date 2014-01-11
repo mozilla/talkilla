@@ -593,15 +593,23 @@ TkWorker.prototype = {
    */
   onInitializationComplete: function(port) {
     // Post to the port if specified, else to all ports.
-    var postFunc = port ? 'postEvent' : 'broadcastEvent';
-    var post = port ? port : this.ports;
+    if (port)
+      port.postEvent('talkilla.worker-ready');
+    else
+      this.ports.broadcastEvent('talkilla.worker-ready');
 
-    post[postFunc]('talkilla.worker-ready');
     if (this.spa && this.spa.connected) {
       this.user.send();
-      post[postFunc]("talkilla.spa-connected",
-                     {capabilities: this.spa.capabilities});
-      post[postFunc]('talkilla.users', this.users.toArray());
+      if (port) {
+        port.postEvent("talkilla.spa-connected",
+                       {capabilities: this.spa.capabilities});
+        port.postEvent('talkilla.users', this.users.toArray());
+      }
+      else {
+        this.ports.broadcastEvent("talkilla.spa-connected",
+                                  {capabilities: this.spa.capabilities});
+        this.ports.broadcastEvent('talkilla.users', this.users.toArray());
+      }
     }
   },
 
@@ -655,7 +663,8 @@ TkWorker.prototype = {
   },
 
   /**
-   * Creates the SPA object.
+   * Creates and sets up the SPA object. The SPA is informed to start
+   * its connection but it may not have completed.
    * XXX Assumes there is a single SPA, in future this may change.
    *
    * @param {payloads.SPASpec} spec The SPA specification
@@ -670,15 +679,20 @@ TkWorker.prototype = {
    * Loads the SPA database.
    * XXX Assumes there is a single SPA, in future this may change.
    *
-   * @param {payloads.SPASpec} spec The SPA specification
+   *
+   * @param {Function} callback Callback
+   *
+   * When the callback is involked the parameter is:
+   *
+   * @param {Object} err  Undefined if no error, an error object on error.
    */
-  loadSPAs: function(cb) {
+  loadSPAs: function(callback) {
     this.spaDb.all(function(err, specs) {
       tkWorker.ports.broadcastDebug("loaded specs", specs);
 
       if (err) {
-        if (cb)
-          cb(err);
+        if (callback)
+          callback(err);
         return;
       }
 
@@ -689,8 +703,8 @@ TkWorker.prototype = {
 
       });
 
-      if (cb)
-        cb();
+      if (callback)
+        callback();
     });
   }
 };

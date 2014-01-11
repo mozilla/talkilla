@@ -31,81 +31,90 @@ describe("tkWorker", function() {
   });
 
   describe("#initialize", function() {
-    it("should load the SPAs", function() {
-      sandbox.stub(worker, "loadSPAs");
+    beforeEach(function() {
+      sandbox.stub(worker, "onInitializationComplete");
 
+      sandbox.stub(worker, "loadSPAs", function(callback) {
+        callback();
+      });
+    });
+
+    it("should load the SPAs", function() {
       worker.initialize();
 
       sinon.assert.calledOnce(worker.loadSPAs);
     });
 
     it("should set initialized", function() {
-      sandbox.stub(worker, "loadSPAs", function(cb) {
-        cb();
-      });
-
       worker.initialize();
 
       expect(worker.initialized).to.be.equal(true);
     });
 
-    describe("notify ports", function() {
+    it("should call onInitializationComplete", function() {
+      worker.initialize();
+
+      sinon.assert.calledOnce(worker.onInitializationComplete);
+    });
+
+  });
+
+  describe("#onInitializationComplete", function() {
+    beforeEach(function() {
+      sandbox.stub(worker.ports, "broadcastEvent");
+      sandbox.stub(worker, "loadSPAs", function(callback) {
+        callback();
+      });
+      sandbox.stub(worker.user, "send");
+    });
+
+    it("should send talkilla.worker-ready", function() {
+      worker.initialize();
+
+      sinon.assert.calledOnce(worker.ports.broadcastEvent);
+      sinon.assert.calledWithExactly(worker.ports.broadcastEvent,
+        "talkilla.worker-ready"
+      );
+    });
+
+    describe("spa connected", function() {
       beforeEach(function() {
-        sandbox.stub(worker.ports, "broadcastEvent");
-        sandbox.stub(worker, "loadSPAs", function(cb) {
-          cb();
-        });
-        sandbox.stub(worker.user, "send");
+        sandbox.stub(window, "Worker");
+
+        worker.spa = new SPA({src: "example.com"});
+        worker.spa.connected = true;
       });
 
-      it("should send talkilla.worker-ready", function() {
+      it("should send the current logged in user's details", function() {
         worker.initialize();
 
-        sinon.assert.calledOnce(worker.ports.broadcastEvent);
+        sinon.assert.calledOnce(worker.user.send);
+      });
+
+      it("should notify the spa is connected", function() {
+        worker.spa.capabilities = ["call"];
+
+        worker.initialize();
+
+        sinon.assert.called(worker.ports.broadcastEvent);
         sinon.assert.calledWithExactly(worker.ports.broadcastEvent,
-          "talkilla.worker-ready"
+          "talkilla.spa-connected",
+          {capabilities: worker.spa.capabilities}
         );
       });
 
-      describe("spa connected", function() {
-        beforeEach(function() {
-          sandbox.stub(window, "Worker");
-
-          worker.spa = new SPA({src: "example.com"});
-          worker.spa.connected = true;
-        });
-
-        it("should send the current logged in user's details", function() {
-          worker.initialize();
-
-          sinon.assert.calledOnce(worker.user.send);
-        });
-
-        it("should notify the spa is connected", function() {
-          worker.spa.capabilities = ["call"];
+      it("should notify the sidebar of the list of current users",
+        function() {
+          var fakeUsersList = [1, 2, 3];
+          sandbox.stub(worker.users, "toArray").returns(fakeUsersList);
 
           worker.initialize();
 
           sinon.assert.called(worker.ports.broadcastEvent);
           sinon.assert.calledWithExactly(worker.ports.broadcastEvent,
-            "talkilla.spa-connected",
-            {capabilities: worker.spa.capabilities}
+            "talkilla.users", fakeUsersList
           );
         });
-
-        it("should notify the sidebar of the list of current users",
-          function() {
-            var fakeUsersList = [1, 2, 3];
-            sandbox.stub(worker.users, "toArray").returns(fakeUsersList);
-
-            worker.initialize();
-
-            sinon.assert.called(worker.ports.broadcastEvent);
-            sinon.assert.calledWithExactly(worker.ports.broadcastEvent,
-              "talkilla.users", fakeUsersList
-            );
-          });
-      });
     });
   });
 
