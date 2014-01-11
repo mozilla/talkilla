@@ -172,73 +172,37 @@ describe('handlers', function() {
   describe("talkilla.sidebar-ready", function() {
 
     beforeEach(function() {
-      tkWorker.user = new UserData();
-      handlers.postEvent = sinon.spy();
-      sandbox.stub(tkWorker.user, "send");
+      sandbox.stub(tkWorker, "onInitializationComplete");
     });
 
     afterEach(function() {
+      tkWorker.initialized = false;
       tkWorker.user.reset();
     });
 
-    it("should notify the sidebar the worker is ready", function() {
-      handlers['talkilla.sidebar-ready']({
-        topic: "talkilla.sidebar-ready",
-        data: {}
-      });
-
-      sinon.assert.calledOnce(handlers.postEvent);
-      sinon.assert.calledWithExactly(handlers.postEvent,
-        "talkilla.worker-ready"
-      );
-    });
-
-    describe("spa connected", function() {
-      beforeEach(function() {
-        tkWorker.spa.connected = true;
-      });
-
-      it("should send the current logged in user's details", function() {
+    it("should call onInitializationComplete if the worker is initialized",
+      function() {
+        tkWorker.initialized = true;
         handlers['talkilla.sidebar-ready']({
           topic: "talkilla.sidebar-ready",
           data: {}
         });
 
-        sinon.assert.calledOnce(tkWorker.user.send);
+        sinon.assert.calledOnce(tkWorker.onInitializationComplete);
+        sinon.assert.calledWithExactly(tkWorker.onInitializationComplete,
+          handlers);
       });
 
-      it("should notify the spa is connected", function() {
-        tkWorker.spa.capabilities = ["call"];
-
+    it("should not call onInitializationComplete if the worker is not " +
+      "initialized",
+      function() {
         handlers['talkilla.sidebar-ready']({
           topic: "talkilla.sidebar-ready",
           data: {}
         });
 
-        sinon.assert.called(handlers.postEvent);
-        sinon.assert.calledWithExactly(handlers.postEvent,
-          "talkilla.spa-connected",
-          {capabilities: tkWorker.spa.capabilities}
-        );
+        sinon.assert.notCalled(tkWorker.onInitializationComplete);
       });
-
-      it("should notify the sidebar of the list of current users",
-        function() {
-          var fakeUsersList = [1, 2, 3];
-          sandbox.stub(tkWorker.users, "toArray").returns(fakeUsersList);
-
-          handlers['talkilla.sidebar-ready']({
-            topic: "talkilla.sidebar-ready",
-            data: {}
-          });
-
-          sinon.assert.called(handlers.postEvent);
-          sinon.assert.calledWithExactly(
-            handlers.postEvent, "talkilla.users", fakeUsersList
-          );
-        });
-    });
-
   });
 
   describe("talkilla.spa-enable", function() {
