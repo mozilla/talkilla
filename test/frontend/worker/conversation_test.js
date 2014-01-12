@@ -1,5 +1,5 @@
 /*global expect, sinon, currentConversation:true, browserPort:true,
-  Conversation, SPA, tkWorker */
+  Conversation, SPA, tkWorker, payloads */
 /* jshint expr:true */
 "use strict";
 
@@ -142,7 +142,7 @@ describe("Conversation", function() {
 
         currentConversation.windowOpened(port);
 
-        sinon.assert.calledOnce(port.postEvent);
+        sinon.assert.calledTwice(port.postEvent);
         sinon.assert.calledWith(port.postEvent,
           "talkilla.conversation-incoming", {
           capabilities: [],
@@ -181,7 +181,7 @@ describe("Conversation", function() {
         // fails
         currentConversation.windowOpened(port);
 
-        sinon.assert.calledOnce(port.postEvent);
+        sinon.assert.calledTwice(port.postEvent);
         sinon.assert.calledWith(port.postEvent,
           "talkilla.conversation-incoming", {
           capabilities: [],
@@ -348,6 +348,39 @@ describe("Conversation", function() {
           user: tkWorker.user.name
         });
     });
+  });
+
+  describe("#handleIncomingText", function() {
+
+    beforeEach(function() {
+      currentConversation = new Conversation({
+        capabilities: {},
+        peer: {username: "lola"},
+        browserPort: browserPort,
+        users: tkWorker.users,
+        user: tkWorker.user
+      });
+      currentConversation.port = {
+        postEvent: sandbox.spy()
+      };
+    });
+
+    it("should foward a message to the conversation", function() {
+      var textMsg = new payloads.SPAChannelMessage({
+        message: "yamessage",
+        type: "",
+        peer: "lola"
+      });
+      currentConversation.handleIncomingText(textMsg);
+
+      sinon.assert.calledOnce(currentConversation.port.postEvent);
+      sinon.assert.calledWithExactly(
+        currentConversation.port.postEvent,
+        "talkilla.spa-channel-message", {
+          message: "yamessage"
+        });
+    });
+
   });
 
   describe("#callAccepted", function() {

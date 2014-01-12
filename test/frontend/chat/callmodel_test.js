@@ -6,6 +6,8 @@ var expect = chai.expect;
 
 describe("Call Model", function() {
   var sandbox, call, media, peer, callData, constraints;
+  var fakeOffer = {fakeOffer: true};
+  var fakeAnswer = {fakeAnswer: true};
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
@@ -29,7 +31,7 @@ describe("Call Model", function() {
     call = new app.models.Call({}, {media: media, peer: peer});
 
     callData = new app.payloads.Offer({
-      offer: new mozRTCSessionDescription({}),
+      offer: fakeOffer,
       callid: 2,
       peer: "bob",
       upgrade: false
@@ -111,8 +113,6 @@ describe("Call Model", function() {
     });
 
     describe("send-offer", function() {
-      var fakeOffer = new mozRTCSessionDescription({});
-
       beforeEach(function() {
         call.media = _.extend(media, Backbone.Events);
         peer.set("username", "larry");
@@ -163,8 +163,6 @@ describe("Call Model", function() {
     });
 
     describe("send-offer", function() {
-      var fakeOffer = new mozRTCSessionDescription({});
-
       beforeEach(function() {
         call.media = _.extend(media, Backbone.Events);
         peer.set("username", "larry");
@@ -238,7 +236,6 @@ describe("Call Model", function() {
       function(done) {
         call.media = _.extend(media, Backbone.Events);
         peer.set("username", "larry");
-        var fakeAnswer = new mozRTCSessionDescription({});
 
         call.once("send-answer", function(data) {
           expect(data.answer).to.deep.equal(fakeAnswer);
@@ -491,25 +488,6 @@ describe("Call Model", function() {
       call.set('currentConstraints', {video: false, audio: true});
 
       expect(call.requiresVideo()).to.equal(false);
-    });
-  });
-
-  describe("#supports", function() {
-    it("should check that an SPA supports a single capability", function() {
-      call.set('capabilities', ["move", "call"]);
-      expect(call.supports("move")).eql(true);
-      expect(call.supports("call")).eql(true);
-    });
-
-    it("should check that an SPA supports multiple capabilities", function() {
-      call.set('capabilities', ["move", "call"]);
-      expect(call.supports("move", "call")).eql(true);
-    });
-
-    it("should check that an SPA doesn't support some capabilities",
-       function() {
-      call.set('capabilities', ["move", "call"]);
-      expect(call.supports("move", "bar")).eql(false);
     });
   });
 });

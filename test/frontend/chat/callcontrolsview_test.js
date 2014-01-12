@@ -4,7 +4,7 @@
 var expect = chai.expect;
 
 describe("Call Controls View", function() {
-  var sandbox, call, media, el;
+  var sandbox, call, media, spa, el;
 
   beforeEach(function() {
     el = $('<ul>' +
@@ -33,6 +33,7 @@ describe("Call Controls View", function() {
     });
     var user = new app.models.User({username: "foo"});
     call = new app.models.Call({}, {peer: user, media: media});
+    spa = new app.models.SPA({});
   });
 
   afterEach(function() {
@@ -43,6 +44,7 @@ describe("Call Controls View", function() {
   });
 
   describe("#initialize", function() {
+
     describe("attach call states", function() {
       var callControlsView;
 
@@ -51,7 +53,8 @@ describe("Call Controls View", function() {
         callControlsView = new app.views.CallControlsView({
           el: 'fakeDom',
           call: call,
-          media: media
+          media: media,
+          spa: spa
         });
       });
 
@@ -97,7 +100,8 @@ describe("Call Controls View", function() {
         call: new app.models.Call({}, {
           media: media,
           peer: new app.models.User({username: "paul"})
-        })
+        }),
+        spa: spa
       });
     });
 
@@ -141,7 +145,8 @@ describe("Call Controls View", function() {
       callControlsView = new app.views.CallControlsView({
         el: $("#fixtures"),
         call: call,
-        media: media
+        media: media,
+        spa: spa
       });
 
       fakeClickEvent = {preventDefault: sandbox.spy()};
@@ -257,7 +262,8 @@ describe("Call Controls View", function() {
       callControlsView = new app.views.CallControlsView({
         el: el,
         call: call,
-        media: media
+        media: media,
+        spa: spa
       });
     });
 
@@ -350,7 +356,8 @@ describe("Call Controls View", function() {
         function() {
           var $button = callControlsView.$(".btn-call-move").hide();
 
-          call.set("capabilities", ["move"]).trigger("state:to:ongoing");
+          spa.set("capabilities", ["move"]);
+          call.trigger("state:to:ongoing");
 
           expect($button.is(":visible")).eql(true);
         });
@@ -359,7 +366,8 @@ describe("Call Controls View", function() {
         function() {
           var $button = callControlsView.$(".btn-call-move").hide();
 
-          call.set("capabilities", []).trigger("state:to:ongoing");
+          spa.set("capabilities", []);
+          call.trigger("state:to:ongoing");
 
           expect($button.is(":visible")).eql(false);
         });

@@ -52,7 +52,7 @@ describe("SPA", function() {
     describe("events", function() {
       describe("ice:candidate", function() {
         it("should trigger an ice:candidate event", function(done) {
-          var candidate = new mozRTCIceCandidate();
+          var candidate = {fakeCandidate: true};
 
           spa.on("ice:candidate", function(data) {
             expect(data.peer).to.equal("lloyd");
@@ -113,7 +113,7 @@ describe("SPA", function() {
     it("should send a call:offer event to the worker", function() {
       var offerMsg = new payloads.Offer({
         callid: 42,
-        offer: new mozRTCSessionDescription({}),
+        offer: {fakeOffer: true},
         peer: "lucy",
         upgrade: false
       });
@@ -134,7 +134,7 @@ describe("SPA", function() {
     it("should send a answer event to the worker", function() {
       var answerMsg = new payloads.Answer({
         callid: 42,
-        answer: new mozRTCSessionDescription({}),
+        answer: {fakeAnswer: true},
         peer: "lisa"
       });
 
@@ -210,6 +210,25 @@ describe("SPA", function() {
       spa.forgetCredentials();
 
       expect(spa.connected).to.equal(false);
+    });
+
+  });
+
+  describe("#sendMessage", function() {
+
+    it("should send a message to the spa", function() {
+      var textMsg = new payloads.SPAChannelMessage({
+        type: "message",
+        message: "some message",
+        peer: "some peer"
+      });
+      spa.sendMessage(textMsg);
+
+      sinon.assert.calledOnce(spa.worker.postMessage);
+      sinon.assert.calledWithExactly(spa.worker.postMessage, {
+        topic: "message",
+        data: textMsg
+      });
     });
 
   });

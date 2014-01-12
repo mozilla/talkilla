@@ -1,4 +1,4 @@
-/*global app, StateMachine, tnetbin, WebRTC */
+/*global app, StateMachine, tnetbin, WebRTC, SPAChannel */
 /**
  * ChatApp models and collections.
  */
@@ -291,15 +291,6 @@
      */
     requiresVideo: function() {
       return this.get('currentConstraints').video;
-    },
-
-    /**
-     * Checks if the passed capabilities are all supported by the Call SPA.
-     * @return {Boolean}
-     */
-    supports: function() {
-      return arguments.length === _.intersection(
-        arguments, this.get("capabilities")).length;
     }
   });
 
@@ -499,6 +490,16 @@
 
       this.on('add', this._onTextChatEntryCreated, this);
       this.on('add', this._onFileTransferCreated, this);
+      this.on('transport', this.setTransport, this);
+      this.media.on('transport-created', this.trigger.bind(this, "transport"));
+    },
+
+    setTransport: function(transport) {
+      this.transport = transport;
+      this.transport.on('message', this._onMessage, this);
+      this.transport.on('close', function() {
+        this.transport = undefined;
+      }.bind(this));
     },
 
     initiate: function(constraints) {
@@ -511,11 +512,6 @@
         }));
       }, this);
 
-      this.transport = this.media.createDataChannel();
-      this.transport.on('message', this._onMessage, this);
-      this.transport.on('close', function() {
-        this.terminate().reset();
-      }.bind(this));
       this.media.initiate(constraints);
     },
 
@@ -527,11 +523,6 @@
         }));
       }, this);
 
-      this.transport = this.media.createDataChannel();
-      this.transport.on('message', this._onMessage, this);
-      this.transport.on('close', function() {
-        this.terminate().reset();
-      }.bind(this));
       this.media.answer(offer);
     },
 
@@ -545,20 +536,19 @@
      * @param  {Object} entry
      */
     send: function(entry) {
-      if (this.media.state.current === "ongoing")
-        return this.transport.send(entry);
-
-      if (this.media.state.current !== "pending")
+      if (!(this.transport instanceof SPAChannel) &&
+          this.media.state.current === "ready")
         this.initiate({video: false, audio: false});
 
-      this.transport.once("ready", function() {
-        this.send(entry);
-      });
+      this.transport.send(entry);
     },
 
     notifyTyping: function() {
-      if (!this.length || this.media.state.current !== "ongoing")
+      if (!this.length ||
+          !(this.transport instanceof SPAChannel) &&
+          this.media.state.current !== "ongoing")
         return;
+
       this.transport.send({
         type: "chat:typing",
         message: { username: this.user.get("username") }

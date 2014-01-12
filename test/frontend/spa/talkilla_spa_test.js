@@ -5,6 +5,9 @@
 describe("TalkillaSPA", function() {
   var sandbox, port, server, spa;
 
+  var fakeOffer = {fakeOffer: true};
+  var fakeAnswer = {fakeAnswer: true};
+
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
     port = new SPAPort();
@@ -69,7 +72,7 @@ describe("TalkillaSPA", function() {
 
       sinon.assert.calledOnce(spa.port.post);
       sinon.assert.calledWithExactly(
-        spa.port.post, "message", ["a type", "fake event"]);
+        spa.port.post, "a type", "fake event");
     });
 
   });
@@ -93,8 +96,6 @@ describe("TalkillaSPA", function() {
 
     it("should send an offer to the server",
       function(done) {
-        var fakeOffer = new mozRTCSessionDescription({});
-
         sandbox.stub(spa.server, "callOffer", function(data) {
           expect(data.offer).to.equal(fakeOffer);
           expect(data.peer).to.equal("foo");
@@ -117,8 +118,6 @@ describe("TalkillaSPA", function() {
 
     it("should send an answer to the server",
       function(done) {
-        var fakeAnswer = new mozRTCSessionDescription({});
-
         sandbox.stub(spa.server, "callAccepted", function(data, callback) {
           expect(data.answer).to.equal(fakeAnswer);
           expect(data.peer).to.equal("foo");
@@ -154,7 +153,7 @@ describe("TalkillaSPA", function() {
 
     it("should send an iceCandidate to the server",
       function(done) {
-        var candidate = new mozRTCIceCandidate();
+        var candidate = {fakeCandidate: true};
 
         sandbox.stub(spa.server, "iceCandidate", function(data) {
           expect(data.peer).to.equal("foo");

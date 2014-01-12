@@ -1,4 +1,4 @@
-/*global app, chai, ChatApp, sinon, WebRTC, payloads */
+/*global app, chai, ChatApp, sinon, WebRTC, payloads, SPAChannel */
 /* jshint expr:true */
 "use strict";
 
@@ -14,6 +14,7 @@ describe("ChatApp", function() {
   var fakeOffer = {type: "offer", sdp: "\nm=video aaa\nm=audio bbb"};
   var fakeAnswer = {type: "answer", sdp: "\nm=video ccc\nm=audio ddd"};
   var fakeDataChannel = {fakeDataChannel: true};
+  var _onWindowClose = ChatApp.prototype._onWindowClose;
 
   beforeEach(function() {
     AppPortStub = _.extend({post: sinon.spy()}, Backbone.Events);
@@ -25,11 +26,12 @@ describe("ChatApp", function() {
       offer: {
         callid: 2,
         peer: "alice",
-        offer: new mozRTCSessionDescription({}),
+        offer: fakeOffer,
         upgrade: false
       },
       user: "bob"
     };
+
     sandbox = sinon.sandbox.create();
     sandbox.stub(window, "AppPort").returns(AppPortStub);
     sandbox.stub(window, "Audio").returns({
@@ -61,6 +63,9 @@ describe("ChatApp", function() {
 
     // This stops us changing the document's title unnecessarily
     sandbox.stub(app.views.ConversationView.prototype, "initialize");
+
+    // prevent created ChatApp instances to perform hangups on window unload
+    sandbox.stub(ChatApp.prototype, "_onWindowClose");
   });
 
   afterEach(function() {
@@ -232,38 +237,24 @@ describe("ChatApp", function() {
 
         sinon.assert.calledWith(chatApp.peer.trigger, "change:presence");
       });
+
+      it("should set the textchat transport if datachannel is not supported",
+        function() {
+          sandbox.stub(chatApp.spa, "supports").returns(true);
+
+          chatApp._onConversationOpen(callData);
+
+          expect(chatApp.textChat.transport).to.be.an.instanceOf(SPAChannel);
+        });
     });
 
     describe("#_onIncomingConversation", function() {
-      var constraints = {video: false, audio: true};
 
       beforeEach(function() {
         sandbox.stub(WebRTC, "SDP").returns({
-          constraints: constraints,
+          constraints: {audio: true, video: true},
           only: function() { return false; }
         });
-      });
-
-      it("should set the peer", function() {
-        chatApp._onIncomingConversation(incomingCallData);
-
-        expect(chatApp.peer.get("username"))
-          .to.equal(incomingCallData.peer.username);
-      });
-
-      it("should set peer's presence", function() {
-        chatApp._onIncomingConversation(incomingCallData);
-
-        expect(chatApp.peer.get("presence")).eql(incomingCallData.peerPresence);
-      });
-
-      it("should not set the peer if upgrading a call", function() {
-        incomingCallData.offer.upgrade = true;
-
-        chatApp.peer.set({username: "bob"});
-        chatApp._onIncomingConversation(incomingCallData);
-
-        expect(chatApp.peer.get("username")).to.equal("bob");
       });
 
       it("should set the call as incoming", function() {
@@ -281,6 +272,24 @@ describe("ChatApp", function() {
 
         sinon.assert.calledOnce(chatApp.audioLibrary.play);
         sinon.assert.calledWithExactly(chatApp.audioLibrary.play, "incoming");
+      });
+    });
+
+    describe("#_onIncomingTextConversation", function() {
+      var msg = {message: "some message"};
+
+      it("should set transport", function() {
+        chatApp._onIncomingTextConversation(msg);
+
+        expect(chatApp.textChat.transport).to.be.an.instanceOf(SPAChannel);
+      });
+
+      it("should forward the event to the transport", function() {
+        sandbox.stub(SPAChannel.prototype, "trigger");
+        chatApp._onIncomingTextConversation(msg);
+        sinon.assert.calledOnce(chatApp.textChat.transport.trigger);
+        sinon.assert.calledWithExactly(
+          chatApp.textChat.transport.trigger, "message", msg.message);
       });
     });
 
@@ -384,7 +393,7 @@ describe("ChatApp", function() {
         function() {
           var offerMsg = new payloads.Offer({
             callid: 42,
-            offer: new mozRTCSessionDescription({}),
+            offer: fakeOffer,
             peer: "leila",
             upgrade: false
           });
@@ -400,7 +409,7 @@ describe("ChatApp", function() {
       it("should post an event to the worker when onSendAnswer is triggered",
         function() {
           var answerMsg = new payloads.Answer({
-            answer: new mozRTCSessionDescription({}),
+            answer: fakeAnswer,
             peer: "lisa", // XXX: unsure it shouldn't be an object like in offer
           });
 
@@ -452,6 +461,8 @@ describe("ChatApp", function() {
           constraints: constraints,
           only: function() { return false; }
         });
+
+        chatApp.peer.set({username: "chubaka"});
       });
 
       // XXX: Other event listener tests should be migrated to this formalism.
@@ -460,22 +471,20 @@ describe("ChatApp", function() {
           function(done) {
             var chatApp = new ChatApp();
             chatApp.appPort.on("talkilla.conversation-open", function() {
-              expect(chatApp.call.get("capabilities"))
+              expect(chatApp.spa.get("capabilities"))
                 .eql(callData.capabilities);
               done();
             }).trigger("talkilla.conversation-open", callData);
           });
-      });
 
-      describe("talkilla.conversation-incoming", function() {
-        it("should set SPA capabilities from incoming conversation context",
+        it("should set enableDataChannel based on the SPA capabilities",
           function(done) {
             var chatApp = new ChatApp();
-            chatApp.appPort.on("talkilla.conversation-incoming", function() {
-              expect(chatApp.call.get("capabilities"))
-                .eql(incomingCallData.capabilities);
+            chatApp.appPort.on("talkilla.conversation-open", function() {
+              expect(chatApp.webrtc.options.enableDataChannel)
+                .eql(true);
               done();
-            }).trigger("talkilla.conversation-incoming", incomingCallData);
+            }).trigger("talkilla.conversation-open", callData);
           });
       });
 
@@ -514,16 +523,24 @@ describe("ChatApp", function() {
       });
 
       describe("unload", function() {
-        it("should hangup the call", function() {
-          sandbox.stub(chatApp.call, "hangup");
+        var chatApp;
 
+        beforeEach(function() {
+          // XXX: for some weird reason ChatApp.prototype._onWindowClose.reset()
+          //      doesn't work here, restoring manually
+          ChatApp.prototype._onWindowClose = _onWindowClose;
+          chatApp = new ChatApp();
+          sandbox.stub(chatApp.call, "hangup");
+        });
+
+        it("should hangup the call", function() {
           var unloadEvent = document.createEvent("Event");
           unloadEvent.initEvent("unload", false, false);
 
           window.dispatchEvent(unloadEvent);
 
           sinon.assert.called(chatApp.call.hangup);
-          sinon.assert.calledWith(chatApp.call.hangup);
+          sinon.assert.calledWithExactly(chatApp.call.hangup, true);
         });
       });
 

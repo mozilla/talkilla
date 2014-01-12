@@ -1,7 +1,7 @@
 /* global Validator */
 /* jshint unused:false */
 
-var payloads = (function() {
+var payloads = (function(root) {
   "use strict";
 
   /**
@@ -44,7 +44,7 @@ var payloads = (function() {
   var Offer = Payload.define({
     callid:  Number,
     peer:    String,
-    offer:   mozRTCSessionDescription,
+    offer:   Object,
     upgrade: Boolean
   });
 
@@ -56,7 +56,7 @@ var payloads = (function() {
    */
   var Answer = Payload.define({
     peer:   String,
-    answer: mozRTCSessionDescription
+    answer: Object
   });
 
   /**
@@ -119,7 +119,7 @@ var payloads = (function() {
   var Resume = Payload.define({
     callid: Number,
     peer:   String,
-    media:  Object // XXX subvalidation?
+    media:  Object
   });
 
   /**
@@ -130,7 +130,7 @@ var payloads = (function() {
    */
   var IceCandidate = Payload.define({
     peer:      String,
-    candidate: mozRTCIceCandidate
+    candidate: Object
   });
 
   /**
@@ -146,6 +146,20 @@ var payloads = (function() {
     credentials: Object
   });
 
+  /**
+   * SPAChannelMessage payload. Arbitrary message sent through the SPA.
+   *
+   * - {String} peer, the user to call
+   * - {String} type, the type of the message
+   * - {Object|String} message, a message or an opaque data structure carrying
+   *                            specific attributes of the message
+   */
+  var SPAChannelMessage = Payload.define({
+    peer:    String,
+    type:    String,
+    message: [Object, String]
+  });
+
   return {
     Payload: Payload,
     Offer: Offer,
@@ -156,6 +170,7 @@ var payloads = (function() {
     IceCandidate: IceCandidate,
     SPASpec: SPASpec,
     Move: Move,
-    MoveAccept: MoveAccept
+    MoveAccept: MoveAccept,
+    SPAChannelMessage: SPAChannelMessage
   };
-})();
+})(this);

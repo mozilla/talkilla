@@ -10,12 +10,18 @@
    *
    * Options are:
    * - {Boolean} forceFake:  Forces fake media streams (default: false)
+   * - {Boolean} enableDataChannel: Set to true to enable the data channel; may
+   *                                be set after construction but only affects
+   *                                new peer connections after it is set
+   *                                (default: false)
    *
    * @param {Object}                   options  Options
    */
   function WebRTC(options) {
     // pc is for "peer connection"
     this.pc = undefined;
+    // dc is for "data channel"
+    this.dc = undefined;
     this._constraints = {};
     this.options = options || {};
 
@@ -118,10 +124,8 @@
    * @public
    */
   WebRTC.prototype.initiate = function(constraints) {
-    if (this.pc === undefined || this.pc.signalingState === 'closed')
-      this.pc = new mozRTCPeerConnection();
     this.state.initiate();
-    this._setupPeerConnection(this.pc);
+    this._setupPeerConnection();
     this.constraints = constraints;
 
     if (!this.constraints.video && !this.constraints.audio)
@@ -161,9 +165,6 @@
         this.initiate(constraints);
     }).terminate();
 
-    // force state to pending as we're actually waiting for pc reinitiation
-    this.state.current = "pending";
-
     return this;
   };
 
@@ -194,10 +195,8 @@
    * @public
    */
   WebRTC.prototype.answer = function(offer) {
-    if (this.pc === undefined || this.pc.signalingState === 'closed')
-      this.pc = new mozRTCPeerConnection();
     this.state.answer();
-    this._setupPeerConnection(this.pc);
+    this._setupPeerConnection();
     this.constraints = new WebRTC.SDP(offer.sdp).constraints;
 
     if (!this.constraints.video && !this.constraints.audio)
@@ -316,9 +315,17 @@
    * @private
    */
   WebRTC.prototype._createAnswer = function() {
+    var constraints = {};
+    if (!this.options.enableDataChannel) {
+      constraints.mandatory = {
+        "MozDontOfferDataChannel": true
+      };
+    }
+
     this.pc.createAnswer(
       this._setAnswerDescription.bind(this),
-      this._handleError.bind(this, 'Unable to create answer')
+      this._handleError.bind(this, 'Unable to create answer'),
+      constraints
     );
 
     return this;
@@ -330,9 +337,17 @@
    * @private
    */
   WebRTC.prototype._createOffer = function() {
+    var constraints = {};
+    if (!this.options.enableDataChannel) {
+      constraints.mandatory = {
+        "MozDontOfferDataChannel": true
+      };
+    }
+
     this.pc.createOffer(
       this._setOfferDescription.bind(this),
-      this._handleError.bind(this, 'Unable to create offer')
+      this._handleError.bind(this, 'Unable to create offer'),
+      constraints
     );
 
     return this;
@@ -511,26 +526,32 @@
    *
    * @param {RTCPeerConnection} pc
    */
-  WebRTC.prototype._setupPeerConnection = function(pc) {
-    pc.onaddstream = this._onAddStream.bind(this);
-    pc.ondatachannel = this._onDataChannel.bind(this);
-    pc.onicecandidate = this._onIceCandidate.bind(this);
-    pc.oniceconnectionstatechange =
+  WebRTC.prototype._setupPeerConnection = function() {
+    this.pc = new mozRTCPeerConnection();
+    if (this.options.enableDataChannel) {
+      this.dc = this.pc.createDataChannel('dc', {
+        // We set up a pre-negotiated channel with a specific id, this
+        // way we know exactly which channel we're expecting to communicate
+        // with.
+        id: 0,
+        negotiated: true
+      });
+
+      this.trigger("transport-created", new WebRTC.DataChannel(this.dc));
+    }
+
+    this.pc.onaddstream = this._onAddStream.bind(this);
+    this.pc.ondatachannel = this._onDataChannel.bind(this);
+    this.pc.onicecandidate = this._onIceCandidate.bind(this);
+    this.pc.oniceconnectionstatechange =
       this._onIceConnectionStateChange.bind(this);
-    pc.onremovestream = this._onRemoveStream.bind(this);
-    pc.onsignalingstatechange = this._onSignalingStateChange.bind(this);
+    this.pc.onremovestream = this._onRemoveStream.bind(this);
+    this.pc.onsignalingstatechange = this._onSignalingStateChange.bind(this);
   };
 
-  WebRTC.prototype.createDataChannel = function() {
-    if (this.pc === undefined || this.pc.signalingState === 'closed')
-      this.pc = new mozRTCPeerConnection();
-    return new WebRTC.DataChannel(this.pc);
-  };
-
-  WebRTC.DataChannel = function DataChannel(pc) {
-    // XXX: verify if pc is undefined
-    // dc is for "data channel"
-    this.dc = this._setupDataChannel(pc, 0);
+  WebRTC.DataChannel = function DataChannel(dc) {
+    this.dc = this._setupDataChannel(dc);
+    this.queue = [];
   };
 
   _.extend(WebRTC.DataChannel.prototype, Backbone.Events);
@@ -541,16 +562,8 @@
    * @param {RTCPeerConnection} pc
    * @param {short}             id of the data channel to create
    */
-  WebRTC.DataChannel.prototype._setupDataChannel = function(pc, id) {
-    var dc = pc.createDataChannel('dc', {
-      // We set up a pre-negotiated channel with a specific id, this
-      // way we know exactly which channel we're expecting to communicate
-      // with.
-      id: id,
-      negotiated: true
-    });
-
-    dc.onopen  = this.trigger.bind(this, "ready", this);
+  WebRTC.DataChannel.prototype._setupDataChannel = function(dc) {
+    dc.onopen  = this._onOpen.bind(this);
     dc.onerror = this.trigger.bind(this, "error");
     dc.onclose = this.trigger.bind(this, "close");
     dc.onmessage = function(event) {
@@ -562,14 +575,29 @@
   };
 
   /**
-   * Sends data over data channel.
-   * @param  {Object} data
+   * onopen handler. It flushes all the queued messaged to the
+   * datachannel.
+   */
+  WebRTC.DataChannel.prototype._onOpen = function() {
+    this.queue.forEach(function(message) {
+      this.send(message);
+    }.bind(this));
+
+    this.queue = [];
+  };
+
+  /**
+   * Sends a message over data channel.
+   * @param  {Object} message
    * @public
    */
-  WebRTC.DataChannel.prototype.send = function(data) {
-    data = tnetbin.encode(data);
+  WebRTC.DataChannel.prototype.send = function(message) {
+    if (this.dc.readyState !== "open")
+      return this.queue.push(message);
+
+    message = tnetbin.encode(message);
     try {
-      this.dc.send(data);
+      this.dc.send(message);
     } catch(err) {
       return this.dc.onerror(err);
     }

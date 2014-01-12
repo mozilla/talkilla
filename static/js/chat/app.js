@@ -1,4 +1,4 @@
-/*global app, AppPort, WebRTC*/
+/*global app, AppPort, WebRTC, SPAChannel */
 /* jshint unused: false */
 /**
  * Talkilla application.
@@ -10,6 +10,7 @@ var ChatApp = (function(app, $, Backbone, _) {
     this.appPort = new AppPort();
     this.user = new app.models.User();
     this.peer = new app.models.User();
+    this.spa = new app.models.SPA();
 
     // Audio library
     this.audioLibrary = new app.utils.AudioLibrary({
@@ -34,6 +35,7 @@ var ChatApp = (function(app, $, Backbone, _) {
     this.callControlsView = new app.views.CallControlsView({
       call: this.call,
       media: this.webrtc,
+      spa: this.spa,
       el: $("#call-controls")
     });
 
@@ -94,6 +96,8 @@ var ChatApp = (function(app, $, Backbone, _) {
     this.appPort.on('talkilla.move-accept', this._onMoveAccept, this);
     this.appPort.on('talkilla.hold', this._onHold, this);
     this.appPort.on('talkilla.resume', this._onResume, this);
+    this.appPort.once('talkilla.spa-channel-message',
+                      this._onIncomingTextConversation, this);
 
     // Outgoing events
     this.call.on('send-offer', this._onSendOffer, this);
@@ -123,7 +127,8 @@ var ChatApp = (function(app, $, Backbone, _) {
    * @param {Object} msg Conversation msg object.
    */
   ChatApp.prototype._onConversationOpen = function(msg) {
-    this.call.set({capabilities: msg.capabilities});
+    this.spa.set({capabilities: msg.capabilities});
+    this.webrtc.options.enableDataChannel = !this.spa.supports("spachannel");
     this.user.set({username: msg.user});
 
     this.peer.set({username: msg.peer.username, presence: msg.peerPresence,
@@ -132,6 +137,10 @@ var ChatApp = (function(app, $, Backbone, _) {
               // force triggering change event
              .trigger('change:username', this.peer)
              .trigger('change:presence', this.peer);
+
+    if (this.spa.supports("spachannel"))
+      this.textChat.setTransport(
+        new SPAChannel(this.appPort, this.peer.get("username")));
   };
 
   ChatApp.prototype._onCallAccepted = function() {
@@ -157,17 +166,6 @@ var ChatApp = (function(app, $, Backbone, _) {
   ChatApp.prototype._onIncomingConversation = function(msg) {
     var sdp = new WebRTC.SDP(msg.offer.offer.sdp);
 
-    this.call.set({capabilities: msg.capabilities});
-    this.user.set({username: msg.user});
-
-    if (!msg.offer.upgrade) {
-      this.peer.set({
-        username: msg.peer.username,
-        fullName: msg.peer.fullName,
-        presence: msg.peerPresence
-      });
-    }
-
     // incoming text chat conversation
     if (sdp.only("datachannel"))
       return this.textChat.answer(msg.offer.offer);
@@ -175,6 +173,13 @@ var ChatApp = (function(app, $, Backbone, _) {
     // incoming video/audio call
     this.call.incoming(new app.payloads.Offer(msg.offer));
     this.audioLibrary.play('incoming');
+  };
+
+  ChatApp.prototype._onIncomingTextConversation = function(msg) {
+    var peer = this.peer.get("username");
+    this.textChat.setTransport(new SPAChannel(this.appPort, peer));
+    // Forward the message to the newly created transport
+    this.textChat.transport.trigger("message", msg.message);
   };
 
   ChatApp.prototype._onIceCandidate = function(data) {
@@ -286,7 +291,7 @@ var ChatApp = (function(app, $, Backbone, _) {
     window.close();
   };
 
-  ChatApp.prototype._onWindowClose = function(data) {
+  ChatApp.prototype._onWindowClose = function() {
     this.call.hangup(true);
   };
 

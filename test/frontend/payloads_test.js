@@ -10,8 +10,13 @@ describe("payloads", function() {
     };
   }
 
+  /**
+   * Expects that two JSON object serializations are equivalent.
+   *
+   * @param  {Object} a
+   * @param  {Object} b
+   */
   function expectJSONEqual(a, b) {
-    // test that the two JSON object serializations are equivalent
     expect(JSON.parse(JSON.stringify(a))).eql(JSON.parse(JSON.stringify(b)));
   }
 
@@ -19,7 +24,7 @@ describe("payloads", function() {
     var Offer = payloads.Payload.define({
       callid: Number,
       peer:   String,
-      offer:  mozRTCSessionDescription
+      offer:  Object
     });
 
     describe("#constructor", function() {
@@ -27,7 +32,7 @@ describe("payloads", function() {
         var offerData = {
           callid: 42,
           peer: "jb",
-          offer: new mozRTCSessionDescription({})
+          offer: {fake: true}
         };
         expectJSONEqual(new Offer(offerData), offerData);
       });
@@ -43,7 +48,7 @@ describe("payloads", function() {
         var offerData = {
           callid: "invalid",
           peer: "jb",
-          offer: new mozRTCSessionDescription({})
+          offer: {fake: true}
         };
 
         expect(create(Offer, offerData))
@@ -54,7 +59,7 @@ describe("payloads", function() {
         var offerData = {
           callid: 42,
           peer: "jb",
-          offer: new mozRTCSessionDescription({}),
+          offer: {fake: true},
         };
         var augmented = _.extend(offerData, {foo: 1337});
 
