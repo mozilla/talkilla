@@ -50,16 +50,34 @@ var GoogleContacts = (function() {
 
   GoogleContacts.Importer.prototype = {
     /**
-     * Extracts contact email addresses from current data feed.
+     * Extracts contact information (email addresses, phone numbers) from
+     * current data feed.
+     *
+     * @param {String} id What should be considered the unique identifier
+                          (Should be "phoneNumber" or "email").
      * @return {Array}
      */
-    normalize: function() {
+    normalize: function(id) {
+      var keyField, getUsername;
+
+      if (id === "email") {
+        keyField = "gd$email";
+        getUsername = function(email) {
+          return email.address;
+        };
+      } else if (id === "phoneNumber") {
+        keyField = "gd$phoneNumber";
+        getUsername = function(item) {
+          return item.$t;
+        };
+      }
+
       return this.dataFeed.feed.entry.reduce(function(contacts, entry) {
-        if (!entry.gd$email)
+        if (!entry[keyField])
           return contacts;
-        return contacts.concat(entry.gd$email.map(function(email) {
+        return contacts.concat(entry[keyField].map(function(key) {
           var contact = {
-            username: email.address
+            username: getUsername(key)
           };
           if (entry.gd$name && entry.gd$name.gd$fullName &&
               entry.gd$name.gd$fullName.$t)
@@ -115,9 +133,10 @@ var GoogleContacts = (function() {
     /**
      * Retrieves all Google Contacts from currently authenticated user.
      *
+     * @param  {String} contactIdentifier String
      * @param  {Function} cb Callback
      */
-    all: function(cb) {
+    all: function(contactIdentifier, cb) {
       if (!this.token)
         return cb.call(this, new Error("Missing token, please authorize."));
       // XXX: we should reuse worker http.js here - need to adapt it though
@@ -131,7 +150,8 @@ var GoogleContacts = (function() {
           return cb.call(this, new Error(request.statusText));
         try {
           var feed = JSON.parse(request.responseText);
-          cb.call(this, null, new GoogleContacts.Importer(feed).normalize());
+          cb.call(this, null,
+            new GoogleContacts.Importer(feed).normalize(contactIdentifier));
         } catch (err) {
           cb.call(this, err);
         }
@@ -151,12 +171,14 @@ var GoogleContacts = (function() {
      * AppPort through the `talkilla.contacts` event.
      *
      * Emits `talkilla.contacts-error` on any encountered error.
+     *
+     * @param String contactIdentifier
      */
-    loadContacts: function() {
+    loadContacts: function(contactIdentifier) {
       this.authorize(function(err) {
         if (err)
           return this.appPort.post("talkilla.contacts-error", err);
-        this.all(function(err, contacts) {
+        this.all(contactIdentifier, function(err, contacts) {
           if (err)
             return this.appPort.post("talkilla.contacts-error", err);
           this.appPort.post("talkilla.contacts", {
