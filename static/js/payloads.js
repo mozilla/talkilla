@@ -2,9 +2,6 @@
 /* jshint unused:false */
 
 // If within a worker, load the validate dependency
-if (typeof importScripts === "function")
-  importScripts("/js/validate.js");
-
 var payloads = (function() {
   "use strict";
 
