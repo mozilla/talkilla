@@ -8,7 +8,6 @@
 importScripts(
   '../vendor/backbone-events-standalone-0.1.5.js',
   '/config.js',
-  'validate.js',
   'payloads.js',
   'addressbook/contactsdb.js',
   'spadb.js',
