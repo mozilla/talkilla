@@ -34,22 +34,6 @@ describe("Conversation", function() {
       expect(currentConversation.peer).to.deep.equal({username: "florian"});
     });
 
-    it("should store the offer", function() {
-      var offer = {
-        offer: { sdp: "fake" }
-      };
-      currentConversation = new Conversation({
-        capabilities: spa.capabilities,
-        peer: {username: "florian"},
-        offer: offer,
-        browserPort: browserPort,
-        users: tkWorker.users,
-        user: tkWorker.user
-      });
-
-      expect(currentConversation.offer).to.deep.equal(offer);
-    });
-
     it("should ask the browser to open a chat window", function() {
       currentConversation = new Conversation({
         capabilities: {},
@@ -126,71 +110,6 @@ describe("Conversation", function() {
           peerPresence: "connected",
           user: tkWorker.user.name
         });
-      });
-
-    it("should post a talkilla.conversation-incoming event for an " +
-       "incoming call",
-      function() {
-        currentConversation = new Conversation({
-          capabilities: spa.capabilities,
-          peer: peer,
-          offer: offer,
-          browserPort: browserPort,
-          users: tkWorker.users,
-          user: tkWorker.user
-        });
-
-        currentConversation.windowOpened(port);
-
-        sinon.assert.calledTwice(port.postEvent);
-        sinon.assert.calledWith(port.postEvent,
-          "talkilla.conversation-incoming", {
-          capabilities: [],
-          peer: peer,
-          peerPresence: "connected",
-          offer: offer,
-          user: tkWorker.user.name
-        });
-
-      });
-
-    it("should not update talkilla.conversation-incoming event if it " +
-       "is already queued",
-      function() {
-        currentConversation = new Conversation({
-          capabilities: spa.capabilities,
-          peer: peer,
-          offer: offer,
-          browserPort: browserPort,
-          users: tkWorker.users,
-          user: tkWorker.user
-        });
-
-        currentConversation.messageQueue.push({
-          topic: "talkilla.conversation-incoming",
-          data: {
-            capabilities: [],
-            peer: peer,
-            peerPresence: "disconnected",
-            offer: offer,
-            user: tkWorker.user.name
-          }
-        });
-
-        // This will try and insert presence as connected if it
-        // fails
-        currentConversation.windowOpened(port);
-
-        sinon.assert.calledTwice(port.postEvent);
-        sinon.assert.calledWith(port.postEvent,
-          "talkilla.conversation-incoming", {
-          capabilities: [],
-          peer: peer,
-          peerPresence: "disconnected",
-          offer: offer,
-          user: tkWorker.user.name
-        });
-
       });
 
     it("should send peer presence information", function() {
