@@ -1,4 +1,4 @@
-/* global Validator */
+/* global validate */
 /* jshint unused:false */
 
 var payloads = (function(root) {
@@ -14,7 +14,8 @@ var payloads = (function(root) {
    * @param {Object} schema Validation schema
    */
   function Payload(values, schema) {
-    var validatedData = new Validator(schema || {}).validate(values || {});
+    var validatedData = new validate.Validator(schema || {})
+                                    .validate(values || {});
     for (var prop in validatedData)
       this[prop] = validatedData[prop];
   }
@@ -39,7 +40,7 @@ var payloads = (function(root) {
    * - {Integer} callid, the id of the call being initiated
    * - {String} peer, the username to call
    * - {mozRTCSessionDescription} offer, a sdp offer
-   * - {Boolean} upgrade, is this a call upgrade
+   * - {Boolean} upgrade, is this a call upgrade?
    */
   var Offer = Payload.define({
     callid:  Number,

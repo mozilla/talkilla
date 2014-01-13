@@ -1,4 +1,4 @@
-/*global chai, Validator */
+/*global chai, validate */
 
 var expect = chai.expect;
 
@@ -7,7 +7,7 @@ describe('Validator', function() {
 
   // test helpers
   function create(dependencies, values) {
-    var validator = new Validator(dependencies);
+    var validator = new validate.Validator(dependencies);
     return validator.validate.bind(validator, values);
   }
 

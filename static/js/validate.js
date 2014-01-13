@@ -1,4 +1,5 @@
-(function(exports) {
+/* jshint unused:false */
+var validate = (function() {
   "use strict";
 
   /**
@@ -113,5 +114,7 @@
     }
   };
 
-  exports.Validator = Validator;
-})(this);
+  return {
+    Validator: Validator
+  };
+})();
