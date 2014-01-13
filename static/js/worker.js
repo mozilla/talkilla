@@ -5,18 +5,10 @@
 
 // XXX: Try to import Backbone only in files that need it (and check
 // if multiple imports cause problems).
-importScripts(
-  '/vendor/backbone-events-standalone-0.1.5.js',
-  '/config.js',
-  '/js/validate.js',
-  '/js/payloads.js',
-  '/js/addressbook/contactsdb.js',
-  '/js/spadb.js',
-  '/js/http.js',
-  '/js/worker/users.js',
-  '/js/worker/spa.js',
-  '/js/worker/conversation.js'
-);
+importScripts('../vendor/backbone-events-standalone-0.1.5.js');
+importScripts('/config.js', 'payloads.js', 'addressbook/contactsdb.js');
+importScripts('spadb.js', '/js/http.js', 'worker/users.js', 'worker/spa.js');
+importScripts('worker/conversation.js');
 
 var gConfig = loadConfig();
 var browserPort;
