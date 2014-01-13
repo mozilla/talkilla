@@ -179,7 +179,7 @@ var ChatApp = (function(app, $, Backbone, _) {
     var peer = this.peer.get("username");
     this.textChat.setTransport(new SPAChannel(this.appPort, peer));
     // Forward the message to the newly created transport
-    this.textChat.transport.trigger("message", msg.message);
+    this.textChat.transport.trigger("message", msg);
   };
 
   ChatApp.prototype._onIceCandidate = function(data) {
