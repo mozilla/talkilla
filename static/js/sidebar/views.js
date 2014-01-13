@@ -391,6 +391,14 @@
     }
   });
 
+  app.views.LinkShareView = app.views.BaseView.extend({
+    el: "#link-share",
+
+    render: function() {
+      this.$el.append('<input type="text">');
+    }
+  });
+
   app.views.ImportContactsView = app.views.BaseView.extend({
     dependencies: {
       user: app.models.CurrentUser,
