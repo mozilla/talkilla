@@ -38,9 +38,6 @@ var Conversation = (function() {
       throw new Error("missing parameter: User");
     this.user = options.user;
 
-    // offer and messageQueue are temporary stores
-    // until the window has been opened.
-    this.offer = options.offer;
     this.messageQueue = [];
 
     this.browserPort.postEvent('social.request-chat', 'chat.html');
@@ -65,18 +62,6 @@ var Conversation = (function() {
       };
 
       this.port.postEvent("talkilla.conversation-open", msg);
-      if (this.offer) {
-        // We don't want to send a duplicate incoming message if one has
-        // already been queued.
-        var msgQueued = this.messageQueue.some(function(message) {
-          return message.topic === "talkilla.conversation-incoming";
-        });
-
-        if (!msgQueued) {
-          msg.offer = this.offer;
-          this.port.postEvent("talkilla.conversation-incoming", msg);
-        }
-      }
 
       // Now send any queued messages
       this.messageQueue.forEach(function(message) {

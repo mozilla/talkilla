@@ -193,28 +193,21 @@ function _setupSPA(spa) {
   spa.on("offer", function(offerMsg) {
     // If we're in a conversation, and it is not with the peer,
     // then ignore it
-    if (currentConversation) {
-      // If the currentConversation window can handle the incoming call
-      // data (e.g. peer matches) then just handle it.
-      if (currentConversation.handleIncomingCall(offerMsg))
-        return;
-
-      // XXX currently, we can't handle more than one conversation
-      // window open, so just ignore it.
-      return;
+    if (!currentConversation) {
+      currentConversation = new Conversation({
+        capabilities: tkWorker.spa.capabilities,
+        peer: tkWorker.users.get(offerMsg.peer),
+        browserPort: browserPort,
+        users: tkWorker.users,
+        user: tkWorker.user
+      });
+      tkWorker.contactsDb.add({username: offerMsg.peer}, function(err) {
+        if (err)
+          tkWorker.ports.broadcastError(err);
+      });
     }
-    currentConversation = new Conversation({
-      capabilities: tkWorker.spa.capabilities,
-      peer: tkWorker.users.get(offerMsg.peer),
-      offer: offerMsg,
-      browserPort: browserPort,
-      users: tkWorker.users,
-      user: tkWorker.user
-    });
-    tkWorker.contactsDb.add({username: offerMsg.peer}, function(err) {
-      if (err)
-        tkWorker.ports.broadcastError(err);
-    });
+
+    currentConversation.handleIncomingCall(offerMsg);
   });
 
   spa.on("answer", function(answerMsg) {
