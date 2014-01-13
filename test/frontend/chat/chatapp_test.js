@@ -289,7 +289,7 @@ describe("ChatApp", function() {
         chatApp._onIncomingTextConversation(msg);
         sinon.assert.calledOnce(chatApp.textChat.transport.trigger);
         sinon.assert.calledWithExactly(
-          chatApp.textChat.transport.trigger, "message", msg.message);
+          chatApp.textChat.transport.trigger, "message", msg);
       });
     });
 
