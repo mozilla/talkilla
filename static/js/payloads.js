@@ -1,7 +1,11 @@
-/* global validate */
+/* global importScripts, validate */
 /* jshint unused:false */
 
-var payloads = (function(root) {
+// If within a worker, load the validate dependency
+if (typeof importScripts === "function")
+  importScripts("/js/validate.js");
+
+var payloads = (function() {
   "use strict";
 
   /**
@@ -127,11 +131,11 @@ var payloads = (function(root) {
    * IceCandidate payload.
    *
    * - {String} peer, the user to call
-   * - {mozRTCIceCandidate} candidate, an ICE candidate
+   * - {mozRTCIceCandidate} candidate, an ICE candidate (can be null)
    */
   var IceCandidate = Payload.define({
     peer:      String,
-    candidate: Object
+    candidate: [Object, null]
   });
 
   /**
@@ -174,4 +178,4 @@ var payloads = (function(root) {
     MoveAccept: MoveAccept,
     SPAChannelMessage: SPAChannelMessage
   };
-})(this);
+})();
