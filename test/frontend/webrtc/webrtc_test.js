@@ -1,4 +1,4 @@
-/*global WebRTC, tnetbin, chai, sinon */
+/*global WebRTC, chai, sinon */
 "use strict";
 
 var expect = chai.expect;
@@ -86,9 +86,10 @@ describe("WebRTC", function() {
 
   describe("constructor", function() {
     it("should accept and configure options", function() {
-      var webrtc = new WebRTC({forceFake: true});
+      var webrtc = new WebRTC({forceFake: true, enableDataChannel: true});
 
       expect(webrtc.options.forceFake).to.deep.equal(true);
+      expect(webrtc.options.enableDataChannel).to.be.equal(true);
     });
 
     it("should setup and configure a state machine", function() {
@@ -122,7 +123,6 @@ describe("WebRTC", function() {
 
     describe("#initiate", function() {
       it("should setup and configure a peer connection", function() {
-        var webrtc = new WebRTC();
         webrtc.initiate();
 
         expect(webrtc.pc).to.be.a('object');
@@ -133,12 +133,26 @@ describe("WebRTC", function() {
         expect(webrtc.pc.onsignalingstatechange).to.be.a('function');
       });
 
-      it("should setup and configure a data channel", function() {
-        var webrtc = new WebRTC();
-        webrtc.initiate();
+      it("should trigger transport-created with a datachannel object if " +
+        "enableDataChannel is true", function(done) {
+          webrtc.on('transport-created', function(transport) {
+            expect(transport).to.be.an.instanceOf(WebRTC.DataChannel);
+            expect(webrtc.dc).to.be.a('object');
+            done();
+          });
 
-        expect(webrtc.dc).to.deep.equal(fakeDataChannel);
-      });
+          webrtc.options.enableDataChannel = true;
+          webrtc.initiate();
+        });
+
+      it("should not create a data channel if enableDataChannel is false",
+        function() {
+          webrtc.options.enableDataChannel = false;
+
+          webrtc.initiate();
+
+          expect(webrtc.dc).to.be.equal(undefined);
+        });
 
       it("should accept media constraints", function() {
         webrtc.initiate({audio: true, video: true, fake: true});
@@ -199,9 +213,32 @@ describe("WebRTC", function() {
           });
           var webrtc = new WebRTC();
 
+          webrtc.options.enableDataChannel = true;
           webrtc.initiate();
 
           sinon.assert.calledOnce(webrtc.pc.createOffer);
+          // Check the last argument to createOffer is empty -
+          // so that we offer to create the data channel.
+          expect(webrtc.pc.createOffer.args[0][2]).eql({});
+        });
+
+      it("should create an offer from the peer connection without data " +
+        "channel, if enableDataChannel is false", function() {
+          sandbox.stub(WebRTC.prototype, "_setupPeerConnection", function() {
+            this.pc = {
+              createOffer: sandbox.stub()
+            };
+          });
+          var webrtc = new WebRTC();
+
+          webrtc.options.enableDataChannel = false;
+          webrtc.initiate();
+
+          sinon.assert.calledOnce(webrtc.pc.createOffer);
+          expect(webrtc.pc.createOffer.args[0][2]).eql({ mandatory: {
+              "MozDontOfferDataChannel": true
+            }
+          });
         });
 
       describe("#initiate events", function() {
@@ -288,12 +325,6 @@ describe("WebRTC", function() {
         expect(webrtc.upgrade).to.Throw(Error, /needs new media constraints/);
       });
 
-      it("should transition state to `pending`", function() {
-        webrtc.initiate({video: false}).establish({}).upgrade({video: true});
-
-        expect(webrtc.state.current).to.equal('pending');
-      });
-
       it("should initiate a new peer connection using provided constraints",
         function(done) {
           var newConstraints = {video: true, audio: true};
@@ -304,6 +335,35 @@ describe("WebRTC", function() {
             done();
           }).initiate().establish({}).upgrade(newConstraints);
 
+          webrtc.trigger('connection-terminated').trigger('ice:connected');
+        });
+
+      it("should initiate a new connection if offer is not provided",
+        function(done) {
+          var newConstraints = {video: true, audio: true};
+
+          webrtc.on('connection-upgraded', function() {
+            sinon.assert.calledOnce(webrtc.initiate);
+            sinon.assert.calledWithExactly(webrtc.initiate, newConstraints);
+            done();
+          }).initiate().establish({}).upgrade(newConstraints);
+
+          sandbox.stub(webrtc, "initiate");
+          webrtc.trigger('connection-terminated').trigger('ice:connected');
+        });
+
+      it("should answer with new connection if offer is provided",
+        function(done) {
+          var newConstraints = {video: true, audio: true};
+          var offer = {sdp: "fake"};
+
+          webrtc.on('connection-upgraded', function() {
+            sinon.assert.calledOnce(webrtc.answer);
+            sinon.assert.calledWithExactly(webrtc.answer, offer);
+            done();
+          }).initiate().establish({}).upgrade(newConstraints, offer);
+
+          sandbox.stub(webrtc, "answer");
           webrtc.trigger('connection-terminated').trigger('ice:connected');
         });
 
@@ -324,7 +384,6 @@ describe("WebRTC", function() {
 
     describe("#answer", function() {
       it("should setup and configure a peer connection", function() {
-        var webrtc = new WebRTC();
         webrtc.answer(fakeOffer);
 
         expect(webrtc.pc).to.be.a('object');
@@ -335,12 +394,24 @@ describe("WebRTC", function() {
         expect(webrtc.pc.onsignalingstatechange).to.be.a('function');
       });
 
-      it("should setup and configure a data channel", function() {
-        var webrtc = new WebRTC();
-        webrtc.answer(fakeOffer);
+      it("should trigger transport-created with a datachannel object if " +
+        "enableDataChannel is true", function(done) {
+          webrtc.on('transport-created', function(transport) {
+            expect(transport).to.be.an.instanceOf(WebRTC.DataChannel);
+            done();
+          });
 
-        expect(webrtc.dc).to.deep.equal(fakeDataChannel);
-      });
+          webrtc.options.enableDataChannel = true;
+          webrtc.answer(fakeOffer);
+        });
+
+      it("should not create a data channel if enableDataChannel is false",
+        function() {
+          webrtc.options.enableDataChannel = false;
+          webrtc.initiate();
+
+          expect(webrtc.dc).to.be.equal(undefined);
+        });
 
       it("should transition state to `ongoing`", function() {
         webrtc.answer(fakeOffer);
@@ -368,6 +439,51 @@ describe("WebRTC", function() {
 
           expect(webrtc.constraints.video).to.equal(false);
           expect(webrtc.constraints.audio).to.equal(true);
+        });
+
+      it("should create an answer from the peer connection object",
+        function() {
+          sandbox.stub(WebRTC.prototype, "_setupPeerConnection", function() {
+            this.pc = {
+              createAnswer: sandbox.stub(),
+              setRemoteDescription: function (obj, success) {
+                success(obj);
+              }
+            };
+          });
+          var webrtc = new WebRTC();
+
+          webrtc.options.enableDataChannel = true;
+          webrtc.state.current = "ongoing";
+          webrtc.answer(fakeOffer);
+
+          sinon.assert.calledOnce(webrtc.pc.createAnswer);
+          // Check the last argument to createOffer is empty -
+          // so that we offer to create the data channel.
+          expect(webrtc.pc.createAnswer.args[0][2]).eql({});
+        });
+
+      it("should create an answer from the peer connection without data " +
+        "channel, if enableDataChannel is false", function() {
+          sandbox.stub(WebRTC.prototype, "_setupPeerConnection", function() {
+            this.pc = {
+              createAnswer: sandbox.stub(),
+              setRemoteDescription: function (obj, success) {
+                success(obj);
+              }
+            };
+          });
+          var webrtc = new WebRTC();
+
+          webrtc.options.enableDataChannel = false;
+          webrtc.state.current = "ongoing";
+          webrtc.answer(fakeAnswer);
+
+          sinon.assert.calledOnce(webrtc.pc.createAnswer);
+          expect(webrtc.pc.createAnswer.args[0][2]).eql({ mandatory: {
+              "MozDontOfferDataChannel": true
+            }
+          });
         });
 
       describe("#answer events", function() {
@@ -461,35 +577,6 @@ describe("WebRTC", function() {
               }).answer(offer);
             }).initiate();
           });
-      });
-    });
-
-    describe("#send", function() {
-      beforeEach(function() {
-        webrtc.initiate({}).establish({});
-      });
-
-      it("shouldn't allow sending data if connection is not established",
-        function() {
-          expect(webrtc.send).throws(Error);
-        });
-
-      it("should send data over data channel",
-        function() {
-          webrtc.send("plop");
-
-          sinon.assert.calledOnce(webrtc.dc.send);
-          sinon.assert.calledWithExactly(webrtc.dc.send,
-                                         tnetbin.encode('plop'));
-        });
-
-      describe("#send events", function() {
-        it("should emit the `dc:message-out` event", function(done) {
-          webrtc.once("dc:message-out", function(data) {
-            expect(data).to.deep.equal(tnetbin.encode("plop"));
-            done();
-          }).send("plop");
-        });
       });
     });
 
@@ -798,51 +885,6 @@ describe("WebRTC", function() {
           done();
         }).initiate().establish(fakeOffer);
       });
-    });
-  });
-
-  describe("Data Channel handling", function() {
-    beforeEach(function() {
-      webrtc = new WebRTC();
-    });
-
-    it("should emit a 'dc:ready' event on open", function(done) {
-      webrtc.once('dc:ready', function(dc) {
-        expect(dc).to.be.equal(webrtc.dc);
-        done();
-      }).initiate();
-
-      webrtc.dc.onopen();
-    });
-
-    it("should emit a 'dc:message-in' event on receiving a message",
-      function(done) {
-        var message = {data: tnetbin.encode("fake")};
-        webrtc.once('dc:message-in', function(event) {
-          expect(event).to.equal("fake");
-          done();
-        }).initiate();
-
-        webrtc.dc.onmessage(message);
-      });
-
-    it("should emit a 'dc:error' event on receiving an error",
-      function(done) {
-        var message = {data: "fake"};
-        webrtc.once('dc:error', function(event) {
-          expect(event).to.deep.equal(message);
-          done();
-        }).initiate();
-
-        webrtc.dc.onerror(message);
-      });
-
-    it("should emit a 'dc:close' event on being closed", function(done) {
-      webrtc.once('dc:close', function() {
-        done();
-      }).initiate();
-
-      webrtc.dc.onclose();
     });
   });
 

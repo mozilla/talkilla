@@ -14,6 +14,8 @@ var expect = chai.expect;
 var sinon = require("sinon");
 var https = require("https");
 
+chai.Assertion.includeStack = true;
+
 require("../../server/server");
 var presence = require("../../server/presence");
 var User = require("../../server/users").User;

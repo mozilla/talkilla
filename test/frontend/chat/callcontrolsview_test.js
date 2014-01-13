@@ -1,10 +1,10 @@
-/*global app, chai, sinon */
+/*global app, chai, sinon, WebRTC*/
 "use strict";
 
 var expect = chai.expect;
 
 describe("Call Controls View", function() {
-  var sandbox, call, media, el;
+  var sandbox, call, media, spa, el;
 
   beforeEach(function() {
     el = $('<ul>' +
@@ -22,7 +22,7 @@ describe("Call Controls View", function() {
     sandbox = sinon.sandbox.create();
     // XXX This should probably be a mock, but sinon mocks don't seem to want
     // to work with Backbone.
-    media = {
+    media = _.extend(new WebRTC(), {
       answer: sandbox.spy(),
       establish: sandbox.spy(),
       initiate: sandbox.spy(),
@@ -30,9 +30,10 @@ describe("Call Controls View", function() {
       setMuteState: sandbox.spy(),
       on: sandbox.stub(),
       state: {current: "ready"}
-    };
+    });
     var user = new app.models.User({username: "foo"});
     call = new app.models.Call({}, {peer: user, media: media});
+    spa = new app.models.SPA({});
   });
 
   afterEach(function() {
@@ -43,35 +44,6 @@ describe("Call Controls View", function() {
   });
 
   describe("#initialize", function() {
-    it("should attach a given call model", function() {
-      var callControlsView = new app.views.CallControlsView({
-        el: 'fakeDom',
-        call: call,
-        media: media
-      });
-
-      expect(callControlsView.call).to.equal(call);
-    });
-
-    it("should attach a given media object", function() {
-      var callControlsView = new app.views.CallControlsView({
-        el: 'fakeDom',
-        call: call,
-        media: media
-      });
-
-      expect(callControlsView.media).to.equal(media);
-    });
-
-    it("should attach a given element", function() {
-      var callControlsView = new app.views.CallControlsView({
-        el: 'fakeDom',
-        call: call,
-        media: media
-      });
-
-      expect(callControlsView.call).to.equal(call);
-    });
 
     describe("attach call states", function() {
       var callControlsView;
@@ -81,7 +53,8 @@ describe("Call Controls View", function() {
         callControlsView = new app.views.CallControlsView({
           el: 'fakeDom',
           call: call,
-          media: media
+          media: media,
+          spa: spa
         });
       });
 
@@ -121,7 +94,15 @@ describe("Call Controls View", function() {
       sandbox.stub(app.views.CallControlsView.prototype, "hangup");
       sandbox.stub(app.views.CallControlsView.prototype, "outgoingAudioToggle");
       sandbox.stub(app.views.CallControlsView.prototype, "incomingAudioToggle");
-      callControlsView = new app.views.CallControlsView({el: el});
+      callControlsView = new app.views.CallControlsView({
+        el: el,
+        media: new WebRTC(),
+        call: new app.models.Call({}, {
+          media: media,
+          peer: new app.models.User({username: "paul"})
+        }),
+        spa: spa
+      });
     });
 
     it("should call videoCall() what a click event is fired on the video" +
@@ -164,7 +145,8 @@ describe("Call Controls View", function() {
       callControlsView = new app.views.CallControlsView({
         el: $("#fixtures"),
         call: call,
-        media: media
+        media: media,
+        spa: spa
       });
 
       fakeClickEvent = {preventDefault: sandbox.spy()};
@@ -280,7 +262,8 @@ describe("Call Controls View", function() {
       callControlsView = new app.views.CallControlsView({
         el: el,
         call: call,
-        media: media
+        media: media,
+        spa: spa
       });
     });
 
@@ -373,7 +356,8 @@ describe("Call Controls View", function() {
         function() {
           var $button = callControlsView.$(".btn-call-move").hide();
 
-          call.set("capabilities", ["move"]).trigger("state:to:ongoing");
+          spa.set("capabilities", ["move"]);
+          call.trigger("state:to:ongoing");
 
           expect($button.is(":visible")).eql(true);
         });
@@ -382,7 +366,8 @@ describe("Call Controls View", function() {
         function() {
           var $button = callControlsView.$(".btn-call-move").hide();
 
-          call.set("capabilities", []).trigger("state:to:ongoing");
+          spa.set("capabilities", []);
+          call.trigger("state:to:ongoing");
 
           expect($button.is(":visible")).eql(false);
         });

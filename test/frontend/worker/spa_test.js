@@ -49,25 +49,46 @@ describe("SPA", function() {
       worker.onmessage({data: {topic: "foo", data: "bar"}});
     });
 
-    it("should trigger an ice:candidate event when receiving ice:candidate",
-      function(done) {
-        spa.on("ice:candidate", function(iceCandidateMsg) {
-          expect(iceCandidateMsg.peer).to.equal("lloyd");
-          expect(iceCandidateMsg.candidate).to.equal("dummy");
-          done();
-        });
+    describe("events", function() {
+      describe("ice:candidate", function() {
+        it("should trigger an ice:candidate event", function(done) {
+          spa.on("ice:candidate", function(iceCandidateMsg) {
+            expect(iceCandidateMsg.peer).to.equal("lloyd");
+            expect(iceCandidateMsg.candidate).to.equal("dummy");
+            done();
+          });
 
-        worker.onmessage({
-          data: {
-            topic: "ice:candidate",
+          worker.onmessage({
             data: {
-              peer: "lloyd",
-              candidate: "dummy"
+              topic: "ice:candidate",
+              data: {
+                peer: "lloyd",
+                candidate: "dummy"
+              }
             }
-          }
+          });
         });
       });
 
+      describe("connected", function () {
+        it("should trigger a connected event", function(done) {
+          spa.on("connected", function() {
+            done();
+          });
+
+          worker.onmessage({data: {topic: "connected"}});
+        });
+
+        it("should set connected attribute", function(done) {
+          spa.on("connected", function() {
+            expect(spa.connected).to.equal(true);
+            done();
+          });
+
+          worker.onmessage({data: {topic: "connected"}});
+        });
+      });
+    });
   });
 
   describe("#connect", function() {
@@ -174,6 +195,30 @@ describe("SPA", function() {
       sinon.assert.calledWithExactly(spa.worker.postMessage, {
         topic: "forget-credentials",
         data: undefined
+      });
+    });
+
+    it("should set connected to false", function() {
+      spa.forgetCredentials();
+
+      expect(spa.connected).to.equal(false);
+    });
+
+  });
+
+  describe("#sendMessage", function() {
+
+    it("should send a message to the spa", function() {
+      var textMsg = new payloads.SPAChannelMessage({
+        message: "some message",
+        peer: "some peer"
+      });
+      spa.sendMessage(textMsg);
+
+      sinon.assert.calledOnce(spa.worker.postMessage);
+      sinon.assert.calledWithExactly(spa.worker.postMessage, {
+        topic: "message",
+        data: textMsg.toJSON()
       });
     });
 

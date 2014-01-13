@@ -5,9 +5,12 @@ process.env.NO_LOCAL_CONFIG = true;
 process.env.PORT = 3000;
 var PORT = 3000;
 
-var expect = require("chai").expect;
+var chai = require("chai");
+var expect = chai.expect;
 var path = require("path");
 var sinon = require("sinon");
+
+chai.Assertion.includeStack = true;
 
 var api = require("../../server/server").api;
 var middlewares = require("../../server/server").middlewares;
@@ -79,6 +82,17 @@ describe("Server", function() {
           expect(testConfig).to.have.property('ROOTURL');
           expect(testConfig.ROOTURL).to.be.equal('http://example2.com');
         });
+
+      it("should load the spa config", function() {
+        var testConfig =
+            config.getConfigFromFile(path.join(testConfigRoot,
+                                               'test4.json'), PORT);
+
+        expect(testConfig).to.have.property('SPA');
+        expect(testConfig.SPA).to.have.property('loginURL');
+        expect(testConfig.SPA.loginURL).to.be
+          .equal('/spa/talkilla/spa_setup.html');
+      });
     });
   });
 

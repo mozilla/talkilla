@@ -1,4 +1,4 @@
-/*global app, StateMachine, tnetbin, WebRTC */
+/*global app, StateMachine, tnetbin, WebRTC, SPAChannel */
 /**
  * ChatApp models and collections.
  */
@@ -11,31 +11,28 @@
    * Attributes:
    * - {Object} incomingData
    */
-  app.models.Call = Backbone.Model.extend({
+  app.models.Call = app.models.BaseModel.extend({
+    dependencies: {
+      media: WebRTC,
+      peer: app.models.User
+    },
+
     defaults: {
       currentConstraints: {video: false, audio: false},
       incomingData:       {}
     },
-    timer: undefined,
-    media: undefined,
+
     callid: undefined,
+    timer: undefined,
 
     /**
      * Call model constructor.
      * @param  {Object}     attributes  Model attributes
      * @param  {Object}     options     Model options
-     *
-     * Options:
-     *
-     * - {WebRTC}           media       Media object
-     * - {app.models.User}  peer        The peer for the conversation
      */
-    initialize: function(attributes, options) {
+    initialize: function(attributes) {
       this.set(attributes || {});
       this.callid = app.utils.id();
-
-      this.media = options && options.media;
-      this.peer = options && options.peer;
 
       this.state = StateMachine.create({
         initial: 'ready',
@@ -192,7 +189,10 @@
         this.state.complete();
       }, this);
 
-      this.media.answer(data && data.offer);
+      if (this.media.state.current === 'ongoing')
+        this.media.upgrade(null, data && data.offer);
+      else
+        this.media.answer(data && data.offer);
 
       this.state.accept();
     },
@@ -290,15 +290,6 @@
      */
     requiresVideo: function() {
       return this.get('currentConstraints').video;
-    },
-
-    /**
-     * Checks if the passed capabilities are all supported by the Call SPA.
-     * @return {Boolean}
-     */
-    supports: function() {
-      return arguments.length === _.intersection(
-        arguments, this.get("capabilities")).length;
     }
   });
 
@@ -473,41 +464,40 @@
   });
 
   app.models.TextChatEntry = Backbone.Model.extend({
-    defaults: {username: undefined,
-               message: undefined,
-               date: new Date().getTime()}
+    defaults: {
+      username: undefined,
+      message: undefined,
+      date: new Date().getTime()
+    }
   });
 
-  app.models.TextChat = Backbone.Collection.extend({
+  app.models.TextChat = app.models.BaseCollection.extend({
+    dependencies: {
+      media: WebRTC,
+      user: app.models.User,
+      peer: app.models.User
+    },
+
     model: app.models.TextChatEntry,
 
-    media: undefined,
-    user: undefined,
-    peer: undefined,
+    transport: undefined,
     typingTimeout: undefined,
 
     initialize: function(attributes, options) {
-      if (!options || !options.media)
-        throw new Error('TextChat model needs a `media` option');
-      this.media = options.media;
-
-      if (!options || !options.user)
-        throw new Error('TextChat model needs a `user` option');
-      this.user = options.user;
-
-      if (!options || !options.peer)
-        throw new Error('TextChat model needs a `peer` option');
-      this.peer = options.peer;
-
       this.typeTimeout = options && options.typeTimeout || 5000;
 
-      this.media.on('dc:message-in', this._onDcMessageIn, this);
       this.on('add', this._onTextChatEntryCreated, this);
       this.on('add', this._onFileTransferCreated, this);
+      this.on('transport', this.setTransport, this);
+      this.media.on('transport-created', this.trigger.bind(this, "transport"));
+    },
 
-      this.media.on('dc:close', function() {
-        this.terminate().reset();
-      });
+    setTransport: function(transport) {
+      this.transport = transport;
+      this.transport.on('message', this._onMessage, this);
+      this.transport.on('close', function() {
+        this.transport = undefined;
+      }.bind(this));
     },
 
     initiate: function(constraints) {
@@ -542,27 +532,26 @@
      * @param  {Object} entry
      */
     send: function(entry) {
-      if (this.media.state.current === "ongoing")
-        return this.media.send(entry);
-
-      this.media.once("dc:ready", function() {
-        this.send(entry);
-      });
-
-      if (this.media.state.current !== "pending")
+      if (!(this.transport instanceof SPAChannel) &&
+          this.media.state.current === "ready")
         this.initiate({video: false, audio: false});
+
+      this.transport.send(entry);
     },
 
     notifyTyping: function() {
-      if (!this.length || this.media.state.current !== "ongoing")
+      if (!this.length ||
+          !(this.transport instanceof SPAChannel) &&
+          this.media.state.current !== "ongoing")
         return;
-      this.media.send({
+
+      this.transport.send({
         type: "chat:typing",
         message: { username: this.user.get("username") }
       });
     },
 
-    _onDcMessageIn: function(event) {
+    _onMessage: function(event) {
       var transfer;
 
       switch (event.type) {

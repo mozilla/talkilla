@@ -5,7 +5,7 @@ import mixins
 import unittest
 import time
 
-from browser_test import MultipleNodeBrowserTest
+from browser_test import MultipleNodeBrowserTest, debug_on  # NOQA
 from config import testConfig
 
 

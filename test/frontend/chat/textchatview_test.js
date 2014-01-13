@@ -58,6 +58,8 @@ describe("Text chat views", function() {
     });
 
     user = new app.models.User();
+
+    sandbox.stub(app.models.TextChat.prototype, "send");
   });
 
   afterEach(function() {
@@ -98,11 +100,10 @@ describe("Text chat views", function() {
       // This stops us changing the document's title unnecessarily
       sandbox.stub(app.views.ConversationView.prototype, "initialize");
 
-      sandbox.stub(WebRTC.prototype, "send");
-      media = new WebRTC();
-      call = new app.models.Call({}, {media: media});
-
       peer = new app.models.User();
+      media = new WebRTC();
+      call = new app.models.Call({}, {peer: peer, media: media});
+
 
       user.set({username: "niko"});
 
@@ -115,7 +116,7 @@ describe("Text chat views", function() {
 
     it("should be empty by default", function() {
       var view = new app.views.TextChatView({
-        call: new app.models.Call(),
+        call: new app.models.Call({}, {media: media, peer: peer}),
         collection: new app.models.TextChat([], {
           media: media,
           user: user,
@@ -133,7 +134,7 @@ describe("Text chat views", function() {
     it("should update rendering when its collection is updated", function() {
       user.set({username: "niko"});
       var view = new app.views.TextChatView({
-        call: new app.models.Call(),
+        call: new app.models.Call({}, {media: media, peer: peer}),
         sender: user,
         collection: new app.models.TextChat([
           {username: "niko", message: "plop"},
@@ -201,7 +202,7 @@ describe("Text chat views", function() {
         });
         sandbox.stub(collection, "on");
         view = new app.views.TextChatView({
-          call: new app.models.Call(),
+          call: new app.models.Call({}, {media: media, peer: peer}),
           collection: collection
         });
       });
@@ -231,7 +232,7 @@ describe("Text chat views", function() {
 
       beforeEach(function() {
         view = new app.views.TextChatView({
-          call: new app.models.Call(),
+          call: new app.models.Call({}, {media: media, peer: peer}),
           collection: new app.models.TextChat([], {
             media: media,
             user: user,
@@ -268,7 +269,7 @@ describe("Text chat views", function() {
         // stubbing focus because travis setup doesnt handle focus correctly
         sandbox.stub($.fn, 'focus');
         var view = new app.views.TextChatView({
-          call: new app.models.Call(),
+          call: new app.models.Call({}, {media: media, peer: peer}),
           collection: new app.models.TextChat([], {
             media: media,
             user: user,
@@ -327,7 +328,7 @@ describe("Text chat views", function() {
     describe("#sendTyping", function() {
       it("should call collection.notifyTyping()", function() {
         var view = new app.views.TextChatView({
-          call: new app.models.Call(),
+          call: new app.models.Call({}, {media: media, peer: peer}),
           collection: new app.models.TextChat([], {
             media: media,
             user: user,
@@ -351,6 +352,7 @@ describe("FileTransferView", function() {
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
+    sandbox.stub(app.models.TextChat.prototype, "send");
   });
 
   afterEach(function() {

@@ -14,8 +14,8 @@ describe("NotificationsView", function() {
 
   describe("#initialize", function() {
     it("should attach to the user model for signin/signout", function() {
-      sandbox.stub(app.models.User.prototype, "on");
-      user = new app.models.User();
+      sandbox.stub(app.models.CurrentUser.prototype, "on");
+      user = new app.models.CurrentUser();
       notificationsView = new app.views.NotificationsView({user: user});
 
       sinon.assert.called(user.on);
@@ -28,7 +28,7 @@ describe("NotificationsView", function() {
 
     beforeEach(function() {
       sandbox.stub(app.views.NotificationsView.prototype, "clear");
-      user = new app.models.User();
+      user = new app.models.CurrentUser();
       notificationsView = new app.views.NotificationsView({user: user});
     });
 

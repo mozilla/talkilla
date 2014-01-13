@@ -31,12 +31,90 @@ describe("tkWorker", function() {
   });
 
   describe("#initialize", function() {
-    it("should load the SPAs", function() {
-      sandbox.stub(worker, "loadSPAs");
+    beforeEach(function() {
+      sandbox.stub(worker, "onInitializationComplete");
 
+      sandbox.stub(worker, "loadSPAs", function(callback) {
+        callback();
+      });
+    });
+
+    it("should load the SPAs", function() {
       worker.initialize();
 
       sinon.assert.calledOnce(worker.loadSPAs);
+    });
+
+    it("should set initialized", function() {
+      worker.initialize();
+
+      expect(worker.initialized).to.be.equal(true);
+    });
+
+    it("should call onInitializationComplete", function() {
+      worker.initialize();
+
+      sinon.assert.calledOnce(worker.onInitializationComplete);
+    });
+
+  });
+
+  describe("#onInitializationComplete", function() {
+    beforeEach(function() {
+      sandbox.stub(worker.ports, "broadcastEvent");
+      sandbox.stub(worker, "loadSPAs", function(callback) {
+        callback();
+      });
+      sandbox.stub(worker.user, "send");
+    });
+
+    it("should send talkilla.worker-ready", function() {
+      worker.initialize();
+
+      sinon.assert.calledOnce(worker.ports.broadcastEvent);
+      sinon.assert.calledWithExactly(worker.ports.broadcastEvent,
+        "talkilla.worker-ready"
+      );
+    });
+
+    describe("spa connected", function() {
+      beforeEach(function() {
+        sandbox.stub(window, "Worker");
+
+        worker.spa = new SPA({src: "example.com"});
+        worker.spa.connected = true;
+      });
+
+      it("should send the current logged in user's details", function() {
+        worker.initialize();
+
+        sinon.assert.calledOnce(worker.user.send);
+      });
+
+      it("should notify the spa is connected", function() {
+        worker.spa.capabilities = ["call"];
+
+        worker.initialize();
+
+        sinon.assert.called(worker.ports.broadcastEvent);
+        sinon.assert.calledWithExactly(worker.ports.broadcastEvent,
+          "talkilla.spa-connected",
+          {capabilities: worker.spa.capabilities}
+        );
+      });
+
+      it("should notify the sidebar of the list of current users",
+        function() {
+          var fakeUsersList = [1, 2, 3];
+          sandbox.stub(worker.users, "toArray").returns(fakeUsersList);
+
+          worker.initialize();
+
+          sinon.assert.called(worker.ports.broadcastEvent);
+          sinon.assert.calledWithExactly(worker.ports.broadcastEvent,
+            "talkilla.users", fakeUsersList
+          );
+        });
     });
   });
 
@@ -180,7 +258,7 @@ describe("tkWorker", function() {
       };
       spa = {connect: sinon.spy(), on: function() {}};
       sandbox.stub(window, "SPA").returns(spa);
-      worker.spaDb.add(spec, function() {
+      worker.spaDb.store(spec, function() {
         done();
       });
     });

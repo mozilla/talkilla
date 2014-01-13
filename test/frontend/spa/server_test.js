@@ -167,18 +167,6 @@ describe("Server", function() {
       server._longPolling(events);
     });
 
-    it("should trigger a custom message event", function(done) {
-      var events = [{topic: "sometopic", data: "event"}];
-
-      sandbox.stub(server.http, "post");
-      server.on("message:sometopic", function(event) {
-        expect(event).to.equal("event");
-        done();
-      });
-
-      server._longPolling(events);
-    });
-
     it("should call #_longPolling again", function(done) {
 
       sandbox.stub(server.http, "post", function(method, data, callback) {

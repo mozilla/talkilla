@@ -1,11 +1,11 @@
-/*global app, chai, sinon */
+/*global app, chai, sinon, WebRTC */
 /* jshint expr:true */
 "use strict";
 
 var expect = chai.expect;
 
 describe('Call Offer View', function() {
-  var media, sandbox, call;
+  var sandbox, call;
 
   beforeEach(function() {
     $('body').append([
@@ -17,30 +17,22 @@ describe('Call Offer View', function() {
     sandbox = sinon.sandbox.create();
     // XXX This should probably be a mock, but sinon mocks don't seem to want
     // to work with Backbone.
-    media = {
-      constraints: {},
-      answer: sandbox.spy(),
-      establish: sandbox.spy(),
-      initiate: sandbox.spy(),
-      terminate: sandbox.spy(),
-      on: sandbox.stub()
-    };
-    call = new app.models.Call({}, {media: media});
+    call = new app.models.Call({}, {
+      peer: new app.models.User({username: "jb"}),
+      media: _.extend(new WebRTC(), {
+        constraints: {},
+        answer: sandbox.spy(),
+        establish: sandbox.spy(),
+        initiate: sandbox.spy(),
+        terminate: sandbox.spy(),
+        on: sandbox.stub()
+      })
+    });
   });
 
   afterEach(function() {
     $('#offer').remove();
-    call = undefined;
-    media = undefined;
     sandbox.restore();
-  });
-
-  describe("#initialize", function() {
-    it("should attach a given call model", function() {
-      var offerView = new app.views.CallOfferView({call: call});
-
-      expect(offerView.call).to.equal(call);
-    });
   });
 
   describe("Change events", function() {
