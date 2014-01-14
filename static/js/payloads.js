@@ -31,7 +31,7 @@ var payloads = (function() {
    * @return {Function} A Payload constructor partially applied with the schema
    */
   Payload.define = function(schema) {
-    return this.bind(this, schema);
+    return Payload.bind(null, schema);
   };
 
   /**
