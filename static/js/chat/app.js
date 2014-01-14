@@ -163,15 +163,15 @@ var ChatApp = (function(app, $, Backbone, _) {
   };
 
   // Incoming calls
-  ChatApp.prototype._onIncomingConversation = function(msg) {
-    var sdp = new WebRTC.SDP(msg.offer.offer.sdp);
+  ChatApp.prototype._onIncomingConversation = function(offerMsg) {
+    var sdp = new WebRTC.SDP(offerMsg.offer.sdp);
 
     // incoming text chat conversation
     if (sdp.only("datachannel"))
-      return this.textChat.answer(msg.offer.offer);
+      return this.textChat.answer(offerMsg.offer);
 
     // incoming video/audio call
-    this.call.incoming(new app.payloads.Offer(msg.offer));
+    this.call.incoming(new app.payloads.Offer(offerMsg));
     this.audioLibrary.play('incoming');
   };
 

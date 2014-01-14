@@ -247,7 +247,7 @@ describe("ChatApp", function() {
       it("should set the call as incoming", function() {
         sandbox.stub(chatApp.call, "incoming");
 
-        chatApp._onIncomingConversation(incomingCallData);
+        chatApp._onIncomingConversation(incomingCallData.offer);
 
         sinon.assert.calledOnce(chatApp.call.incoming);
         sinon.assert.calledWithMatch(chatApp.call.incoming,
@@ -255,7 +255,7 @@ describe("ChatApp", function() {
       });
 
       it("should play the incoming call sound", function() {
-        chatApp._onIncomingConversation(incomingCallData);
+        chatApp._onIncomingConversation(incomingCallData.offer);
 
         sinon.assert.calledOnce(chatApp.audioLibrary.play);
         sinon.assert.calledWithExactly(chatApp.audioLibrary.play, "incoming");

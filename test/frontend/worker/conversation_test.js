@@ -206,67 +206,15 @@ describe("Conversation", function() {
       currentConversation = undefined;
     });
 
-    it("should return false if the conversation is not for the peer",
-      function() {
-        offer.peer = "alexis";
-        var result = currentConversation.handleIncomingCall(offer);
-
-        expect(result).to.be.equal(false);
-      });
-
-    it("should return true if the conversation is for the peer",
-      function() {
-        var result = currentConversation.handleIncomingCall(offer);
-
-        expect(result).to.be.equal(true);
-      });
-
     it("should post a talkilla.conversation-incoming event for an " +
        "incoming call", function() {
         currentConversation.handleIncomingCall(offer);
 
         sinon.assert.called(port.postEvent);
         sinon.assert.calledWith(port.postEvent,
-          "talkilla.conversation-incoming", {
-          capabilities: [],
-          peer: peer,
-          peerPresence: "connected",
-          offer: offer,
-          user: tkWorker.user.name
-        });
+          "talkilla.conversation-incoming", offer);
       });
 
-    it("should send peer presence information", function() {
-      peer.presence = "disconnected";
-
-      currentConversation.handleIncomingCall(offer);
-
-      sinon.assert.called(port.postEvent);
-      sinon.assert.calledWithMatch(port.postEvent,
-          "talkilla.conversation-incoming", {
-          capabilities: [],
-          peer: peer,
-          peerPresence: "disconnected",
-          offer: offer,
-          user: tkWorker.user.name
-        });
-    });
-
-    it("should store the messages if the port is not open", function() {
-      currentConversation.port = undefined;
-      currentConversation.handleIncomingCall(offer);
-
-      expect(currentConversation.messageQueue[0].topic)
-        .to.equal("talkilla.conversation-incoming");
-      expect(currentConversation.messageQueue[0].data)
-        .to.deep.equal({
-          capabilities: [],
-          peer: peer,
-          peerPresence: "connected",
-          offer: offer,
-          user: tkWorker.user.name
-        });
-    });
   });
 
   describe("#handleIncomingText", function() {
