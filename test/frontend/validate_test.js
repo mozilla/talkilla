@@ -22,11 +22,6 @@ describe('Validator', function() {
           .to.Throw(TypeError, /missing required x$/);
       });
 
-    it("should check for a missing required dependency", function() {
-      expect(create({x: Number}, {}))
-        .to.Throw(TypeError, /missing required x$/);
-    });
-
     it("should check for a missing required dependency, undefined passed",
       function() {
         expect(create({x: Number}, {x: undefined}))
