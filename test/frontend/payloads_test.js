@@ -20,7 +20,7 @@ describe("payloads", function() {
     expect(JSON.parse(JSON.stringify(a))).eql(JSON.parse(JSON.stringify(b)));
   }
 
-  describe("payloads.Payload", function() {
+  describe("payloads.Payload.define", function() {
     var Offer = payloads.Payload.define({
       callid: Number,
       peer:   String,

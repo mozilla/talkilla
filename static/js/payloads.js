@@ -9,15 +9,15 @@ var payloads = (function() {
   "use strict";
 
   /**
-   * Data payload. Accepts a values object and a validation schema object,
-   * validates the values against it and attaches validated values as instance
+   * Data payload. Accepts a validation schema object a values one. Validates
+   * the values against the schema and attaches validated values as instance
    * properties.
    *
    * @constructor
-   * @param {Object} values Values object
    * @param {Object} schema Validation schema
+   * @param {Object} values Values object
    */
-  function Payload(values, schema) {
+  function Payload(schema, values) {
     var validatedData = new validate.Validator(schema || {})
                                     .validate(values || {});
     for (var prop in validatedData)
@@ -28,14 +28,10 @@ var payloads = (function() {
    * Creates a new Payload constructor featuring a given data validation schema.
    *
    * @param  {Object} schema Validationn schema
-   * @return {Function} A Payload constructor
+   * @return {Function} A Payload constructor partially applied with the schema
    */
   Payload.define = function(schema) {
-    var PayloadCtor = function(values) {
-      Payload.call(this, values, schema);
-    };
-    PayloadCtor.prototype = Object.create(Payload.prototype);
-    return PayloadCtor;
+    return this.bind(this, schema);
   };
 
   /**
