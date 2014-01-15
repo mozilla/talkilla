@@ -393,20 +393,38 @@
     }
   });
 
+  /**
+   * XXX needs docs
+   * @type {*}
+   */
   app.views.LinkShareView = app.views.BaseView.extend({
+    // XXX not a dependency because this username still will
+    // go away soon, at which point we can ditch #initialize entirely
+    // and won't need to change the tests.
+    initialize: function(opts) {
+      if (opts && "username" in opts)
+        this.username = opts.username;
+    },
+
     el: "#link-share",
+
+    template: _.template(
+      '<label class="link-share-label" for="link-share-input">' +
+        'Share this link to video chat' +
+      '</label>' +
+      '<div class="input-append">' +
+      '  <input id="link-share-input" readonly="true" type="url"' +
+      '         value="<%= url %>">' +
+      '  <button class="link-copy-button btn">Copy</button>' +
+      '</div>'
+    ),
 
     render: function() {
 
-      this.$el.html(
-        '<label class="link-share-label" for="link-share-input">' +
-          'Share this link to video chat' +
-        '</label>' +
-        '<div class="input-append">' +
-        '  <input id="link-share-input" readonly="true" type="url">'+
-        '  <button class="link-copy-button btn">Copy</button>' +
-        '</div>'
-      );
+      var linkToCopy = window.location.origin + "/instant-share/" +
+        encodeURIComponent(this.username);
+
+      this.$el.html(this.template({url: linkToCopy} ));
 
       return this;
     }

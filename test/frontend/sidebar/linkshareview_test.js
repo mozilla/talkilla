@@ -11,7 +11,7 @@ describe("LinkShareView", function ()  {
 
     beforeEach(function() {
       $('#fixtures').append('<div id="link-share"></div>');
-      linkShareView = new app.views.LinkShareView();
+      linkShareView = new app.views.LinkShareView({username: "rt@example.com"});
     });
 
     afterEach(function() {
@@ -55,7 +55,26 @@ describe("LinkShareView", function ()  {
     // http://talkilla.mozillalabs.com/instant-share/?username=joe%40example.com
     //
     // This will all change later, but it's the fastest way to move forward.
-    it("should default to the URL for this user");
+
+    it("should offer a valid default URL to chat", function() {
+      linkShareView.render();
+
+      var inputEl = $("#fixtures").find("#link-share-input").get()[0];
+
+      expect(inputEl.validity.valid).to.equal(true);
+    });
+
+    it("the URL should start with window.location.origin + /instant-share",
+      function() {
+        linkShareView.render();
+        var expectedURLRegex =
+          new RegExp("^" + window.location.origin + "/instant-share");
+
+        var inputEl = $("#fixtures").find("#link-share-input").get()[0];
+
+        expect(inputEl.value).to.match(expectedURLRegex);
+      });
+
 
     it("should not render when the user is not logged in");
 
