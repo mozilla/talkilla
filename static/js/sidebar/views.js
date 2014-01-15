@@ -369,7 +369,7 @@
             .attr("src", this.spaLoginURL)
             .attr("id", "signin")
             .attr("name", "spa-setup");
-          $("#login p:first").append(iframe);
+          $(".login-iframe-container").append(iframe);
         }
         this.$('#signout').hide().find('.username').text('');
       } else {

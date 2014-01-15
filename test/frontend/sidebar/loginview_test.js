@@ -17,7 +17,7 @@ describe("LoginView", function() {
     sandbox = sinon.sandbox.create();
     $('body').append([
       '<div id="login">',
-      '  <p></p>',
+      '  <p class="login-iframe-container"></p>',
       '  <form id="signout" class="hide"></form>',
       '</div>'
     ].join(''));
