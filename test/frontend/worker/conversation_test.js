@@ -368,6 +368,7 @@ describe("Conversation", function() {
     it("should foward a message to the conversation", function() {
       var textMsg = new payloads.SPAChannelMessage({
         message: "yamessage",
+        type: "",
         peer: "lola"
       });
       currentConversation.handleIncomingText(textMsg);

@@ -5,7 +5,9 @@
 var expect = chai.expect;
 
 describe("Call Model", function() {
-  var sandbox, call, media, peer, callData;
+  var sandbox, call, media, peer, callData, constraints;
+  var fakeOffer = {fakeOffer: true};
+  var fakeAnswer = {fakeAnswer: true};
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
@@ -29,13 +31,14 @@ describe("Call Model", function() {
     call = new app.models.Call({}, {media: media, peer: peer});
 
     callData = new app.payloads.Offer({
-      offer: {
-        sdp: "fake",
-        type: "offer"
-      },
+      offer: fakeOffer,
       callid: 2,
-      peer: "bob"
+      peer: "bob",
+      upgrade: false
     });
+
+    constraints = {video: false, audio: true};
+    sandbox.stub(WebRTC, "SDP").returns({constraints: constraints});
   });
 
   afterEach(function() {
@@ -110,8 +113,6 @@ describe("Call Model", function() {
     });
 
     describe("send-offer", function() {
-      var fakeOffer = {peer: "larry", offer: {fake: true}};
-
       beforeEach(function() {
         call.media = _.extend(media, Backbone.Events);
         peer.set("username", "larry");
@@ -162,8 +163,6 @@ describe("Call Model", function() {
     });
 
     describe("send-offer", function() {
-      var fakeOffer = {peer: "larry", offer: {fake: true}};
-
       beforeEach(function() {
         call.media = _.extend(media, Backbone.Events);
         peer.set("username", "larry");
@@ -173,7 +172,8 @@ describe("Call Model", function() {
 
       it("should trigger send-offer with transport data on offer-ready",
         function(done) {
-          call.once("send-offer", function(data) {
+          call.once("send-offer", function(offerMsg) {
+            var data = offerMsg;
             expect(data.offer).to.deep.equal(fakeOffer);
             done();
           });
@@ -201,9 +201,6 @@ describe("Call Model", function() {
     });
 
     it("should store the parsed constraints", function() {
-      var constraints = {video: false, audio: true};
-      sandbox.stub(WebRTC, "SDP").returns({constraints: constraints});
-
       call.incoming(callData);
 
       expect(call.get("currentConstraints")).to.deep.equal(constraints);
@@ -239,7 +236,7 @@ describe("Call Model", function() {
       function(done) {
         call.media = _.extend(media, Backbone.Events);
         peer.set("username", "larry");
-        var fakeAnswer = {peer: "larry", answer: {fake: true}};
+
         call.once("send-answer", function(data) {
           expect(data.answer).to.deep.equal(fakeAnswer);
           done();

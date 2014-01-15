@@ -104,11 +104,11 @@ var SPA = (function() {
     },
 
     initiateMove: function(moveMsg) {
-      this._send("initiate-move", moveMsg.toJSON());
+      this._send("initiate-move", moveMsg);
     },
 
     sendMessage: function(message) {
-      this._send("message", message.toJSON());
+      this._send("message", message);
     }
   };
 

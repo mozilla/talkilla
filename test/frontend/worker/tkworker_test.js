@@ -254,7 +254,7 @@ describe("tkWorker", function() {
       var spec = {
         name: "Random SPA",
         src: "/path/to/spa",
-        credentials: "fake credentials"
+        credentials: {creds: true}
       };
       spa = {connect: sinon.spy(), on: function() {}};
       sandbox.stub(window, "SPA").returns(spa);
@@ -281,7 +281,7 @@ describe("tkWorker", function() {
       function(done) {
         worker.loadSPAs(function() {
           sinon.assert.calledOnce(spa.connect);
-          sinon.assert.calledWithExactly(spa.connect, "fake credentials");
+          sinon.assert.calledWithExactly(spa.connect, {creds: true});
           done();
         });
       });

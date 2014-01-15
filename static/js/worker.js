@@ -5,10 +5,17 @@
 
 // XXX: Try to import Backbone only in files that need it (and check
 // if multiple imports cause problems).
-importScripts('../vendor/backbone-events-standalone-0.1.5.js');
-importScripts('/config.js', 'payloads.js', 'addressbook/contactsdb.js');
-importScripts('spadb.js', '/js/http.js', 'worker/users.js', 'worker/spa.js');
-importScripts('worker/conversation.js');
+importScripts(
+  '../vendor/backbone-events-standalone-0.1.5.js',
+  '/config.js',
+  'payloads.js',
+  'addressbook/contactsdb.js',
+  'spadb.js',
+  '/js/http.js',
+  'worker/users.js',
+  'worker/spa.js',
+  'worker/conversation.js'
+);
 
 var gConfig = loadConfig();
 var browserPort;
@@ -244,7 +251,7 @@ function _setupSPA(spa) {
 
   spa.on("move-accept", function(moveAcceptMsg) {
     tkWorker.ports.broadcastEvent("talkilla.move-accept",
-                                  moveAcceptMsg.toJSON());
+                                  moveAcceptMsg);
   });
 
   spa.on("error", function(event) {

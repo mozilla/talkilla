@@ -148,7 +148,7 @@ var ChatApp = (function(app, $, Backbone, _) {
   };
 
   ChatApp.prototype._onInitiateMove = function(moveMsg) {
-    this.appPort.post('talkilla.initiate-move', moveMsg.toJSON());
+    this.appPort.post('talkilla.initiate-move', moveMsg);
   };
 
   ChatApp.prototype._onCallEstablishment = function(data) {
@@ -291,7 +291,7 @@ var ChatApp = (function(app, $, Backbone, _) {
     window.close();
   };
 
-  ChatApp.prototype._onWindowClose = function(data) {
+  ChatApp.prototype._onWindowClose = function() {
     this.call.hangup(true);
   };
 
