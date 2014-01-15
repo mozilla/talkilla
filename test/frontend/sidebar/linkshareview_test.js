@@ -6,21 +6,58 @@ describe("LinkShareView", function ()  {
   var expect = chai.expect;
 
   describe("#render", function() {
+
+    var linkShareView;
+
     beforeEach(function() {
       $('#fixtures').append('<div id="link-share"></div>');
+      linkShareView = new app.views.LinkShareView();
     });
 
     afterEach(function() {
       $('#fixtures').empty();
     });
 
-    it("should render an input form", function () {
-      var linkShareView = new app.views.LinkShareView();
+    it("should return itself to allow chained calls", function() {
+      expect(linkShareView.render()).to.equal(linkShareView);
+    });
 
+    it("should render a url input with a link-share-input id",
+      function () {
+        linkShareView.render();
+
+        var $textFormEl = $("#fixtures").find('#link-share-input');
+        expect($textFormEl.length).to.equal(1);
+        expect($textFormEl.prop('tagName').toLowerCase()).to.equal('input');
+        expect($textFormEl.prop('type')).to.equal('url');
+      });
+
+    it("should render a label for the input field", function () {
       linkShareView.render();
 
-      expect($('#fixtures').find('.link-share-input').length).to.equal(1);
+      var $labelEl = $("#fixtures").find('.link-share-label');
+      expect($labelEl.length).to.equal(1);
+      expect($labelEl.prop('tagName').toLowerCase()).to.equal('label');
+      expect($labelEl.attr('for')).to.equal("link-share-input");
     });
+
+    it("should render a copy button of class link-copy-button", function () {
+      linkShareView.render();
+
+      var $copyButtonEl = $("#fixtures").find(".link-copy-button");
+      expect($copyButtonEl.length).to.equal(1);
+      expect($copyButtonEl.prop('tagName').toLowerCase()).to.equal('button');
+    });
+
+    // XXX this is the easiest way to get started: handle only the logged in
+    // case, and use the username as part of the URL.  Something like:
+    //
+    // http://talkilla.mozillalabs.com/instant-share/?username=joe%40example.com
+    //
+    // This will all change later, but it's the fastest way to move forward.
+    it("should default to the URL for this user");
+
+    it("should not render when the user is not logged in");
 
   });
 

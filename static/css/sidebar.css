@@ -125,3 +125,15 @@
 .sidebar footer p {
   margin: 10px 0;  /* override bootstrap to set top & bottom margins the same */
 }
+
+#link-share {
+  /* arbitrary amount to make space.  can probably do this more cleanly. */
+  margin-bottom: 25px;
+}
+
+#link-share-input {
+  width: 14em; /* arbitrary; seems to look reasonable */
+
+  /* override bootstrap defaults to making uneditable backgrounds red */
+  background-color: #FFFFFF;
+}

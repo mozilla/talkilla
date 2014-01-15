@@ -399,9 +399,15 @@
     render: function() {
 
       this.$el.html(
-        '<div id="#link-share">' +
-        '  <input class="link-share-input" type="text">' +
-        '</div>');
+        '<label class="link-share-label" for="link-share-input">' +
+          'Share this link to video chat' +
+        '</label>' +
+        '<div class="input-append">' +
+        '  <input id="link-share-input" readonly="true" type="url">'+
+        '  <button class="link-copy-button btn">Copy</button>' +
+        '</div>'
+      );
+
       return this;
     }
   });
