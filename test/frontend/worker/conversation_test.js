@@ -206,6 +206,22 @@ describe("Conversation", function() {
       currentConversation = undefined;
     });
 
+    it("should return false if the conversation is not for the peer",
+      function() {
+        offer.peer = "alexis";
+        var result = currentConversation.handleIncomingCall(offer);
+
+        expect(result).to.be.equal(false);
+      });
+
+    it("should return true if the conversation is for the peer",
+      function() {
+        var result = currentConversation.handleIncomingCall(offer);
+
+        expect(result).to.be.equal(true);
+      });
+
+
     it("should post a talkilla.conversation-incoming event for an " +
        "incoming call", function() {
         currentConversation.handleIncomingCall(offer);

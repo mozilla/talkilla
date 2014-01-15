@@ -79,7 +79,11 @@ var Conversation = (function() {
     *                                incoming conversation
     */
     handleIncomingCall: function(offer) {
+      if (this.peer.username !== offer.peer)
+        return false;
+
       this._sendMessage("talkilla.conversation-incoming", offer);
+      return true;
     },
 
     handleIncomingText: function(textMsg) {
@@ -89,6 +93,8 @@ var Conversation = (function() {
       this._sendMessage("talkilla.spa-channel-message", {
         message: textMsg.message
       });
+
+      return true;
     },
 
     /**
