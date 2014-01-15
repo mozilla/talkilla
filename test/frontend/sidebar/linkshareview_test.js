@@ -64,11 +64,11 @@ describe("LinkShareView", function ()  {
       expect(inputEl.validity.valid).to.equal(true);
     });
 
-    it("the URL should start with window.location.origin + /instant-share",
+    it("the URL should start with window.location.origin + /instant-share/",
       function() {
         linkShareView.render();
         var expectedURLRegex =
-          new RegExp("^" + window.location.origin + "/instant-share");
+          new RegExp("^" + window.location.origin + "/instant-share/");
 
         var inputEl = $("#fixtures").find("#link-share-input").get()[0];
 
