@@ -4,7 +4,7 @@
 var expect = chai.expect;
 
 describe("ImportContactsView", function() {
-  var sandbox, user, googleService;
+  var sandbox, user, googleService, spa;
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
@@ -15,6 +15,7 @@ describe("ImportContactsView", function() {
     ].join(''));
     user = new app.models.CurrentUser();
     googleService = new GoogleContacts();
+    spa = new app.models.SPA({capabilities: ["call"]});
   });
 
   afterEach(function() {
@@ -30,7 +31,8 @@ describe("ImportContactsView", function() {
     it("should render the view when the user signs in", function() {
       var importView = new app.views.ImportContactsView({
         user: user,
-        service: googleService
+        service: googleService,
+        spa: spa
       });
       importView.render.reset();
 
@@ -42,7 +44,8 @@ describe("ImportContactsView", function() {
     it("should render the view when the user signs out", function() {
       var importView = new app.views.ImportContactsView({
         user: user,
-        service: googleService
+        service: googleService,
+        spa: spa
       });
       importView.render.reset();
 
@@ -57,7 +60,8 @@ describe("ImportContactsView", function() {
       googleService.loadContacts = sandbox.spy();
       var importView = new app.views.ImportContactsView({
         user: user,
-        service: googleService
+        service: googleService,
+        spa: spa
       });
 
       importView.loadGoogleContacts();
@@ -73,7 +77,8 @@ describe("ImportContactsView", function() {
       user = new app.models.CurrentUser();
       importView = new app.views.ImportContactsView({
         user: user,
-        service: googleService
+        service: googleService,
+        spa: spa
       });
     });
 
