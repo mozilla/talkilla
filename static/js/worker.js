@@ -260,6 +260,26 @@ function _setupSPA(spa) {
     tkWorker.ports.broadcastEvent('talkilla.reauth-needed');
     tkWorker.closeSession();
   });
+
+  spa.on("instantshare", function(instantShareMsg) {
+    // If we're in a conversation, and it is not with the peer,
+    // then ignore it
+    if (!currentConversation) {
+      currentConversation = new Conversation({
+        capabilities: spa.capabilities,
+        peer: tkWorker.users.get(instantShareMsg.peer),
+        browserPort: browserPort,
+        users: tkWorker.users,
+        user: tkWorker.user
+      });
+      tkWorker.contactsDb.add({username: instantShareMsg.peer}, function(err) {
+        if (err)
+          tkWorker.ports.broadcastError(err);
+      });
+    }
+
+    currentConversation.startCall();
+  });
 }
 
 var handlers = {
