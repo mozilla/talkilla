@@ -164,27 +164,14 @@ var payloads = (function() {
   /**
    * Reconnection payload.
    *
-   * @param {Object} data
-   *
-   * data attributes:
-   *
-   * - {attempt} The reconnection attempt number.
-   * - {timeout} When the reconnection will happen.
+   * - {Integer} attempt, The reconnection attempt number.
+   * - {Integer} timeout, When the reconnection will happen.
    *
    */
-  function Reconnection(data) {
-    this.attempt = data.attempt;
-    this.timeout = data.timeout;
-  }
-
-  Reconnection.prototype = {
-    toJSON: function() {
-      return {
-        attempt: this.attempt,
-        timeout: this.timeout
-      };
-    }
-  };
+  var Reconnection = Payload.define({
+    attempt: Number,
+    timeout: Number
+  });
 
   return {
     Payload: Payload,
