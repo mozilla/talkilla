@@ -526,5 +526,36 @@ describe("presence", function() {
         sinon.assert.calledWithExactly(res.send, 204);
       });
     });
+
+    describe("#instantShare", function() {
+
+      var req, res, foo, bar;
+
+      beforeEach(function() {
+        req = {session: {email: "foo"}, params: {email: "bar"}};
+        res = {send: sinon.spy()};
+        foo = users.add("foo").get("foo");
+        bar = users.add("bar").get("bar");
+
+        sandbox.stub(foo, "send");
+      });
+
+      it("should send the given peer to myself", function() {
+        api.instantShare(req, res);
+
+        sinon.assert.calledOnce(foo.send);
+        sinon.assert.calledWithExactly(foo.send, "instantshare", {
+          peer: "bar"
+        });
+      });
+
+      it("should return a 200 OK response", function() {
+        api.instantShare(req, res);
+
+        sinon.assert.calledOnce(res.send);
+        sinon.assert.calledWithExactly(res.send, 200);
+      });
+
+    });
   });
 });

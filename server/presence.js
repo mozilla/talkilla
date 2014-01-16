@@ -237,6 +237,13 @@ api = {
 
     user.send("users", presentUsers);
     return res.send(204);
+  },
+
+  instantShare: function(req, res) {
+    var user = users.get(req.session.email);
+    user.send("instantshare", {peer: req.params.email});
+    logger.info({type: "instanshare"});
+    return res.send(200);
   }
 };
 
@@ -248,6 +255,7 @@ app.post('/callaccepted', api.callAccepted);
 app.post('/callhangup', api.callHangup);
 app.post('/icecandidate', api.iceCandidate);
 app.post('/presenceRequest', api.presenceRequest);
+app.get('/instant-share/:email', api.instantShare);
 
 module.exports.api = api;
 module.exports._users = users;
