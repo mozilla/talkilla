@@ -93,10 +93,10 @@ describe("LinkShareView", function ()  {
 
     it("should be hidden when the user's presence is disconnected",
       function() {
-        $("#link-share").show();
         linkShareView.render();
-
+        $("#link-share").show();
         user.set("presence", "disconnected");
+
         linkShareView.render();
 
         expect(linkShareView.$el.is(':hidden')).to.equal(true);
@@ -104,10 +104,10 @@ describe("LinkShareView", function ()  {
 
     it("should be visible when the user's presence is connected",
       function() {
-        $("#link-share").hide();
         linkShareView.render();
-
+        $("#link-share").hide();
         user.set("presence", "connected");
+
         linkShareView.render();
 
         expect(linkShareView.$el.is(':visible')).to.equal(true);
