@@ -14,9 +14,9 @@
     /**
      * Triggered when a reconnection event occured on the server.
      *
-     * @param {object} the event object.
+     * @param {app.payloads.Reconnection} the reconnection payload object.
      **/
-    ongoingReconnection: function(event) {
+    ongoingReconnection: function(reconnectionMsg) {
       // Reconnections can happen without the user notifying it.
       // To accomplish this, we store some state about the reconnection
       // in here, and only change the reconnecting property when
@@ -27,7 +27,7 @@
         // Only notify the users there is a server-connection problem after
         // trying for some time (10s)
         this.set('connected', false);
-        this.set('reconnecting', event);
+        this.set('reconnecting', reconnectionMsg);
       }
     }
   });

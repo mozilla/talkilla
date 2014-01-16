@@ -191,7 +191,7 @@ describe("SidebarApp", function() {
             sinon.assert.calledOnce(sidebarApp.appStatus.ongoingReconnection);
             sinon.assert.calledWithExactly(
               sidebarApp.appStatus.ongoingReconnection,
-              {timeout: 42, attempt: 2}
+              new app.payloads.Reconnection({timeout: 42, attempt: 2})
             );
           });
       });

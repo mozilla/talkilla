@@ -57,7 +57,7 @@ var SidebarApp = (function(app, $) {
 
     // Forward events to the model.
     this.appPort.on("talkilla.server-reconnection", function(event) {
-      this.appStatus.ongoingReconnection(event);
+      this.appStatus.ongoingReconnection(new app.payloads.Reconnection(event));
     }, this);
 
     // SPA model events
