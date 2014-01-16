@@ -251,8 +251,9 @@ function _setupSPA(spa) {
     tkWorker.ports.broadcastEvent("talkilla.error", event);
   });
 
-  spa.on("reconnection", function(event) {
-    tkWorker.ports.broadcastEvent('talkilla.server-reconnection', event);
+  spa.on("reconnection", function(reconnectionMsg) {
+    tkWorker.ports.broadcastEvent('talkilla.server-reconnection',
+                                  reconnectionMsg);
   });
 
   spa.on("reauth-needed", function(event) {
