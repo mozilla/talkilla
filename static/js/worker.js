@@ -248,14 +248,12 @@ function _setupSPA(spa) {
   });
 
   spa.on("error", function(event) {
-    tkWorker.ports.broadcastEvent("talkilla.spa-error", event);
+    tkWorker.ports.broadcastEvent("talkilla.error", event);
   });
 
-  spa.on("network-error", function(event) {
-    // XXX: this will need future work to handle retrying presence connections
-    tkWorker.ports.broadcastEvent('talkilla.presence-unavailable', event.code);
-
-    tkWorker.closeSession();
+  spa.on("reconnection", function(reconnectionMsg) {
+    tkWorker.ports.broadcastEvent('talkilla.server-reconnection',
+                                  reconnectionMsg);
   });
 
   spa.on("reauth-needed", function(event) {

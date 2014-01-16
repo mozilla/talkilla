@@ -38,7 +38,8 @@
    */
   app.models.Notification = Backbone.Model.extend({
     defaults: {type:    "default",
-               message: "empty message"}
+               message: "empty message",
+               timeout: undefined}
   });
 
   /**
@@ -92,8 +93,8 @@
     },
 
     /**
-     * Overrides Backbone.Model#toJSON to include dynamically generated atribute
-     * values.
+     * Overrides Backbone.Model#toJSON to include dynamically generated
+     * attribute values.
      * @overrides Backbone.Model.prototype.toJSON
      * @return {Object}
      */

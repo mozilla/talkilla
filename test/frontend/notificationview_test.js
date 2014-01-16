@@ -4,11 +4,15 @@
 var expect = chai.expect;
 
 describe("app.views", function() {
-  var sandbox;
+  var sandbox, view;
 
   describe("app.views.Notification", function() {
     beforeEach(function() {
       sandbox = sinon.sandbox.create();
+      view = new app.views.NotificationView({
+        model: new app.models.Notification({type: "plip", message: "plop"}),
+        appStatus: new app.models.AppStatus()
+      });
     });
 
     afterEach(function() {
@@ -17,9 +21,6 @@ describe("app.views", function() {
 
     describe("#clear", function() {
       it("should clear notification", function() {
-        var view = new app.views.NotificationView({
-          model: new app.models.Notification({type: "plip", message: "plop"})
-        });
         sandbox.stub(view, "undelegateEvents");
         sandbox.stub(view, "remove");
 
@@ -32,10 +33,6 @@ describe("app.views", function() {
 
     describe("#render", function() {
       it("should render itself", function() {
-        var view = new app.views.NotificationView({
-          model: new app.models.Notification({type: "plip", message: "plop"})
-        });
-
         view.render();
 
         expect(view.$("div").attr("class")).eql("alert alert-plip");

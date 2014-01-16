@@ -178,20 +178,37 @@ describe("SidebarApp", function() {
       });
     });
 
-    describe("talkilla.spa-error", function() {
+    describe("talkilla.server-reconnection", function() {
+        beforeEach(function() {
+          sandbox.stub(sidebarApp.appStatus, "ongoingReconnection");
+          sidebarApp.appPort.post.reset();
+        });
 
-      it("should call clear() on the user model", function() {
+        it("should call the ongoingReconnection method on the model",
+          function() {
+            sidebarApp.appPort.trigger("talkilla.server-reconnection",
+                                       {timeout: 42, attempt: 2});
+            sinon.assert.calledOnce(sidebarApp.appStatus.ongoingReconnection);
+            sinon.assert.calledWithExactly(
+              sidebarApp.appStatus.ongoingReconnection,
+              new app.payloads.Reconnection({timeout: 42, attempt: 2})
+            );
+          });
+      });
+
+    describe("talkilla.error", function() {
+
+      it("should not call clear() on the user model", function() {
         sandbox.stub(sidebarApp.user, "clear");
 
-        sidebarApp.appPort.trigger("talkilla.spa-error");
+        sidebarApp.appPort.trigger("talkilla.error");
 
-        sinon.assert.calledOnce(sidebarApp.user.clear);
-        sinon.assert.calledWithExactly(sidebarApp.user.clear);
+        sinon.assert.notCalled(sidebarApp.user.clear);
       });
 
 
       it("should notify the user of an error", function() {
-        sidebarApp.appPort.trigger("talkilla.spa-error");
+        sidebarApp.appPort.trigger("talkilla.error");
 
         sinon.assert.calledOnce(app.utils.notifyUI);
         sinon.assert.calledWithExactly(app.utils.notifyUI,

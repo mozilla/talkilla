@@ -374,31 +374,30 @@ describe("SPA events", function() {
     });
   });
 
-  describe("`network-error` event", function() {
-    it("should set the user data as disconnected", function() {
-      tkWorker.spa.trigger("network-error", {code: 1006});
-
-      expect(tkWorker.user.connected).to.be.equal(false);
+  describe("`reconnection` event", function() {
+    it("should not set the user data as disconnected", function() {
+      tkWorker.spa.trigger("reconnection", {timeout: 42, attempt: 1});
+      expect(tkWorker.user.connected).to.be.equal(true);
     });
 
-    it("should broadcast a `talkilla.presence-unavailable` event", function() {
+    it("should broadcast a `talkilla.server-reconnection` event", function() {
       tkWorker.user.name = "harvey";
       sandbox.stub(tkWorker.ports, "broadcastEvent");
 
-      tkWorker.spa.trigger("network-error", {code: 1006});
+      tkWorker.spa.trigger("reconnection", {timeout: 42, attempt: 1});
 
       sinon.assert.calledOnce(tkWorker.ports.broadcastEvent);
       sinon.assert.calledWithExactly(
-        tkWorker.ports.broadcastEvent, "talkilla.presence-unavailable", 1006
+        tkWorker.ports.broadcastEvent, "talkilla.server-reconnection",
+        {timeout:42, attempt: 1}
       );
     });
 
-    it("should close the current tkWorker session", function() {
+    it("should not close the current worker session", function() {
       sandbox.stub(tkWorker, "closeSession");
 
-      tkWorker.spa.trigger("network-error", {code: 1006});
-
-      sinon.assert.calledOnce(tkWorker.closeSession);
+      tkWorker.spa.trigger("reconnection", {code: 1006});
+      sinon.assert.notCalled(tkWorker.closeSession);
     });
   });
 

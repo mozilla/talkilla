@@ -173,7 +173,7 @@ api = {
       // XXX This could happen in the case of the user disconnecting
       // just as we call them. We may want to send something back to the
       // caller to indicate the issue.
-      logger.warn("Could not forward offer to unknown peer");
+      logger.warn("Could not forward answer to unknown peer");
       return res.send(204);
     }
 

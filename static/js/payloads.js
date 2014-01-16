@@ -161,6 +161,18 @@ var payloads = (function() {
     message: [Object, String]
   });
 
+  /**
+   * Reconnection payload.
+   *
+   * - {Integer} attempt, The reconnection attempt number.
+   * - {Integer} timeout, When the reconnection will happen.
+   *
+   */
+  var Reconnection = Payload.define({
+    attempt: Number,
+    timeout: Number
+  });
+
   return {
     Payload: Payload,
     Offer: Offer,
@@ -172,6 +184,7 @@ var payloads = (function() {
     SPASpec: SPASpec,
     Move: Move,
     MoveAccept: MoveAccept,
-    SPAChannelMessage: SPAChannelMessage
+    SPAChannelMessage: SPAChannelMessage,
+    Reconnection: Reconnection
   };
 })();

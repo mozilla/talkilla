@@ -1,6 +1,9 @@
 /* global importScripts, BackboneEvents, HTTP */
 /* jshint unused:false */
 
+/**
+ * Handles the server connection and events.
+ **/
 var Server = (function() {
   "use strict";
 
@@ -8,6 +11,16 @@ var Server = (function() {
     this.options = options;
     this.http = new HTTP();
     this.currentXHR = undefined;
+
+    this.connectionAttempts = 0;
+    this.reconnectOnError = options && options.reconnectOnError;
+
+    // Try to reconnect in case of network error.
+    if (this.reconnectOnError !== false){
+      this.on("network-error", function(response){
+        this.reconnect();
+      }.bind(this));
+    }
   }
 
   Server.prototype = {
@@ -21,9 +34,38 @@ var Server = (function() {
             return this.trigger("network-error", response);
 
           this.trigger("connected");
+          this.connectionAttempts = 0;
+
           this._longPolling(JSON.parse(response));
         }.bind(this));
       this.currentXHR = xhr;
+    },
+
+    /**
+     * Try to reconnect to the server if the connection was lost.
+     *
+     * Try a reconnection right away, then every second for the
+     * first 10 seconds, then every minute.
+     *
+     * Each time a reconnection occurs, sends a reconnection event with
+     * the current attempt and the timeout in order to know when this will
+     * happen.
+     **/
+    reconnect: function() {
+      var timeout;
+      if (this.connectionAttempts === 0){
+        timeout = 0; // reconnect instantly.
+      } else if (this.connectionAttempts <= 10)
+        timeout = 1000; // One second.
+      else {
+        timeout = 1000 * 60; // One minute.
+      }
+      this.trigger("reconnection", {"attempt": this.connectionAttempts,
+                                    "timeout": timeout});
+      setTimeout(function() {
+        this.connectionAttempts += 1;
+        this.connect();
+      }.bind(this), timeout);
     },
 
     disconnect: function() {
