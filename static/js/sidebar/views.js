@@ -417,10 +417,17 @@
     ),
 
     render: function() {
+      if (!this.user.isLoggedIn()) {
+        this.$el.hide();
+        return this;
+      }
+
       var linkToCopy = window.location.origin + "/instant-share/" +
         encodeURIComponent(this.user.get("username"));
 
       this.$el.html(this.template({url: linkToCopy} ));
+
+      this.$el.show();
 
       return this;
     }
