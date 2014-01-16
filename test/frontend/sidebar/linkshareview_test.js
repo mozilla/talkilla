@@ -7,11 +7,12 @@ describe("LinkShareView", function ()  {
 
   describe("#render", function() {
 
-    var linkShareView;
+    var linkShareView, username;
 
     beforeEach(function() {
       $('#fixtures').append('<div id="link-share"></div>');
-      linkShareView = new app.views.LinkShareView({username: "rt@example.com"});
+      username = "rt@example.com";
+      linkShareView = new app.views.LinkShareView({username: username});
     });
 
     afterEach(function() {
@@ -75,6 +76,16 @@ describe("LinkShareView", function ()  {
         expect(inputEl.value).to.match(expectedURLRegex);
       });
 
+    it("the URL should send with a URI-encoded version of the email address",
+      function() {
+        linkShareView.render();
+        var expectedURLRegex =
+          new RegExp(encodeURIComponent(username) + "$");
+
+        var inputEl = $("#fixtures").find("#link-share-input").get()[0];
+
+        expect(inputEl.value).to.match(expectedURLRegex);
+      });
 
     it("should not render when the user is not logged in");
 
