@@ -292,6 +292,11 @@
       }.bind(this));
     },
 
+    /**
+     * Set the presence attribute of all the users to the given value.
+     *
+     * @param  {String} the status to set.
+     **/
     updateUsersPresence: function(status) {
       // Show all the users as disconnected.
       this.collection.each(function(user) {
