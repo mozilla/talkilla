@@ -34,7 +34,7 @@ describe("LoginView", function() {
     beforeEach(function() {
       sandbox.stub(app.views.LoginView.prototype, "render");
       loginView = new app.views.LoginView({
-        user: new app.models.CurrentUser(),
+        user: new app.models.CurrentUser({username: "rt@example.com"}),
         spaLoginURL: "http://talkilla/",
         appStatus: new app.models.AppStatus()
       });

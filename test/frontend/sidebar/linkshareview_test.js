@@ -6,13 +6,17 @@ describe("LinkShareView", function ()  {
   var expect = chai.expect;
 
   describe("#render", function() {
-
-    var linkShareView, username;
+    var linkShareView, username, user;
 
     beforeEach(function() {
       $('#fixtures').append('<div id="link-share"></div>');
+
       username = "rt@example.com";
-      linkShareView = new app.views.LinkShareView({username: username});
+      user = new app.models.CurrentUser({
+        username: username,
+        presence: "connected"
+      });
+      linkShareView = new app.views.LinkShareView({user: user});
     });
 
     afterEach(function() {
@@ -76,7 +80,7 @@ describe("LinkShareView", function ()  {
         expect(inputEl.value).to.match(expectedURLRegex);
       });
 
-    it("the URL should send with a URI-encoded version of the email address",
+    it("the URL should end with a URI-encoded version of the email address",
       function() {
         linkShareView.render();
         var expectedURLRegex =

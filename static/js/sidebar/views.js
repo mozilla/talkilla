@@ -356,7 +356,7 @@
     initialize: function() {
       this.user.on('signin signout', this.render, this);
       this.appStatus.on('change:workerInitialized', this.render, this);
-      this._linkShareView = new app.views.LinkShareView();
+      this._linkShareView = new app.views.LinkShareView({user: this.user});
     },
 
     render: function() {
@@ -398,12 +398,9 @@
    * @type {*}
    */
   app.views.LinkShareView = app.views.BaseView.extend({
-    // XXX not a dependency because this username still will
-    // go away soon, at which point we can ditch #initialize entirely
-    // and won't need to change the tests.
-    initialize: function(opts) {
-      if (opts && "username" in opts)
-        this.username = opts.username;
+
+    dependencies: {
+      user: app.models.CurrentUser
     },
 
     el: "#link-share",
@@ -420,9 +417,8 @@
     ),
 
     render: function() {
-
       var linkToCopy = window.location.origin + "/instant-share/" +
-        encodeURIComponent(this.username);
+        encodeURIComponent(this.user.get("username"));
 
       this.$el.html(this.template({url: linkToCopy} ));
 
