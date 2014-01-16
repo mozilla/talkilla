@@ -556,7 +556,8 @@
   app.views.TextChatView = app.views.BaseView.extend({
     dependencies: {
       call:       app.models.Call,
-      collection: app.models.TextChat
+      collection: app.models.TextChat,
+      peer:       app.models.User
     },
 
     el: '#textchat', // XXX: uncouple the selector from this view
@@ -640,9 +641,9 @@
       return !notFirstMessage;
     },
 
-    _showTypingNotification: function(message) {
+    _showTypingNotification: function() {
       this.$el.addClass('typing');
-      this.$('ul').attr('data-username', message.username);
+      this.$('ul').attr('data-username', this.peer.get("username"));
     },
 
     _clearTypingNotification: function() {

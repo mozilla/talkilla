@@ -121,7 +121,8 @@ describe("Text chat views", function() {
           media: media,
           user: user,
           peer: peer
-        })
+        }),
+        peer: peer
       });
 
       expect(view.collection).to.have.length.of(0);
@@ -143,7 +144,8 @@ describe("Text chat views", function() {
           media: media,
           user: user,
           peer: peer
-        })
+        }),
+        peer: peer
       });
       expect(view.collection).to.have.length.of(2);
 
@@ -203,7 +205,8 @@ describe("Text chat views", function() {
         sandbox.stub(collection, "on");
         view = new app.views.TextChatView({
           call: new app.models.Call({}, {media: media, peer: peer}),
-          collection: collection
+          collection: collection,
+          peer: peer
         });
       });
 
@@ -237,19 +240,22 @@ describe("Text chat views", function() {
             media: media,
             user: user,
             peer: peer
-          })
+          }),
+          peer: peer
         });
+
+        peer.set("username", "avinash");
       });
 
       describe("#_showTypingNotification", function() {
         it("should add the typing class", function() {
-          view.collection.trigger('chat:type-start', {username:'hardfire'});
+          view.collection.trigger('chat:type-start');
 
           expect(view.$el.hasClass('typing')).to.be.equal(true);
         });
 
         it("should add a data username attribute", function() {
-          view.collection.trigger('chat:type-start', {username:'avinash'});
+          view.collection.trigger('chat:type-start');
 
           expect(view.$('ul').attr('data-username')).eql('avinash');
         });
@@ -274,7 +280,8 @@ describe("Text chat views", function() {
             media: media,
             user: user,
             peer: peer
-          })
+          }),
+          peer: peer
         });
 
         sinon.assert.calledOnce(view.$('form input[name="message"]').focus);
@@ -294,7 +301,8 @@ describe("Text chat views", function() {
         });
         textChatView = new app.views.TextChatView({
           call: call,
-          collection: textChat
+          collection: textChat,
+          peer: peer
         });
 
         blob = new Blob(['content'], {type: 'plain/text'});
@@ -333,7 +341,8 @@ describe("Text chat views", function() {
             media: media,
             user: user,
             peer: peer
-          })
+          }),
+          peer: peer
         });
 
         sandbox.stub(view.collection, "notifyTyping");

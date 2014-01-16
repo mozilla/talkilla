@@ -531,8 +531,8 @@
     },
 
     /**
-     * Adds a new entry to the collection and sends it over data channel.
-     * Schedules sending after the connection is established.
+     * Sends an entry over the transport, initiating the transport if
+     * necessary.
      * @param  {Object} entry
      */
     send: function(entry) {
@@ -550,8 +550,7 @@
         return;
 
       this.transport.send({
-        type: "chat:typing",
-        message: { username: this.user.get("username") }
+        type: "chat:typing"
       });
     },
 
@@ -560,11 +559,14 @@
 
       switch (event.type) {
       case "chat:message":
-        this.add(new app.models.TextChatEntry(event.message));
+        this.add(new app.models.TextChatEntry({
+          username: this.peer.get("username"),
+          message: event.message
+        }));
         this.trigger("chat:type-stop");
         break;
       case "chat:typing":
-        this.trigger("chat:type-start", event.message);
+        this.trigger("chat:type-start");
         if (this.typingTimeout)
           clearTimeout(this.typingTimeout);
         this.typingTimeout = setTimeout(
@@ -591,11 +593,11 @@
 
     _onTextChatEntryCreated: function(entry) {
       // Send the message if we are the sender.
-      // I we are not, the message comes from a contact and we do not
+      // If we are not, the message comes from a contact and we do not
       // want to send it back.
       if (entry instanceof app.models.TextChatEntry &&
           entry.get('username') === this.user.get("username"))
-        this.send({type: "chat:message", message: entry.toJSON()});
+        this.send({type: "chat:message", message: entry.get("message")});
     },
 
     _onFileTransferCreated: function(entry) {
