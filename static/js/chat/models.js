@@ -105,7 +105,8 @@
         this.trigger("send-offer", new app.payloads.Offer({
           peer: this.peer.get("username"),
           offer: offer,
-          callid: this.callid
+          callid: this.callid,
+          upgrade: false
         }));
       }, this);
 
@@ -485,6 +486,7 @@
 
     initialize: function(attributes, options) {
       this.typeTimeout = options && options.typeTimeout || 5000;
+      this.callid = app.utils.id(); // XXX add  a test
 
       this.on('add', this._onTextChatEntryCreated, this);
       this.on('add', this._onFileTransferCreated, this);
@@ -503,8 +505,10 @@
     initiate: function(constraints) {
       this.media.once("offer-ready", function(offer) {
         this.trigger("send-offer", new app.payloads.Offer({
+          callid: this.callid,
           peer: this.peer.get("username"),
-          offer: offer
+          offer: offer,
+          upgrade: false
         }));
       }, this);
 
@@ -563,8 +567,8 @@
         this.trigger("chat:type-start", event.message);
         if (this.typingTimeout)
           clearTimeout(this.typingTimeout);
-        this.typingTimeout = setTimeout(this.trigger.bind(this, "chat:type-stop"
-                                                          ), this.typeTimeout);
+        this.typingTimeout = setTimeout(
+          this.trigger.bind(this, "chat:type-stop"), this.typeTimeout);
         break;
       case "file:new":
         var username = this.user.get("username");
