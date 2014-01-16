@@ -61,6 +61,9 @@ var TalkillaSPA = (function() {
       else if (type === "ice:candidate")
         this.port.post("ice:candidate",
                        (new payloads.IceCandidate(event)));
+      else if (type === "instantshare")
+        this.port.post("instantshare",
+                       (new payloads.InstantShare(event)));
       else
         this.port.post(type, event);
     },
