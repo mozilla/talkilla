@@ -240,6 +240,10 @@ api = {
   },
 
   instantShare: function(req, res) {
+    res.sendfile("static/instant-share.html");
+  },
+
+  instantSharePingBack: function(req, res) {
     var user = users.get(req.session.email);
     user.send("instantshare", {peer: req.params.email});
     logger.info({type: "instanshare"});
@@ -256,6 +260,7 @@ app.post('/callhangup', api.callHangup);
 app.post('/icecandidate', api.iceCandidate);
 app.post('/presenceRequest', api.presenceRequest);
 app.get('/instant-share/:email', api.instantShare);
+app.post('/instant-share/:email', api.instantSharePingBack);
 
 module.exports.api = api;
 module.exports._users = users;
