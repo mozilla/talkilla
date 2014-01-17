@@ -1,9 +1,22 @@
 /* global HTTP */
+/* exported InstantShareApp */
 
-"use strict";
+var InstantShareApp = (function() {
 
-document.querySelector("#instant-share-call a")
-  .addEventListener("click", function() {
-    var http = new HTTP();
-    http.post(window.location, {});
-  });
+  "use strict";
+
+  function InstantShareAppImpl() {
+  }
+
+  InstantShareAppImpl.prototype.start = function() {
+      document.querySelector("#instant-share-call a")
+        .addEventListener("click", function() {
+          var http = new HTTP();
+          http.post(window.location, {});
+        });
+    };
+
+  return InstantShareAppImpl;
+})();
+
+

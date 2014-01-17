@@ -1,8 +1,8 @@
-/* global sinon, Event */
+/* global sinon, Event, InstantShareApp */
 
-"use strict";
+describe("InstantShareApp", function() {
+  "use strict";
 
-describe("Instant-share webpage", function() {
   var sandbox, xhr;
 
   beforeEach(function() {
@@ -19,10 +19,13 @@ describe("Instant-share webpage", function() {
     sandbox.restore();
   });
 
-  describe("call button", function() {
+  describe("click event on the call button", function() {
 
     it("should post an xhr request to the instant-share ping back API",
       function() {
+        var instantShareApp = new InstantShareApp();
+        instantShareApp.start();
+
         var event = new Event('click');
         document.querySelector("#instant-share-call a")
           .dispatchEvent(event);
