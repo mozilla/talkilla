@@ -244,6 +244,7 @@ describe('Text chat models', function() {
     beforeEach(function() {
       textChat = createTextChat();
       textChat.transport = transport;
+      peer.fullName = "dan";
     });
 
     it("should append received message to the current text chat", function() {
@@ -256,7 +257,7 @@ describe('Text chat models', function() {
       sinon.assert.calledOnce(newTextChat);
       sinon.assert.calledWithExactly(newTextChat, {
         message: "data",
-        username: peer.get("username")
+        fullName: peer.get("fullName")
       });
     });
 
@@ -371,14 +372,14 @@ describe('Text chat models', function() {
     var textChat;
 
     beforeEach(function() {
-      user.set("username", "foo");
+      user.set("fullName", "foo");
       sandbox.stub(app.models.TextChat.prototype, "send");
       textChat = createTextChat();
     });
 
     it("should send data over data channel", function() {
       var entry = new app.models.TextChatEntry({
-        username: "foo",
+        fullName: "foo",
         message: "bar"
       });
       var message = {type: "chat:message", message: "bar"};
