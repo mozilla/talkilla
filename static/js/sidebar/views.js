@@ -355,12 +355,7 @@
     },
 
     loadGoogleContacts: function() {
-      var id;
-      if (this.spa.supports("pstn-call")) {
-        id = "phoneNumber";
-      } else {
-        id = "email";
-      }
+      var id = this.spa.supports("pstn-call") ? "phoneNumber" : "email";
       this.service.loadContacts(id);
     },
 
