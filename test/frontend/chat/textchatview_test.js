@@ -171,7 +171,7 @@ describe("Text chat views", function() {
 
       textChat.once("add", function(entry) {
         expect(entry).to.be.an.instanceOf(app.models.TextChatEntry);
-        expect(entry.get("username")).to.equal("jb");
+        expect(entry.get("fullName")).to.equal("jb");
         expect(entry.get("message")).to.equal("plop");
         done();
       });
