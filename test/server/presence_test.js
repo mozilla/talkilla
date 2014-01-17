@@ -557,5 +557,24 @@ describe("presence", function() {
       });
 
     });
+
+    describe("#instantShare", function() {
+
+      var req, res;
+
+      beforeEach(function() {
+        req = {session: {email: "foo"}, params: {email: "bar"}};
+        res = {sendfile: sinon.spy()};
+      });
+
+      it("should send the 'static/instant-share.html' page", function() {
+        api.instantShare(req, res);
+
+        sinon.assert.calledOnce(res.sendfile);
+        sinon.assert.calledWithExactly(res.sendfile,
+          'static/instant-share.html');
+      });
+
+    });
   });
 });
