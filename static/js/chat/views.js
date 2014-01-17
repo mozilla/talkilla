@@ -343,7 +343,7 @@
       'click .btn-call-again': '_callAgain'
     },
 
-    outgoingTextTemplate: _.template('Calling <%= fullName %>…'),
+    template: _.template('Calling <%= fullName %>…'),
 
     initialize: function() {
       this.call.on('send-offer', this._onSendOffer, this);
@@ -409,7 +409,7 @@
       //      as a User model instance
 
       if (this.call.state.current === "pending") {
-        var formattedText = this.outgoingTextTemplate(this.peer.toJSON());
+        var formattedText = this.template(this.peer.toJSON());
         this.$('.text').text(formattedText);
 
         this.$(".btn-abort").show();
