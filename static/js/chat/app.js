@@ -68,7 +68,8 @@ var ChatApp = (function(app, $, Backbone, _) {
 
     this.textChatView = new app.views.TextChatView({
       call: this.call,
-      collection: this.textChat
+      collection: this.textChat,
+      peer: this.peer
     });
 
     this.view = new app.views.ConversationView({
@@ -148,7 +149,7 @@ var ChatApp = (function(app, $, Backbone, _) {
   };
 
   ChatApp.prototype._onInitiateMove = function(moveMsg) {
-    this.appPort.post('talkilla.initiate-move', moveMsg.toJSON());
+    this.appPort.post('talkilla.initiate-move', moveMsg);
   };
 
   ChatApp.prototype._onCallEstablishment = function(data) {
@@ -163,15 +164,15 @@ var ChatApp = (function(app, $, Backbone, _) {
   };
 
   // Incoming calls
-  ChatApp.prototype._onIncomingConversation = function(msg) {
-    var sdp = new WebRTC.SDP(msg.offer.offer.sdp);
+  ChatApp.prototype._onIncomingConversation = function(offerMsg) {
+    var sdp = new WebRTC.SDP(offerMsg.offer.sdp);
 
     // incoming text chat conversation
     if (sdp.only("datachannel"))
-      return this.textChat.answer(msg.offer.offer);
+      return this.textChat.answer(offerMsg.offer);
 
     // incoming video/audio call
-    this.call.incoming(new app.payloads.Offer(msg.offer));
+    this.call.incoming(new app.payloads.Offer(offerMsg));
     this.audioLibrary.play('incoming');
   };
 
@@ -179,7 +180,7 @@ var ChatApp = (function(app, $, Backbone, _) {
     var peer = this.peer.get("username");
     this.textChat.setTransport(new SPAChannel(this.appPort, peer));
     // Forward the message to the newly created transport
-    this.textChat.transport.trigger("message", msg.message);
+    this.textChat.transport.trigger("message", msg);
   };
 
   ChatApp.prototype._onIceCandidate = function(data) {
@@ -291,7 +292,7 @@ var ChatApp = (function(app, $, Backbone, _) {
     window.close();
   };
 
-  ChatApp.prototype._onWindowClose = function(data) {
+  ChatApp.prototype._onWindowClose = function() {
     this.call.hangup(true);
   };
 

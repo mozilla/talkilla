@@ -1,4 +1,4 @@
-/*global app */
+/*global app, validate */
 /**
  * Talkilla models and collections.
  */
@@ -12,7 +12,7 @@
     dependencies: {},
 
     constructor: function(attributes, options) {
-      var validator = new app.utils.Dependencies(this.dependencies);
+      var validator = new validate.Validator(this.dependencies);
       _.extend(this, validator.validate(options || {}));
 
       Backbone.Model.apply(this, arguments);
@@ -26,7 +26,7 @@
     dependencies: {},
 
     constructor: function(models, options) {
-      var validator = new app.utils.Dependencies(this.dependencies);
+      var validator = new validate.Validator(this.dependencies);
       _.extend(this, validator.validate(options || {}));
 
       Backbone.Collection.apply(this, arguments);
@@ -38,7 +38,8 @@
    */
   app.models.Notification = Backbone.Model.extend({
     defaults: {type:    "default",
-               message: "empty message"}
+               message: "empty message",
+               timeout: undefined}
   });
 
   /**
@@ -92,8 +93,8 @@
     },
 
     /**
-     * Overrides Backbone.Model#toJSON to include dynamically generated atribute
-     * values.
+     * Overrides Backbone.Model#toJSON to include dynamically generated
+     * attribute values.
      * @overrides Backbone.Model.prototype.toJSON
      * @return {Object}
      */

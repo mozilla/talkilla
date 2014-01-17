@@ -34,8 +34,8 @@ class Driver(WebDriver):
             - nick: Peer username
         """
         self.switchToSidebar()
-        nicks = self.waitForElements("ul.nav-list>li>a", visible=True)
-        filter(lambda e: e.text == nick, nicks)[0].click()
+        self.waitForElement("ul.nav-list>li>a[title=" + nick + "]",
+                            visible=True).click()
         return self.switchToChatWindow()
 
     def clickElement(self, css_selector):

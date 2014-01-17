@@ -52,9 +52,11 @@ describe("SPA", function() {
     describe("events", function() {
       describe("ice:candidate", function() {
         it("should trigger an ice:candidate event", function(done) {
-          spa.on("ice:candidate", function(iceCandidateMsg) {
-            expect(iceCandidateMsg.peer).to.equal("lloyd");
-            expect(iceCandidateMsg.candidate).to.equal("dummy");
+          var candidate = {fakeCandidate: true};
+
+          spa.on("ice:candidate", function(data) {
+            expect(data.peer).to.equal("lloyd");
+            expect(data.candidate).to.equal(candidate);
             done();
           });
 
@@ -63,7 +65,7 @@ describe("SPA", function() {
               topic: "ice:candidate",
               data: {
                 peer: "lloyd",
-                candidate: "dummy"
+                candidate: candidate
               }
             }
           });
@@ -109,7 +111,12 @@ describe("SPA", function() {
   describe("#callOffer", function() {
 
     it("should send a call:offer event to the worker", function() {
-      var offerMsg = new payloads.Offer({offer: "fake offer", peer: "lucy"});
+      var offerMsg = new payloads.Offer({
+        callid: 42,
+        offer: {fakeOffer: true},
+        peer: "lucy",
+        upgrade: false
+      });
 
       spa.callOffer(offerMsg);
 
@@ -126,7 +133,8 @@ describe("SPA", function() {
 
     it("should send a answer event to the worker", function() {
       var answerMsg = new payloads.Answer({
-        answer: "fake answer",
+        callid: 42,
+        answer: {fakeAnswer: true},
         peer: "lisa"
       });
 
@@ -144,7 +152,7 @@ describe("SPA", function() {
   describe("#callHangup", function() {
 
     it("should send a call:hangup event to the worker", function() {
-      var hangupMsg = new payloads.Hangup({peer: "foo"});
+      var hangupMsg = new payloads.Hangup({callid: 42, peer: "foo"});
       spa.callHangup(hangupMsg);
 
       sinon.assert.calledOnce(spa.worker.postMessage);
@@ -160,7 +168,7 @@ describe("SPA", function() {
 
     it("should send an ice:candidate event to the worker", function() {
       var iceCandidateMsg = new payloads.IceCandidate({
-        candidate: "dummy",
+        candidate: new mozRTCIceCandidate(),
         peer: "lloyd"
       });
       spa.iceCandidate(iceCandidateMsg);
@@ -182,7 +190,7 @@ describe("SPA", function() {
       sinon.assert.calledOnce(spa.worker.postMessage);
       sinon.assert.calledWithExactly(spa.worker.postMessage, {
         topic: "initiate-move",
-        data: moveMsg.toJSON()
+        data: moveMsg
       });
     });
   });
@@ -210,6 +218,7 @@ describe("SPA", function() {
 
     it("should send a message to the spa", function() {
       var textMsg = new payloads.SPAChannelMessage({
+        type: "message",
         message: "some message",
         peer: "some peer"
       });
@@ -218,7 +227,7 @@ describe("SPA", function() {
       sinon.assert.calledOnce(spa.worker.postMessage);
       sinon.assert.calledWithExactly(spa.worker.postMessage, {
         topic: "message",
-        data: textMsg.toJSON()
+        data: textMsg
       });
     });
 

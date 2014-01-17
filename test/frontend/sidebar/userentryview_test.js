@@ -77,8 +77,6 @@ describe("UserEntryView", function() {
 
       view.render();
 
-      console.log(view.$el.html());
-
       expect(view.$("a").attr("rel")).eql("chuck");
       expect(view.$("a").attr("title")).eql("chuck");
       expect(view.$(".username").text()).eql("chuck");
@@ -88,8 +86,6 @@ describe("UserEntryView", function() {
       user.set({username: "chuck", fullName: "Chuck Norris"});
 
       view.render();
-
-      console.log(view.$el.html());
 
       expect(view.$("a").attr("rel")).eql("chuck");
       expect(view.$("a").attr("title")).eql("chuck");

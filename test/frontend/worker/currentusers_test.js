@@ -78,7 +78,6 @@ describe("CurrentUsers", function() {
         users.set('foo', {username: "foo", presence: "connected"});
 
         users.updateContacts(contacts);
-        console.log(users.all());
 
         expect(users.all()).eql({
           jb: {username: "jb", presence: "disconnected"},

@@ -1,9 +1,12 @@
-/* global sinon, SPAPort, Server, TalkillaSPA, expect */
+/* global sinon, SPAPort, Server, TalkillaSPA, expect, payloads */
 /* jshint unused:false */
 "use strict";
 
 describe("TalkillaSPA", function() {
   var sandbox, port, server, spa;
+
+  var fakeOffer = {fakeOffer: true};
+  var fakeAnswer = {fakeAnswer: true};
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
@@ -37,15 +40,15 @@ describe("TalkillaSPA", function() {
       );
     });
 
-    it("should post a network-error event to the port", function() {
-      var event = "fake event";
+    it("should post a reconnection event to the port", function() {
+      var event = {timeout: 42, attempt: 2};
       sandbox.stub(spa.port, "post");
 
-      spa.server.trigger("network-error", event);
+      spa.server.trigger("reconnection", event);
 
       sinon.assert.calledOnce(spa.port.post);
       sinon.assert.calledWithExactly(
-        spa.port.post, "network-error", "fake event");
+        spa.port.post, "reconnection", new payloads.Reconnection(event));
     });
 
     it("should post a reauth-needed event to the port", function() {
@@ -94,14 +97,19 @@ describe("TalkillaSPA", function() {
     it("should send an offer to the server",
       function(done) {
         sandbox.stub(spa.server, "callOffer", function(data) {
-          expect(data.offer).to.equal("fake offer data");
+          expect(data.offer).to.equal(fakeOffer);
           expect(data.peer).to.equal("foo");
 
           done();
         });
         sandbox.stub(spa.port, "post");
 
-        spa.port.trigger("offer", {offer: "fake offer data", peer: "foo"});
+        spa.port.trigger("offer", {
+          callid: 42,
+          offer: fakeOffer,
+          peer: "foo",
+          upgrade: false
+        });
       });
 
   });
@@ -110,17 +118,16 @@ describe("TalkillaSPA", function() {
 
     it("should send an answer to the server",
       function(done) {
-        sandbox.stub(spa.server, "callAccepted",
-          function(answerMsg, callback) {
-            expect(answerMsg.answer).to.equal("fake answer data");
-            expect(answerMsg.peer).to.equal("foo");
+        sandbox.stub(spa.server, "callAccepted", function(data, callback) {
+          expect(data.answer).to.equal(fakeAnswer);
+          expect(data.peer).to.equal("foo");
 
-            done();
-          });
+          done();
+        });
         sandbox.stub(spa.port, "post");
 
         spa.port.trigger("answer", {
-          answer: "fake answer data",
+          answer: fakeAnswer,
           peer: "foo"
         });
       });
@@ -137,7 +144,7 @@ describe("TalkillaSPA", function() {
         });
         sandbox.stub(spa.port, "post");
 
-        spa.port.trigger("hangup", {peer: "foo"});
+        spa.port.trigger("hangup", {callid: 42, peer: "foo"});
       });
 
   });
@@ -146,9 +153,7 @@ describe("TalkillaSPA", function() {
 
     it("should send an iceCandidate to the server",
       function(done) {
-        var candidate = {
-          candidate: "dummy"
-        };
+        var candidate = {fakeCandidate: true};
 
         sandbox.stub(spa.server, "iceCandidate", function(data) {
           expect(data.peer).to.equal("foo");

@@ -8,7 +8,7 @@ describe("Server", function() {
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
     sandbox.stub(window, "WebSocket").returns({send: sinon.spy()});
-    server = new Server();
+    server = new Server({reconnectOnError: false});
   });
 
   afterEach(function() {
@@ -78,6 +78,34 @@ describe("Server", function() {
       server.connect();
     });
 
+  });
+
+  describe("#reconnect", function() {
+
+    beforeEach(function() {
+      server = new Server();
+      // Monkey-patch setTimeout to be a sync operation.
+      sandbox.stub(window, "setTimeout", function(fn) {
+        fn();
+      });
+    });
+
+    it("should reconnect when receiving a network-error event", function() {
+      sandbox.stub(server, "connect", sinon.spy());
+      server.trigger("network-error");
+      sinon.assert.calledOnce(server.connect);
+    });
+
+    it("should send a `reconnection` event when reconnecting", function(done) {
+      sandbox.stub(server, "connect", sinon.spy());
+      server.on("reconnection", function(event) {
+        expect(event.timeout).to.equal(0);
+        expect(event.attempt).to.equal(0);
+        done();
+      });
+
+      server.reconnect();
+    });
   });
 
   describe("#disconnect", function() {
@@ -232,7 +260,7 @@ describe("Server", function() {
     it("should send an ice candidate", function() {
       var iceCandidateMsg = new payloads.IceCandidate({
         peer: "lloyd",
-        candidate: "dummy"
+        candidate: {fakeCandidate: true}
       });
       var callback = function() {};
       sandbox.stub(server.http, "post");

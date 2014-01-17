@@ -26,29 +26,32 @@
     isInSidebar: false, // default to panel
 
     initialize: function(options) {
-      this.notificationsView = new app.views.NotificationsView({
-        user: this.user
-      });
-
       this.loginView = new app.views.LoginView({
         appStatus: this.appStatus,
-        spaLoginURL: options.spaLoginURL,
+        spaLoginURL: this.spaLoginURL,
         user: this.user
       });
 
       this.usersView = new app.views.UsersView({
         user: this.user,
-        collection: this.users
+        collection: this.users,
+        appStatus: this.appStatus
       });
 
       this.importButtonView = new app.views.ImportContactsView({
         user: this.user,
-        service: this.services.google
+        service: this.services.google,
+        spa: this.spa
       });
 
       this.spaView = new app.views.SPAView({
         user: this.user,
         spa: this.spa
+      });
+
+      this.notificationsView = new app.views.NotificationsView({
+        user: this.user,
+        appStatus: this.appStatus
       });
 
       if (options.isInSidebar)
@@ -129,7 +132,8 @@
    */
   app.views.NotificationsView = app.views.BaseView.extend({
     dependencies: {
-      user: app.models.CurrentUser
+      user: app.models.CurrentUser,
+      appStatus: app.models.AppStatus
     },
 
     el: '#messages',
@@ -138,6 +142,35 @@
 
     initialize: function() {
       this.user.on('signin signout', this.clear, this);
+      this.appStatus.on("change:reconnecting", function(appStatus) {
+        if (appStatus.get("reconnecting") !== false){
+          this.notifyReconnectionPending(appStatus.get("reconnecting"));
+        }
+      }, this);
+
+      this.appStatus.on("change:connected", function(appStatus) {
+        if (appStatus.get("connected") === true){
+          this.notifyReconnectionSuccess();
+        }
+      }, this);
+    },
+
+    notifyReconnectionPending: function(event) {
+      var timeout = event.timeout;
+      var msg = "We lost the connection with the server. " +
+                "Attempting a reconnection in " +
+                timeout / 1000 + "s...";
+
+      app.utils.notifyUI(msg, "error", timeout);
+      console.log(msg);
+    },
+
+    notifyReconnectionSuccess: function() {
+      this.appStatus.set("reconnecting", false);
+      this.appStatus.set("firstReconnection", undefined);
+      // XXX We should only clear reconnection notifications here.
+      this.clear();
+      app.utils.notifyUI("Reconnected to the server.", "success", 2000);
     },
 
     /**
@@ -149,6 +182,12 @@
 
       this.notifications.push(notification);
       this.$el.append(el);
+
+      // Clear the notification once the timeout reached.
+      if (notification.model.has("timeout")) {
+        setTimeout(notification.clear.bind(notification),
+                   notification.model.get("timeout"));
+      }
 
       return this;
     },
@@ -212,7 +251,8 @@
   app.views.UsersView = app.views.BaseView.extend({
     dependencies: {
       user: app.models.CurrentUser,
-      collection: app.models.UserSet
+      collection: app.models.UserSet,
+      appStatus: app.models.AppStatus
     },
 
     el: '#users',
@@ -221,7 +261,11 @@
     activeNotification: null,
 
     initialize: function() {
-      this.collection.on('reset change', this.render, this);
+      this.collection.on("reset change", this.render, this);
+      this.appStatus.on("change:reconnecting", function(appStatus) {
+        if (appStatus.get("reconnecting") !== false)
+          this.updateUsersPresence("disconnected");
+      }, this);
     },
 
     /**
@@ -247,6 +291,18 @@
                      callee.get('username') === user.get('username'))
         }));
       }.bind(this));
+    },
+
+    /**
+     * Set the presence attribute of all the users to the given value.
+     *
+     * @param  {String} the status to set.
+     **/
+    updateUsersPresence: function(status) {
+      // Show all the users as disconnected.
+      this.collection.each(function(user) {
+        user.set("presence", status);
+      });
     },
 
     render: function() {
@@ -339,7 +395,8 @@
   app.views.ImportContactsView = app.views.BaseView.extend({
     dependencies: {
       user: app.models.CurrentUser,
-      service: GoogleContacts
+      service: GoogleContacts,
+      spa: app.models.SPA,
     },
 
     el: "#import-contacts",
@@ -353,7 +410,8 @@
     },
 
     loadGoogleContacts: function() {
-      this.service.loadContacts();
+      var id = this.spa.supports("pstn-call") ? "phoneNumber" : "email";
+      this.service.loadContacts(id);
     },
 
     render: function() {

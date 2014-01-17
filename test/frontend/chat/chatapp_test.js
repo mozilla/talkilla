@@ -14,6 +14,7 @@ describe("ChatApp", function() {
   var fakeOffer = {type: "offer", sdp: "\nm=video aaa\nm=audio bbb"};
   var fakeAnswer = {type: "answer", sdp: "\nm=video ccc\nm=audio ddd"};
   var fakeDataChannel = {fakeDataChannel: true};
+  var _onWindowClose = ChatApp.prototype._onWindowClose;
 
   beforeEach(function() {
     AppPortStub = _.extend({post: sinon.spy()}, Backbone.Events);
@@ -24,11 +25,13 @@ describe("ChatApp", function() {
       peerPresence: "connected",
       offer: {
         callid: 2,
-        peer: {username: "alice", presence: "connected"},
-        offer: {type: "answer", sdp: "fake"}
+        peer: "alice",
+        offer: fakeOffer,
+        upgrade: false
       },
       user: "bob"
     };
+
     sandbox = sinon.sandbox.create();
     sandbox.stub(window, "AppPort").returns(AppPortStub);
     sandbox.stub(window, "Audio").returns({
@@ -60,6 +63,9 @@ describe("ChatApp", function() {
 
     // This stops us changing the document's title unnecessarily
     sandbox.stub(app.views.ConversationView.prototype, "initialize");
+
+    // prevent created ChatApp instances to perform hangups on window unload
+    sandbox.stub(ChatApp.prototype, "_onWindowClose");
   });
 
   afterEach(function() {
@@ -244,10 +250,17 @@ describe("ChatApp", function() {
 
     describe("#_onIncomingConversation", function() {
 
+      beforeEach(function() {
+        sandbox.stub(WebRTC, "SDP").returns({
+          constraints: {audio: true, video: true},
+          only: function() { return false; }
+        });
+      });
+
       it("should set the call as incoming", function() {
         sandbox.stub(chatApp.call, "incoming");
 
-        chatApp._onIncomingConversation(incomingCallData);
+        chatApp._onIncomingConversation(incomingCallData.offer);
 
         sinon.assert.calledOnce(chatApp.call.incoming);
         sinon.assert.calledWithMatch(chatApp.call.incoming,
@@ -255,7 +268,7 @@ describe("ChatApp", function() {
       });
 
       it("should play the incoming call sound", function() {
-        chatApp._onIncomingConversation(incomingCallData);
+        chatApp._onIncomingConversation(incomingCallData.offer);
 
         sinon.assert.calledOnce(chatApp.audioLibrary.play);
         sinon.assert.calledWithExactly(chatApp.audioLibrary.play, "incoming");
@@ -276,7 +289,7 @@ describe("ChatApp", function() {
         chatApp._onIncomingTextConversation(msg);
         sinon.assert.calledOnce(chatApp.textChat.transport.trigger);
         sinon.assert.calledWithExactly(
-          chatApp.textChat.transport.trigger, "message", msg.message);
+          chatApp.textChat.transport.trigger, "message", msg);
       });
     });
 
@@ -325,7 +338,7 @@ describe("ChatApp", function() {
         hangupData = new app.payloads.Hangup({
           peer: "foo",
           callid: 1
-        }).toJSON();
+        });
         chatApp.call.callid = 1;
 
         sandbox.stub(chatApp.call, "hangup");
@@ -379,8 +392,10 @@ describe("ChatApp", function() {
       it("should post an event to the worker when onSendOffer is called",
         function() {
           var offerMsg = new payloads.Offer({
-            offer: "fake offer",
-            peer: "leila"
+            callid: 42,
+            offer: fakeOffer,
+            peer: "leila",
+            upgrade: false
           });
           chatApp._onSendOffer(offerMsg);
 
@@ -394,8 +409,8 @@ describe("ChatApp", function() {
       it("should post an event to the worker when onSendAnswer is triggered",
         function() {
           var answerMsg = new payloads.Answer({
-            answer: "fake answer",
-            peer: "lisa"
+            answer: fakeAnswer,
+            peer: "lisa", // XXX: unsure it shouldn't be an object like in offer
           });
 
           chatApp._onSendAnswer(answerMsg);
@@ -439,6 +454,16 @@ describe("ChatApp", function() {
     });
 
     describe("Events", function() {
+      var constraints = {video: false, audio: true};
+
+      beforeEach(function() {
+        sandbox.stub(WebRTC, "SDP").returns({
+          constraints: constraints,
+          only: function() { return false; }
+        });
+
+        chatApp.peer.set({username: "chubaka"});
+      });
 
       // XXX: Other event listener tests should be migrated to this formalism.
       describe("talkilla.conversation-open", function() {
@@ -466,13 +491,14 @@ describe("ChatApp", function() {
       describe("ice:candidate-ready", function() {
         it("should post a talkilla:ice-candidate message to the worker",
           function() {
+          var candidate = new mozRTCIceCandidate();
           var iceCandidateMsg = new payloads.IceCandidate({
             peer: "lloyd",
-            candidate: "dummy"
+            candidate: candidate
           });
           chatApp.peer.set("username", "lloyd");
 
-          chatApp.webrtc.trigger("ice:candidate-ready", "dummy");
+          chatApp.webrtc.trigger("ice:candidate-ready", candidate);
 
           sinon.assert.called(AppPortStub.post);
           sinon.assert.calledWith(AppPortStub.post,
@@ -497,16 +523,24 @@ describe("ChatApp", function() {
       });
 
       describe("unload", function() {
-        it("should hangup the call", function() {
-          sandbox.stub(chatApp.call, "hangup");
+        var chatApp;
 
+        beforeEach(function() {
+          // XXX: for some weird reason ChatApp.prototype._onWindowClose.reset()
+          //      doesn't work here, restoring manually
+          ChatApp.prototype._onWindowClose = _onWindowClose;
+          chatApp = new ChatApp();
+          sandbox.stub(chatApp.call, "hangup");
+        });
+
+        it("should hangup the call", function() {
           var unloadEvent = document.createEvent("Event");
           unloadEvent.initEvent("unload", false, false);
 
           window.dispatchEvent(unloadEvent);
 
           sinon.assert.called(chatApp.call.hangup);
-          sinon.assert.calledWith(chatApp.call.hangup);
+          sinon.assert.calledWithExactly(chatApp.call.hangup, true);
         });
       });
 
@@ -523,7 +557,7 @@ describe("ChatApp", function() {
           sinon.assert.called(AppPortStub.post);
           sinon.assert.calledWith(AppPortStub.post,
                                   "talkilla.initiate-move",
-                                  moveMsg.toJSON());
+                                  moveMsg);
         });
       });
 
