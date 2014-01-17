@@ -527,7 +527,7 @@ describe("presence", function() {
       });
     });
 
-    describe("#instantShare", function() {
+    describe("#instantSharePingBack", function() {
 
       var req, res, foo, bar;
 
@@ -541,7 +541,7 @@ describe("presence", function() {
       });
 
       it("should send the given peer to myself", function() {
-        api.instantShare(req, res);
+        api.instantSharePingBack(req, res);
 
         sinon.assert.calledOnce(foo.send);
         sinon.assert.calledWithExactly(foo.send, "instantshare", {
@@ -550,7 +550,7 @@ describe("presence", function() {
       });
 
       it("should return a 200 OK response", function() {
-        api.instantShare(req, res);
+        api.instantSharePingBack(req, res);
 
         sinon.assert.calledOnce(res.send);
         sinon.assert.calledWithExactly(res.send, 200);
