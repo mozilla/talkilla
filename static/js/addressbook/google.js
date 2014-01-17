@@ -133,7 +133,9 @@ var GoogleContacts = (function() {
     /**
      * Retrieves all Google Contacts from currently authenticated user.
      *
-     * @param  {String} contactIdentifier String
+     * @param  {String} contactIdentifier. Describes what should be used as the
+     *                  contact identifier. Should be either "phoneNumber" or
+     *                  "email".
      * @param  {Function} cb Callback
      */
     all: function(contactIdentifier, cb) {
@@ -172,7 +174,9 @@ var GoogleContacts = (function() {
      *
      * Emits `talkilla.contacts-error` on any encountered error.
      *
-     * @param String contactIdentifier
+     * @param  {String} contactIdentifier. Describes what should be used as the
+     *                  contact identifier. Should be either "phoneNumber" or
+     *                  "email".
      */
     loadContacts: function(contactIdentifier) {
       this.authorize(function(err) {
