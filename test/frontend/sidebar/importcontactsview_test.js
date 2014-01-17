@@ -56,17 +56,38 @@ describe("ImportContactsView", function() {
   });
 
   describe("#loadGoogleContacts", function() {
-    it("should start google contacts API authorization process", function() {
+    var importView;
+
+    beforeEach(function(){
       googleService.loadContacts = sandbox.spy();
-      var importView = new app.views.ImportContactsView({
+      importView = new app.views.ImportContactsView({
         user: user,
         service: googleService,
         spa: spa
       });
+    });
+
+    it("should start google contacts API authorization process", function() {
+      importView.loadGoogleContacts();
+      sinon.assert.calledOnce(googleService.loadContacts);
+    });
+
+    it("should call googleService.loadContacts with id='phoneNumber' if the " +
+       "spa supports it", function() {
+      spa.set("capabilities", ["pstn-call"]);
 
       importView.loadGoogleContacts();
-
       sinon.assert.calledOnce(googleService.loadContacts);
+      sinon.assert.calledWithExactly(googleService.loadContacts, "phoneNumber");
+    });
+
+    it("should call googleService.loadContacts with id='email' if the spa" +
+       "doesn't support pstn-call", function() {
+      spa.set("capabilities", []);
+
+      importView.loadGoogleContacts();
+      sinon.assert.calledOnce(googleService.loadContacts);
+      sinon.assert.calledWithExactly(googleService.loadContacts, "email");
     });
   });
 
