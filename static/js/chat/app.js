@@ -68,7 +68,8 @@ var ChatApp = (function(app, $, Backbone, _) {
 
     this.textChatView = new app.views.TextChatView({
       call: this.call,
-      collection: this.textChat
+      collection: this.textChat,
+      peer: this.peer
     });
 
     this.view = new app.views.ConversationView({
