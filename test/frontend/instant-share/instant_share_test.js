@@ -1,6 +1,6 @@
-"use strict";
+/* global sinon, Event */
 
-var expect = chai.expect;
+"use strict";
 
 describe("Instant-share webpage", function() {
   var sandbox, xhr;
