@@ -407,12 +407,12 @@
 
     template: _.template(
       '<label class="link-share-label" for="link-share-input">' +
-        'Share this link to video chat' +
+        'Share this link to video chat:' +
       '</label>' +
-      '<div class="input-append">' +
-      '  <input id="link-share-input" readonly="true" type="url"' +
+      '<div>' +
+      '  <input id="link-share-input" class="input-block-level"' +
+      '         readonly="true"   type="url"' +
       '         value="<%= url %>">' +
-      '  <button class="link-copy-button btn">Copy</button>' +
       '</div>'
     ),
 

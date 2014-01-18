@@ -132,8 +132,6 @@
 }
 
 #link-share-input {
-  width: 14em; /* arbitrary; seems to look reasonable */
-
   /* override bootstrap defaults to making uneditable backgrounds red */
   background-color: #FFFFFF;
 }

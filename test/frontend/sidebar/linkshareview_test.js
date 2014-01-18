@@ -46,14 +46,6 @@ describe("LinkShareView", function ()  {
       expect($labelEl.attr('for')).to.equal("link-share-input");
     });
 
-    it("should render a copy button of class link-copy-button", function () {
-      linkShareView.render();
-
-      var $copyButtonEl = $("#fixtures").find(".link-copy-button");
-      expect($copyButtonEl.length).to.equal(1);
-      expect($copyButtonEl.prop('tagName').toLowerCase()).to.equal('button');
-    });
-
     // XXX this is the easiest way to get started: handle only the logged in
     // case, and use the username as part of the URL.  Something like:
     //
