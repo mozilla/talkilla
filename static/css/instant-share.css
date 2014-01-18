@@ -17,4 +17,5 @@ html, body {
 .call-button {
   font-weight: bold;
   font-size: 18px;
+  color: rgba(24, 124, 198, 1);  /* medium blue */
 }
