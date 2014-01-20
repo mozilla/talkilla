@@ -239,5 +239,29 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
 
         self.assertNotTyping(self.larry)
 
+    def test_instant_share(self):
+        self.larry.signin()
+        self.bob.signin()
+
+        self.larry.switchToSidebar()
+        instant_share_link = self.getInstantShareLink(self.larry)
+
+        self.bob.switch_to_frame(0)
+        self.bob.get(instant_share_link)
+        self.bob.find_element_by_css_selector("a.call-button").click()
+
+        self.bob.switchToChatWindow()
+        self.assertPendingOutgoingCall(self.bob)
+
+        self.larry.switchToChatWindow()
+        self.assertIncomingCall(self.larry)
+        self.larry.acceptCall()
+
+        self.assertOngoingCall(self.bob)
+        self.assertOngoingCall(self.larry)
+
+        self.bob.hangupCall()
+        self.assertChatWindowClosed(self.larry)
+
 if __name__ == "__main__":
     unittest.main(catchbreak=True)
