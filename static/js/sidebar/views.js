@@ -417,7 +417,7 @@
     ),
 
     render: function() {
-      if (!this.user.isLoggedIn()) {
+      if (!this.user.isLoggedIn() || !this.user.get("username")) {
         this.$el.hide();
         return this;
       }
