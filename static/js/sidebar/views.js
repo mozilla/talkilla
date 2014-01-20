@@ -209,6 +209,11 @@
    * User list entry view.
    */
   app.views.UserEntryView = app.views.BaseView.extend({
+    dependencies: {
+      model:  app.models.user,
+      active: Boolean
+    },
+
     tagName: 'li',
 
     template: _.template([
@@ -224,11 +229,6 @@
 
     events: {
       'click a': 'openConversation'
-    },
-
-    initialize: function(options) {
-      this.model = options && options.model;
-      this.active = options && options.active;
     },
 
     openConversation: function(event) {
@@ -287,8 +287,7 @@
         // create a dedicated list entry for each user
         this.views.push(new app.views.UserEntryView({
           model:  user,
-          active: !!(callee &&
-                     callee.get('username') === user.get('username'))
+          active: !!(callee && callee.get('username') === user.get('username'))
         }));
       }.bind(this));
     },
