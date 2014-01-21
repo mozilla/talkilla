@@ -126,6 +126,15 @@
   margin: 10px 0;  /* override bootstrap to set top & bottom margins the same */
 }
 
+.login-iframe-container {
+  /* Comfortable space above; enough above+below to fill panel */
+  padding: 12px 10px;
+}
+.login-iframe-container:empty {
+  /* No need for extra padding, since we're not visible */
+  padding: 0;
+}
+
 #link-share {
   /* arbitrary amount to make space.  can probably do this more cleanly. */
   margin-bottom: 25px;
