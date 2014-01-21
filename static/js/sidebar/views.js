@@ -209,6 +209,11 @@
    * User list entry view.
    */
   app.views.UserEntryView = app.views.BaseView.extend({
+    dependencies: {
+      model:  app.models.user,
+      active: Boolean
+    },
+
     tagName: 'li',
 
     template: _.template([
@@ -218,17 +223,15 @@
       '    <img src="<%= avatar %>">',
       '    <span class="status status-<%= presence %>"></span>',
       '  </div>',
-      '  <span class="username"><%= fullName %></span>',
+      '  <div class="user-entry-details">',
+      '    <p class="username"><%= fullName %></p>',
+      '    <p class="address-info"><%= username %></p>',
+      '  </div>',
       '</a>'
     ].join('')),
 
     events: {
       'click a': 'openConversation'
-    },
-
-    initialize: function(options) {
-      this.model = options && options.model;
-      this.active = options && options.active;
     },
 
     openConversation: function(event) {
@@ -287,8 +290,7 @@
         // create a dedicated list entry for each user
         this.views.push(new app.views.UserEntryView({
           model:  user,
-          active: !!(callee &&
-                     callee.get('username') === user.get('username'))
+          active: !!(callee && callee.get('username') === user.get('username'))
         }));
       }.bind(this));
     },
