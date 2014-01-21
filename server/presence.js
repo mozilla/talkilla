@@ -246,7 +246,7 @@ api = {
   instantSharePingBack: function(req, res) {
     var user = users.get(req.session.email);
     user.send("instantshare", {peer: req.params.email});
-    logger.info({type: "instanshare"});
+    logger.info({type: "instantshare"});
     return res.send(200);
   }
 };
