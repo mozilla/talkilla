@@ -361,9 +361,11 @@
 
     render: function() {
       if (!this.appStatus.get('workerInitialized')) {
+        // SPA is not yet initialized.
         this.$('#signout').hide();
         this.$('[name="spa-setup"]').remove();
       } else if (!this.user.get("username")) {
+        // SPA is initialized but user is not connected.
         if (!$('#signin').length) {
           var iframe = $("<iframe>")
             .attr("src", this.spaLoginURL)
@@ -372,11 +374,15 @@
           $("#login p:first").append(iframe);
         }
         this.$('#signout').hide().find('.username').text('');
+        $('#subpanels').hide();
       } else {
+        // The user is connected to the SPA.
         this.$('#signin').hide();
         this.$('[name="spa-setup"]').remove();
         this.$('#signout').show().find('.username')
             .text(this.user.get('username'));
+        $('#subpanels').show();
+        $('#users').show();
       }
       return this;
     },
