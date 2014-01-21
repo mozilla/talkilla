@@ -223,7 +223,10 @@
       '    <img src="<%= avatar %>">',
       '    <span class="status status-<%= presence %>"></span>',
       '  </div>',
-      '  <span class="username"><%= fullName %></span>',
+      '  <div class="user-entry-details">',
+      '    <p class="username"><%= fullName %></p>',
+      '    <p class="address-info"><%= username %></p>',
+      '  </div>',
       '</a>'
     ].join('')),
 
