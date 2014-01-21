@@ -244,6 +244,12 @@ api = {
   },
 
   instantSharePingBack: function(req, res) {
+    if (!req.session.email) {
+      logger.error({type: "instantshare"},
+        "instant-share link clicked by a user who is not logged in");
+      return res.send(400);
+    }
+
     var user = users.get(req.session.email);
     user.send("instantshare", {peer: req.params.email});
     logger.info({type: "instantshare"});
