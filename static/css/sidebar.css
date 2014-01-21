@@ -37,6 +37,10 @@
   height: 25px;
 }
 
+.sidebar #subpanels>ul.nav-tabs>li {
+  float: right;
+}
+
 .sidebar #subpanels>ul.nav-tabs>li>a {
   height: 10px;
   width: 10px;
