@@ -394,8 +394,10 @@
   });
 
   /**
-   * XXX needs docs
-   * @type {*}
+   * View which displays a link that the user can pass to someone else out of
+   * band to complete a call.
+   *
+   * @param {app.models.CurrentUser}  the current user.
    */
   app.views.LinkShareView = app.views.BaseView.extend({
 
@@ -407,7 +409,7 @@
 
     template: _.template(
       '<label class="link-share-label" for="link-share-input">' +
-        'Share this link to video chat:' +
+        'Share this link with a Talkilla user to video chat:' +
       '</label>' +
       '<div>' +
       '  <input id="link-share-input" class="input-block-level"' +
@@ -425,7 +427,7 @@
       var linkToCopy = window.location.origin + "/instant-share/" +
         encodeURIComponent(this.user.get("username"));
 
-      this.$el.html(this.template({url: linkToCopy} ));
+      this.$el.html(this.template({url: linkToCopy}));
 
       this.$el.show();
 
