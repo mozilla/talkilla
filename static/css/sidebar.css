@@ -73,7 +73,7 @@
   background-image: url('/img/gear_clicked.png');
 }
 
-.sidebar #pstn-dialin {
+.sidebar #pstn-dialin, .sidebar #settings {
   padding: 10px 0 0 0;
   text-align: center;
 }
