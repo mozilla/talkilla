@@ -19,7 +19,10 @@ describe("InstantShareApp", function() {
     xhr.restore();
   });
 
-  // XXX test and implement a callback to handle errors from the post
+  // XXX test and implement a callback to handle errors from the post,
+  // ideally displaying a nice message apologizing and suggesting a retry,
+  // along with displaying some error data.  Possibly upload to the server for
+  // logging.
 
   describe("click event on the call button", function() {
 
