@@ -80,7 +80,7 @@ class Driver(WebDriver):
         self.clickElement("#talkilla-signin")
         # Ensure we've completed logging in before proceeding
         self.switchToSidebar()
-        self.waitForElement("#signout", visible=True)
+        self.waitForElement("#subpanels", visible=True)
         return self
 
     def signout(self):
