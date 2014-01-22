@@ -24,6 +24,10 @@
   margin-bottom: 5px;
 }
 
+.sidebar #login p {
+  padding-top: 10px;
+}
+
 .sidebar #signin {
   border: none;
   width: 100%;
