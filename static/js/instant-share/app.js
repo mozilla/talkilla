@@ -5,10 +5,10 @@ var InstantShareApp = (function() {
 
   "use strict";
 
-  function InstantShareAppImpl() {
+  function InstantShareApp() {
   }
 
-  InstantShareAppImpl.prototype.start = function() {
+  InstantShareApp.prototype.start = function() {
       document.querySelector("#instant-share-call a")
         .addEventListener("click", function() {
           var http = new HTTP();
@@ -16,7 +16,7 @@ var InstantShareApp = (function() {
         });
     };
 
-  return InstantShareAppImpl;
+  return InstantShareApp;
 })();
 
 
