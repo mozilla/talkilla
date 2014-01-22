@@ -19,7 +19,7 @@ describe("InstantShareApp", function() {
     xhr.restore();
   });
 
-  // XXX error behavior!
+  // XXX test and implement a callback to handle errors from the post
 
   describe("click event on the call button", function() {
 
