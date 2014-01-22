@@ -356,7 +356,10 @@
     initialize: function() {
       this.user.on('signin signout', this.render, this);
       this.appStatus.on('change:workerInitialized', this.render, this);
-      this._linkShareView = new app.views.LinkShareView({user: this.user});
+      this._linkShareView = new app.views.LinkShareView({
+        user: this.user,
+        originUrl: window.location.origin
+      });
     },
 
     render: function() {
@@ -402,7 +405,8 @@
   app.views.LinkShareView = app.views.BaseView.extend({
 
     dependencies: {
-      user: app.models.CurrentUser
+      user: app.models.CurrentUser,
+      originUrl: String
     },
 
     el: "#link-share",
@@ -424,7 +428,7 @@
         return this;
       }
 
-      var linkToCopy = window.location.origin + "/instant-share/" +
+      var linkToCopy = this.originUrl + "/instant-share/" +
         encodeURIComponent(this.user.get("username"));
 
       this.$el.html(this.template({url: linkToCopy}));

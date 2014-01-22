@@ -16,7 +16,10 @@ describe("LinkShareView", function ()  {
         username: username,
         presence: "connected"
       });
-      linkShareView = new app.views.LinkShareView({user: user});
+      linkShareView = new app.views.LinkShareView({
+        user: user,
+        originUrl: "http://example.com"
+      });
     });
 
     afterEach(function() {
@@ -61,11 +64,11 @@ describe("LinkShareView", function ()  {
       expect(inputEl.validity.valid).to.equal(true);
     });
 
-    it("the URL should start with window.location.origin + /instant-share/",
+    it("the URL should start with an origin + /instant-share/",
       function() {
         linkShareView.render();
         var expectedURLRegex =
-          new RegExp("^" + window.location.origin + "/instant-share/");
+          new RegExp("^http://example.com/instant-share/");
 
         var inputEl = $("#fixtures").find("#link-share-input").get()[0];
 
