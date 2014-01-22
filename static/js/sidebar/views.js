@@ -369,7 +369,7 @@
             .attr("src", this.spaLoginURL)
             .attr("id", "signin")
             .attr("name", "spa-setup");
-          $(".login-iframe-container").append(iframe);
+          this.$(".login-iframe-container").append(iframe);
         }
         this.$('#signout').hide().find('.username').text('');
       } else {
@@ -407,16 +407,16 @@
 
     el: "#link-share",
 
-    template: _.template(
-      '<label class="link-share-label" for="link-share-input">' +
-        'Share this link with a Talkilla user to video chat:' +
-      '</label>' +
-      '<div>' +
-      '  <input id="link-share-input" class="input-block-level"' +
-      '         readonly="true"   type="url"' +
-      '         value="<%= url %>">' +
+    template: _.template([
+      '<label class="link-share-label" for="link-share-input">',
+      '  Share this link with a Talkilla user to video chat:',
+      '</label>',
+      '<div>',
+      '  <input id="link-share-input" class="input-block-level"',
+      '         readonly="true"   type="url"',
+      '         value="<%= url %>">',
       '</div>'
-    ),
+    ].join('')),
 
     render: function() {
       if (!this.user.isLoggedIn() || !this.user.get("username")) {
