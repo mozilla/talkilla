@@ -10,51 +10,60 @@
 </head>
 <body class="sidebar">
   <!-- Login view -->
-  <header id="login">
-    <h1 class="title">Welcome to Talkilla</h1>
-
-    <p>
-    </p>
-
-    <form action="/signout" id="signout" method="post" class="hide">
-      <p>
-        Joined as <strong class="user username"></strong>
-        <button class="btn" type="submit">sign out</button>
-      </p>
-    </form>
-
-    <a id="feedback-link"
-       href="https://docs.google.com/a/mozilla.com/forms/d/18hE8fjbkktm2E8Q40nJ1heRESVX9McoY2RMmGCjc-TQ/viewform">
-       Send feedback</a>
-
-  </header>
+  <header id="login"><p></p></header>
   <!-- /Login view -->
 
   <!-- User notifications -->
   <div id="messages"></div>
   <!-- /User notifications -->
 
-  <!-- SPA view -->
-  <div id="pstn-dialin" class="hide">
-    <form class="form-inline" role="form">
-      <input type="tel" class="form-control input-small" name="number" title="Phone number"
-             placeholder="Enter a number to dial" pattern="^[+0-9]{9,15}$">
-      <button type="submit" class="btn btn-info">Call</button>
-    </form>
+  <div id="subpanels" class="tabbable hide">
+    <ul class="nav nav-tabs">
+    <li id="settings-tab"><a href="#settings" data-toggle="tab"><pre>Settings</pre></a></li>
+    <li id="dialin-tab"><a href="#pstn-dialin" data-toggle="tab"><pre>Dial</pre></a></li>
+    <li id="contact-tab" class="active"><a href="#contact-list" data-toggle="tab"><pre>Contacts</pre></a></li>
+    </ul>
+    <div class="tab-content">
+      <div id="contact-list" class="tab-pane active">
+        <!-- Users view -->
+        <nav id="users" class="users">
+          <ul class="nav nav-list"></ul>
+        </nav>
+        <!-- /Users view -->
+      </div>
+      <!-- SPA view -->
+      <div id="pstn-dialin" class="tab-pane">
+        <form class="form" role="form">
+          <div><input type="tel" class="form-control" name="number" title="Phone number"
+                 placeholder="Enter a number to dial" pattern="^[+0-9]{9,15}$"></div>
+          <div><img src="/img/dialpad.png" /></div>
+          <button type="submit" class="btn btn-info">Call</button>
+        </form>
+      </div>
+      <!-- /SPA view -->
+      <div id="settings" class="tab-pane">
+      <ul>
+      <li>
+        <!-- Login view (for logout) -->
+        <form action="/signout" id="signout" method="post" class="">
+          <p>
+            Joined as <strong class="user username">alexis@notmyidea.org</strong>
+            <button class="btn btn-link" type="submit">Sign out</button>
+          </p>
+        </form>
+        </li>
+        <li>
+        <!-- /Login view -->
+        <p id="import-contacts"><button class="btn btn-link">Load your Contacts</button></p></li>
+        <li><p>
+          <a class="btn btn-link" id="feedback-link"
+             href="https://docs.google.com/a/mozilla.com/forms/d/18hE8fjbkktm2E8Q40nJ1heRESVX9McoY2RMmGCjc-TQ/viewform">
+          Send feedback</a>
+        </p></li>
+      </div>
+    </div>
+    <!-- /Tab content -->
   </div>
-  <!-- /SPA view -->
-
-  <!-- Users view -->
-  <nav id="users" class="users">
-    <ul class="nav nav-list"></ul>
-  </nav>
-  <!-- /Users view -->
-
-  <!-- footer -->
-  <footer id="import-contacts" class="hide">
-    <p><button class="btn btn-info">Load your Contacts</button></p>
-  </footer>
-  <!-- /footer -->
 
   <script src="https://apis.google.com/js/client.js"></script>
   <script src="vendor/jquery-1.9.1.js"></script>
