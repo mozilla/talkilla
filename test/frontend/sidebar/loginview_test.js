@@ -88,22 +88,20 @@ describe("LoginView", function() {
       });
     });
 
-    it("should hide signin and signout where the worker is not initialized",
+    it("should hide signin when the worker is not initialized",
       function() {
         loginView.render();
-
-        expect(loginView.$('#signin').length).to.equal(0);
-        expect(loginView.$('#signout').is(':visible')).to.equal(false);
+        expect($('#signin').length).to.equal(0);
       });
 
-    it("should display signin and hide signout when there is not a username",
+    it("should display signin and hide subpanels when there is no username",
       function() {
         appStatus.set("workerInitialized", true);
         loginView.render();
 
-        expect(loginView.$('#signin').length).to.equal(1);
-        expect(loginView.$('#signin').is(':visible')).to.equal(true);
-        expect(loginView.$('#signout').is(':visible')).to.equal(false);
+        expect($('#signin').length).to.equal(1);
+        expect($('#signin').is(':visible')).to.equal(true);
+        expect($('#subpanels').is(':visible')).to.equal(false);
       });
 
     it("should only ever display one sign-in iframe at a time", function() {
@@ -111,17 +109,17 @@ describe("LoginView", function() {
       loginView.render();
       loginView.render();
 
-      expect(loginView.$('iframe').length).to.equal(1);
+      expect($('iframe').length).to.equal(1);
     });
 
-    it("should hide signin and display signout when there is not a username",
+    it("should hide signin and display subpanels when user is connected",
       function() {
         appStatus.set("workerInitialized", true);
         user.set("username", "james");
         loginView.render();
 
-        expect(loginView.$('#signin').is(':visible')).to.equal(false);
-        expect(loginView.$('#signout').is(':visible')).to.equal(true);
+        expect($('#signin').is(':visible')).to.equal(false);
+        expect($('#subpanels').hasClass('hide')).to.equal(false);
       });
   });
 

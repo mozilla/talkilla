@@ -12,16 +12,8 @@
   <!-- Login view -->
   <header id="login">
     <h1 class="title">Welcome to Talkilla</h1>
-
     <p>
     </p>
-
-    <form action="/signout" id="signout" method="post" class="hide">
-      <p>
-        Joined as <strong class="user username"></strong>
-        <button class="btn" type="submit">sign out</button>
-      </p>
-    </form>
 
     <a id="feedback-link"
        href="https://docs.google.com/a/mozilla.com/forms/d/18hE8fjbkktm2E8Q40nJ1heRESVX9McoY2RMmGCjc-TQ/viewform">
@@ -62,6 +54,16 @@
         </form>
       </div>
       <!-- /SPA view -->
+      <div id="settings" class="tab-pane">
+      <!-- Login view (for logout) -->
+        <form action="/signout" id="signout" method="post" class="hide">
+          <p>
+            Joined as <strong class="user username"></strong>
+            <button class="btn" type="submit">sign out</button>
+          </p>
+        </form>
+        <!-- /Login view -->
+      </div>
     </div>
     <!-- /Tab content -->
   </div>
