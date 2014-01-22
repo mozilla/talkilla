@@ -175,8 +175,7 @@ describe('Text chat models', function() {
         textChat.media.state.current = "ongoing";
         textChat.add({message: 'test Message'});
         var entry = {
-          type: 'chat:typing',
-          message: { username: textChat.user.get('username') }
+          type: 'chat:typing'
         };
         textChat.transport.send.reset();
 
@@ -245,6 +244,7 @@ describe('Text chat models', function() {
     beforeEach(function() {
       textChat = createTextChat();
       textChat.transport = transport;
+      peer.fullName = "dan";
     });
 
     it("should append received message to the current text chat", function() {
@@ -255,7 +255,10 @@ describe('Text chat models', function() {
       textChat._onMessage(event);
 
       sinon.assert.calledOnce(newTextChat);
-      sinon.assert.calledWithExactly(newTextChat, "data");
+      sinon.assert.calledWithExactly(newTextChat, {
+        message: "data",
+        fullName: peer.get("fullName")
+      });
     });
 
     it("should append a new file transfer to the current text chat",
@@ -329,19 +332,18 @@ describe('Text chat models', function() {
     });
 
     it("should trigger a `chat:type-start` event", function() {
-      var event = {type: "chat:typing", message: "data"};
+      var event = {type: "chat:typing"};
 
       sandbox.stub(textChat, "trigger");
       textChat._onMessage(event);
 
       sinon.assert.calledOnce(textChat.trigger);
-      sinon.assert.calledWithExactly(textChat.trigger, "chat:type-start",
-                                     "data");
+      sinon.assert.calledWithExactly(textChat.trigger, "chat:type-start");
     });
 
     it("should trigger a `chat:type-stop` event after 5s", function() {
       this.clock = sinon.useFakeTimers();
-      var event = {type: "chat:typing", message: "data"};
+      var event = {type: "chat:typing"};
 
       sandbox.stub(textChat,"trigger");
       textChat._onMessage(event);
@@ -353,7 +355,7 @@ describe('Text chat models', function() {
 
     it("should clear previous timeout and add new one", function() {
       this.clock = sinon.useFakeTimers();
-      var event = {type: "chat:typing", message: "data"};
+      var event = {type: "chat:typing"};
 
       sandbox.stub(textChat,"trigger");
       textChat._onMessage(event);
@@ -370,17 +372,17 @@ describe('Text chat models', function() {
     var textChat;
 
     beforeEach(function() {
-      user.set("username", "foo");
+      user.set("fullName", "foo");
       sandbox.stub(app.models.TextChat.prototype, "send");
       textChat = createTextChat();
     });
 
     it("should send data over data channel", function() {
       var entry = new app.models.TextChatEntry({
-        username: "foo",
+        fullName: "foo",
         message: "bar"
       });
-      var message = {type: "chat:message", message: entry.toJSON()};
+      var message = {type: "chat:message", message: "bar"};
 
       textChat._onTextChatEntryCreated(entry);
 

@@ -24,11 +24,7 @@
 
     initialize: function(options) {
       this.peer.on('change:username', function(to) {
-        var fullName = to.get("fullName");
-        if (fullName)
-          document.title = fullName;
-        else
-          document.title = to.get("username");
+        document.title = to.get("fullName");
       });
 
       this.peer.on('change:presence', this._onPeerPresenceChanged, this);
@@ -41,13 +37,13 @@
 
       // Call hold and resume
       this.call.on('state:to:hold', function () {
-        this._notify(this.peer.get("username") + " has placed you on hold");
+        this._notify(this.peer.get("fullName") + " has placed you on hold");
         this.$el.removeClass('has-video');
       }, this);
 
       this.call.on('change:state', function(to, from) {
         if (to === 'ongoing' && from === 'hold') {
-          this._notify(this.peer.get("username") + " is back!", 5000);
+          this._notify(this.peer.get("fullName") + " is back!", 5000);
           this._updateHasVideo();
         }
       }, this);
@@ -125,7 +121,7 @@
     drop: function(event) {
       var url;
       var dataTransfer = event.originalEvent.dataTransfer;
-      var username = this.user.get("username");
+      var fullName = this.user.get("fullName");
 
       if (!this._checkDragTypes(dataTransfer.types))
         return;
@@ -136,7 +132,7 @@
         // File Transfer
         _.each(dataTransfer.files, function(file) {
           var transfer =
-            new app.models.FileTransfer({username: username, file: file},
+            new app.models.FileTransfer({fullName: fullName, file: file},
                                         {chunkSize: 512 * 1024});
           this.textChat.add(transfer);
         }.bind(this));
@@ -347,7 +343,7 @@
       'click .btn-call-again': '_callAgain'
     },
 
-    outgoingTextTemplate: _.template('Calling <%= peer %>…'),
+    template: _.template('Calling <%= fullName %>…'),
 
     initialize: function() {
       this.call.on('send-offer', this._onSendOffer, this);
@@ -413,8 +409,7 @@
       //      as a User model instance
 
       if (this.call.state.current === "pending") {
-        var peer = this.peer.get('username');
-        var formattedText = this.outgoingTextTemplate({peer: peer});
+        var formattedText = this.template(this.peer.toJSON());
         this.$('.text').text(formattedText);
 
         this.$(".btn-abort").show();
@@ -510,7 +505,7 @@
     tagName: 'li',
 
     template: _.template([
-      '<strong><%= username %>:</strong>',
+      '<strong><%= fullName %>:</strong>',
       '<%= linkify(message, {attributes: {class: "chat-link"}}) %>'
     ].join(' ')),
 
@@ -556,7 +551,8 @@
   app.views.TextChatView = app.views.BaseView.extend({
     dependencies: {
       call:       app.models.Call,
-      collection: app.models.TextChat
+      collection: app.models.TextChat,
+      peer:       app.models.User
     },
 
     el: '#textchat', // XXX: uncouple the selector from this view
@@ -605,7 +601,7 @@
       }
 
       this.collection.add(new app.models.TextChatEntry({
-        username: this.collection.user.get("username"),
+        fullName: this.collection.user.get("fullName"),
         message: message
       }));
     },
@@ -640,9 +636,9 @@
       return !notFirstMessage;
     },
 
-    _showTypingNotification: function(message) {
+    _showTypingNotification: function() {
       this.$el.addClass('typing');
-      this.$('ul').attr('data-username', message.username);
+      this.$('ul').attr('data-username', this.peer.get("fullName"));
     },
 
     _clearTypingNotification: function() {

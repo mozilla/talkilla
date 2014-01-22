@@ -40,7 +40,8 @@
 
       this.importButtonView = new app.views.ImportContactsView({
         user: this.user,
-        service: this.services.google
+        service: this.services.google,
+        spa: this.spa
       });
 
       this.spaView = new app.views.SPAView({
@@ -208,6 +209,11 @@
    * User list entry view.
    */
   app.views.UserEntryView = app.views.BaseView.extend({
+    dependencies: {
+      model:  app.models.user,
+      active: Boolean
+    },
+
     tagName: 'li',
 
     template: _.template([
@@ -217,17 +223,15 @@
       '    <img src="<%= avatar %>">',
       '    <span class="status status-<%= presence %>"></span>',
       '  </div>',
-      '  <span class="username"><%= fullName %></span>',
+      '  <div class="user-entry-details">',
+      '    <p class="username"><%= fullName %></p>',
+      '    <p class="address-info"><%= username %></p>',
+      '  </div>',
       '</a>'
     ].join('')),
 
     events: {
       'click a': 'openConversation'
-    },
-
-    initialize: function(options) {
-      this.model = options && options.model;
-      this.active = options && options.active;
     },
 
     openConversation: function(event) {
@@ -286,8 +290,7 @@
         // create a dedicated list entry for each user
         this.views.push(new app.views.UserEntryView({
           model:  user,
-          active: !!(callee &&
-                     callee.get('username') === user.get('username'))
+          active: !!(callee && callee.get('username') === user.get('username'))
         }));
       }.bind(this));
     },
@@ -442,7 +445,8 @@
   app.views.ImportContactsView = app.views.BaseView.extend({
     dependencies: {
       user: app.models.CurrentUser,
-      service: GoogleContacts
+      service: GoogleContacts,
+      spa: app.models.SPA,
     },
 
     el: "#import-contacts",
@@ -456,7 +460,8 @@
     },
 
     loadGoogleContacts: function() {
-      this.service.loadContacts();
+      var id = this.spa.supports("pstn-call") ? "phoneNumber" : "email";
+      this.service.loadContacts(id);
     },
 
     render: function() {

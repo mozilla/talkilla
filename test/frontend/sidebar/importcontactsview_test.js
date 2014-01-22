@@ -4,7 +4,7 @@
 var expect = chai.expect;
 
 describe("ImportContactsView", function() {
-  var sandbox, user, googleService;
+  var sandbox, user, googleService, spa;
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
@@ -15,6 +15,7 @@ describe("ImportContactsView", function() {
     ].join(''));
     user = new app.models.CurrentUser();
     googleService = new GoogleContacts();
+    spa = new app.models.SPA({capabilities: ["call"]});
   });
 
   afterEach(function() {
@@ -30,7 +31,8 @@ describe("ImportContactsView", function() {
     it("should render the view when the user signs in", function() {
       var importView = new app.views.ImportContactsView({
         user: user,
-        service: googleService
+        service: googleService,
+        spa: spa
       });
       importView.render.reset();
 
@@ -42,7 +44,8 @@ describe("ImportContactsView", function() {
     it("should render the view when the user signs out", function() {
       var importView = new app.views.ImportContactsView({
         user: user,
-        service: googleService
+        service: googleService,
+        spa: spa
       });
       importView.render.reset();
 
@@ -53,16 +56,38 @@ describe("ImportContactsView", function() {
   });
 
   describe("#loadGoogleContacts", function() {
-    it("should start google contacts API authorization process", function() {
+    var importView;
+
+    beforeEach(function(){
       googleService.loadContacts = sandbox.spy();
-      var importView = new app.views.ImportContactsView({
+      importView = new app.views.ImportContactsView({
         user: user,
-        service: googleService
+        service: googleService,
+        spa: spa
       });
+    });
+
+    it("should start google contacts API authorization process", function() {
+      importView.loadGoogleContacts();
+      sinon.assert.calledOnce(googleService.loadContacts);
+    });
+
+    it("should call googleService.loadContacts with id='phoneNumber' if the " +
+       "spa supports it", function() {
+      spa.set("capabilities", ["pstn-call"]);
 
       importView.loadGoogleContacts();
-
       sinon.assert.calledOnce(googleService.loadContacts);
+      sinon.assert.calledWithExactly(googleService.loadContacts, "phoneNumber");
+    });
+
+    it("should call googleService.loadContacts with id='email' if the spa" +
+       "doesn't support pstn-call", function() {
+      spa.set("capabilities", []);
+
+      importView.loadGoogleContacts();
+      sinon.assert.calledOnce(googleService.loadContacts);
+      sinon.assert.calledWithExactly(googleService.loadContacts, "email");
     });
   });
 
@@ -73,7 +98,8 @@ describe("ImportContactsView", function() {
       user = new app.models.CurrentUser();
       importView = new app.views.ImportContactsView({
         user: user,
-        service: googleService
+        service: googleService,
+        spa: spa
       });
     });
 

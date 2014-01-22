@@ -377,7 +377,7 @@
         this.chunks        = [];
       }
 
-      this.username = attributes.username;
+      this.fullName = attributes.fullName;
       this.set('incoming', !this.file);
       this.seek = 0;
       this.on("chunk", this._onProgress, this);
@@ -395,7 +395,7 @@
     toJSON: function() {
       var progress = this.get("progress");
       var json = {
-        username: this.username,
+        fullName: this.fullName,
         incoming: this.get('incoming'),
         filename: _.escape(this.filename),
         progress: progress,
@@ -466,7 +466,7 @@
 
   app.models.TextChatEntry = Backbone.Model.extend({
     defaults: {
-      username: undefined,
+      fullName: undefined,
       message: undefined,
       date: new Date().getTime()
     }
@@ -531,8 +531,8 @@
     },
 
     /**
-     * Adds a new entry to the collection and sends it over data channel.
-     * Schedules sending after the connection is established.
+     * Sends an entry over the transport, initiating the transport if
+     * necessary.
      * @param  {Object} entry
      */
     send: function(entry) {
@@ -550,8 +550,7 @@
         return;
 
       this.transport.send({
-        type: "chat:typing",
-        message: { username: this.user.get("username") }
+        type: "chat:typing"
       });
     },
 
@@ -560,19 +559,22 @@
 
       switch (event.type) {
       case "chat:message":
-        this.add(new app.models.TextChatEntry(event.message));
+        this.add(new app.models.TextChatEntry({
+          fullName: this.peer.get("fullName"),
+          message: event.message
+        }));
         this.trigger("chat:type-stop");
         break;
       case "chat:typing":
-        this.trigger("chat:type-start", event.message);
+        this.trigger("chat:type-start");
         if (this.typingTimeout)
           clearTimeout(this.typingTimeout);
         this.typingTimeout = setTimeout(
           this.trigger.bind(this, "chat:type-stop"), this.typeTimeout);
         break;
       case "file:new":
-        var username = this.user.get("username");
-        var message = _.extend({username: username}, event.message);
+        var fullName = this.peer.get("fullName");
+        var message = _.extend({fullName: fullName}, event.message);
         this.add(new app.models.FileTransfer(message));
         break;
       case "file:chunk":
@@ -591,11 +593,11 @@
 
     _onTextChatEntryCreated: function(entry) {
       // Send the message if we are the sender.
-      // I we are not, the message comes from a contact and we do not
+      // If we are not, the message comes from a contact and we do not
       // want to send it back.
       if (entry instanceof app.models.TextChatEntry &&
-          entry.get('username') === this.user.get("username"))
-        this.send({type: "chat:message", message: entry.toJSON()});
+          entry.get('fullName') === this.user.get("fullName"))
+        this.send({type: "chat:message", message: entry.get("message")});
     },
 
     _onFileTransferCreated: function(entry) {
