@@ -2,7 +2,7 @@
  * Sidebar
  */
 .sidebar {
-  background: #fdfdfd;
+  background: #f8fafc;
 
   /* when loaded as a panel, size the panel so that the whole thing
    * is displayed, not just a scrollable subsection.
@@ -12,8 +12,6 @@
 
 .sidebar header {
   padding: 0 10px;
-  background: #F5F1E8;
-  border-bottom: 1px solid #ccc;
 }
 
 .sidebar a {
@@ -79,7 +77,7 @@
 }
 
 .sidebar #pstn-dialin form {
-  margin-bottom: 3px;
+  margin-bottom: 8px;
 }
 
 .sidebar #pstn-dialin input {
@@ -106,15 +104,15 @@
 
 .sidebar .users li a {
   clear: left;
-  color: #818A8F;
-  padding-left: 10px;
+  color: #7b8893;
+  padding: 10px;
   text-decoration: none;
   line-height: 36px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #e3e5e6;
 }
 
 .sidebar .users li a:hover {
-  background: #FFFDE9;
+  background: #d8e6ef;
 }
 
 .sidebar .users li a .avatar {
@@ -123,16 +121,30 @@
 }
 
 .sidebar .users li a img {
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
 }
 
-.sidebar .users li a .username {
+.sidebar .users li a .user-entry-details {
   display: block;
   overflow: hidden;
   padding-left: 10px;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.sidebar .users li a .user-entry-details p {
+  margin: 0;
+  padding: 0;
+  line-height: 20px;
+}
+
+.sidebar .users li a .user-entry-details .username {
+  font-weight: bold;
+}
+
+.sidebar .users li a .user-entry-details .address-info {
+  color: #b5bcc3;
 }
 
 .sidebar .status {
@@ -156,10 +168,8 @@
 
 .sidebar footer {
   width: 100%;
-  background: #F5F1E8;
   text-align: center;
-  border-top: 1px solid #ccc;
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid #e3e5e6;
 }
 
 .sidebar footer p {
