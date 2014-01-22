@@ -89,9 +89,14 @@
 }
 
 .sidebar #pstn-dialin input {
-  width: 130px;
+  width: 220px;
   font-size: 13px;
   padding-top: 5px;
+}
+
+.sidebar #pstn-dialin button {
+  margin-top: 10px;
+  width: 220px;
 }
 
 .sidebar .title {

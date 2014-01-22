@@ -33,9 +33,10 @@
       </div>
       <!-- SPA view -->
       <div id="pstn-dialin" class="tab-pane">
-        <form class="form-inline" role="form">
-          <input type="tel" class="form-control input-small" name="number" title="Phone number"
-                 placeholder="Enter a number to dial" pattern="^[+0-9]{9,15}$">
+        <form class="form" role="form">
+          <div><input type="tel" class="form-control" name="number" title="Phone number"
+                 placeholder="Enter a number to dial" pattern="^[+0-9]{9,15}$"></div>
+          <div><img src="/img/dialpad.png" /></div>
           <button type="submit" class="btn btn-info">Call</button>
         </form>
       </div>
