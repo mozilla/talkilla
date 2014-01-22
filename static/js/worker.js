@@ -267,6 +267,8 @@ function _setupSPA(spa) {
     if (!currentConversation) {
       currentConversation = new Conversation({
         capabilities: spa.capabilities,
+        // XXX: for now we assume instantShareMsg.peer is always part
+        // of tkWorker.users. I may not be the case.
         peer: tkWorker.users.get(instantShareMsg.peer),
         browserPort: browserPort,
         users: tkWorker.users,
