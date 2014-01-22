@@ -11,14 +11,8 @@
 <body class="sidebar">
   <!-- Login view -->
   <header id="login">
-    <h1 class="title">Welcome to Talkilla</h1>
     <p>
     </p>
-
-    <a id="feedback-link"
-       href="https://docs.google.com/a/mozilla.com/forms/d/18hE8fjbkktm2E8Q40nJ1heRESVX9McoY2RMmGCjc-TQ/viewform">
-       Send feedback</a>
-
   </header>
   <!-- /Login view -->
 
@@ -39,11 +33,6 @@
           <ul class="nav nav-list"></ul>
         </nav>
         <!-- /Users view -->
-        <!-- Footer -->
-        <footer id="import-contacts" class="hide">
-          <p><button class="btn btn-info">Load your Contacts</button></p>
-        </footer>
-        <!-- /Footer -->
       </div>
       <!-- SPA view -->
       <div id="pstn-dialin" class="tab-pane">
@@ -55,14 +44,24 @@
       </div>
       <!-- /SPA view -->
       <div id="settings" class="tab-pane">
-      <!-- Login view (for logout) -->
-        <form action="/signout" id="signout" method="post" class="hide">
+      <ul>
+      <li>
+        <!-- Login view (for logout) -->
+        <form action="/signout" id="signout" method="post" class="">
           <p>
-            Joined as <strong class="user username"></strong>
+            Joined as <strong class="user username">alexis@notmyidea.org</strong>
             <button class="btn" type="submit">sign out</button>
           </p>
         </form>
+        </li>
+        <li>
         <!-- /Login view -->
+        <p id="import-contacts"><button class="btn">Load your Contacts</button></p></li>
+        <li><p>
+          <a id="feedback-link"
+             href="https://docs.google.com/a/mozilla.com/forms/d/18hE8fjbkktm2E8Q40nJ1heRESVX9McoY2RMmGCjc-TQ/viewform">
+          Send feedback</a>
+        </p></li>
       </div>
     </div>
     <!-- /Tab content -->

@@ -103,11 +103,7 @@ describe("ImportContactsView", function() {
       });
     });
 
-    it("should be hidden by default", function() {
-      expect(importView.render().$el.is(':visible')).to.equal(false);
-    });
-
-    it("should be displayed when user signs out", function() {
+    it("should not be displayed when user signs out", function() {
       user.set({username: undefined, presence: "disconnected"})
           .trigger("signout");
       expect(importView.render().$el.is(':visible')).to.equal(false);
