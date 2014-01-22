@@ -1,27 +1,30 @@
-/* global sinon, Event, InstantShareApp */
+/* global sinon, Event, InstantShareApp, chai */
 
 describe("InstantShareApp", function() {
   "use strict";
 
-  var sandbox, xhr;
+  var expect = chai.expect;
+  var xhr, request;
 
   beforeEach(function() {
-    sandbox = sinon.sandbox.create();
-    xhr = {
-      open: sinon.spy(),
-      setRequestHeader: function() {},
-      send: function() {}
+    xhr = sinon.useFakeXMLHttpRequest();
+
+    request = undefined;
+    xhr.onCreate = function (req) {
+      request = req;
     };
-    sandbox.stub(window, "XMLHttpRequest").returns(xhr);
   });
 
   afterEach(function() {
-    sandbox.restore();
+    xhr.restore();
   });
+
+  // XXX error behavior!
 
   describe("click event on the call button", function() {
 
-    it("should post an xhr request to the instant-share ping back API",
+    it("should post an xhr request with an empty object to the " +
+      "instant-share pingback API",
       function() {
         var instantShareApp = new InstantShareApp();
         instantShareApp.start();
@@ -30,8 +33,10 @@ describe("InstantShareApp", function() {
         document.querySelector("#instant-share-call a")
           .dispatchEvent(event);
 
-        sinon.assert.calledOnce(xhr.open);
-        sinon.assert.calledWithExactly(xhr.open, "POST", window.location, true);
+        expect(request.method.toLowerCase()).to.equal("post");
+        expect(request.async).to.equal(true);
+        expect(request.url).to.equal(window.location);
+        expect(request.requestBody).to.equal(JSON.stringify({}));
       });
 
   });
