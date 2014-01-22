@@ -1,5 +1,7 @@
-/*global app, sinon */
+/*global app, sinon, chai */
 "use strict";
+
+var expect = chai.expect;
 
 describe("SPAView", function() {
   var sandbox, view, user, spa;
@@ -45,6 +47,7 @@ describe("SPAView", function() {
 
       sinon.assert.calledOnce(view.$el.removeClass);
       sinon.assert.calledWithExactly(view.$el.removeClass, "hide");
+      expect($('#dialin-tab').hasClass('hide')).to.equal(false);
     });
 
     it("should hide el when arg is false", function() {
@@ -52,6 +55,7 @@ describe("SPAView", function() {
 
       sinon.assert.calledOnce(view.$el.addClass);
       sinon.assert.calledWithExactly(view.$el.addClass, "hide");
+      expect($('#dialin-tab').hasClass('hide')).to.equal(true);
     });
   });
 

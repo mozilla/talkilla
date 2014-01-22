@@ -54,6 +54,11 @@
         appStatus: this.appStatus
       });
 
+      this.subpanelsView = new app.views.SubPanelsView({
+        user: this.user,
+        spa: this.spa
+      });
+
       if (options.isInSidebar)
         this.isInSidebar = options.isInSidebar;
 
@@ -85,6 +90,41 @@
       this.usersView.render();
       this.importButtonView.render();
       this.spaView.render();
+      //this.subpanelsView.render();
+      return this;
+    }
+  });
+
+  app.views.SubPanelsView = app.views.BaseView.extend({
+    dependencies: {
+      spa: app.models.SPA,
+      user: app.models.CurrentUser
+    },
+
+    el: "#subpanels",
+
+    initialize: function() {
+      //this.spa.on("change:capabilities", this.render, this);
+    },
+
+    render: function() {
+      if (this.appStatus.get('workerInitialized')) {
+        if (!this.user.get("username")) {
+          // SPA is initialized but user is not connected.
+          this.$el.hide();
+        } else {
+          // The user is connected to the SPA.
+          this.$('#signout').show().find('.username')
+              .text(this.user.get('username'));
+
+          if(this.spa.supports("pstn-call")) {
+            this.$('#dialin-tab').show();
+          } else {
+            this.$('#dialin-tab').hide();
+          }
+          this.$el.show();
+        }
+      }
       return this;
     }
   });
@@ -116,10 +156,12 @@
     },
 
     display: function(show) {
-      if (show)
+      if (show){
         this.$el.removeClass("hide");
-      else
+      }
+      else{
         this.$el.addClass("hide");
+      }
     },
 
     render: function() {
@@ -350,7 +392,7 @@
       spaLoginURL: String
     },
 
-    el: '.sidebar',
+    el: '#login',
 
     events: {
       'submit form#signout': 'signout'
@@ -364,24 +406,21 @@
     render: function() {
       if (!this.appStatus.get('workerInitialized')) {
         // SPA worker is not yet initialized.
-        $('[name="spa-setup"]').remove();
+        this.$('[name="spa-setup"]').remove();
       } else if (!this.user.get("username")) {
         // SPA is initialized but user is not connected.
-        if (!$('#signin').length) {
+        if (!this.$('#signin').length) {
           var iframe = $("<iframe>")
             .attr("src", this.spaLoginURL)
             .attr("id", "signin")
             .attr("name", "spa-setup");
+          console.log("display login");
           $("#login p:first").append(iframe);
         }
-        $('#subpanels').hide();
       } else {
         // The user is connected to the SPA.
-        $('#signin').hide();
-        $('[name="spa-setup"]').remove();
-        $('#signout').show().find('.username')
-            .text(this.user.get('username'));
-        $('#subpanels').show();
+        this.$('#signin').hide();
+        this.$('[name="spa-setup"]').remove();
       }
       return this;
     },
