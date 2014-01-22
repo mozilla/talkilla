@@ -177,24 +177,13 @@ var payloads = (function() {
    * InstantShare payload. A ping payload to trigger a call in an
    * instant-share session.
    *
-   * @param {Object} data
-   *
-   * data attributes:
-   *
    * - {String} peer, the user to call
    *
    */
-  function InstantShare(data) {
-    this.peer = data.peer;
-  }
+  var InstantShare = Payload.define({
+    peer: String
+  });
 
-  InstantShare.prototype = {
-    toJSON: function() {
-      return {
-        peer: this.peer
-      };
-    }
-  };
 
   return {
     Payload: Payload,
