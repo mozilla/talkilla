@@ -556,6 +556,14 @@ describe("presence", function() {
         sinon.assert.calledWithExactly(res.send, 200);
       });
 
+      it("should return a 400 if the user is not logged in", function() {
+        req.session.email = undefined;
+        api.instantSharePingBack(req, res);
+
+        sinon.assert.calledOnce(res.send);
+        sinon.assert.calledWithExactly(res.send, 400);
+      });
+
     });
 
     describe("#instantShare", function() {
@@ -576,5 +584,6 @@ describe("presence", function() {
       });
 
     });
+
   });
 });
