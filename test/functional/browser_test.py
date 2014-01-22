@@ -270,7 +270,7 @@ class BrowserTest(unittest.TestCase):
         driver.switchToSidebar()
         # We might have just reloaded, so wait a bit in case it
         # isn't there yet.
-        driver.clickElement("#settings-tab>a")
+        driver.clickElement("#gear-menu-tab>a")
         self.assertElementTextEquals(driver, "strong.username", username, True)
         self.assertElementVisible(driver, "#signout")
 

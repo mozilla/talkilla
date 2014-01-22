@@ -56,7 +56,12 @@
 
       this.subpanelsView = new app.views.SubPanelsView({
         user: this.user,
-        spa: this.spa
+        spa: this.spa,
+        appStatus: this.appStatus
+      });
+
+      this.gearMenuView = new app.views.GearMenuView({
+        user: this.user
       });
 
       if (options.isInSidebar)
@@ -90,7 +95,8 @@
       this.usersView.render();
       this.importButtonView.render();
       this.spaView.render();
-      //this.subpanelsView.render();
+      this.subpanelsView.render();
+      this.gearMenuView.render();
       return this;
     }
   });
@@ -98,13 +104,15 @@
   app.views.SubPanelsView = app.views.BaseView.extend({
     dependencies: {
       spa: app.models.SPA,
-      user: app.models.CurrentUser
+      user: app.models.CurrentUser,
+      appStatus: app.models.AppStatus,
     },
 
     el: "#subpanels",
 
     initialize: function() {
-      //this.spa.on("change:capabilities", this.render, this);
+      this.spa.on("change:capabilities", this.render, this);
+      this.user.on('signin signout', this.render, this);
     },
 
     render: function() {
@@ -114,9 +122,6 @@
           this.$el.hide();
         } else {
           // The user is connected to the SPA.
-          this.$('#signout').show().find('.username')
-              .text(this.user.get('username'));
-
           if(this.spa.supports("pstn-call")) {
             this.$('#dialin-tab').show();
           } else {
@@ -166,6 +171,32 @@
 
     render: function() {
       this.display(this.user.isLoggedIn() && this.spa.supports("pstn-call"));
+    }
+  });
+
+  app.views.GearMenuView = app.views.BaseView.extend({
+    dependencies: {
+      user: app.models.CurrentUser,
+    },
+
+    el: '#gear-menu',
+
+    events: {
+      'submit form#signout': 'signout'
+    },
+
+    render: function() {
+      this.$('#signout .username').text(this.user.get('username'));
+    },
+
+    /**
+     * Signs out a user.
+     *
+     * @param  {FormEvent}  Signout form submit event
+     */
+    signout: function(event) {
+      event.preventDefault();
+      this.user.signout();
     }
   });
 
@@ -394,10 +425,6 @@
 
     el: '#login',
 
-    events: {
-      'submit form#signout': 'signout'
-    },
-
     initialize: function() {
       this.user.on('signin signout', this.render, this);
       this.appStatus.on('change:workerInitialized', this.render, this);
@@ -423,16 +450,6 @@
         this.$('[name="spa-setup"]').remove();
       }
       return this;
-    },
-
-    /**
-     * Signs out a user.
-     *
-     * @param  {FormEvent}  Signout form submit event
-     */
-    signout: function(event) {
-      event.preventDefault();
-      this.user.signout();
     }
   });
 

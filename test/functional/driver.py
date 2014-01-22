@@ -86,7 +86,7 @@ class Driver(WebDriver):
     def signout(self):
         """Signs the user out."""
         self.switchToSidebar()
-        self.clickElement('#settings-tab>a')
+        self.clickElement('#gear-menu-tab>a')
         self.clickElement('#signout button')
         return self
 

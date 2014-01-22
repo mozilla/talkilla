@@ -68,18 +68,18 @@
 .sidebar #dialin-tab.active>a {
   background-image: url('/img/phone_clicked.png');
 }
-.sidebar #settings-tab>a {
+.sidebar #gear-menu-tab>a {
   background-image: url('/img/gear_default.png');
 }
-.sidebar #settings-tab.active>a {
+.sidebar #gear-menu-tab.active>a {
   background-image: url('/img/gear_clicked.png');
 }
 
-.sidebar #settings ul li {
+.sidebar #gear-menu ul li {
   list-style-type: none;
 }
 
-.sidebar #pstn-dialin, .sidebar #settings {
+.sidebar #pstn-dialin, .sidebar #gear-menu {
   padding: 10px 0 0 0;
   text-align: center;
 }

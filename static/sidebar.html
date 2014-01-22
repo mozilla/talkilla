@@ -19,7 +19,7 @@
 
   <div id="subpanels" class="tabbable hide">
     <ul class="nav nav-tabs">
-    <li id="settings-tab"><a href="#settings" data-toggle="tab"><pre>Settings</pre></a></li>
+    <li id="gear-menu-tab"><a href="#gear-menu" data-toggle="tab"><pre>Settings</pre></a></li>
     <li id="dialin-tab"><a href="#pstn-dialin" data-toggle="tab"><pre>Dial</pre></a></li>
     <li id="contact-tab" class="active"><a href="#contact-list" data-toggle="tab"><pre>Contacts</pre></a></li>
     </ul>
@@ -41,10 +41,10 @@
         </form>
       </div>
       <!-- /SPA view -->
-      <div id="settings" class="tab-pane">
+      <!-- GearMenu view -->
+      <div id="gear-menu" class="tab-pane">
       <ul>
       <li>
-        <!-- Login view (for logout) -->
         <form action="/signout" id="signout" method="post" class="">
           <p>
             Joined as <strong class="user username">alexis@notmyidea.org</strong>
@@ -53,7 +53,6 @@
         </form>
         </li>
         <li>
-        <!-- /Login view -->
         <p id="import-contacts"><button class="btn btn-link">Load your Contacts</button></p></li>
         <li><p>
           <a class="btn btn-link" id="feedback-link"
@@ -61,6 +60,7 @@
           Send feedback</a>
         </p></li>
       </div>
+      <!-- /GearMenu view -->
     </div>
     <!-- /Tab content -->
   </div>
