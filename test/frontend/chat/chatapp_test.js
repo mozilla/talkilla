@@ -648,6 +648,19 @@ describe("ChatApp", function() {
             sinon.assert.notCalled(chatApp.call.resume);
           });
       });
+
+      describe("talkilla.start-call", function() {
+
+        it("should start a call", function() {
+          sandbox.stub(chatApp.call, "start");
+          chatApp.appPort.trigger("talkilla.start-call");
+          sinon.assert.calledOnce(chatApp.call.start);
+          sinon.assert.calledWithExactly(
+            chatApp.call.start, {video: true, audio: true});
+        });
+
+      });
+
     });
 
     describe("Object events listeners", function() {

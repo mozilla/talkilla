@@ -173,6 +173,18 @@ var payloads = (function() {
     timeout: Number
   });
 
+  /**
+   * InstantShare payload. A ping payload to trigger a call in an
+   * instant-share session.
+   *
+   * - {String} peer, the user to call
+   *
+   */
+  var InstantShare = Payload.define({
+    peer: String
+  });
+
+
   return {
     Payload: Payload,
     Offer: Offer,
@@ -185,6 +197,7 @@ var payloads = (function() {
     Move: Move,
     MoveAccept: MoveAccept,
     SPAChannelMessage: SPAChannelMessage,
-    Reconnection: Reconnection
+    Reconnection: Reconnection,
+    InstantShare: InstantShare
   };
 })();

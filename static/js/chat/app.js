@@ -99,6 +99,7 @@ var ChatApp = (function(app, $, Backbone, _) {
     this.appPort.on('talkilla.resume', this._onResume, this);
     this.appPort.once('talkilla.spa-channel-message',
                       this._onIncomingTextConversation, this);
+    this.appPort.once('talkilla.start-call', this._onCallRequest, this);
 
     // Outgoing events
     this.call.on('send-offer', this._onSendOffer, this);
@@ -323,6 +324,10 @@ var ChatApp = (function(app, $, Backbone, _) {
         console.log.apply(console, ['chatapp.' + prop].concat(args));
       });
     }, this);
+  };
+
+  ChatApp.prototype._onCallRequest = function() {
+    this.call.start({video: true, audio: true});
   };
 
   return ChatApp;
