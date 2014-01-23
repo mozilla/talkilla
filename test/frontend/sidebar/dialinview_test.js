@@ -60,15 +60,9 @@ describe("DialInView", function() {
       sandbox.stub(view, "display");
     });
 
-    it("should hide the dialer when the user is not signed in", function() {
-      user.set("presence", "disconnected");
-
-      sinon.assert.calledOnce(view.display);
-      sinon.assert.calledWithExactly(view.display, false);
-    });
-
     it("should hide the dialer when the SPA doesn't support it", function() {
       spa.set("capabilities", ["move"]);
+      view.render();
 
       sinon.assert.calledOnce(view.display);
       sinon.assert.calledWithExactly(view.display, false);
@@ -76,6 +70,7 @@ describe("DialInView", function() {
 
     it("should show the dialer when the SPA support it", function() {
       spa.set("capabilities", ["move", "pstn-call"]);
+      view.render();
 
       sinon.assert.calledOnce(view.display);
       sinon.assert.calledWithExactly(view.display, true);

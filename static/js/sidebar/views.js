@@ -32,36 +32,17 @@
         user: this.user
       });
 
-      this.usersView = new app.views.UsersView({
+      this.subpanelsView = new app.views.SubPanelsView({
         user: this.user,
-        collection: this.users,
-        appStatus: this.appStatus
-      });
-
-      this.importButtonView = new app.views.ImportContactsView({
-        user: this.user,
-        service: this.services.google,
-        spa: this.spa
-      });
-
-      this.dialInView = new app.views.DialInView({
-        user: this.user,
-        spa: this.spa
+        spa: this.spa,
+        appStatus: this.appStatus,
+        users: this.users,
+        service: this.services.google
       });
 
       this.notificationsView = new app.views.NotificationsView({
         user: this.user,
         appStatus: this.appStatus
-      });
-
-      this.subpanelsView = new app.views.SubPanelsView({
-        user: this.user,
-        spa: this.spa,
-        appStatus: this.appStatus
-      });
-
-      this.gearMenuView = new app.views.GearMenuView({
-        user: this.user
       });
 
       if (options.isInSidebar)
@@ -92,29 +73,46 @@
 
     render: function() {
       this.loginView.render();
-      this.usersView.render();
-      this.importButtonView.render();
-      this.dialInView.render();
+      this.ImportContactsView.render();
       this.subpanelsView.render();
-      this.gearMenuView.render();
       return this;
     }
   });
 
   app.views.SubPanelsView = app.views.BaseView.extend({
     dependencies: {
-      spa: app.models.SPA,
       user: app.models.CurrentUser,
-      appStatus: app.models.AppStatus
+      spa: app.models.SPA,
+      appStatus: app.models.AppStatus,
+      users: app.models.UserSet,
+      service: GoogleContacts,
     },
 
     el: "#subpanels",
 
     initialize: function() {
-      this.spa.on('change:capabilities', function() {
-        this.render();
-      }, this);
+      this.usersView = new app.views.UsersView({
+        user: this.user,
+        collection: this.users,
+        appStatus: this.appStatus
+      });
 
+      this.dialInView = new app.views.DialInView({
+        user: this.user,
+        spa: this.spa
+      });
+
+      this.gearMenuView = new app.views.GearMenuView({
+        user: this.user
+      });
+
+      this.importContactsView = new app.views.ImportContactsView({
+        user: this.user,
+        service: this.service,
+        spa: this.spa
+      });
+
+      this.spa.on('change:capabilities', this.render, this);
       this.user.on('signin signout', this.render, this);
     },
 
@@ -130,6 +128,10 @@
           } else {
             this.$('#dialin-tab').hide();
           }
+          this.usersView.render();
+          this.dialInView.render();
+          this.gearMenuView.render();
+          this.importContactsView.render();
           this.$el.show();
         }
       }
@@ -150,11 +152,6 @@
 
     events: {
       "submit form": "dial"
-    },
-
-    initialize: function() {
-      this.spa.on("change:capabilities", this.render, this);
-      this.user.on('signin signout', this.render, this);
     },
 
     dial: function(event) {
@@ -193,7 +190,6 @@
     },
 
     render: function() {
-      console.log("called render !");
       this.$('#signout .username').text(this.user.get('username'));
       return this;
     },
