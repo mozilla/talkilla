@@ -579,8 +579,8 @@ describe("presence", function() {
         api.instantShare(req, res);
 
         sinon.assert.calledOnce(res.sendfile);
-        sinon.assert.calledWithExactly(res.sendfile,
-          'static/instant-share.html');
+        sinon.assert.calledWithMatch(res.sendfile,
+          'instant-share.html');
       });
 
     });
