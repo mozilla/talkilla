@@ -199,8 +199,7 @@
 }
 
 #link-share {
-  /* arbitrary amount to make space.  can probably do this more cleanly. */
-  margin-bottom: 17px;
+  margin-top: 5px;
 }
 
 #link-share-input {

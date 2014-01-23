@@ -479,11 +479,11 @@
     el: "#link-share",
 
     template: _.template([
-      '<label class="link-share-label" for="link-share-input">',
+      '<div class="form-inline">',
+      '  <label class="link-share-label" for="link-share-input">',
       '  Share this link with a Talkilla user to video chat:',
-      '</label>',
-      '<div>',
-      '  <input id="link-share-input" class="input-block-level"',
+      '  </label>',
+      '  <input id="link-share-input" class="input-block-level "',
       '         readonly="true"   type="url"',
       '         value="<%= url %>">',
       '</div>'
