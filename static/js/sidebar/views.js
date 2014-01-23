@@ -415,12 +415,10 @@
     el: "#link-share",
 
     template: _.template([
-      '<label class="link-share-label" for="link-share-input">',
-      '  Share this link with a Talkilla user to video chat:',
-      '</label>',
-      '<div>',
-      '  <input id="link-share-input" class="input-block-level"',
-      '         readonly="true"   type="url"',
+      '<div class="form-inline">',
+      '  <input id="link-share-input" class="input-block-level "',
+      '         readonly="true"',
+      '         type="url"',
       '         value="<%= url %>">',
       '</div>'
     ].join('')),
@@ -435,6 +433,11 @@
         encodeURIComponent(this.user.get("username"));
 
       this.$el.html(this.template({url: linkToCopy}));
+      $('#link-share-input').tooltip({
+        'trigger':'hover',
+        'placement': 'bottom',
+        'title': "Share this link with a Talkilla user to video chat"
+      });
 
       this.$el.show();
 
