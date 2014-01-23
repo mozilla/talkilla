@@ -94,14 +94,13 @@ describe("LoginView", function() {
         expect($('#signin').length).to.equal(0);
       });
 
-    it("should display signin and hide subpanels when there is no username",
+    it("should display signin when there is no username",
       function() {
         appStatus.set("workerInitialized", true);
         loginView.render();
 
         expect($('#signin').length).to.equal(1);
         expect($('#signin').is(':visible')).to.equal(true);
-        expect($('#subpanels').is(':visible')).to.equal(false);
       });
 
     it("should only ever display one sign-in iframe at a time", function() {
@@ -112,47 +111,13 @@ describe("LoginView", function() {
       expect($('iframe').length).to.equal(1);
     });
 
-    it("should hide signin and display subpanels when user is connected",
+    it("should hide signin when user is connected",
       function() {
         appStatus.set("workerInitialized", true);
         user.set("username", "james");
         loginView.render();
 
         expect($('#signin').is(':visible')).to.equal(false);
-        expect($('#subpanels').hasClass('hide')).to.equal(false);
       });
-  });
-
-  describe("signing in and out", function() {
-    var loginView;
-    var clickEvent = {preventDefault: function() {}};
-
-    beforeEach(function() {
-      window.sidebarApp = {
-        login: sandbox.spy(),
-        logout: sandbox.spy()
-      };
-      loginView = new app.views.LoginView({
-        user: new app.models.CurrentUser(),
-        spaLoginURL: "http://talkilla/",
-        appStatus: new app.models.AppStatus()
-      });
-    });
-
-    afterEach(function() {
-      window.sidebarApp = undefined;
-    });
-
-    describe("#signout", function() {
-
-      it("should call sign out on the user model", function() {
-        sandbox.stub(loginView.user, "signout");
-
-        loginView.signout(clickEvent);
-
-        sinon.assert.calledOnce(loginView.user.signout);
-      });
-
-    });
   });
 });

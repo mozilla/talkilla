@@ -105,24 +105,27 @@
     dependencies: {
       spa: app.models.SPA,
       user: app.models.CurrentUser,
-      appStatus: app.models.AppStatus,
+      appStatus: app.models.AppStatus
     },
 
     el: "#subpanels",
 
     initialize: function() {
-      this.spa.on("change:capabilities", this.render, this);
+      this.spa.on('change:capabilities', function() {
+        this.render();
+      }, this);
+
       this.user.on('signin signout', this.render, this);
     },
 
     render: function() {
       if (this.appStatus.get('workerInitialized')) {
-        if (!this.user.get("username")) {
+        if (!this.user.get('username')) {
           // SPA is initialized but user is not connected.
           this.$el.hide();
         } else {
           // The user is connected to the SPA.
-          if(this.spa.supports("pstn-call")) {
+          if(this.spa.supports('pstn-call')) {
             this.$('#dialin-tab').show();
           } else {
             this.$('#dialin-tab').hide();
@@ -185,8 +188,14 @@
       'submit form#signout': 'signout'
     },
 
+    initialize: function() {
+      this.user.on('change:username', this.render, this);
+    },
+
     render: function() {
+      console.log("called render !");
       this.$('#signout .username').text(this.user.get('username'));
+      return this;
     },
 
     /**
