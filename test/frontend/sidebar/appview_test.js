@@ -13,7 +13,7 @@ describe("AppView", function() {
     sandbox.stub(app.views, "LoginView");
     sandbox.stub(app.views, "UsersView");
     sandbox.stub(app.views, "ImportContactsView");
-    sandbox.stub(app.views, "SPAView");
+    sandbox.stub(app.views, "DialInView");
   });
 
   afterEach(function() {
@@ -62,10 +62,10 @@ describe("AppView", function() {
         expect(appView.usersView).to.be.an.instanceOf(app.views.UsersView);
       });
 
-      it("should set an spa property", function() {
+      it("should set an dialInView property", function() {
         appView = new app.views.AppView(appViewOptions);
 
-        expect(appView.spaView).to.be.an.instanceOf(app.views.SPAView);
+        expect(appView.DialInView).to.be.an.instanceOf(app.views.DialInView);
       });
 
       it("should set isInSidebar to false if no isInSidebar option is given",

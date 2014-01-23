@@ -1,9 +1,7 @@
-/*global app, sinon, chai */
+/*global app, sinon */
 "use strict";
 
-var expect = chai.expect;
-
-describe("SPAView", function() {
+describe("DialInView", function() {
   var sandbox, view, user, spa;
 
   beforeEach(function() {
@@ -13,7 +11,7 @@ describe("SPAView", function() {
       username: "boriss",
       presence: "connected"
     });
-    view = new app.views.SPAView({user: user, spa: spa});
+    view = new app.views.DialInView({user: user, spa: spa});
   });
 
   afterEach(function() {
@@ -47,7 +45,6 @@ describe("SPAView", function() {
 
       sinon.assert.calledOnce(view.$el.removeClass);
       sinon.assert.calledWithExactly(view.$el.removeClass, "hide");
-      expect($('#dialin-tab').hasClass('hide')).to.equal(false);
     });
 
     it("should hide el when arg is false", function() {
@@ -55,7 +52,6 @@ describe("SPAView", function() {
 
       sinon.assert.calledOnce(view.$el.addClass);
       sinon.assert.calledWithExactly(view.$el.addClass, "hide");
-      expect($('#dialin-tab').hasClass('hide')).to.equal(true);
     });
   });
 

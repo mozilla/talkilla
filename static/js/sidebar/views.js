@@ -44,7 +44,7 @@
         spa: this.spa
       });
 
-      this.spaView = new app.views.SPAView({
+      this.dialInView = new app.views.DialInView({
         user: this.user,
         spa: this.spa
       });
@@ -94,7 +94,7 @@
       this.loginView.render();
       this.usersView.render();
       this.importButtonView.render();
-      this.spaView.render();
+      this.dialInView.render();
       this.subpanelsView.render();
       this.gearMenuView.render();
       return this;
@@ -140,7 +140,7 @@
   /**
    * SPA view.
    */
-  app.views.SPAView = app.views.BaseView.extend({
+  app.views.DialInView = app.views.BaseView.extend({
     dependencies: {
       spa: app.models.SPA,
       user: app.models.CurrentUser
