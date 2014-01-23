@@ -84,6 +84,9 @@ class FrontEndSuite(unittest.TestCase):
     def test_spa_index_html(self):
         self.check_page(SERVER_PREFIX + "spa/index.html")
 
+    def test_instant_share_index_html(self):
+        self.check_page(SERVER_PREFIX + "instant-share/index.html")
+
 
 if __name__ == "__main__":
     unittest.main(catchbreak=True)

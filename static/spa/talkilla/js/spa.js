@@ -52,17 +52,31 @@ var TalkillaSPA = (function() {
       // XXX: For now we just translate the server messages to the
       // documented SPA interface. We have to update the server to
       // reflect these events.
-      if (type === "offer")
-        this.port.post("offer", (new payloads.Offer(event)));
-      else if (type === "answer")
-        this.port.post("answer", (new payloads.Answer(event)));
-      else if (type === "hangup")
-        this.port.post("hangup", (new payloads.Hangup(event)));
-      else if (type === "ice:candidate")
-        this.port.post("ice:candidate",
-                       (new payloads.IceCandidate(event)));
-      else
-        this.port.post(type, event);
+      switch (type) {
+        case "offer":
+          this.port.post("offer", (new payloads.Offer(event)));
+          break;
+
+        case "answer":
+          this.port.post("answer", (new payloads.Answer(event)));
+          break;
+
+        case "hangup":
+          this.port.post("hangup", (new payloads.Hangup(event)));
+          break;
+
+        case "ice:candidate":
+          this.port.post("ice:candidate", (new payloads.IceCandidate(event)));
+          break;
+
+        case "instantshare":
+          this.port.post("instantshare", (new payloads.InstantShare(event)));
+          break;
+
+        default:
+          this.port.post(type, event);
+          break;
+      }
     },
 
     _onConnect: function(credentials) {

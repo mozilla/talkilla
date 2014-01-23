@@ -433,6 +433,10 @@
     initialize: function() {
       this.user.on('signin signout', this.render, this);
       this.appStatus.on('change:workerInitialized', this.render, this);
+      this._linkShareView = new app.views.LinkShareView({
+        user: this.user,
+        originUrl: window.location.origin
+      });
     },
 
     render: function() {
@@ -446,14 +450,58 @@
             .attr("src", this.spaLoginURL)
             .attr("id", "signin")
             .attr("name", "spa-setup");
-          console.log("display login");
-          $("#login p:first").append(iframe);
+
+          this.$(".login-iframe-container").append(iframe);
         }
       } else {
         // The user is connected to the SPA.
         this.$('#signin').hide();
         this.$('[name="spa-setup"]').remove();
       }
+      this._linkShareView.render();
+      return this;
+    }
+  });
+
+  /**
+   * View which displays a link that the user can pass to someone else out of
+   * band to complete a call.
+   *
+   * @param {app.models.CurrentUser}  the current user.
+   */
+  app.views.LinkShareView = app.views.BaseView.extend({
+
+    dependencies: {
+      user: app.models.CurrentUser,
+      originUrl: String
+    },
+
+    el: "#link-share",
+
+    template: _.template([
+      '<label class="link-share-label" for="link-share-input">',
+      '  Share this link with a Talkilla user to video chat:',
+      '</label>',
+      '<div>',
+      '  <input id="link-share-input" class="input-block-level"',
+      '         readonly="true"   type="url"',
+      '         value="<%= url %>">',
+      '</div>'
+    ].join('')),
+
+    render: function() {
+      if (!this.user.isLoggedIn() || !this.user.get("username")) {
+        this.$el.hide();
+        return this;
+      }
+
+      var linkToCopy = this.originUrl + "/instant-share/" +
+        encodeURIComponent(this.user.get("username"));
+
+      this.$el.html(this.template({url: linkToCopy}));
+
+      this.$el.show();
+
       return this;
     }
   });

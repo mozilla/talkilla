@@ -3,6 +3,7 @@
 
 var http = require('http');
 var https = require('https');
+var path = require('path');
 var url = require('url');
 var app = require("./server").app;
 var httpServer = require("./server").server;
@@ -237,6 +238,24 @@ api = {
 
     user.send("users", presentUsers);
     return res.send(204);
+  },
+
+  instantShare: function(req, res) {
+    res.sendfile(path.join(__dirname, "..", "static", "instant-share.html"));
+  },
+
+  instantSharePingBack: function(req, res) {
+    var user = users.get(req.session.email);
+
+    if (!user) {
+      logger.error({type: "instantshare"},
+        "instant-share link clicked by a user who is not logged in");
+      return res.send(400);
+    }
+
+    user.send("instantshare", {peer: req.params.email});
+    logger.info({type: "instantshare"});
+    return res.send(200);
   }
 };
 
@@ -248,6 +267,8 @@ app.post('/callaccepted', api.callAccepted);
 app.post('/callhangup', api.callHangup);
 app.post('/icecandidate', api.iceCandidate);
 app.post('/presenceRequest', api.presenceRequest);
+app.get('/instant-share/:email', api.instantShare);
+app.post('/instant-share/:email', api.instantSharePingBack);
 
 module.exports.api = api;
 module.exports._users = users;

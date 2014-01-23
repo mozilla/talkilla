@@ -422,4 +422,47 @@ describe("SPA events", function() {
     });
   });
 
+  describe("`instantshare` event", function() {
+
+    beforeEach(function() {
+      browserPort = {postEvent: sandbox.spy()};
+      tkWorker.users.set('alice',{});
+    });
+
+    afterEach(function() {
+      browserPort = undefined;
+      currentConversation = undefined;
+    });
+
+    it("should create a new conversation object", function() {
+      var instantShareMsg = new payloads.InstantShare({
+        peer: "alice"
+      });
+
+      tkWorker.spa.trigger("instantshare", instantShareMsg);
+
+      expect(currentConversation).to.be.an.instanceOf(Conversation);
+    });
+
+    it("should try to re-use an existing conversation object",
+      function() {
+        var instantShareMsg = new payloads.InstantShare({
+          peer: "alice"
+        });
+        currentConversation = new Conversation({
+          capabilities: {},
+          peer: tkWorker.users.get("alice"),
+          browserPort: browserPort,
+          users: tkWorker.users,
+          user: tkWorker.user
+        });
+        sandbox.stub(currentConversation, "startCall");
+
+        tkWorker.spa.trigger("instantshare", instantShareMsg);
+
+        sinon.assert.calledOnce(currentConversation.startCall);
+      });
+
+  });
+
 });

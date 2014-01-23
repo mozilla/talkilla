@@ -260,6 +260,28 @@ function _setupSPA(spa) {
     tkWorker.ports.broadcastEvent('talkilla.reauth-needed');
     tkWorker.closeSession();
   });
+
+  spa.on("instantshare", function(instantShareMsg) {
+    // If we're in a conversation, and it is not with the peer,
+    // then ignore it
+    if (!currentConversation) {
+      currentConversation = new Conversation({
+        capabilities: spa.capabilities,
+        // XXX: for now we assume instantShareMsg.peer is always part
+        // of tkWorker.users. I may not be the case.
+        peer: tkWorker.users.get(instantShareMsg.peer),
+        browserPort: browserPort,
+        users: tkWorker.users,
+        user: tkWorker.user
+      });
+      tkWorker.contactsDb.add({username: instantShareMsg.peer}, function(err) {
+        if (err)
+          tkWorker.ports.broadcastError(err);
+      });
+    }
+
+    currentConversation.startCall();
+  });
 }
 
 var handlers = {

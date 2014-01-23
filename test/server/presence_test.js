@@ -526,5 +526,64 @@ describe("presence", function() {
         sinon.assert.calledWithExactly(res.send, 204);
       });
     });
+
+    describe("#instantSharePingBack", function() {
+
+      var req, res, foo, bar;
+
+      beforeEach(function() {
+        req = {session: {email: "foo"}, params: {email: "bar"}};
+        res = {send: sinon.spy()};
+        foo = users.add("foo").get("foo");
+        bar = users.add("bar").get("bar");
+
+        sandbox.stub(foo, "send");
+      });
+
+      it("should send the given peer to myself", function() {
+        api.instantSharePingBack(req, res);
+
+        sinon.assert.calledOnce(foo.send);
+        sinon.assert.calledWithExactly(foo.send, "instantshare", {
+          peer: "bar"
+        });
+      });
+
+      it("should return a 200 OK response", function() {
+        api.instantSharePingBack(req, res);
+
+        sinon.assert.calledOnce(res.send);
+        sinon.assert.calledWithExactly(res.send, 200);
+      });
+
+      it("should return a 400 if the user is not logged in", function() {
+        req.session.email = undefined;
+        api.instantSharePingBack(req, res);
+
+        sinon.assert.calledOnce(res.send);
+        sinon.assert.calledWithExactly(res.send, 400);
+      });
+
+    });
+
+    describe("#instantShare", function() {
+
+      var req, res;
+
+      beforeEach(function() {
+        req = {session: {email: "foo"}, params: {email: "bar"}};
+        res = {sendfile: sinon.spy()};
+      });
+
+      it("should send the 'static/instant-share.html' page", function() {
+        api.instantShare(req, res);
+
+        sinon.assert.calledOnce(res.sendfile);
+        sinon.assert.calledWithMatch(res.sendfile,
+          'instant-share.html');
+      });
+
+    });
+
   });
 });

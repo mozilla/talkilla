@@ -17,9 +17,9 @@ describe("LoginView", function() {
     sandbox = sinon.sandbox.create();
     $('body').append([
       '<div id="login">',
-      '  <p></p>',
+      '  <p class="login-iframe-container"></p>',
       '  <form id="signout" class="hide"></form>',
-      '</div>',
+      '</div>'
     ].join(''));
   });
 
@@ -34,7 +34,7 @@ describe("LoginView", function() {
     beforeEach(function() {
       sandbox.stub(app.views.LoginView.prototype, "render");
       loginView = new app.views.LoginView({
-        user: new app.models.CurrentUser(),
+        user: new app.models.CurrentUser({username: "rt@example.com"}),
         spaLoginURL: "http://talkilla/",
         appStatus: new app.models.AppStatus()
       });
@@ -119,5 +119,14 @@ describe("LoginView", function() {
 
         expect($('#signin').is(':visible')).to.equal(false);
       });
+
+    it("should render the link-share view", function() {
+      sandbox.stub(loginView._linkShareView, "render");
+
+      loginView.render();
+
+      sinon.assert.calledOnce(loginView._linkShareView.render);
+      sinon.assert.calledWithExactly(loginView._linkShareView.render);
+    });
   });
 });

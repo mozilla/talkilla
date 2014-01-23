@@ -296,6 +296,11 @@ class BrowserTest(unittest.TestCase):
         except TimeoutException:
             pass
 
+    def getInstantShareLink(self, driver):
+        element = driver.find_element_by_id("link-share-input")
+        link = element.get_attribute("value")
+        return link
+
 
 # XXX: we should DRY-ify the server startup via python
 # scripts. For now we do that in:
