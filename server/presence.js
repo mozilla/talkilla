@@ -3,6 +3,7 @@
 
 var http = require('http');
 var https = require('https');
+var path = require('path');
 var url = require('url');
 var app = require("./server").app;
 var httpServer = require("./server").server;
@@ -240,7 +241,7 @@ api = {
   },
 
   instantShare: function(req, res) {
-    res.sendfile("static/instant-share.html");
+    res.sendfile(path.join(__dirname, "..", "static", "instant-share.html"));
   },
 
   instantSharePingBack: function(req, res) {
