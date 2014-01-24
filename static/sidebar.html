@@ -26,9 +26,15 @@
 
   <div id="subpanels" class="tabbable hide">
     <ul class="nav nav-tabs">
-    <li id="gear-menu-tab"><a href="#gear-menu" data-toggle="tab"><pre>Settings</pre></a></li>
-    <li id="dialin-tab"><a href="#pstn-dialin" data-toggle="tab"><pre>Dial</pre></a></li>
-    <li id="contact-tab" class="active"><a href="#contact-list" data-toggle="tab"><pre>Contacts</pre></a></li>
+      <li id="gear-menu-tab">
+        <a href="#gear-menu" data-toggle="tab"><span>Settings</span></a>
+      </li>
+      <li id="dialin-tab">
+        <a href="#pstn-dialin" data-toggle="tab"><span>Dial</span></a>
+      </li>
+      <li id="contact-tab" class="active">
+        <a href="#contact-list" data-toggle="tab"><span>Contacts</span></a>
+      </li>
     </ul>
     <div class="tab-content">
       <div id="contact-list" class="tab-pane active">
@@ -51,21 +57,22 @@
       <!-- GearMenu view -->
       <div id="gear-menu" class="tab-pane">
       <ul>
-      <li>
-        <form action="/signout" id="signout" method="post" class="">
-          <p>
-            Joined as <strong class="user username">alexis@notmyidea.org</strong>
-            <button class="btn btn-link" type="submit">Sign out</button>
-          </p>
-        </form>
-        </li>
         <li>
-        <p id="import-contacts"><button class="btn btn-link">Load your Contacts</button></p></li>
-        <li><p>
-          <a class="btn btn-link" id="feedback-link"
-             href="https://docs.google.com/a/mozilla.com/forms/d/18hE8fjbkktm2E8Q40nJ1heRESVX9McoY2RMmGCjc-TQ/viewform">
-          Send feedback</a>
-        </p></li>
+          <form action="/signout" id="signout" method="post" class="">
+            <p>
+              Joined as <strong class="user username">alexis@notmyidea.org</strong>
+              <button class="btn btn-link" type="submit">Sign out</button>
+            </p>
+          </form>
+          </li>
+          <li>
+          <p id="import-contacts"><button class="btn btn-link">Load your Contacts</button></p></li>
+          <li><p>
+            <a class="btn btn-link" id="feedback-link"
+               href="https://docs.google.com/a/mozilla.com/forms/d/18hE8fjbkktm2E8Q40nJ1heRESVX9McoY2RMmGCjc-TQ/viewform">
+            Send feedback</a>
+          </p></li>
+        </ul>
       </div>
       <!-- /GearMenu view -->
     </div>

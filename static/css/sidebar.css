@@ -20,7 +20,7 @@
   color: #818A8F; /* match the header */
 }
 
-.sidebar>#subpanels .nav {
+.sidebar > #subpanels .nav {
   margin-bottom: 5px;
 }
 
@@ -39,11 +39,11 @@
   height: 25px;
 }
 
-.sidebar #subpanels>ul.nav-tabs>li {
+.sidebar #subpanels > ul.nav-tabs > li {
   float: right;
 }
 
-.sidebar #subpanels>ul.nav-tabs>li>a {
+.sidebar #subpanels > ul.nav-tabs > li>a {
   height: 10px;
   width: 10px;
   background-position: center;
@@ -52,26 +52,26 @@
 }
 
 /* Hide the text in the tab headers */
-.sidebar #subpanels>ul.nav-tabs>li>a>pre {
+.sidebar #subpanels > ul.nav-tabs > li > a > span {
   display: none;
 }
 
-.sidebar #contact-tab>a {
+.sidebar #contact-tab > a {
   background-image: url('/img/clock_default.png');
 }
-.sidebar #contact-tab.active>a {
+.sidebar #contact-tab.active > a {
   background-image: url('/img/clock_clicked.png');
 }
-.sidebar #dialin-tab>a {
+.sidebar #dialin-tab > a {
   background-image: url('/img/phone_default.png');
 }
-.sidebar #dialin-tab.active>a {
+.sidebar #dialin-tab.active > a {
   background-image: url('/img/phone_clicked.png');
 }
-.sidebar #gear-menu-tab>a {
+.sidebar #gear-menu-tab > a {
   background-image: url('/img/gear_default.png');
 }
-.sidebar #gear-menu-tab.active>a {
+.sidebar #gear-menu-tab.active > a {
   background-image: url('/img/gear_clicked.png');
 }
 
