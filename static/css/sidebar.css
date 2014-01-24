@@ -39,6 +39,10 @@
   height: 25px;
 }
 
+.sidebar #subpanels .tab-content {
+  min-height: 50px;
+}
+
 .sidebar #subpanels > ul.nav-tabs > li {
   float: right;
 }
