@@ -1,0 +1,22 @@
+/*
+ * Styles specific to instant-share
+ */
+
+html, body {
+  height: 100%;
+  width: 100%;
+}
+
+#instant-share-call {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.call-button {
+  font-weight: bold;
+  font-size: 18px;
+  color: rgba(24, 124, 198, 1);  /* medium blue */
+}
+

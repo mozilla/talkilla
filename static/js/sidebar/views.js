@@ -40,7 +40,8 @@
 
       this.importButtonView = new app.views.ImportContactsView({
         user: this.user,
-        service: this.services.google
+        service: this.services.google,
+        spa: this.spa
       });
 
       this.spaView = new app.views.SPAView({
@@ -208,6 +209,11 @@
    * User list entry view.
    */
   app.views.UserEntryView = app.views.BaseView.extend({
+    dependencies: {
+      model:  app.models.user,
+      active: Boolean
+    },
+
     tagName: 'li',
 
     template: _.template([
@@ -217,17 +223,15 @@
       '    <img src="<%= avatar %>">',
       '    <span class="status status-<%= presence %>"></span>',
       '  </div>',
-      '  <span class="username"><%= fullName %></span>',
+      '  <div class="user-entry-details">',
+      '    <p class="username"><%= fullName %></p>',
+      '    <p class="address-info"><%= username %></p>',
+      '  </div>',
       '</a>'
     ].join('')),
 
     events: {
       'click a': 'openConversation'
-    },
-
-    initialize: function(options) {
-      this.model = options && options.model;
-      this.active = options && options.active;
     },
 
     openConversation: function(event) {
@@ -286,8 +290,7 @@
         // create a dedicated list entry for each user
         this.views.push(new app.views.UserEntryView({
           model:  user,
-          active: !!(callee &&
-                     callee.get('username') === user.get('username'))
+          active: !!(callee && callee.get('username') === user.get('username'))
         }));
       }.bind(this));
     },
@@ -356,6 +359,10 @@
     initialize: function() {
       this.user.on('signin signout', this.render, this);
       this.appStatus.on('change:workerInitialized', this.render, this);
+      this._linkShareView = new app.views.LinkShareView({
+        user: this.user,
+        originUrl: window.location.origin
+      });
     },
 
     render: function() {
@@ -368,7 +375,7 @@
             .attr("src", this.spaLoginURL)
             .attr("id", "signin")
             .attr("name", "spa-setup");
-          $("#login p:first").append(iframe);
+          this.$(".login-iframe-container").append(iframe);
         }
         this.$('#signout').hide().find('.username').text('');
       } else {
@@ -377,6 +384,7 @@
         this.$('#signout').show().find('.username')
             .text(this.user.get('username'));
       }
+      this._linkShareView.render();
       return this;
     },
 
@@ -391,10 +399,54 @@
     }
   });
 
+  /**
+   * View which displays a link that the user can pass to someone else out of
+   * band to complete a call.
+   *
+   * @param {app.models.CurrentUser}  the current user.
+   */
+  app.views.LinkShareView = app.views.BaseView.extend({
+
+    dependencies: {
+      user: app.models.CurrentUser,
+      originUrl: String
+    },
+
+    el: "#link-share",
+
+    template: _.template([
+      '<label class="link-share-label" for="link-share-input">',
+      '  Share this link with a Talkilla user to video chat:',
+      '</label>',
+      '<div>',
+      '  <input id="link-share-input" class="input-block-level"',
+      '         readonly="true"   type="url"',
+      '         value="<%= url %>">',
+      '</div>'
+    ].join('')),
+
+    render: function() {
+      if (!this.user.isLoggedIn() || !this.user.get("username")) {
+        this.$el.hide();
+        return this;
+      }
+
+      var linkToCopy = this.originUrl + "/instant-share/" +
+        encodeURIComponent(this.user.get("username"));
+
+      this.$el.html(this.template({url: linkToCopy}));
+
+      this.$el.show();
+
+      return this;
+    }
+  });
+
   app.views.ImportContactsView = app.views.BaseView.extend({
     dependencies: {
       user: app.models.CurrentUser,
-      service: GoogleContacts
+      service: GoogleContacts,
+      spa: app.models.SPA,
     },
 
     el: "#import-contacts",
@@ -408,7 +460,8 @@
     },
 
     loadGoogleContacts: function() {
-      this.service.loadContacts();
+      var id = this.spa.supports("pstn-call") ? "phoneNumber" : "email";
+      this.service.loadContacts(id);
     },
 
     render: function() {
