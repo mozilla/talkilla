@@ -117,23 +117,23 @@
     },
 
     render: function() {
-      if (this.appStatus.get('workerInitialized')) {
-        if (!this.user.get('username')) {
-          // SPA is initialized but user is not connected.
-          this.$el.hide();
+      if (!this.appStatus.get('workerInitialized'))
+        return this;
+      if (!this.user.get('username')) {
+        // SPA is initialized but user is not connected.
+        this.$el.hide();
+      } else {
+        // The user is connected to the SPA.
+        if (this.spa.supports('pstn-call')) {
+          this.$('#dialin-tab').show();
         } else {
-          // The user is connected to the SPA.
-          if(this.spa.supports('pstn-call')) {
-            this.$('#dialin-tab').show();
-          } else {
-            this.$('#dialin-tab').hide();
-          }
-          this.usersView.render();
-          this.dialInView.render();
-          this.gearMenuView.render();
-          this.importContactsView.render();
-          this.$el.show();
+          this.$('#dialin-tab').hide();
         }
+        this.usersView.render();
+        this.dialInView.render();
+        this.gearMenuView.render();
+        this.importContactsView.render();
+        this.$el.show();
       }
       return this;
     }
