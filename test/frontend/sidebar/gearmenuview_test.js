@@ -10,9 +10,7 @@ describe("GearMenuView", function() {
     sandbox = sinon.sandbox.create();
     $('#fixtures').append([
       '<div id="gear-menu">',
-      '<form id="signout">',
-      '<strong class="user username"></strong>',
-      '</form>',
+      '  <form id="signout"><strong class="user username"></strong></form>',
       '</div>'
     ].join(''));
     user = new app.models.CurrentUser();
