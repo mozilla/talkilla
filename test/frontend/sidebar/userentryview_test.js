@@ -41,7 +41,10 @@ describe("UserEntryView", function() {
 
   describe("#call", function() {
     it("should ask the app to open a new conversation", function () {
-      var view = new app.views.UserEntryView();
+      var view = new app.views.UserEntryView({
+        model: new app.models.User(),
+        active: false
+      });
 
       var clickEvent = {
         preventDefault: function() {},
@@ -64,6 +67,7 @@ describe("UserEntryView", function() {
       user = new app.models.User();
       view = new app.views.UserEntryView({
         model: user,
+        active: false,
         el: $("#fixtures")
       });
     });

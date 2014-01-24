@@ -157,6 +157,10 @@ var Conversation = (function() {
 
     iceCandidate: function(data) {
       this._sendMessage('talkilla.ice-candidate', data);
+    },
+
+    startCall: function() {
+      this._sendMessage('talkilla.start-call');
     }
   };
 
