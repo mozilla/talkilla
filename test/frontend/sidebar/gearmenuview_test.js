@@ -40,7 +40,7 @@ describe("GearMenuView", function() {
     it("should display the name of the connected user", function() {
       user.set("username", "alexis");
       gearMenuView.render();
-      expect($('#signout .username').text()).to.eql('alexis');
+      expect(gearMenuView.$('#signout .username').text()).to.eql('alexis');
     });
   });
 

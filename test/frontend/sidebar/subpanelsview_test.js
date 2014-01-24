@@ -34,31 +34,6 @@ describe("SubPanelsView", function() {
     $('#fixtures').empty();
   });
 
-  describe("#initialize", function() {
-    beforeEach(function() {
-      subPanelsView = new app.views.SubPanelsView(subPanelsViewOptions);
-    });
-
-    it("should set a users property", function() {
-      expect(subPanelsView.usersView).to.be.an.instanceOf(app.views.UsersView);
-    });
-
-    it("should set an dialInView property", function() {
-      expect(subPanelsView.dialInView)
-        .to.be.an.instanceOf(app.views.DialInView);
-    });
-
-    it("should set an importContactsView property", function() {
-      expect(subPanelsView.importContactsView)
-        .to.be.an.instanceOf(app.views.ImportContactsView);
-    });
-
-    it("should set an gearMenuView property", function() {
-      expect(subPanelsView.gearMenuView)
-        .to.be.an.instanceOf(app.views.GearMenuView);
-    });
-  });
-
   describe("Events", function() {
     beforeEach(function() {
       sandbox.stub(app.views.SubPanelsView.prototype, "render");
