@@ -161,12 +161,10 @@
     },
 
     display: function(show) {
-      if (show){
+      if (show)
         this.$el.removeClass("hide");
-      }
-      else{
+      else
         this.$el.addClass("hide");
-      }
     },
 
     render: function() {
