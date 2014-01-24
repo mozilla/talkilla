@@ -82,27 +82,27 @@ describe("SubPanelsView", function() {
 
     it("should display the pstn-dialin tab if the SPA supports it", function() {
       spa.set("capabilities", ["pstn-call"]);
-      subPanelsView.render();
-      expect($("#dialin-tab").is(':visible')).to.equal(true);
+
+      expect(subPanelsView.$("#dialin-tab").is(':visible')).to.equal(true);
     });
 
     it("should hide the pstn-dialin tab if the SPA doesn't support it",
       function() {
       spa.set("capabilities", ["call"]);
-      subPanelsView.render();
-      expect($("#dialin-tab").is(':visible')).to.equal(false);
+
+      expect(subPanelsView.$("#dialin-tab").is(':visible')).to.equal(false);
     });
 
-    it("should hide all the submenu if the user is not connected", function() {
-      user.set("username", undefined);
-      subPanelsView.render();
-      expect($("#subpanels").is(':visible')).to.equal(false);
+    it("should hide subpanels if the user is no longer connected", function() {
+      user.set("username", undefined).trigger("signout");
+
+      expect(subPanelsView.$el.is(':visible')).to.equal(false);
     });
 
-    it("should show the submenu if the user is connected", function() {
-      user.set("username", "alexis");
-      subPanelsView.render();
-      expect($("#subpanels").is(':visible')).to.equal(true);
+    it("should show subpanels when the user is signed in", function() {
+      user.set("username", "bob");
+
+      expect(subPanelsView.$el.is(':visible')).to.equal(true);
     });
   });
 });
