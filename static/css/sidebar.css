@@ -20,6 +20,14 @@
   color: #818A8F; /* match the header */
 }
 
+.sidebar > #subpanels .nav {
+  margin-bottom: 5px;
+}
+
+.sidebar #login p {
+  padding-top: 10px;
+}
+
 .sidebar #signin {
   border: none;
   width: 100%;
@@ -31,7 +39,51 @@
   height: 25px;
 }
 
-.sidebar #pstn-dialin {
+.sidebar #subpanels .tab-content {
+  min-height: 50px;
+}
+
+.sidebar #subpanels > ul.nav-tabs > li {
+  float: right;
+}
+
+.sidebar #subpanels > ul.nav-tabs > li>a {
+  height: 10px;
+  width: 10px;
+  background-position: center;
+  background-repeat: no-repeat;
+  outline: none;
+}
+
+/* Hide the text in the tab headers */
+.sidebar #subpanels > ul.nav-tabs > li > a > span {
+  display: none;
+}
+
+.sidebar #contact-tab > a {
+  background-image: url('/img/clock_default.png');
+}
+.sidebar #contact-tab.active > a {
+  background-image: url('/img/clock_clicked.png');
+}
+.sidebar #dialin-tab > a {
+  background-image: url('/img/phone_default.png');
+}
+.sidebar #dialin-tab.active > a {
+  background-image: url('/img/phone_clicked.png');
+}
+.sidebar #gear-menu-tab > a {
+  background-image: url('/img/gear_default.png');
+}
+.sidebar #gear-menu-tab.active > a {
+  background-image: url('/img/gear_clicked.png');
+}
+
+.sidebar #gear-menu ul li {
+  list-style-type: none;
+}
+
+.sidebar #pstn-dialin, .sidebar #gear-menu {
   padding: 10px 0 0 0;
   text-align: center;
 }
@@ -41,9 +93,14 @@
 }
 
 .sidebar #pstn-dialin input {
-  width: 130px;
+  width: 220px;
   font-size: 13px;
   padding-top: 5px;
+}
+
+.sidebar #pstn-dialin button {
+  margin-top: 10px;
+  width: 220px;
 }
 
 .sidebar .title {
@@ -146,8 +203,7 @@
 }
 
 #link-share {
-  /* arbitrary amount to make space.  can probably do this more cleanly. */
-  margin-bottom: 17px;
+  margin-top: 5px;
 }
 
 #link-share-input {

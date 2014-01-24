@@ -32,21 +32,12 @@
         user: this.user
       });
 
-      this.usersView = new app.views.UsersView({
+      this.subpanelsView = new app.views.SubPanelsView({
         user: this.user,
-        collection: this.users,
-        appStatus: this.appStatus
-      });
-
-      this.importButtonView = new app.views.ImportContactsView({
-        user: this.user,
-        service: this.services.google,
-        spa: this.spa
-      });
-
-      this.spaView = new app.views.SPAView({
-        user: this.user,
-        spa: this.spa
+        spa: this.spa,
+        appStatus: this.appStatus,
+        users: this.users,
+        service: this.services.google
       });
 
       this.notificationsView = new app.views.NotificationsView({
@@ -82,9 +73,68 @@
 
     render: function() {
       this.loginView.render();
-      this.usersView.render();
-      this.importButtonView.render();
-      this.spaView.render();
+      this.ImportContactsView.render();
+      this.subpanelsView.render();
+      return this;
+    }
+  });
+
+  app.views.SubPanelsView = app.views.BaseView.extend({
+    dependencies: {
+      user: app.models.CurrentUser,
+      spa: app.models.SPA,
+      appStatus: app.models.AppStatus,
+      users: app.models.UserSet,
+      service: GoogleContacts,
+    },
+
+    el: "#subpanels",
+
+    initialize: function() {
+      this.usersView = new app.views.UsersView({
+        user: this.user,
+        collection: this.users,
+        appStatus: this.appStatus
+      });
+
+      this.dialInView = new app.views.DialInView({
+        user: this.user,
+        spa: this.spa
+      });
+
+      this.gearMenuView = new app.views.GearMenuView({
+        user: this.user
+      });
+
+      this.importContactsView = new app.views.ImportContactsView({
+        user: this.user,
+        service: this.service,
+        spa: this.spa
+      });
+
+      this.spa.on('change:capabilities', this.render, this);
+      this.user.on('signin signout', this.render, this);
+    },
+
+    render: function() {
+      if (!this.appStatus.get('workerInitialized'))
+        return this;
+      if (!this.user.get('username')) {
+        // SPA is initialized but user is not connected.
+        this.$el.hide();
+      } else {
+        // The user is connected to the SPA.
+        if (this.spa.supports('pstn-call')) {
+          this.$('#dialin-tab').show();
+        } else {
+          this.$('#dialin-tab').hide();
+        }
+        this.usersView.render();
+        this.dialInView.render();
+        this.gearMenuView.render();
+        this.importContactsView.render();
+        this.$el.show();
+      }
       return this;
     }
   });
@@ -92,7 +142,7 @@
   /**
    * SPA view.
    */
-  app.views.SPAView = app.views.BaseView.extend({
+  app.views.DialInView = app.views.BaseView.extend({
     dependencies: {
       spa: app.models.SPA,
       user: app.models.CurrentUser
@@ -102,11 +152,6 @@
 
     events: {
       "submit form": "dial"
-    },
-
-    initialize: function() {
-      this.spa.on("change:capabilities", this.render, this);
-      this.user.on('signin signout', this.render, this);
     },
 
     dial: function(event) {
@@ -124,6 +169,37 @@
 
     render: function() {
       this.display(this.user.isLoggedIn() && this.spa.supports("pstn-call"));
+    }
+  });
+
+  app.views.GearMenuView = app.views.BaseView.extend({
+    dependencies: {
+      user: app.models.CurrentUser,
+    },
+
+    el: '#gear-menu',
+
+    events: {
+      'submit form#signout': 'signout'
+    },
+
+    initialize: function() {
+      this.user.on('change:username', this.render, this);
+    },
+
+    render: function() {
+      this.$('#signout .username').text(this.user.get('username'));
+      return this;
+    },
+
+    /**
+     * Signs out a user.
+     *
+     * @param  {FormEvent}  Signout form submit event
+     */
+    signout: function(event) {
+      event.preventDefault();
+      this.user.signout();
     }
   });
 
@@ -352,10 +428,6 @@
 
     el: '#login',
 
-    events: {
-      'submit form#signout': 'signout'
-    },
-
     initialize: function() {
       this.user.on('signin signout', this.render, this);
       this.appStatus.on('change:workerInitialized', this.render, this);
@@ -367,35 +439,26 @@
 
     render: function() {
       if (!this.appStatus.get('workerInitialized')) {
-        this.$('#signout').hide();
+        // SPA worker is not yet initialized.
         this.$('[name="spa-setup"]').remove();
       } else if (!this.user.get("username")) {
-        if (!$('#signin').length) {
+        // SPA is initialized but user is not connected.
+        // XXX: shouldn't we test for user auth status instead?
+        if (!this.$('#signin').length) {
           var iframe = $("<iframe>")
             .attr("src", this.spaLoginURL)
             .attr("id", "signin")
             .attr("name", "spa-setup");
+
           this.$(".login-iframe-container").append(iframe);
         }
-        this.$('#signout').hide().find('.username').text('');
       } else {
+        // The user is connected to the SPA.
         this.$('#signin').hide();
         this.$('[name="spa-setup"]').remove();
-        this.$('#signout').show().find('.username')
-            .text(this.user.get('username'));
       }
       this._linkShareView.render();
       return this;
-    },
-
-    /**
-     * Signs out a user.
-     *
-     * @param  {FormEvent}  Signout form submit event
-     */
-    signout: function(event) {
-      event.preventDefault();
-      this.user.signout();
     }
   });
 
@@ -415,11 +478,11 @@
     el: "#link-share",
 
     template: _.template([
-      '<label class="link-share-label" for="link-share-input">',
+      '<div class="form-inline">',
+      '  <label class="link-share-label" for="link-share-input">',
       '  Share this link with a Talkilla user to video chat:',
-      '</label>',
-      '<div>',
-      '  <input id="link-share-input" class="input-block-level"',
+      '  </label>',
+      '  <input id="link-share-input" class="input-block-level "',
       '         readonly="true"   type="url"',
       '         value="<%= url %>">',
       '</div>'

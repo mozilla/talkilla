@@ -270,11 +270,13 @@ class BrowserTest(unittest.TestCase):
         driver.switchToSidebar()
         # We might have just reloaded, so wait a bit in case it
         # isn't there yet.
+        driver.clickElement("#gear-menu-tab>a")
         self.assertElementTextEquals(driver, "strong.username", username, True)
         self.assertElementVisible(driver, "#signout")
 
     def assertSignedOut(self, driver):
-        self.assertElementNotVisible(driver, "#signout")
+        driver.switchToSidebar()
+        self.assertElementNotVisible(driver, "#subpanels")
 
     def assertTitleEquals(self, driver, title):
         if driver.title != title:
