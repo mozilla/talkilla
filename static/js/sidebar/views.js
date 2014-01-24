@@ -443,6 +443,7 @@
         this.$('[name="spa-setup"]').remove();
       } else if (!this.user.get("username")) {
         // SPA is initialized but user is not connected.
+        // XXX: shouldn't we test for user auth status instead?
         if (!this.$('#signin').length) {
           var iframe = $("<iframe>")
             .attr("src", this.spaLoginURL)
