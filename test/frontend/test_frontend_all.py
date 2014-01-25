@@ -12,6 +12,12 @@ import driver
 
 SERVER_PREFIX = 'http://localhost:3000/test/frontend/'
 
+# Utility function to aid debugging. Call this in a try/except/raise block
+# to get a url dumped which is a screenshot of the frame that the driver is
+# showing.
+# XXX Make the tests do this automatically on failure
+def output_base64_screenshot(driver):
+    print("data:image/png;base64," + driver.get_screenshot_as_base64())
 
 class FrontEndSuite(unittest.TestCase):
 
@@ -51,6 +57,7 @@ class FrontEndSuite(unittest.TestCase):
         print("\n  Code coverage: %s" % coverage)
 
     def get_failure_details(self):
+        output_base64_screenshot(self.drvr)
         fail_nodes = self.drvr.find_elements_by_css_selector('.test.fail')
         details = ["%d failure(s) encountered:" % len(fail_nodes)]
         for node in fail_nodes:
