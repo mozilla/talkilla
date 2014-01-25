@@ -427,6 +427,7 @@ describe("SPA events", function() {
     beforeEach(function() {
       browserPort = {postEvent: sandbox.spy()};
       tkWorker.users.set('alice',{});
+      sandbox.stub(tkWorker.contactsDb, "add");
     });
 
     afterEach(function() {
