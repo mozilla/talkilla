@@ -61,6 +61,7 @@ describe("SPA events", function() {
 
     beforeEach(function() {
       browserPort = {postEvent: sandbox.spy()};
+      sandbox.stub(tkWorker.contactsDb, "add");
     });
 
     it("should create a new conversation object with the call data",
@@ -99,6 +100,22 @@ describe("SPA events", function() {
         sinon.assert.calledWith(currentConversation.handleIncomingText,
                                 textMsg);
       });
+
+    it("should add the contact to the database", function() {
+      tkWorker.users.set('alice', {});
+      var textMsg = new payloads.SPAChannelMessage({
+        type: "message",
+        message: "a message",
+        peer: "alice"
+      });
+
+      tkWorker.spa.trigger("message", textMsg);
+
+      sinon.assert.calledOnce(tkWorker.contactsDb.add);
+      sinon.assert.calledWith(tkWorker.contactsDb.add, {
+        username: "alice"
+      });
+    });
 
   });
 
@@ -205,6 +222,7 @@ describe("SPA events", function() {
   describe("`offer` event", function() {
     beforeEach(function() {
       browserPort = {postEvent: sandbox.spy()};
+      sandbox.stub(tkWorker.contactsDb, "add");
     });
 
     afterEach(function() {
@@ -250,6 +268,25 @@ describe("SPA events", function() {
         sinon.assert.calledWith(currentConversation.handleIncomingCall,
                                 offerMsg);
       });
+
+    it("should add the contact to the database", function() {
+      tkWorker.users.set('alice',{});
+      var offerMsg = new payloads.Offer({
+        callid: 42,
+        offer: fakeOffer,
+        peer: "alice",
+        upgrade: false
+      });
+
+      tkWorker.spa.trigger("offer", offerMsg);
+
+      sinon.assert.calledOnce(tkWorker.contactsDb.add);
+      sinon.assert.calledWith(tkWorker.contactsDb.add, {
+        username: "alice"
+      });
+
+    });
+
   });
 
   describe("`answer` event", function() {
@@ -427,6 +464,7 @@ describe("SPA events", function() {
     beforeEach(function() {
       browserPort = {postEvent: sandbox.spy()};
       tkWorker.users.set('alice',{});
+      sandbox.stub(tkWorker.contactsDb, "add");
     });
 
     afterEach(function() {
@@ -462,6 +500,19 @@ describe("SPA events", function() {
 
         sinon.assert.calledOnce(currentConversation.startCall);
       });
+
+    it("should add the contact to the database", function() {
+      var instantShareMsg = new payloads.InstantShare({
+        peer: "alice"
+      });
+
+      tkWorker.spa.trigger("instantshare", instantShareMsg);
+
+      sinon.assert.calledOnce(tkWorker.contactsDb.add);
+      sinon.assert.calledWith(tkWorker.contactsDb.add, {
+        username: "alice"
+      });
+    });
 
   });
 
