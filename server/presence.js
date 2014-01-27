@@ -109,14 +109,11 @@ api = {
   },
 
   _anonymousStream: function(req, res) {
-    var anon = anons.add("foo").get("foo");
+    anons.add("foo").get("foo");
     return res.send(200, JSON.stringify([]));
   },
 
   _authenticatedStream: function(req, res) {
-    if (!req.session.email)
-      return res.send(400);
-
     var nick = req.session.email;
     var user = users.get(nick);
 
