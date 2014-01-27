@@ -13,6 +13,7 @@ var Users = require('./users').Users;
 var User = require('./users').User;
 
 var users = new Users();
+var anons = new Users();
 var api;
 
 api = {
@@ -101,6 +102,18 @@ api = {
    * Events received between reconnections are not lost.
    */
   stream: function(req, res) {
+    if (!req.session.email)
+      return this._anonymous_stream(req, res);
+    else
+      return this._authenticated_stream(req, res);
+  },
+
+  _anonymous_stream: function(req, res) {
+    var anon = anons.add("foo").get("foo");
+    return res.send(200, JSON.stringify([]));
+  },
+
+  _authenticated_stream: function(req, res) {
     if (!req.session.email)
       return res.send(400);
 
@@ -273,3 +286,4 @@ app.post('/instant-share/:email', api.instantSharePingBack);
 
 module.exports.api = api;
 module.exports._users = users;
+module.exports._anons = anons;
