@@ -7,6 +7,9 @@ endif
 .PHONY: test
 test: lint mocha selenium_all
 
+.PHONY: test_server
+test_server: jshint mocha
+
 install:
 	@npm install
 
