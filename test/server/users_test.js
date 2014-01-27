@@ -63,8 +63,8 @@ describe("User", function() {
         var event = {topic: "message", data: "some message"};
         // Pretend there's a timeout, to make the user present.
         user.timeout = true;
-        user.pending = new Waiter();
-        user.pending.resolved = true;
+        user._pending = new Waiter();
+        user._pending.resolved = true;
 
         user.send(event.topic, event.data);
 
@@ -87,13 +87,13 @@ describe("User", function() {
     });
 
     it("should clear the pending event", function() {
-      user.pending = { clear: sinon.spy() };
-      var pendingSpy = user.pending.clear;
+      user._pending = { clear: sinon.spy() };
+      var pendingSpy = user._pending.clear;
 
       user.clearPending();
 
       sinon.assert.calledOnce(pendingSpy);
-      expect(user.pending).to.be.undefined;
+      expect(user._pending).to.be.undefined;
     });
   });
 
@@ -151,6 +151,22 @@ describe("User", function() {
         }, 10);
         clock.tick(config.LONG_POLLING_TIMEOUT * 3);
       });
+
+    it("should queue a message if received after a timeout", function(done) {
+      user.waitForEvents(function() {
+        // Ensure the pending event has been handled and thus the
+        // connection closed
+        expect(user._pending.resolved).to.equal(true);
+        // Set a pretend timeout to ensure the user is seen as connected.
+        user.timeout = "fake";
+
+        user.send("fake", "data");
+
+        expect(user.events).to.deep.equal([{topic: "fake", data: "data"}]);
+        done();
+      });
+      clock.tick(config.LONG_POLLING_TIMEOUT * 3);
+    });
 
   });
 
