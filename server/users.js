@@ -64,13 +64,19 @@ function User(nick) {
 User.prototype.send = function(topic, data) {
   var event = {topic: topic, data: data};
 
-  if (this.pending && !this.pending.resolved)
+  if (this.pending && !this.pending.resolved) {
+    logger.trace({info: "User.prototype.send resolved",
+      to: this.nick, topic: topic});
     // If there is an existing timeout, we resolve it with the
     // provided data.
     this.pending.resolve([event]);
-  else if (this.timeout)
+  }
+  else if (this.timeout) {
+    logger.trace({info: "User.prototype.send queued",
+      to: this.nick, topic: topic});
     // Otherwise, if the user is present, we queue the data.
     this.events.push(event);
+  }
   else
     // if we try to send data to a non present user we do not fail but
     // we log a warning.
