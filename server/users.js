@@ -11,6 +11,7 @@ function Waiter(callback) {
 
 Waiter.prototype.after = function(timeout, data) {
   this.timeout = setTimeout(function() {
+    this.resolved = true;
     this.callback(data);
   }.bind(this), timeout);
 };

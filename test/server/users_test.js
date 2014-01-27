@@ -152,6 +152,18 @@ describe("User", function() {
         clock.tick(config.LONG_POLLING_TIMEOUT * 3);
       });
 
+    it("should queue a message if received after a timeout", function(done) {
+      user.waitForEvents(function() {
+        expect(user.pending.resolved).to.equal(true);
+        user.timeout = "fake";
+        user.send("fake", "data");
+
+        expect(user.events).to.deep.equal([{topic: "fake", data: "data"}]);
+        done();
+      });
+      clock.tick(config.LONG_POLLING_TIMEOUT * 3);
+    });
+
   });
 
   describe("#connect", function() {
