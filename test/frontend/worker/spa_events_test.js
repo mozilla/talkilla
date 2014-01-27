@@ -19,6 +19,7 @@ describe("SPA events", function() {
     tkWorker.users.reset();
     sandbox.stub(tkWorker.user, "send");
     sandbox.stub(tkWorker, "loadContacts");
+    sandbox.stub(tkWorker.contactsDb, "add");
   });
 
   afterEach(function() {
@@ -61,7 +62,6 @@ describe("SPA events", function() {
 
     beforeEach(function() {
       browserPort = {postEvent: sandbox.spy()};
-      sandbox.stub(tkWorker.contactsDb, "add");
     });
 
     it("should create a new conversation object with the call data",
@@ -222,7 +222,6 @@ describe("SPA events", function() {
   describe("`offer` event", function() {
     beforeEach(function() {
       browserPort = {postEvent: sandbox.spy()};
-      sandbox.stub(tkWorker.contactsDb, "add");
     });
 
     afterEach(function() {
@@ -464,7 +463,6 @@ describe("SPA events", function() {
     beforeEach(function() {
       browserPort = {postEvent: sandbox.spy()};
       tkWorker.users.set('alice',{});
-      sandbox.stub(tkWorker.contactsDb, "add");
     });
 
     afterEach(function() {
