@@ -103,17 +103,17 @@ api = {
    */
   stream: function(req, res) {
     if (!req.session.email)
-      return this._anonymous_stream(req, res);
+      return this._anonymousStream(req, res);
     else
-      return this._authenticated_stream(req, res);
+      return this._authenticatedStream(req, res);
   },
 
-  _anonymous_stream: function(req, res) {
+  _anonymousStream: function(req, res) {
     var anon = anons.add("foo").get("foo");
     return res.send(200, JSON.stringify([]));
   },
 
-  _authenticated_stream: function(req, res) {
+  _authenticatedStream: function(req, res) {
     if (!req.session.email)
       return res.send(400);
 

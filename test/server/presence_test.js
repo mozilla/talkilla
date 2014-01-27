@@ -245,31 +245,31 @@ describe("presence", function() {
         });
 
         it("should send an empty list if firstRequest is specified in the body",
-           function(done) {
-             users.add("foo").get("foo");
-             var req = {session: {email: "foo"}, body: {firstRequest: true}};
-             var res = {send: function(code, data) {
-               expect(code).to.equal(200);
-               expect(data).to.equal(JSON.stringify([]));
-               done();
-             }};
+          function(done) {
+            users.add("foo").get("foo");
+            var req = {session: {email: "foo"}, body: {firstRequest: true}};
+            var res = {send: function(code, data) {
+              expect(code).to.equal(200);
+              expect(data).to.equal(JSON.stringify([]));
+              done();
+            }};
 
-             api.stream(req, res);
-           });
+            api.stream(req, res);
+          });
 
-        it("should send clear and pending waits on the user if firstRequest is " +
-           "specified in the body", function(done) {
-             var user = users.add("foo").get("foo");
-             sandbox.stub(user, "clearPending").returns(user);
+        it("should send clear and pending waits on the user if firstRequest " +
+          "is specified in the body", function(done) {
+          var user = users.add("foo").get("foo");
+          sandbox.stub(user, "clearPending").returns(user);
 
-             var req = {session: {email: "foo"}, body: {firstRequest: true}};
-             var res = {send: function() {
-               sinon.assert.calledOnce(user.clearPending);
-               done();
-             }};
+          var req = {session: {email: "foo"}, body: {firstRequest: true}};
+          var res = {send: function() {
+            sinon.assert.calledOnce(user.clearPending);
+            done();
+          }};
 
-             api.stream(req, res);
-           });
+          api.stream(req, res);
+        });
 
         it("should send an empty list of events when the timeout is reached",
           function(done) {
@@ -286,19 +286,19 @@ describe("presence", function() {
           });
 
         it("should return a list of the sent event when the queue is empty " +
-           "and user.send is called", function(done) {
-             var user = users.add("foo").get("foo");
-             var event = {topic: "some", data: "data"};
-             var req = {session: {email: "foo"}};
-             var res = {send: function(code, data) {
-               expect(code).to.equal(200);
-               expect(data).to.equal(JSON.stringify([event]));
-               done();
-             }};
+          "and user.send is called", function(done) {
+          var user = users.add("foo").get("foo");
+          var event = {topic: "some", data: "data"};
+          var req = {session: {email: "foo"}};
+          var res = {send: function(code, data) {
+            expect(code).to.equal(200);
+            expect(data).to.equal(JSON.stringify([event]));
+            done();
+          }};
 
-             api.stream(req, res);
-             user.send("some", "data");
-           });
+          api.stream(req, res);
+          user.send("some", "data");
+        });
 
         it("should return a list of queued events when the queue is non empty",
           function(done) {
