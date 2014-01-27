@@ -6,6 +6,8 @@ var logger = require('./logger');
 function Waiter(callback) {
   this.timeout = undefined;
   this.callback = callback;
+  // resolved is the fact the connection has closed / the waiter
+  // is no longer active.
   this.resolved = false;
 }
 

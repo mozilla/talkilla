@@ -154,8 +154,12 @@ describe("User", function() {
 
     it("should queue a message if received after a timeout", function(done) {
       user.waitForEvents(function() {
+        // Ensure the pending event has been handled and thus the
+        // connection closed
         expect(user.pending.resolved).to.equal(true);
+        // Set a pretend timeout to ensure the user is seen as connected.
         user.timeout = "fake";
+
         user.send("fake", "data");
 
         expect(user.events).to.deep.equal([{topic: "fake", data: "data"}]);
