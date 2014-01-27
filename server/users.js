@@ -49,11 +49,11 @@ function User(nick) {
   // receives events between two long-polling connections.
   this.events = [];
 
-  // `this.pending` is an object carrying the current pending
+  // `this._pending` is an object carrying the current pending
   // long-polling timeout and callback.
-  // Beware, `this.pending.timeout` and `this.timeout` have different
+  // Beware, `this._pending.timeout` and `this.timeout` have different
   // purposes.
-  this.pending = undefined;
+  this._pending = undefined;
 }
 
 /**
@@ -66,11 +66,11 @@ function User(nick) {
 User.prototype.send = function(topic, data) {
   var event = {topic: topic, data: data};
 
-  if (this.pending && !this.pending.resolved) {
+  if (this._pending && !this._pending.resolved) {
     logger.trace({to: this.nick, topic: topic}, "User.prototype.send resolved");
     // If there is an existing timeout, we resolve it with the
     // provided data.
-    this.pending.resolve([event]);
+    this._pending.resolve([event]);
   }
   else if (this.timeout) {
     logger.trace({to: this.nick, topic: topic}, "User.prototype.send queued");
@@ -120,9 +120,9 @@ User.prototype.toJSON = function() {
 };
 
 User.prototype.clearPending = function() {
-  if (this.pending) {
-    this.pending.clear();
-    this.pending = undefined;
+  if (this._pending) {
+    this._pending.clear();
+    this._pending = undefined;
   }
   return this;
 };
@@ -143,13 +143,13 @@ User.prototype.clearPending = function() {
 User.prototype.waitForEvents = function(callback) {
   // Setup a timeout with an empty list of events as the default
   // behaviour.
-  this.pending = new Waiter(callback);
-  this.pending.after(config.LONG_POLLING_TIMEOUT, []);
+  this._pending = new Waiter(callback);
+  this._pending.after(config.LONG_POLLING_TIMEOUT, []);
 
   // If there is available events in the queue, resolve the timeout
   // immediately.
   if (this.events.length) {
-    this.pending.resolve(this.events);
+    this._pending.resolve(this.events);
     this.events = [];
   }
 };
