@@ -245,6 +245,13 @@ describe("Users", function() {
       expect(users.get("bar").toJSON()).to.deep.equal({nick: "bar"});
     });
 
+    it("should trigger the onadduser callback", function() {
+      users.onadduser = sinon.spy();
+      users.add("bar");
+      sinon.assert.calledOnce(users.onadduser);
+      sinon.assert.calledWithExactly(users.onadduser, users.get("bar"));
+    });
+
   });
 
   describe("#all", function() {
@@ -281,6 +288,15 @@ describe("Users", function() {
       users.add("bar").remove("bar");
       expect(users.get("bar")).to.be.equal(undefined);
     });
+
+    it("should trigger the onremoveuser callback", function() {
+      users.onremoveuser = sinon.spy();
+      var user = users.add("bar").get("bar");
+      users.remove("bar");
+      sinon.assert.calledOnce(users.onremoveuser);
+      sinon.assert.calledWithExactly(users.onremoveuser, user);
+    });
+
   });
 
   describe("#forEach", function() {

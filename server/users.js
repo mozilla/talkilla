@@ -40,6 +40,8 @@ function User(nick) {
   // user is considered as disconnected.
   this.timeout = undefined;
 
+  // XXX: rename it to this.onOffline so confuse the user connection
+  // with the long polling socket connection.
   // `this.ondisconnect` is the callback called when the user is
   // disconnected (i.e. when the timeout is triggered).
   this.ondisconnect = undefined;
@@ -94,6 +96,7 @@ User.prototype.connect = function() {
 
 /**
  * Extend the timeout until the user is considered as disconnected.
+ * XXX: rename this method with a more explicit name.
  *
  * @return {User} chainable
  */
@@ -159,6 +162,8 @@ User.prototype.waitForEvents = function(callback) {
  */
 function Users() {
   this.users = {};
+  this.onadduser = undefined;
+  this.onremoveuser = undefined;
 }
 
 /**
@@ -181,6 +186,8 @@ Users.prototype.hasNick = function(nick) {
  */
 Users.prototype.add = function(nick) {
   this.users[nick] = new User(nick);
+  if (this.onadduser)
+    this.onadduser(this.users[nick]);
   return this;
 };
 
@@ -210,7 +217,10 @@ Users.prototype.all = function() {
  * @return {Users} chainable
  */
 Users.prototype.remove = function(nick) {
+  var user = this.users[nick];
   delete this.users[nick];
+  if (this.onremoveuser)
+    this.onremoveuser(user);
   return this;
 };
 

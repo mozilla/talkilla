@@ -16,6 +16,20 @@ var users = new Users();
 var anons = new Users();
 var api;
 
+users.onadduser = function(user) {
+  users.forEach(function(peer) {
+    if (peer !== user)
+      peer.send("userJoined", user.nick);
+  });
+};
+
+users.onremoveuser = function(user) {
+  users.forEach(function(peer) {
+    if (peer !== user)
+      peer.send("userLeft", user.nick);
+  });
+};
+
 api = {
   _verifyAssertion: function(assertion, callback) {
     // When we're in the test environment, we bypass the assertion verifiction.
@@ -102,77 +116,49 @@ api = {
    * Events received between reconnections are not lost.
    */
   stream: function(req, res) {
-    if (!req.session.email)
-      return this._anonymousStream(req, res);
+    var firstRequest = req.body && req.body.firstRequest;
+    var isAnon = !req.session.email;
+    var user;
+
+    if (isAnon)
+      user = api._setupUser(anons, api._genId());
     else
-      return this._authenticatedStream(req, res);
+      user = api._setupUser(users, req.session.email);
+
+    user.touch();
+
+    if (firstRequest)
+      res.send(200, JSON.stringify([]));
+    else
+      user.waitForEvents(function(events) {
+        logger.trace({to: nick, events: events}, "long polling send");
+        res.send(200, JSON.stringify(events));
+      });
   },
 
-  _updateUsers: function(users, id, firstRequest, callback) {
+  _setupUser: function(users, id, firstRequest) {
     var user = users.get(id);
+
+    if (user && firstRequest) {
+      user.clearPending();
+      logger.info({type: "reconnection"});
+    }
+
     if (!user) {
       user = users.add(id).get(id);
       user.ondisconnect = function() {
         users.remove(id);
-      };
-
-      user.touch();
-
-      return callback([]);
-    }
-
-    if (firstRequest)
-      user.clearPending().touch()
-    else
-      user.touch().waitForEvents(callback);
-  },
-
-  _anonymousStream: function(req, res) {
-    var anon = anons.get("foo");
-    if (!anon)
-      return res.send(200, JSON.stringify([]));
-
-    anon.waitForEvents(function(events) {
-      res.send(200, JSON.stringify(events));
-    });
-  },
-
-  _authenticatedStream: function(req, res) {
-    var nick = req.session.email;
-    var user = users.get(nick);
-
-    if (!user) {
-      // Send the userJoined notification before adding the user as present to
-      // prevent the user receiving it's own notification.
-      users.forEach(function(peer) {
-        peer.send("userJoined", nick);
-      });
-
-      user = users.add(nick).get(nick);
-      users.get(nick).ondisconnect = function() {
-        users.remove(nick);
-        users.forEach(function(peer) {
-          peer.send("userLeft", nick);
-        });
         logger.info({type: "disconnection"});
       };
-      user.touch();
 
-      // XXX: Here we force the first long-polling request to return
-      // without a timeout. It's because we need to be connected to
-      // request the presence. We should fix that on the frontend.
-      res.send(200, JSON.stringify([]));
       logger.info({type: "connection"});
-    } else if (req.body && req.body.firstRequest) {
-      user.clearPending().touch();
-      res.send(200, JSON.stringify([]));
-      logger.info({type: "reconnection"});
-    } else {
-      user.touch().waitForEvents(function(events) {
-        logger.trace({to: nick, events: events}, "long polling send");
-        res.send(200, JSON.stringify(events));
-      });
     }
+
+    return user;
+  },
+
+  _genId: function() {
+    return 4;
   },
 
   callOffer: function(req, res) {

@@ -1,8 +1,24 @@
 TODO
 
-* TODO comment out the current common tests for #stream
-* TODO TDD the _updateUsers function (find a better name?)
-* TODO Test that #stream calls _updateUsers with the right user list
-* TODO TDD onAddUser and onRemoveUser callbacks to the User interface
-* TODO implement and test onAddUser and onRemoveUser for the `users` user list
+* DONE comment out the current common tests for #stream
+  CLOSED: [2014-01-28 Tue 14:55]
+* DONE TDD the _updateUsers function (find a better name?)
+  CLOSED: [2014-01-28 Tue 15:44]
+* DONE Rename _updateUser in _setupUsers
+  CLOSED: [2014-01-28 Tue 17:50]
+* DONE Move event list code to #stream
+  CLOSED: [2014-01-28 Tue 17:50]
+* DONE TDD Use anons or users according to the user session
+  CLOSED: [2014-01-28 Tue 17:50]
+* DONE test #stream
+  CLOSED: [2014-01-28 Tue 17:50]
+* DONE TDD onAddUser and onRemoveUser callbacks to the User interface
+  CLOSED: [2014-01-28 Tue 18:48]
+* DONE implement and test onAddUser and onRemoveUser for the `users` user list
+  CLOSED: [2014-01-28 Tue 18:48]
 * TODO test (if possible) the upgrade of the stream API from anonymous to authenticated
+
+
+* TODO find a better name for firstRequest
+* TODO make the use of firstRequest in the tests less confusing (not in the beforeEach maybe?)
+
