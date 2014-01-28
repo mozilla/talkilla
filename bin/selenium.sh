@@ -37,11 +37,17 @@ start() {
         echo "Selenium server is already running ($SELENIUM_PID_FILE)"
         exit 1
     fi
+
+    if [ "$(uname)" == "Linux" ]; then
+        echo "Running the tests in a virtual frame buffer."
+        XVFB="xvfb-run"
+    fi
+
     # options are listed at http://code.google.com/p/selenium/wiki/FirefoxDriver
     if [ $FULL_SELENIUM_DEBUG ]; then
-      java -jar $SELENIUM_JAR_FILENAME -Dwebdriver.firefox.bin=$PWD/bin/firefox -Dwebdriver.log.file=$PWD/console.log -Dwebdriver.firefox.logfile=/dev/stdout &
+      $XVFB java -jar $SELENIUM_JAR_FILENAME -Dwebdriver.firefox.bin=$PWD/bin/firefox -Dwebdriver.log.file=$PWD/console.log -Dwebdriver.firefox.logfile=/dev/stdout &
     else
-      java -jar $SELENIUM_JAR_FILENAME -Dwebdriver.firefox.bin=$PWD/bin/firefox -Dwebdriver.log.file=$PWD/console.log -Dwebdriver.firefox.logfile=$PWD/firefox.log &>/dev/null &
+      $XVFB java -jar $SELENIUM_JAR_FILENAME -Dwebdriver.firefox.bin=$PWD/bin/firefox -Dwebdriver.log.file=$PWD/console.log -Dwebdriver.firefox.logfile=$PWD/firefox.log &>/dev/null &
     fi
     PID=$!
     echo $PID > $SELENIUM_PID_FILE
