@@ -1,0 +1,8 @@
+TODO
+
+* TODO comment out the current common tests for #stream
+* TODO TDD the _updateUsers function (find a better name?)
+* TODO Test that #stream calls _updateUsers with the right user list
+* TODO TDD onAddUser and onRemoveUser callbacks to the User interface
+* TODO implement and test onAddUser and onRemoveUser for the `users` user list
+* TODO test (if possible) the upgrade of the stream API from anonymous to authenticated

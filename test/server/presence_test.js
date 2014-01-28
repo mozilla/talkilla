@@ -256,23 +256,24 @@ describe("presence", function() {
           clock.tick(config.LONG_POLLING_TIMEOUT * 3);
         });
 
-      it("should clear pending timeouts on user with firstRequest set",
-        // since existing timeouts in the presence of first request
-        // indicate a reconnection, and are leftover old state
-        function(done) {
-          var user = users.add("foo").get("foo");
-          sandbox.stub(user, "clearPending").returns(user);
+      it("should clear pending timeouts on user reconnection " +
+         "with firstRequest set",
+         // since existing timeouts in the presence of first request
+         // indicate a reconnection, and are leftover old state
+         function(done) {
+           var user = users.add("foo").get("foo");
+           sandbox.stub(user, "clearPending").returns(user);
 
-          var req = {session: {}, body: {firstRequest: true}};
-          var res = {send: function() {
-            sinon.assert.calledOnce(user.clearPending);
-            done();
-          }};
+           var req = {session: {}, body: {firstRequest: true}};
+           var res = {send: function() {
+             sinon.assert.calledOnce(user.clearPending);
+             done();
+           }};
 
-          api.stream(req, res);
-        });
+           api.stream(req, res);
+         });
 
-      it("should return a list of the sent event when the queue is empty " +
+      it.only("should return a list of the sent event when the queue is empty " +
         "and user.send is called", function(done) {
         var user = users.add("foo").get("foo");
         var event = {topic: "some", data: "data"};

@@ -108,9 +108,33 @@ api = {
       return this._authenticatedStream(req, res);
   },
 
+  _updateUsers: function(users, id, firstRequest, callback) {
+    var user = users.get(id);
+    if (!user) {
+      user = users.add(id).get(id);
+      user.ondisconnect = function() {
+        users.remove(id);
+      };
+
+      user.touch();
+
+      return callback([]);
+    }
+
+    if (firstRequest)
+      user.clearPending().touch()
+    else
+      user.touch().waitForEvents(callback);
+  },
+
   _anonymousStream: function(req, res) {
-    anons.add("foo").get("foo");
-    return res.send(200, JSON.stringify([]));
+    var anon = anons.get("foo");
+    if (!anon)
+      return res.send(200, JSON.stringify([]));
+
+    anon.waitForEvents(function(events) {
+      res.send(200, JSON.stringify(events));
+    });
   },
 
   _authenticatedStream: function(req, res) {
