@@ -4,6 +4,11 @@ var CurrentUsers = (function() {
 
   /**
    * Represents current users list.
+   *
+   * XXX Really we should refactor this into an array of users. The Users
+   * would have a contact property, storing the contact information from the
+   * contactsDb, and a presence property. Access to specific users is by
+   * filtering within the contact information.
    */
   function CurrentUsers() {
     this.users = {};
@@ -33,12 +38,16 @@ var CurrentUsers = (function() {
      * @param {String}           userId     User unique identifier
      * @param {Object|undefined} attributes User attributes
      */
-    set: function(userId, attributes) {
+    set: function(userId, attributes, field) {
       attributes = attributes || {};
       if (!this.has(userId)) {
         // XXX: we should have a proper user object in the future
         if (!attributes.username)
           attributes.username = userId;
+        // XXX: We currently need to ensure we have the field set, as
+        // well as the username. See the XXX comment at the start of
+        // this file.
+        attributes[field] = userId;
         this.users[userId] = attributes;
         return;
       }
@@ -63,11 +72,15 @@ var CurrentUsers = (function() {
      * presence property.
      * @param  {Array} contacts Contacts list
      */
-    updateContacts: function(contacts) {
+    updateContacts: function(contacts, field) {
       (contacts || [])
         .forEach(function(contact) {
-          contact.presence = this.getPresence(contact.username);
-          this.set(contact.username, contact);
+          if (contact[field]) {
+            var username = contact[field];
+            contact.username = username;
+            contact.presence = this.getPresence(username);
+            this.set(username, contact, field);
+          }
         }, this);
     },
 

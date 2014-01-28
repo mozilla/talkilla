@@ -23,6 +23,14 @@ var SPA = (function() {
   }
 
   SPA.prototype = {
+    // XXX This is a hack whilst we have a username field representing either
+    // a phone number or an email address based on SPA. Really, we need to
+    // change the CurrentUsers object - see XXX description there.
+    usernameFieldType: function () {
+      return this.capabilities.indexOf("pstn-call") !== -1 ?
+        "phoneNumber" : "email";
+    },
+
     _onMessage: function(event) {
       var type;
       var topic = event.data.topic;

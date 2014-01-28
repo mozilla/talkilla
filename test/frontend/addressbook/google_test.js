@@ -212,8 +212,7 @@ describe("GoogleContacts", function() {
     });
 
     it("should pass an error back if auth token isn't set", function(done) {
-      new GoogleContacts({authCookieName: "tktest"}).all("email",
-        function(err) {
+      new GoogleContacts({authCookieName: "tktest"}).all(function(err) {
         expect(err.toString()).to.match(/Missing/);
         done();
       });
@@ -221,7 +220,7 @@ describe("GoogleContacts", function() {
 
     it("should request the endpoint url using current token value",
       function(done) {
-        new GoogleContacts({token: "fake"}).all("email", function() {
+        new GoogleContacts({token: "fake"}).all(function() {
           expect(request.url).to.match(/access_token=fake/);
           done();
         });
@@ -231,7 +230,7 @@ describe("GoogleContacts", function() {
 
     it("should request the endpoint url using default maxResults value",
       function(done) {
-        new GoogleContacts({token: "fake"}).all("email", function() {
+        new GoogleContacts({token: "fake"}).all(function() {
           expect(request.url).to.match(/max-results=9999/);
           done();
         });
@@ -241,8 +240,7 @@ describe("GoogleContacts", function() {
 
     it("should request the endpoint url using a custom maxResults option value",
       function(done) {
-        new GoogleContacts({token: "fake", maxResults: 42}).all("email",
-          function() {
+        new GoogleContacts({token: "fake", maxResults: 42}).all(function() {
           expect(request.url).to.match(/max-results=42/);
           done();
         });
@@ -253,23 +251,23 @@ describe("GoogleContacts", function() {
     it("should load, parse and normalize google contacts", function() {
       var callback = sinon.spy();
 
-      new GoogleContacts({token: "foo"}).all("email", callback);
+      new GoogleContacts({token: "foo"}).all(callback);
       request.respond(200, {
         "Content-Type": "application/json"
       }, JSON.stringify(sampleFeed));
 
       sinon.assert.calledOnce(callback);
       sinon.assert.calledWith(callback, null, [
-        {username: "foo@bar.com", fullName: "Foo Foo"},
-        {username: "foo@baz.com", fullName: "Foo Foo"},
-        {username: "bar@bar.com", fullName: "Bar Bar"}
+        {email: "foo@bar.com", fullName: "Foo Foo", phoneNumber: "6789"},
+        {email: "foo@baz.com", fullName: "Foo Foo", phoneNumber: "6789"},
+        {email: "bar@bar.com", fullName: "Bar Bar", phoneNumber: "1234"}
       ]);
     });
 
     it("should pass back encountered an HTTP error", function() {
       var callback = sinon.spy();
 
-      new GoogleContacts({token: "foo"}).all("email", callback);
+      new GoogleContacts({token: "foo"}).all(callback);
       request.respond(401, {
         "Content-Type": "application/json"
       }, JSON.stringify({}));
@@ -281,7 +279,7 @@ describe("GoogleContacts", function() {
     it("should pass back a feed data normalization error", function() {
       var callback = sinon.spy();
 
-      new GoogleContacts({token: "foo"}).all("email", callback);
+      new GoogleContacts({token: "foo"}).all(callback);
       request.respond(200, {
         "Content-Type": "application/json"
       }, "{malformed}");
@@ -293,9 +291,9 @@ describe("GoogleContacts", function() {
 
   describe("#loadContacts", function() {
     it("should notify appPort with retrieved list of contacts", function() {
-      var contacts = [{username: "foo"}, {username: "bar"}];
+      var contacts = [{email: "foo"}, {email: "bar"}];
       sandbox.stub(GoogleContacts.prototype, "authorize", caller);
-      sandbox.stub(GoogleContacts.prototype, "all", function(contactId, cb) {
+      sandbox.stub(GoogleContacts.prototype, "all", function(cb) {
         cb(null, contacts);
       });
 
@@ -339,21 +337,12 @@ describe("GoogleContacts", function() {
         importer = new GoogleContacts.Importer(sampleFeed);
       });
 
-      it("should normalize data feed using email as unique id", function() {
+      it("should normalize data feed", function() {
         var normalized = importer.normalize("email");
         expect(normalized).eql([
-          {username: "foo@bar.com", fullName: "Foo Foo"},
-          {username: "foo@baz.com", fullName: "Foo Foo"},
-          {username: "bar@bar.com", fullName: "Bar Bar"}
-        ]);
-      });
-
-      it("should normalize data feed using phone number as unique id",
-        function() {
-        var normalized = importer.normalize("phoneNumber");
-        expect(normalized).eql([
-          {username: "6789", fullName: "Foo Foo"},
-          {username: "1234", fullName: "Bar Bar"}
+          {email: "foo@bar.com", fullName: "Foo Foo", phoneNumber: "6789"},
+          {email: "foo@baz.com", fullName: "Foo Foo", phoneNumber: "6789"},
+          {email: "bar@bar.com", fullName: "Bar Bar", phoneNumber: "1234"}
         ]);
       });
     });

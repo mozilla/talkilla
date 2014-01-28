@@ -108,8 +108,7 @@
 
       this.importContactsView = new app.views.ImportContactsView({
         user: this.user,
-        service: this.service,
-        spa: this.spa
+        service: this.service
       });
 
       this.spa.on('change:capabilities', this.render, this);
@@ -508,8 +507,7 @@
   app.views.ImportContactsView = app.views.BaseView.extend({
     dependencies: {
       user: app.models.CurrentUser,
-      service: GoogleContacts,
-      spa: app.models.SPA,
+      service: GoogleContacts
     },
 
     el: "#import-contacts",
@@ -523,8 +521,7 @@
     },
 
     loadGoogleContacts: function() {
-      var id = this.spa.supports("pstn-call") ? "phoneNumber" : "email";
-      this.service.loadContacts(id);
+      this.service.loadContacts();
     },
 
     render: function() {

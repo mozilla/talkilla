@@ -156,19 +156,21 @@ function _setupSPA(spa) {
   spa.on("message", function(textMsg) {
     tkWorker.conversationList.message(textMsg, tkWorker.spa.capabilities,
       browserPort);
+    tkWorker.collectContact(textMsg.peer, function() {});
   });
 
   spa.on("users", function(data) {
     data.forEach(function(user) {
-      tkWorker.users.set(user.nick,
-                         {username: user.nick, presence: "connected"});
+      tkWorker.users.set(user.nick, {presence: "connected"},
+        tkWorker.spa.usernameFieldType());
     });
 
     tkWorker.ports.broadcastEvent("talkilla.users", tkWorker.users.toArray());
   });
 
   spa.on("userJoined", function(userId) {
-    tkWorker.users.set(userId, {username:userId, presence: "connected"});
+    tkWorker.users.set(userId, {presence: "connected"},
+      tkWorker.spa.usernameFieldType());
 
     tkWorker.ports.broadcastEvent("talkilla.users", tkWorker.users.toArray());
     tkWorker.ports.broadcastEvent("talkilla.user-joined", userId);
@@ -178,7 +180,8 @@ function _setupSPA(spa) {
     if (!tkWorker.users.has(userId))
       return;
 
-    tkWorker.users.set(userId, {presence: "disconnected"});
+    tkWorker.users.set(userId, {presence: "disconnected"},
+      tkWorker.spa.usernameFieldType());
 
     tkWorker.ports.broadcastEvent("talkilla.users", tkWorker.users.toArray());
     tkWorker.ports.broadcastEvent("talkilla.user-left", userId);
@@ -187,6 +190,7 @@ function _setupSPA(spa) {
   spa.on("offer", function(offerMsg) {
     tkWorker.conversationList.offer(offerMsg, tkWorker.spa.capabilities,
       browserPort);
+    tkWorker.collectContact(offerMsg.peer, function() {});
   });
 
   spa.on("answer", function(answerMsg) {
@@ -604,6 +608,28 @@ TkWorker.prototype = {
     }.bind(this));
   },
 
+  /**
+   * Collects a contact into the contact database.
+   *
+   * @param {String} id The username of the user to add
+   * @param {function} callback
+   *
+   * Callback Parameters:
+   *   err: defined if there is an error.
+   */
+  collectContact: function(id, callback) {
+    var contact = {};
+
+    contact[this.spa.usernameFieldType()] = id;
+
+    this.contactsDb.add(contact, function(err) {
+      if (err)
+        tkWorker.ports.broadcastError(err);
+
+      callback(err);
+    });
+  },
+
   updateContactsFromSource: function(contacts, source) {
     this.contactsDb.replaceSourceContacts(contacts, source);
     // XXX We should potentially source this from contactsDb, but it
@@ -617,7 +643,7 @@ TkWorker.prototype = {
    * @param  {Array} contacts Contacts; format: [{username: "address"}]
    */
   updateContactList: function(contacts) {
-    this.users.updateContacts(contacts);
+    this.users.updateContacts(contacts, this.spa.usernameFieldType());
     this.ports.broadcastEvent("talkilla.users", this.users.toArray());
   },
 
