@@ -16,7 +16,7 @@
   "trailing" : false, // true: Prohibit trailing whitespaces
   "undef" : true,     // true: Require all non-global variables to be
                       // declared (prevents global leaks)
-  "unused" : true,    // true: Require all defined variables be used
+  "unused" : "vars",    // true: Require all defined variables be used
 
   "globals": {
     // mocha globals
