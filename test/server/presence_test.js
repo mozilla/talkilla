@@ -46,7 +46,6 @@ describe("presence", function() {
       it("should send to all users that a new user connected", function() {
         var bar = users.add("bar").get("bar");
         var xoo = users.add("xoo").get("xoo");
-        var foo;
         sandbox.stub(bar, "send");
         sandbox.stub(xoo, "send");
 
@@ -79,7 +78,7 @@ describe("presence", function() {
       it("should send to all users that a user disconnected", function() {
         var bar = users.add("bar").get("bar");
         var xoo = users.add("xoo").get("xoo");
-        var foo = users.add("foo").get("foo");
+        users.add("foo").get("foo");
         sandbox.stub(bar, "send");
         sandbox.stub(xoo, "send");
 
@@ -144,15 +143,15 @@ describe("presence", function() {
         });
 
       it("should clean leftover state if firstRequest is encountered while " +
-         "user is considered online", function() {
-           var user = users.add(fakeId).get(fakeId);
-           sandbox.stub(user, "clearPending");
+        "user is considered online", function() {
+        var user = users.add(fakeId).get(fakeId);
+        sandbox.stub(user, "clearPending");
 
-           api._setupUser(users, fakeId, firstRequest);
+        api._setupUser(users, fakeId, firstRequest);
 
-           expect(users.get(fakeId)).to.equal(user);
-           sinon.assert.calledOnce(user.clearPending);
-         });
+        expect(users.get(fakeId)).to.equal(user);
+        sinon.assert.calledOnce(user.clearPending);
+      });
 
     });
 
@@ -375,54 +374,54 @@ describe("presence", function() {
         user.send("some", "data");
         sinon.assert.calledOnce(res.send);
         sinon.assert.calledWithExactly(
-          res.send, 200, JSON.stringify([{topic: "some", data: "data"}]))
+          res.send, 200, JSON.stringify([{topic: "some", data: "data"}]));
       });
 
       it("should return immediately with a list of queued events if " +
-         "the queue is not empty", function() {
-           var req = {body: {firstRequest: false}, session: {email: fakeId}};
-           var res = {send: sinon.spy()};
-           var user = users.add(fakeId).get(fakeId);
-           user.connect();
-           user.send("foo", "oof");
-           user.send("bar", "rab");
+        "the queue is not empty", function() {
+        var req = {body: {firstRequest: false}, session: {email: fakeId}};
+        var res = {send: sinon.spy()};
+        var user = users.add(fakeId).get(fakeId);
+        user.connect();
+        user.send("foo", "oof");
+        user.send("bar", "rab");
 
-           api.stream(req, res);
+        api.stream(req, res);
 
-           sinon.assert.calledOnce(res.send);
-           sinon.assert.calledWithExactly(res.send, 200, JSON.stringify([
-             {topic: "foo", data: "oof"},
-             {topic: "bar", data: "rab"}
-           ]));
-         });
+        sinon.assert.calledOnce(res.send);
+        sinon.assert.calledWithExactly(res.send, 200, JSON.stringify([
+          {topic: "foo", data: "oof"},
+          {topic: "bar", data: "rab"}
+        ]));
+      });
 
 
       it("should send an empty list of events when the timeout is reached",
-         function() {
-           var req = {body: {firstRequest: false}, session: {email: fakeId}};
-           var res = {send: sinon.spy()};
-           var user = users.add(fakeId).get(fakeId);
+        function() {
+          var req = {body: {firstRequest: false}, session: {email: fakeId}};
+          var res = {send: sinon.spy()};
+          users.add(fakeId).get(fakeId);
 
-           api.stream(req, res);
+          api.stream(req, res);
 
-           clock.tick(config.LONG_POLLING_TIMEOUT);
-           sinon.assert.calledOnce(res.send);
-           sinon.assert.calledWithExactly(res.send, 200, "[]");
-         });
+          clock.tick(config.LONG_POLLING_TIMEOUT);
+          sinon.assert.calledOnce(res.send);
+          sinon.assert.calledWithExactly(res.send, 200, "[]");
+        });
 
       it("should use the anonymous collection when the user " +
-         "does not have an email", function() {
-           var req = {body: {firstRequest: false}, session: {}};
-           var res = {send: sinon.spy()};
-           var user = anons.add(fakeId).get(fakeId);
-           sandbox.stub(api, "_genId").returns(fakeId);
-           sandbox.stub(api, "_setupUser").returns(user);
+        "does not have an email", function() {
+        var req = {body: {firstRequest: false}, session: {}};
+        var res = {send: sinon.spy()};
+        var user = anons.add(fakeId).get(fakeId);
+        sandbox.stub(api, "_genId").returns(fakeId);
+        sandbox.stub(api, "_setupUser").returns(user);
 
-           api.stream(req, res);
+        api.stream(req, res);
 
-           sinon.assert.calledOnce(api._setupUser);
-           sinon.assert.calledWithExactly(api._setupUser, anons, fakeId);
-         });
+        sinon.assert.calledOnce(api._setupUser);
+        sinon.assert.calledWithExactly(api._setupUser, anons, fakeId);
+      });
 
     });
 
