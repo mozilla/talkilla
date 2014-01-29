@@ -133,7 +133,7 @@ api = {
       res.send(200, JSON.stringify([]));
     else
       user.waitForEvents(function(events) {
-        logger.trace({to: nick, events: events}, "long polling send");
+        logger.trace({to: user.nick, events: events}, "long polling send");
         res.send(200, JSON.stringify(events));
       });
   },
