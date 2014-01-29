@@ -8,7 +8,7 @@ endif
 test: lint mocha selenium_all
 
 .PHONY: test_server
-test_server: jshint mocha
+test_server: jshint_server mocha
 
 install:
 	@npm install
@@ -33,6 +33,10 @@ flake8: .venv
 .PHONY: jshint
 jshint:
 	@$(NODE_LOCAL_BIN)/jshint *.js static server test
+
+.PHONY: jshint_server
+jshint_server:
+	@$(NODE_LOCAL_BIN)/jshint *.js server test/server
 
 .PHONY: mocha
 mocha:
