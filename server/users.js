@@ -40,8 +40,9 @@ function User(nick) {
   // user is considered as disconnected.
   this.timeout = undefined;
 
-  // XXX: rename it to this.onOffline so confuse the user connection
-  // with the long polling socket connection.
+  // XXX: rename it to this.onOffline so it's harder to confuse the
+  // user's connection with the long polling socket connection.
+  //
   // `this.ondisconnect` is the callback called when the user is
   // disconnected (i.e. when the timeout is triggered).
   this.ondisconnect = undefined;
