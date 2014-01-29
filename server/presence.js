@@ -9,11 +9,11 @@ var app = require("./server").app;
 var httpServer = require("./server").server;
 var config = require('./config').config;
 var logger = require('./logger');
-var Users = require('./users').Users;
+var UserList = require('./users').UserList;
 var User = require('./users').User;
 
-var users = new Users();
-var anons = new Users();
+var users = new UserList();
+var anons = new UserList();
 var api;
 
 users.onadduser = function(user) {

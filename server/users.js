@@ -158,9 +158,9 @@ User.prototype.waitForEvents = function(callback) {
 };
 
 /**
- * Users class constructor
+ * UserList class constructor
  */
-function Users() {
+function UserList() {
   this.users = {};
   this.onadduser = undefined;
   this.onremoveuser = undefined;
@@ -172,7 +172,7 @@ function Users() {
  * @param {String} nick the nick to check
  * @return {Boolean}
  */
-Users.prototype.hasNick = function(nick) {
+UserList.prototype.hasNick = function(nick) {
   return Object.keys(this.users).some(function(username) {
     return username === nick;
   });
@@ -182,9 +182,9 @@ Users.prototype.hasNick = function(nick) {
  * Add a new user to the collection with the given nick
  *
  * @param {String} nick the nick of the new user
- * @return {Users} chainable
+ * @return {UserList} chainable
  */
-Users.prototype.add = function(nick) {
+UserList.prototype.add = function(nick) {
   this.users[nick] = new User(nick);
   if (this.onadduser)
     this.onadduser(this.users[nick]);
@@ -197,14 +197,14 @@ Users.prototype.add = function(nick) {
  * @param {String} nick the nick of the user to find
  * @return {User}
  */
-Users.prototype.get = function(nick) {
+UserList.prototype.get = function(nick) {
   return this.users[nick];
 };
 
 /**
  * Retrieve all the users as an array
  */
-Users.prototype.all = function() {
+UserList.prototype.all = function() {
   return Object.keys(this.users).map(function(nick) {
     return this.users[nick];
   }, this);
@@ -214,9 +214,9 @@ Users.prototype.all = function() {
  * Remove a user from the collection
  *
  * @param {String} nick the nick of the user to remove
- * @return {Users} chainable
+ * @return {UserList} chainable
  */
-Users.prototype.remove = function(nick) {
+UserList.prototype.remove = function(nick) {
   var user = this.users[nick];
   delete this.users[nick];
   if (this.onremoveuser)
@@ -229,7 +229,7 @@ Users.prototype.remove = function(nick) {
  *
  * @param {Function} callback the callback to execute for each user
  */
-Users.prototype.forEach = function(callback) {
+UserList.prototype.forEach = function(callback) {
   Object.keys(this.users).forEach(function(nick) {
     callback(this.users[nick]);
   }, this);
@@ -241,7 +241,7 @@ Users.prototype.forEach = function(callback) {
  * @param {Array} users an optional list of users to process
  * @return {Object}
  */
-Users.prototype.toJSON = function(users) {
+UserList.prototype.toJSON = function(users) {
   users = users || this.all();
 
   return Object.keys(users).map(function(nick) {
@@ -252,5 +252,5 @@ Users.prototype.toJSON = function(users) {
 };
 
 module.exports.Waiter = Waiter;
-module.exports.Users = Users;
+module.exports.UserList = UserList;
 module.exports.User = User;

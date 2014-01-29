@@ -9,7 +9,7 @@ chai.Assertion.includeStack = true;
 
 var config = require('../../server/config').config;
 var logger = require('../../server/logger');
-var Users = require("../../server/users").Users;
+var Users = require("../../server/users").UserList;
 var User = require("../../server/users").User;
 var Waiter = require("../../server/users").Waiter;
 
@@ -217,7 +217,7 @@ describe("User", function() {
 
 });
 
-describe("Users", function() {
+describe("UserList", function() {
 
   var users;
 
