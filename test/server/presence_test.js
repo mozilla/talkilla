@@ -52,12 +52,12 @@ describe("presence", function() {
         users.add("foo");
 
         sinon.assert.calledOnce(bar.send);
-        sinon.assert.calledWith(bar.send, "userJoined", "foo");
+        sinon.assert.calledWithExactly(bar.send, "userJoined", "foo");
         sinon.assert.calledOnce(xoo.send);
-        sinon.assert.calledWith(xoo.send, "userJoined", "foo");
+        sinon.assert.calledWithExactly(xoo.send, "userJoined", "foo");
       });
 
-      it("should not send the notification to the user itself", function() {
+      it("should not send the notification to the user herself", function() {
         var foo;
         var originalOnAddUser = users.onadduser;
         sandbox.stub(users, "onadduser", function(user) {
@@ -85,12 +85,12 @@ describe("presence", function() {
         users.remove("foo");
 
         sinon.assert.calledOnce(bar.send);
-        sinon.assert.calledWith(bar.send, "userLeft", "foo");
+        sinon.assert.calledWithExactly(bar.send, "userLeft", "foo");
         sinon.assert.calledOnce(xoo.send);
-        sinon.assert.calledWith(xoo.send, "userLeft", "foo");
+        sinon.assert.calledWithExactly(xoo.send, "userLeft", "foo");
       });
 
-      it("should not send the notification to the user itself", function() {
+      it("should not send the notification to the user himself", function() {
         var foo = users.add("foo").get("foo");
         var originalOnRemoveUser = users.onremoveuser;
         sandbox.stub(users, "onremoveuser", function(user) {
@@ -299,7 +299,7 @@ describe("presence", function() {
         sinon.assert.calledOnce(User.prototype.disconnect);
 
         sinon.assert.calledOnce(res.send);
-        sinon.assert.calledWith(res.send, 200);
+        sinon.assert.calledWith(res.send, 200, JSON.stringify(true));
       });
 
       it("should reset the user's client session", function() {
@@ -320,7 +320,7 @@ describe("presence", function() {
         api.signout(req, res);
 
         sinon.assert.calledOnce(res.send);
-        sinon.assert.calledWith(res.send, 400);
+        sinon.assert.calledWithExactly(res.send, 400);
       });
 
     });
@@ -446,7 +446,7 @@ describe("presence", function() {
           api.callOffer(req, res);
 
           sinon.assert.calledOnce(bar.send);
-          sinon.assert.calledWith(bar.send, "offer", forwardedEvent);
+          sinon.assert.calledWithExactly(bar.send, "offer", forwardedEvent);
         });
 
       it("should warn on handling offers to unknown users", function() {
@@ -485,7 +485,7 @@ describe("presence", function() {
           api.callAccepted(req, res);
 
           sinon.assert.calledOnce(bar.send);
-          sinon.assert.calledWith(bar.send, "answer", forwardedEvent);
+          sinon.assert.calledWithExactly(bar.send, "answer", forwardedEvent);
         });
 
       it("should warn on handling answers to unknown users", function() {
@@ -524,7 +524,7 @@ describe("presence", function() {
           api.callHangup(req, res);
 
           sinon.assert.calledOnce(bar.send);
-          sinon.assert.calledWith(bar.send, "hangup", forwardedEvent);
+          sinon.assert.calledWithExactly(bar.send, "hangup", forwardedEvent);
         });
 
       it("should warn on handling hangups to unknown users", function() {
@@ -565,7 +565,8 @@ describe("presence", function() {
           api.iceCandidate(req, res);
 
           sinon.assert.calledOnce(bar.send);
-          sinon.assert.calledWith(bar.send, "ice:candidate", forwardedEvent);
+          sinon.assert.calledWithExactly(bar.send, "ice:candidate",
+            forwardedEvent);
         });
 
       it("should warn on handling candidates to unknown users", function() {

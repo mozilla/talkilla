@@ -102,6 +102,8 @@ api = {
     }
 
     logger.info({type: "signout"});
+
+    // XXX why do we return true?  this may want to be removed
     res.send(200, JSON.stringify(true));
   },
 
