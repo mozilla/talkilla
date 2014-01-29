@@ -368,6 +368,7 @@ describe("presence", function() {
 
         api.stream(req, res);
 
+        // ensure 0 < wait time < timeout
         clock.tick(config.LONG_POLLING_TIMEOUT/2);
         sinon.assert.notCalled(res.send);
         user.send("some", "data");
@@ -395,7 +396,7 @@ describe("presence", function() {
       });
 
 
-      it("should send an empty list of events when the timeout is reached",
+      it("should send an empty list of events if the timeout is reached",
         function() {
           var req = {body: {firstRequest: false}, session: {email: fakeId}};
           var res = {send: sinon.spy()};
@@ -418,6 +419,9 @@ describe("presence", function() {
 
         api.stream(req, res);
 
+        // XXX when we test the id generator separately, we should move
+        // away from testing the impl with stubs and instead look at the
+        // side effect on anons for this specific test
         sinon.assert.calledOnce(api._setupUser);
         sinon.assert.calledWithExactly(api._setupUser, anons, fakeId);
       });

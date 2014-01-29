@@ -136,8 +136,8 @@ api = {
       });
   },
 
-  _setupUser: function(users, id, firstRequest) {
-    var user = users.get(id);
+  _setupUser: function(userList, id, firstRequest) {
+    var user = userList.get(id);
 
     if (user && firstRequest) {
       user.clearPending();
@@ -145,9 +145,9 @@ api = {
     }
 
     if (!user) {
-      user = users.add(id).get(id);
+      user = userList.add(id).get(id);
       user.ondisconnect = function() {
-        users.remove(id);
+        userList.remove(id);
         logger.info({type: "disconnection"});
       };
 
@@ -158,6 +158,7 @@ api = {
   },
 
   _genId: function() {
+    // XXX needs to be implemented
     return 4;
   },
 
