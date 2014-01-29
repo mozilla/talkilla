@@ -79,11 +79,49 @@
   background-image: url('/img/gear_clicked.png');
 }
 
-.sidebar #gear-menu ul li {
-  list-style-type: none;
+.sidebar #gear-menu .username {
+  padding-right: 10px;
+  float: right;
 }
 
-.sidebar #pstn-dialin, .sidebar #gear-menu {
+.sidebar #gear-menu ul {
+  margin: 0;
+  clear: both;
+}
+
+.sidebar #gear-menu ul li {
+  list-style-type: none;
+  border-bottom: 1px solid #e3e5e6;
+  margin: 0;
+  width: 100%;
+}
+.sidebar #gear-menu ul li :hover {
+  background: #d8e6ef;
+}
+
+.sidebar #gear-menu ul li a, .sidebar #gear-menu ul li button {
+  color: #7b8893;
+  text-decoration: none;
+  line-height: 36px;
+  text-align: left;
+  border: 0;
+  background-color: inherit;
+  display: block;
+  margin: 0;
+  padding: 0;
+  padding-left: 10px;
+}
+
+.sidebar #gear-menu ul li form {
+  margin: 0;
+  padding: 0;
+}
+
+.sidebar #gear-menu ul li button {
+  width: 100%;
+}
+
+.sidebar #pstn-dialin {
   padding: 10px 0 0 0;
   text-align: center;
 }

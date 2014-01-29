@@ -10,7 +10,7 @@ describe("GearMenuView", function() {
     sandbox = sinon.sandbox.create();
     $('#fixtures').append([
       '<div id="gear-menu">',
-      '  <form id="signout"><strong class="user username"></strong></form>',
+      '  <strong class="user username"></strong>',
       '</div>'
     ].join(''));
     user = new app.models.CurrentUser();
@@ -40,7 +40,7 @@ describe("GearMenuView", function() {
     it("should display the name of the connected user", function() {
       user.set("username", "alexis");
       gearMenuView.render();
-      expect(gearMenuView.$('#signout .username').text()).to.eql('alexis');
+      expect(gearMenuView.$('.username').text()).to.eql('alexis');
     });
   });
 
