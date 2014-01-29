@@ -188,7 +188,7 @@
     },
 
     render: function() {
-      this.$('#signout .username').text(this.user.get('username'));
+      this.$('.username').text(this.user.get('username'));
       return this;
     },
 

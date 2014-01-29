@@ -56,22 +56,21 @@
       <!-- /SPA view -->
       <!-- GearMenu view -->
       <div id="gear-menu" class="tab-pane">
+      <strong class="user username"></strong>
       <ul>
         <li>
-          <form action="/signout" id="signout" method="post" class="">
-            <p>
-              Joined as <strong class="user username">alexis@notmyidea.org</strong>
-              <button class="btn btn-link" type="submit">Sign out</button>
-            </p>
+          <form action="/signout" id="signout" method="post">
+            <button type="submit">Sign out</button>
           </form>
           </li>
+          <li id="import-contacts">
+            <button>Load your Contacts</button>
+          </li>
           <li>
-          <p id="import-contacts"><button class="btn btn-link">Load your Contacts</button></p></li>
-          <li><p>
-            <a class="btn btn-link" id="feedback-link"
+            <a id="feedback-link"
                href="https://docs.google.com/a/mozilla.com/forms/d/18hE8fjbkktm2E8Q40nJ1heRESVX9McoY2RMmGCjc-TQ/viewform">
             Send feedback</a>
-          </p></li>
+          </li>
         </ul>
       </div>
       <!-- /GearMenu view -->
