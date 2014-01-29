@@ -247,7 +247,9 @@ describe("UserList", function() {
 
     it("should trigger the onadduser callback", function() {
       users.onadduser = sinon.spy();
+
       users.add("bar");
+
       sinon.assert.calledOnce(users.onadduser);
       sinon.assert.calledWithExactly(users.onadduser, users.get("bar"));
     });
@@ -272,7 +274,9 @@ describe("UserList", function() {
   describe("#get", function() {
 
     it("should return the user having the given nick", function() {
+
       users.add("bar");
+
       expect(users.get("bar").toJSON()).to.deep.equal({nick: "bar"});
     });
 
@@ -285,14 +289,18 @@ describe("UserList", function() {
   describe("#remove", function() {
 
     it("should remove the user having the given nick", function() {
+
       users.add("bar").remove("bar");
+
       expect(users.get("bar")).to.be.equal(undefined);
     });
 
     it("should trigger the onremoveuser callback", function() {
       users.onremoveuser = sinon.spy();
+
       var user = users.add("bar").get("bar");
       users.remove("bar");
+
       sinon.assert.calledOnce(users.onremoveuser);
       sinon.assert.calledWithExactly(users.onremoveuser, user);
     });
@@ -303,6 +311,7 @@ describe("UserList", function() {
 
     it("should iterate on users", function() {
       var expected = [];
+
       users.add("foo").add("bar").add("goo");
       users.forEach(function(user) {
         expected.push(user);
@@ -317,6 +326,7 @@ describe("UserList", function() {
 
     it("should return a JSON serialisable structure", function() {
       users.add("foo").add("bar").add("goo");
+
       expect(users.toJSON()).to.deep.equal([
         {nick: "foo"},
         {nick: "bar"},
@@ -336,7 +346,9 @@ describe("UserList", function() {
     });
 
     it("should take the given users as reference", function() {
+
       users.add("foo").add("bar").add("goo");
+
       expect(users.toJSON([users.get("foo")])).to.deep.equal([{nick: "foo"}]);
     });
 
