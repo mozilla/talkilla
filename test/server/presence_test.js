@@ -127,16 +127,15 @@ describe("presence", function() {
       it("should add the user with the given id if it isn't in users",
         function() {
 
-          api._setupUser(users, fakeId, firstRequest);
-          var user = users.get(fakeId);
+          var user = api._setupUser(users, fakeId, firstRequest);
+
           expect(user).to.be.an.instanceOf(User);
         });
 
       it("should remove the user from users if it is disconnected",
         function() {
 
-          api._setupUser(users, fakeId, firstRequest);
-          var user = users.get(fakeId);
+          var user = api._setupUser(users, fakeId, firstRequest);
           user.ondisconnect();
 
           expect(users.get(fakeId)).to.equal(undefined);
