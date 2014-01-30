@@ -19,9 +19,7 @@ notifications:
     - on_failure: change
 
 before_install:
-  - export DISPLAY=:99.0
   - export PATH=$PATH:$HOME/.local/bin
-  - sh -e /etc/init.d/xvfb start
   - pip install --install-option="--prefix=$HOME/.local" -r require.pip --use-mirrors
 
 # The /check url below will check to see if the repository is updated and deploy
