@@ -99,40 +99,36 @@ describe('handlers', function() {
       tkWorker.conversationList.reset();
     });
 
-    it("should create a new conversation object when receiving a " +
-       "talkilla.conversation-open event", function() {
-        sandbox.stub(tkWorker.conversationList, "conversationOpen");
+    it("should pass the event to the conversationList", function() {
+      sandbox.stub(tkWorker.conversationList, "conversationOpen");
 
-        handlers['talkilla.conversation-open']({
+      handlers['talkilla.conversation-open']({
+        topic: "talkilla.conversation-open",
+        data: {}
+      });
+
+      sinon.assert.calledOnce(tkWorker.conversationList.conversationOpen);
+      sinon.assert.calledWithExactly(
+        tkWorker.conversationList.conversationOpen,
+        {
           topic: "talkilla.conversation-open",
           data: {}
-        });
-
-        sinon.assert.calledOnce(tkWorker.conversationList.conversationOpen);
-        sinon.assert.calledWithExactly(
-          tkWorker.conversationList.conversationOpen,
-          {
-            topic: "talkilla.conversation-open",
-            data: {}
-          }, [], browserPort);
-      });
+        }, [], browserPort);
+    });
   });
 
   describe("talkilla.chat-window-ready", function() {
-    it("should tell the conversation the window has opened when " +
-      "receiving a talkilla.chat-window-ready",
-      function () {
+    it("should pass the event to the conversationList", function () {
+      var chatAppPort = {postEvent: sinon.spy()};
+      sandbox.stub(tkWorker.conversationList, "windowReady");
 
-        var chatAppPort = {postEvent: sinon.spy()};
-        sandbox.stub(tkWorker.conversationList, "windowReady");
+      handlers['talkilla.chat-window-ready'].bind(chatAppPort)();
 
-        handlers['talkilla.chat-window-ready'].bind(chatAppPort)();
-
-        sinon.assert.calledOnce(tkWorker.conversationList.windowReady);
-        sinon.assert.calledWithExactly(tkWorker.conversationList.windowReady,
-          chatAppPort
-        );
-      });
+      sinon.assert.calledOnce(tkWorker.conversationList.windowReady);
+      sinon.assert.calledWithExactly(tkWorker.conversationList.windowReady,
+        chatAppPort
+      );
+    });
   });
 
   describe("talkilla.sidebar-ready", function() {

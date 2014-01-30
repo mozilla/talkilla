@@ -508,15 +508,15 @@ function TkWorker(options) {
   options = options || {};
   this.contactsDb = options.contactsDb;
   this.spaDb = options.spaDb;
-  this.user = options.user;
+  this.user = options.user || new UserData({}, gConfig);
   this.users = options.users || new CurrentUsers();
   this.ports = options.ports;
   this.initialized = false;
   // XXX In future, this may switch to supporting multiple SPAs
   this.spa = undefined;
   this.conversationList = options.conversationList || new ConversationList({
-    user: {},
-    users: {}
+    user: this.user,
+    users: this.users
   });
 }
 
@@ -686,6 +686,8 @@ function createWorker() {
       dbname: "EnabledSPA",
       storename: "enabled-spa"
     }),
+    // XXX This is a bit nasty having these extra dependencies that both
+    // TkWorker and ConversationList
     conversationList: new ConversationList({users: users, user: user})
   });
 }

@@ -6,7 +6,7 @@
  *
  * This is designed to contain list of conversation objects
  */
-var ConversationList= (function() {
+var ConversationList = (function() {
   "use strict";
 
   /**
