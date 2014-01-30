@@ -1,5 +1,5 @@
-/*global chai, sinon, Port, handlers, currentConversation:true, UserData,
-  browserPort:true, tkWorker, Conversation, SPA, payloads */
+/*global chai, sinon, Port, handlers,
+  browserPort:true, tkWorker, SPA, payloads */
 /* jshint expr:true */
 "use strict";
 
@@ -61,29 +61,20 @@ describe('handlers', function() {
       tkWorker.ports.add(port);
     });
 
-    afterEach(function() {
-      currentConversation = undefined;
-    });
-
     it("should remove a closed port on receiving social.port-closing",
       function() {
         handlers['social.port-closing'].bind(port)();
         expect(Object.keys(tkWorker.ports.ports)).to.have.length.of(0);
       });
 
-    it("should clear the current conversation on receiving " +
-       "social.port-closing for the conversation port", function() {
-        currentConversation = new Conversation({
-          capabilities: tkWorker.spa.capabilities,
-          peer: tkWorker.spa,
-          browserPort: browserPort,
-          users: tkWorker.users,
-          user: tkWorker.user
-        });
-        currentConversation.port = port;
+    it("should remove the conversation from the list on receiving"+
+       "social.port-closing for the conversation port" , function() {
+        sandbox.stub(tkWorker.conversationList, "unset");
 
         handlers['social.port-closing'].bind(port)();
-        expect(currentConversation).to.be.equal(undefined);
+
+        sinon.assert.calledOnce(tkWorker.conversationList.unset);
+        sinon.assert.calledWithExactly(tkWorker.conversationList.unset, 42);
       });
   });
 
@@ -105,74 +96,42 @@ describe('handlers', function() {
 
   describe("talkilla.conversation-open", function() {
     afterEach(function() {
-      currentConversation = undefined;
+      tkWorker.conversationList.reset();
     });
 
     it("should create a new conversation object when receiving a " +
        "talkilla.conversation-open event", function() {
-        var offerMsg = new payloads.Offer({
-          callid: 42,
-          offer: fakeOffer,
-          peer: "alice",
-          upgrade: false
-        });
-        tkWorker.users.set("alice", {});
-        handlers.postEvent = sinon.spy();
+        sandbox.stub(tkWorker.conversationList, "conversationOpen");
+
         handlers['talkilla.conversation-open']({
           topic: "talkilla.conversation-open",
-          data: offerMsg
-        });
-
-        expect(currentConversation).to.be.an.instanceOf(Conversation);
-      });
-
-    it("should store the contact", function() {
-      sandbox.stub(tkWorker.contactsDb, "add");
-      var offerMsg = new payloads.Offer({
-        callid: 42,
-        offer: fakeOffer,
-        peer: "alice",
-        upgrade: false
-      });
-      tkWorker.users.set("alice", {});
-      handlers.postEvent = sinon.spy();
-      handlers['talkilla.conversation-open']({
-        topic: "talkilla.conversation-open",
-        data: offerMsg
-      });
-
-      sinon.assert.calledOnce(tkWorker.contactsDb.add);
-      sinon.assert.calledWith(tkWorker.contactsDb.add, {username: "alice"});
-    });
-  });
-
-  describe("talkilla.chat-window-ready", function() {
-    beforeEach(function() {
-      tkWorker.user = new UserData();
-      currentConversation = {
-        windowOpened: sandbox.spy()
-      };
-    });
-
-    afterEach(function() {
-      currentConversation = undefined;
-      tkWorker.user.reset();
-    });
-
-    it("should tell the conversation the window has opened when " +
-      "receiving a talkilla.chat-window-ready",
-      function () {
-        var chatAppPort = {postEvent: sinon.spy()};
-        tkWorker.user.name = "bob";
-
-        handlers['talkilla.chat-window-ready'].bind(chatAppPort)({
-          topic: "talkilla.chat-window-ready",
           data: {}
         });
 
-        sinon.assert.called(currentConversation.windowOpened);
-        sinon.assert.calledWithExactly(currentConversation.windowOpened,
-          chatAppPort);
+        sinon.assert.calledOnce(tkWorker.conversationList.conversationOpen);
+        sinon.assert.calledWithExactly(
+          tkWorker.conversationList.conversationOpen,
+          {
+            topic: "talkilla.conversation-open",
+            data: {}
+          }, [], browserPort);
+      });
+  });
+
+  describe("talkilla.chat-window-ready", function() {
+    it("should tell the conversation the window has opened when " +
+      "receiving a talkilla.chat-window-ready",
+      function () {
+
+        var chatAppPort = {postEvent: sinon.spy()};
+        sandbox.stub(tkWorker.conversationList, "windowReady");
+
+        handlers['talkilla.chat-window-ready'].bind(chatAppPort)();
+
+        sinon.assert.calledOnce(tkWorker.conversationList.windowReady);
+        sinon.assert.calledWithExactly(tkWorker.conversationList.windowReady,
+          chatAppPort
+        );
       });
   });
 
@@ -344,7 +303,7 @@ describe('handlers', function() {
 
   describe("talkilla.call-hangup", function() {
     afterEach(function() {
-      currentConversation = undefined;
+      tkWorker.conversationList.reset();
     });
 
     it("should hangup the call when receiving talkilla.call-hangup",
@@ -364,9 +323,6 @@ describe('handlers', function() {
   });
 
   describe("talkilla.ice-candidate", function() {
-    afterEach(function() {
-    });
-
     it("should pass the ice candidate to the spa",
       function() {
         sandbox.stub(tkWorker.spa, "iceCandidate");

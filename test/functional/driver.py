@@ -36,7 +36,7 @@ class Driver(WebDriver):
         self.switchToSidebar()
         self.waitForElement("ul.nav-list>li>a[title=" + nick + "]",
                             visible=True).click()
-        return self.switchToChatWindow()
+        return self.switchToChatWindow(nick)
 
     def clickElement(self, css_selector):
         """ Clicks the element matching the provided CSS selector."""
@@ -121,7 +121,7 @@ class Driver(WebDriver):
         """ Close a conversation Window """
         self.detectWindowClose("window.close()")
 
-    def typeChatMessage(self, message, send=False):
+    def typeChatMessage(self, message, nick, send=False):
         """ Types a text chat message.
 
             Args:
@@ -130,7 +130,7 @@ class Driver(WebDriver):
             Kwargs:
             - send: Submit form to send the message? (default: False)
         """
-        self.switchToChatWindow()
+        self.switchToChatWindow(nick)
         input_text = self.waitForElement("form input", visible=True)
         input_text.send_keys(message)
         if send is True:
@@ -190,10 +190,11 @@ class Driver(WebDriver):
             wait_for_correct_document, message=msg)
         return self
 
-    def switchToChatWindow(self, timeout=DEFAULT_WAIT_TIMEOUT):
+    def switchToChatWindow(self, nick, timeout=DEFAULT_WAIT_TIMEOUT):
         """Switches to the Social API chat window."""
         return self.switchToFrame("//chatbox",
-                                  BASE_APP_URL + "/chat.html", timeout=timeout)
+                                  BASE_APP_URL + "/chat.html#" + nick,
+                                  timeout=timeout)
 
     def switchToSidebar(self):
         """Switches to the Social API sidebar."""

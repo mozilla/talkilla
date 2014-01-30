@@ -1,5 +1,5 @@
-/*global chai, sinon, browserPort:true, currentConversation:true,
-  SPA, Conversation, tkWorker, _setupSPA, payloads */
+/*global chai, sinon, browserPort:true,
+  SPA, tkWorker, _setupSPA, payloads */
 "use strict";
 
 var expect = chai.expect;
@@ -23,7 +23,6 @@ describe("SPA events", function() {
   });
 
   afterEach(function() {
-    currentConversation = undefined;
     sandbox.restore();
   });
 
@@ -59,14 +58,13 @@ describe("SPA events", function() {
   });
 
   describe("`message` event", function() {
-
     beforeEach(function() {
       browserPort = {postEvent: sandbox.spy()};
     });
 
-    it("should create a new conversation object with the call data",
+    it("should pass the message to conversationList.message",
       function() {
-        tkWorker.users.set('alice', {});
+        sandbox.stub(tkWorker.conversationList, "message");
         var textMsg = new payloads.SPAChannelMessage({
           type: "message",
           message: "a message",
@@ -75,48 +73,10 @@ describe("SPA events", function() {
 
         tkWorker.spa.trigger("message", textMsg);
 
-        expect(currentConversation).to.be.an.instanceOf(Conversation);
+        sinon.assert.calledOnce(tkWorker.conversationList.message);
+        sinon.assert.calledWithExactly(tkWorker.conversationList.message,
+          textMsg, [], browserPort);
       });
-
-    it("should try to re-use an existing conversation object",
-      function() {
-        var textMsg = new payloads.SPAChannelMessage({
-          type: "message",
-          message: "another message",
-          peer: "alice"
-        });
-        currentConversation = new Conversation({
-          capabilities: {},
-          peer: tkWorker.spa,
-          browserPort: browserPort,
-          users: tkWorker.users,
-          user: tkWorker.user
-        });
-        sandbox.stub(currentConversation, "handleIncomingText");
-
-        tkWorker.spa.trigger("message", textMsg);
-
-        sinon.assert.calledOnce(currentConversation.handleIncomingText);
-        sinon.assert.calledWith(currentConversation.handleIncomingText,
-                                textMsg);
-      });
-
-    it("should add the contact to the database", function() {
-      tkWorker.users.set('alice', {});
-      var textMsg = new payloads.SPAChannelMessage({
-        type: "message",
-        message: "a message",
-        peer: "alice"
-      });
-
-      tkWorker.spa.trigger("message", textMsg);
-
-      sinon.assert.calledOnce(tkWorker.contactsDb.add);
-      sinon.assert.calledWith(tkWorker.contactsDb.add, {
-        username: "alice"
-      });
-    });
-
   });
 
   describe("`users` event", function() {
@@ -226,12 +186,12 @@ describe("SPA events", function() {
 
     afterEach(function() {
       browserPort = undefined;
-      currentConversation = undefined;
+      tkWorker.conversationList.reset();
     });
 
-    it("should create a new conversation object with the call data",
+    it("should pass the offer to conversationList.offer",
       function() {
-      tkWorker.users.set('alice',{});
+      sandbox.stub(tkWorker.conversationList, "offer");
       var offerMsg = new payloads.Offer({
         callid: 42,
         offer: fakeOffer,
@@ -241,155 +201,85 @@ describe("SPA events", function() {
 
       tkWorker.spa.trigger("offer", offerMsg);
 
-      expect(currentConversation).to.be.an.instanceOf(Conversation);
+      sinon.assert.calledOnce(tkWorker.conversationList.offer);
+      sinon.assert.calledWithExactly(tkWorker.conversationList.offer,
+        offerMsg, [], browserPort);
     });
-
-    it("should try to re-use an existing conversation object",
-      function() {
-        var offerMsg = new payloads.Offer({
-          callid: 42,
-          offer: fakeOffer,
-          peer: "alice",
-          upgrade: false
-        });
-        currentConversation = new Conversation({
-          capabilities: {},
-          peer: tkWorker.spa,
-          browserPort: browserPort,
-          users: tkWorker.users,
-          user: tkWorker.user
-        });
-        sandbox.stub(currentConversation, "handleIncomingCall");
-
-        tkWorker.spa.trigger("offer", offerMsg);
-
-        sinon.assert.calledOnce(currentConversation.handleIncomingCall);
-        sinon.assert.calledWith(currentConversation.handleIncomingCall,
-                                offerMsg);
-      });
-
-    it("should add the contact to the database", function() {
-      tkWorker.users.set('alice',{});
-      var offerMsg = new payloads.Offer({
-        callid: 42,
-        offer: fakeOffer,
-        peer: "alice",
-        upgrade: false
-      });
-
-      tkWorker.spa.trigger("offer", offerMsg);
-
-      sinon.assert.calledOnce(tkWorker.contactsDb.add);
-      sinon.assert.calledWith(tkWorker.contactsDb.add, {
-        username: "alice"
-      });
-
-    });
-
   });
 
   describe("`answer` event", function() {
-
-    it("should call callAccepted on the conversation", function () {
+    it("should pass answerMsg to conversationList", function () {
+      sandbox.stub(tkWorker.conversationList, "answer");
       var answerMsg = new payloads.Answer({
         answer: fakeAnswer,
         peer: "alice"
       });
 
-      currentConversation = {
-        callAccepted: sandbox.spy()
-      };
-
       tkWorker.spa.trigger("answer", answerMsg);
 
-      sinon.assert.calledOnce(currentConversation.callAccepted);
-      sinon.assert.calledWithExactly(
-        currentConversation.callAccepted, answerMsg);
+      sinon.assert.calledOnce(
+        tkWorker.conversationList.answer);
+      sinon.assert.calledWithExactly(tkWorker.conversationList.answer,
+        answerMsg);
     });
 
   });
 
   describe("`hangup` event", function() {
-    beforeEach(function() {
-      currentConversation = {
-        callHangup: function() {}
-      };
-    });
-
-    it("should call callHangup on the conversation", function() {
+    it("should pass hangupMsg to conversationList", function() {
       var hangupMsg = new payloads.Hangup({callid: 42, peer: "bar"});
-      sandbox.stub(currentConversation, "callHangup");
+      sandbox.stub(tkWorker.conversationList, "hangup");
 
       tkWorker.spa.trigger("hangup", hangupMsg);
 
-      sinon.assert.calledOnce(currentConversation.callHangup);
-      sinon.assert.calledWithExactly(
-        currentConversation.callHangup, hangupMsg);
+      sinon.assert.calledOnce(tkWorker.conversationList.hangup);
+      sinon.assert.calledWithExactly(tkWorker.conversationList.hangup,
+        hangupMsg);
     });
   });
 
   describe("`hold` event", function() {
-    beforeEach(function() {
-      currentConversation = {
-        hold: function() {}
-      };
-    });
-
-    it("should call hold on the conversation", function() {
+    it("should pass holdMsg to conversationList", function() {
+      sandbox.stub(tkWorker.conversationList, "hold");
       var holdMsg = new payloads.Hold({callid: 42, peer: "bar"});
-      sandbox.stub(currentConversation, "hold");
 
       tkWorker.spa.trigger("hold", holdMsg);
 
-      sinon.assert.calledOnce(currentConversation.hold);
-      sinon.assert.calledWithExactly(
-        currentConversation.hold, holdMsg);
+      sinon.assert.calledOnce(tkWorker.conversationList.hold);
+      sinon.assert.calledWithExactly(tkWorker.conversationList.hold, holdMsg);
     });
   });
 
   describe("`resume` event", function() {
-    beforeEach(function() {
-      currentConversation = {
-        resume: function() {}
-      };
-    });
-
-    it("should call resume on the conversation", function() {
+    it("should pass resume to the conversationList", function() {
       var resumeMsg = new payloads.Resume({
         callid: 42,
         peer: "bar",
         media: {video: true}
       });
-      sandbox.stub(currentConversation, "resume");
+      sandbox.stub(tkWorker.conversationList, "resume");
 
       tkWorker.spa.trigger("resume", resumeMsg);
 
-      sinon.assert.calledOnce(currentConversation.resume);
-      sinon.assert.calledWithExactly(
-        currentConversation.resume, resumeMsg);
+      sinon.assert.calledOnce(tkWorker.conversationList.resume);
+      sinon.assert.calledWithExactly(tkWorker.conversationList.resume,
+        resumeMsg);
     });
   });
 
   describe("`ice:candidate` event", function() {
-    beforeEach(function() {
-      currentConversation = {
-        iceCandidate: function() {}
-      };
-    });
-
     it("should call callHangup on the conversation", function() {
-      sandbox.stub(currentConversation, "iceCandidate");
-
+      sandbox.stub(tkWorker.conversationList, "iceCandidate");
       var iceCandidateMsg = new payloads.IceCandidate({
-        peer: "lloyd",
+        peer: "bar",
         candidate: {fakeCandidate: true}
       });
 
       tkWorker.spa.trigger("ice:candidate", iceCandidateMsg);
 
-      sinon.assert.calledOnce(currentConversation.iceCandidate);
-      sinon.assert.calledWithExactly(
-        currentConversation.iceCandidate, iceCandidateMsg);
+      sinon.assert.calledOnce(tkWorker.conversationList.iceCandidate);
+      sinon.assert.calledWithExactly(tkWorker.conversationList.iceCandidate,
+        iceCandidateMsg);
     });
   });
 
@@ -462,56 +352,24 @@ describe("SPA events", function() {
 
     beforeEach(function() {
       browserPort = {postEvent: sandbox.spy()};
-      tkWorker.users.set('alice',{});
     });
 
     afterEach(function() {
       browserPort = undefined;
-      currentConversation = undefined;
     });
 
-    it("should create a new conversation object", function() {
+    it("should pass instantshare message to conversationList", function() {
+      sandbox.stub(tkWorker.conversationList, "instantshare");
       var instantShareMsg = new payloads.InstantShare({
         peer: "alice"
       });
 
       tkWorker.spa.trigger("instantshare", instantShareMsg);
 
-      expect(currentConversation).to.be.an.instanceOf(Conversation);
+      sinon.assert.calledOnce(tkWorker.conversationList.instantshare);
+      sinon.assert.calledWithExactly(tkWorker.conversationList.instantshare, 
+        instantShareMsg, [], browserPort);
     });
-
-    it("should try to re-use an existing conversation object",
-      function() {
-        var instantShareMsg = new payloads.InstantShare({
-          peer: "alice"
-        });
-        currentConversation = new Conversation({
-          capabilities: {},
-          peer: tkWorker.users.get("alice"),
-          browserPort: browserPort,
-          users: tkWorker.users,
-          user: tkWorker.user
-        });
-        sandbox.stub(currentConversation, "startCall");
-
-        tkWorker.spa.trigger("instantshare", instantShareMsg);
-
-        sinon.assert.calledOnce(currentConversation.startCall);
-      });
-
-    it("should add the contact to the database", function() {
-      var instantShareMsg = new payloads.InstantShare({
-        peer: "alice"
-      });
-
-      tkWorker.spa.trigger("instantshare", instantShareMsg);
-
-      sinon.assert.calledOnce(tkWorker.contactsDb.add);
-      sinon.assert.calledWith(tkWorker.contactsDb.add, {
-        username: "alice"
-      });
-    });
-
   });
 
 });

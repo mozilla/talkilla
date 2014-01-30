@@ -40,7 +40,8 @@ var Conversation = (function() {
 
     this.messageQueue = [];
 
-    this.browserPort.postEvent('social.request-chat', 'chat.html');
+    this.browserPort.postEvent('social.request-chat',
+                               'chat.html#'+this.peer.username);
   }
 
   Conversation.prototype = {

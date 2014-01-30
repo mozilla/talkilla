@@ -9,7 +9,7 @@ from browser_test import MultipleNodeBrowserTest, debug_on  # NOQA
 from config import testConfig
 
 
-class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
+class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry, mixins.WithAlice,
                            MultipleNodeBrowserTest):
 
     def test_audio_only_call(self):
@@ -19,8 +19,8 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
         self.bob.openConversationWith("larry").startCall(False)
         self.assertPendingOutgoingCall(self.bob)
 
-        self.bob.switchToChatWindow()
-        self.larry.switchToChatWindow()
+        self.bob.switchToChatWindow("larry")
+        self.larry.switchToChatWindow("bob")
 
         self.assertIncomingCall(self.larry)
         self.larry.acceptCall()
@@ -41,7 +41,7 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
         self.bob.openConversationWith("larry").startCall(True)
         self.assertPendingOutgoingCall(self.bob)
 
-        self.larry.switchToChatWindow()
+        self.larry.switchToChatWindow("bob")
         self.assertIncomingCall(self.larry)
 
         self.assertCallTimedOut(self.bob)
@@ -50,7 +50,7 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
         self.larry.openConversationWith("bob").startCall(True)
         self.assertPendingOutgoingCall(self.larry)
 
-        self.bob.switchToChatWindow()
+        self.bob.switchToChatWindow("larry")
         self.assertIncomingCall(self.bob)
         self.bob.acceptCall()
 
@@ -92,7 +92,7 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
         self.bob.openConversationWith("larry").startCall(True)
         self.assertPendingOutgoingCall(self.bob)
 
-        self.larry.switchToChatWindow()
+        self.larry.switchToChatWindow("bob")
         self.assertIncomingCall(self.larry)
         assert self.larry.title == "bob"
         self.larry.acceptCall()
@@ -101,7 +101,7 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
         self.assertOngoingCall(self.larry)
 
         self.bob.hangupCall()
-        self.assertChatWindowClosed(self.larry)
+        self.assertChatWindowClosed(self.larry, "bob")
 
     def test_video_call_timeout(self):
         self.bob.signin()
@@ -110,11 +110,11 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
         self.bob.openConversationWith("larry").startCall(True)
         self.assertPendingOutgoingCall(self.bob)
 
-        self.larry.switchToChatWindow()
+        self.larry.switchToChatWindow("bob")
         self.assertIncomingCall(self.larry)
 
         self.assertCallTimedOut(self.bob)
-        self.assertChatWindowClosed(self.larry)
+        self.assertChatWindowClosed(self.larry, "bob")
 
     def test_video_call_timeout_and_retry(self):
         self.bob.signin()
@@ -123,7 +123,7 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
         self.bob.openConversationWith("larry").startCall(True)
         self.assertPendingOutgoingCall(self.bob)
 
-        self.larry.switchToChatWindow()
+        self.larry.switchToChatWindow("bob")
         self.assertIncomingCall(self.larry)
 
         self.assertCallTimedOut(self.bob)
@@ -132,7 +132,7 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
         self.bob.restartCall()
         self.assertPendingOutgoingCall(self.bob)
 
-        self.larry.switchToChatWindow()
+        self.larry.switchToChatWindow("bob")
         self.assertIncomingCall(self.larry)
         self.larry.acceptCall()
 
@@ -146,7 +146,7 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
         self.bob.openConversationWith("larry").startCall(True)
         self.assertPendingOutgoingCall(self.bob)
 
-        self.larry.switchToChatWindow()
+        self.larry.switchToChatWindow("bob")
         self.larry.ignoreCall()
 
         self.assertCallTimedOut(self.bob)
@@ -157,32 +157,32 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
 
         self.bob.openConversationWith("larry").startCall(True)
 
-        self.larry.switchToChatWindow()
+        self.larry.switchToChatWindow("bob")
         self.larry.ignoreCall()
         # Wait for the ignore to finish and the window to close
         time.sleep(testConfig['CONVERSATION_IGNORE_DISPLAY_TIME'] / 1000)
-        self.assertChatWindowClosed(self.larry)
+        self.assertChatWindowClosed(self.larry, "bob")
 
         self.larry.openConversationWith("bob")
         self.assertCallTimedOut(self.bob)
-        self.assertChatWindowOpen(self.larry)
+        self.assertChatWindowOpen(self.larry, "bob")
 
     def test_text_chat(self):
         self.larry.signin()
         self.bob.signin()
 
-        self.bob.openConversationWith("larry").typeChatMessage("hi!",
+        self.bob.openConversationWith("larry").typeChatMessage("hi!", "larry",
                                                                send=True)
-        self.assertChatMessageContains(self.bob, "hi!", line=1)
-        self.assertChatMessageContains(self.larry, "hi!", line=1)
+        self.assertChatMessageContains(self.bob, "hi!", "larry", line=1)
+        self.assertChatMessageContains(self.larry, "hi!", "bob", line=1)
 
-        self.larry.typeChatMessage("yay!", send=True)
-        self.assertChatMessageContains(self.bob, "yay!", line=2)
-        self.assertChatMessageContains(self.larry, "yay!", line=2)
+        self.larry.typeChatMessage("yay!", "bob", send=True)
+        self.assertChatMessageContains(self.bob, "yay!", "larry", line=2)
+        self.assertChatMessageContains(self.larry, "yay!", "bob", line=2)
 
-        self.bob.typeChatMessage("ok", send=True)
-        self.assertChatMessageContains(self.bob, "ok", line=3)
-        self.assertChatMessageContains(self.larry, "ok", line=3)
+        self.bob.typeChatMessage("ok", "larry", send=True)
+        self.assertChatMessageContains(self.bob, "ok", "larry", line=3)
+        self.assertChatMessageContains(self.larry, "ok", "bob", line=3)
 
     def test_presence_icon(self):
         self.larry.signin()
@@ -200,30 +200,32 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
 
         self.bob.openConversationWith("larry")
         self.assertMessagePlaceholderEquals(self.bob,
-                                            "Type something to start chatting")
+                                            "Type something to start chatting",
+                                            "larry")
 
-        self.bob.typeChatMessage("wazza", send=True)
-        self.assertMessagePlaceholderEquals(self.bob, "")
+        self.bob.typeChatMessage("wazza", "larry", send=True)
+        self.assertMessagePlaceholderEquals(self.bob, "", "larry")
 
         self.bob.closeConversationWindow()
         self.bob.openConversationWith("larry")
-        self.assertMessagePlaceholderEquals(self.bob, "")
+        self.assertMessagePlaceholderEquals(self.bob, "", "larry")
 
     def test_local_video_visible_to_call_upgrader(self):
         self.bob.signin()
         self.larry.signin()
 
         self.bob.openConversationWith("larry").typeChatMessage("let's chat!",
+                                                               "larry",
                                                                send=True)
 
-        self.larry.switchToChatWindow().startCall(True)
+        self.larry.switchToChatWindow("bob").startCall(True)
 
         self.bob.acceptCall()
 
         self.assertElementVisible(self.larry, "#local-media")
 
         self.bob.hangupCall()
-        self.assertChatWindowClosed(self.larry)
+        self.assertChatWindowClosed(self.larry, "bob")
 
     def test_contact_is_typing(self):
         self.larry.signin()
@@ -231,13 +233,29 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
 
         self.larry.openConversationWith("bob")
         self.bob.openConversationWith("larry").typeChatMessage("Hey Buddy!",
+                                                               "larry",
                                                                send=True)
 
-        self.waitForNewMessageReceived(self.larry)
-        self.bob.typeChatMessage("wazzza")
-        self.assertIsTyping(self.larry)
+        self.waitForNewMessageReceived(self.larry, "bob")
+        self.bob.typeChatMessage("wazzza", "larry")
+        self.assertIsTyping(self.larry, "bob")
 
-        self.assertNotTyping(self.larry)
+        self.assertNotTyping(self.larry, "bob")
+
+    def test_multi_user_chat(self):
+        self.larry.signin()
+        self.bob.signin()
+        self.alice.signin()
+
+        self.bob.openConversationWith("larry").typeChatMessage("hi!", "larry",
+                                                               send=True)
+        self.assertChatMessageContains(self.bob, "hi!", "larry", line=1)
+        self.assertChatMessageContains(self.larry, "hi!", "bob", line=1)
+
+        self.bob.openConversationWith("alice").typeChatMessage("yo!", "alice",
+                                                               send=True)
+        self.assertChatMessageContains(self.bob, "yo!", "alice", line=1)
+        self.assertChatMessageContains(self.alice, "yo!", "bob", line=1)
 
     def test_instant_share(self):
         # save this so we have a normal browser context to view the link
@@ -255,10 +273,10 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
         self.bob.get(instant_share_link)
         self.bob.find_element_by_css_selector("a.call-button").click()
 
-        self.bob.switchToChatWindow()
+        self.bob.switchToChatWindow("larry")
         self.assertPendingOutgoingCall(self.bob)
 
-        self.larry.switchToChatWindow()
+        self.larry.switchToChatWindow("bob")
         self.assertIncomingCall(self.larry)
         self.larry.acceptCall()
 
@@ -266,7 +284,7 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry,
         self.assertOngoingCall(self.larry)
 
         self.bob.hangupCall()
-        self.assertChatWindowClosed(self.larry)
+        self.assertChatWindowClosed(self.larry, "bob")
 
 if __name__ == "__main__":
     unittest.main(catchbreak=True)

@@ -38,3 +38,13 @@ class WithLarry(object):
     def tearDown(self):
         super(WithLarry, self).tearDown()
         self.larry.quit()
+
+
+class WithAlice(object):
+    def setUp(self):
+        super(WithAlice, self).setUp()
+        self.alice = driver.create("alice")
+
+    def tearDown(self):
+        super(WithAlice, self).tearDown()
+        self.alice.quit()
