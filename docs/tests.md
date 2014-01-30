@@ -75,6 +75,10 @@ Run the tests, bootstrapping necessary dependencies from the net:
 
     $ make selenium
 
+On Linux, the tests will be run using Xvfb (X virtual frame buffer). If you
+want to have the firefox windows show up, you can force that by setting the
+`FORCE_XFVB` environment variable.
+
 To run the tests repeatedly, automatically for 10 runs or until failure:
 
     $ make selenium-repeat
