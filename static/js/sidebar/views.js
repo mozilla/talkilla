@@ -295,7 +295,7 @@
       '<a class="user-entry" href="#" rel="<%= username %>"',
       '   title="<%= username %>">',
       '  <div class="avatar">',
-      '    <img src="<%= avatar %>">',
+      '    <img src="<%= avatar %>&s=64">',
       '    <span class="status status-<%= presence %>"></span>',
       '  </div>',
       '  <div class="user-entry-details">',

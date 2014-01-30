@@ -112,8 +112,6 @@ UserData.prototype = {
 
     var userData = {
       iconURL: iconURL,
-      // XXX for now, we just hard-code the default avatar image.
-      portrait: this._rootURL + "/img/default-avatar.png",
       userName: this._name,
       displayName: this._name,
       profileURL: this._rootURL + "/user.html"
