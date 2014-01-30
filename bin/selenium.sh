@@ -38,7 +38,7 @@ start() {
         exit 1
     fi
 
-    if [ "$(uname)" == "Linux" & -n "$DISABLE_XVFB"]; then
+    if [[ "$(uname)" == "Linux" && -z "$DISABLE_XVFB" ]]; then
         echo "Running the tests in a virtual frame buffer."
         XVFB="xvfb-run"
     fi
