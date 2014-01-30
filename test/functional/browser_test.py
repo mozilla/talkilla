@@ -50,8 +50,8 @@ def kill_app(app):
 
 
 class BrowserTest(unittest.TestCase):
-    def assertChatMessageContains(self, driver, message, line=1):
-        driver.switchToChatWindow()
+    def assertChatMessageContains(self, driver, message, nick, line=1):
+        driver.switchToChatWindow(nick)
         css_selector = "#textchat li"
         if line > 1:
             css_selector += ":nth-child(%d)" % line
@@ -61,8 +61,8 @@ class BrowserTest(unittest.TestCase):
             raise AssertionError(u'Chat message containing "%s" not found; %s'
                                  % (message, err))
 
-    def assertMessagePlaceholderEquals(self, driver, text):
-        driver.switchToChatWindow()
+    def assertMessagePlaceholderEquals(self, driver, text, nick):
+        driver.switchToChatWindow(nick)
         css_selector = "#textchat form input[name='message']"
 
         try:
@@ -72,8 +72,8 @@ class BrowserTest(unittest.TestCase):
             raise AssertionError(u'Message box doesnt have placeholder; %s'
                                  % (err))
 
-    def assertIsTyping(self, driver):
-        driver.switchToChatWindow()
+    def assertIsTyping(self, driver, nick):
+        driver.switchToChatWindow(nick)
         css_selector = "#textchat.typing"
 
         try:
@@ -83,8 +83,8 @@ class BrowserTest(unittest.TestCase):
             raise AssertionError(u'User is not currently typing a message; %s'
                                  % (err))
 
-    def assertNotTyping(self, driver):
-        driver.switchToChatWindow()
+    def assertNotTyping(self, driver, nick):
+        driver.switchToChatWindow(nick)
         css_selector = "#textchat"
         driver.waitForElement("#textchat:not(.typing)")
 
@@ -95,9 +95,9 @@ class BrowserTest(unittest.TestCase):
             raise AssertionError(u'User is currently typing a message; %s'
                                  % (err))
 
-    def waitForNewMessageReceived(self, driver):
+    def waitForNewMessageReceived(self, driver, nick):
         prev = len(driver.find_elements_by_css_selector("#textchat ul > li"))
-        driver.switchToChatWindow()
+        driver.switchToChatWindow(nick)
         next = prev + 1
         css_selector = "#textchat li:nth-child(%d)" % next
         driver.waitForElement(css_selector)
@@ -283,15 +283,15 @@ class BrowserTest(unittest.TestCase):
             raise AssertionError(u'Title does not equal "%s"; got "%s"' % (
                 title, driver.title))
 
-    def assertChatWindowOpen(self, driver):
+    def assertChatWindowOpen(self, driver, nick):
         try:
-            driver.switchToChatWindow(timeout=1)
+            driver.switchToChatWindow(nick, timeout=1)
         except TimeoutException:
             raise AssertionError('The Chat Window is not open')
 
-    def assertChatWindowClosed(self, driver):
+    def assertChatWindowClosed(self, driver, nick):
         try:
-            driver.switchToChatWindow(timeout=1)
+            driver.switchToChatWindow(nick, timeout=1)
             raise AssertionError('The Chat Window is not closed')
         except TimeoutException:
             pass
