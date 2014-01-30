@@ -85,40 +85,45 @@
 }
 
 .sidebar #gear-menu ul {
-  margin: 0;
+  margin: 0; /* Needed to overwrite bootstrap rules. */
   clear: both;
 }
 
 .sidebar #gear-menu ul li {
   list-style-type: none;
   border-bottom: 1px solid #e3e5e6;
-  margin: 0;
-  width: 100%;
 }
 .sidebar #gear-menu ul li :hover {
   background: #d8e6ef;
 }
 
 .sidebar #gear-menu ul li a, .sidebar #gear-menu ul li button {
-  color: #7b8893;
+  /* Reset style for both links and button elements. */
   text-decoration: none;
-  line-height: 36px;
   text-align: left;
   border: 0;
-  background-color: inherit;
-  display: block;
+  display: block; /* We want links to take all the space. */
   margin: 0;
   padding: 0;
+
+  /* Actual styling */
+  background-color: inherit;
   padding-left: 10px;
+}
+
+.sidebar #gear-menu ul li a, .sidebar #gear-menu ul li button,
+.sidebar .users li a {
+  line-height: 2.5em;
+  color: #7b8893;
+}
+
+.sidebar #gear-menu ul li button {
+  width: 100%;
 }
 
 .sidebar #gear-menu ul li form {
   margin: 0;
   padding: 0;
-}
-
-.sidebar #gear-menu ul li button {
-  width: 100%;
 }
 
 .sidebar #pstn-dialin {
@@ -159,10 +164,8 @@
 
 .sidebar .users li a {
   clear: left;
-  color: #7b8893;
   padding: 10px;
   text-decoration: none;
-  line-height: 36px;
   border-bottom: 1px solid #e3e5e6;
 }
 
