@@ -9,6 +9,8 @@ var CurrentUsers = (function() {
    * would have a contact property, storing the contact information from the
    * contactsDb, and a presence property. Access to specific users is by
    * filtering within the contact information.
+   * When this is done, we can remove the field arguments from updateContacts
+   * and set, and this will remove dependencies on information from the spa.
    */
   function CurrentUsers() {
     this.users = {};
@@ -37,6 +39,8 @@ var CurrentUsers = (function() {
      * Sets user information and adds it to the current list.
      * @param {String}           userId     User unique identifier
      * @param {Object|undefined} attributes User attributes
+     * @param {Array} field The field that is currently used as the username
+     *                      for the spa. e.g. "phoneNumber" or "email"
      */
     set: function(userId, attributes, field) {
       attributes = attributes || {};
@@ -71,6 +75,8 @@ var CurrentUsers = (function() {
      * Update current users list with provided contacts list, preserving the
      * presence property.
      * @param  {Array} contacts Contacts list
+     * @param  {Array} field The field that is currently used as the username
+     *                       for the spa. e.g. "phoneNumber" or "email"
      */
     updateContacts: function(contacts, field) {
       (contacts || [])

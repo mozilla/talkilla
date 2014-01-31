@@ -59,6 +59,8 @@ var GoogleContacts = (function() {
       return this.dataFeed.feed.entry.reduce(function(contacts, entry) {
         if (!entry.gd$email)
           return contacts;
+        // This is to handle multiple email addresses on contacts
+        // XXX Really we should handle multiple emails per contact.
         return contacts.concat(entry.gd$email.map(function(key) {
           var contact = {
             email: key.address

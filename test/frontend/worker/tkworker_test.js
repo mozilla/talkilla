@@ -200,7 +200,7 @@ describe("tkWorker", function() {
   describe("#collectContact", function() {
     it("should add the contact to the contacts database", function(done) {
       worker.spa = {
-        usernameFieldType: function() { return "email"; }
+        get usernameFieldType() { return "email"; }
       };
 
       sandbox.stub(worker.contactsDb, "add", function(id, cb) {
@@ -220,7 +220,7 @@ describe("tkWorker", function() {
     beforeEach(function() {
       contacts = [{username: "foo"}];
       worker.spa = {
-        usernameFieldType: function() { return "email"; }
+        get usernameFieldType() { return "email"; }
       };
       sandbox.stub(worker.contactsDb, "replaceSourceContacts");
       sandbox.stub(worker.users, "updateContacts");
@@ -244,7 +244,7 @@ describe("tkWorker", function() {
   describe("#updateContactList", function() {
     beforeEach(function() {
       worker.spa = {
-        usernameFieldType: function() { return "email"; }
+        get usernameFieldType() { return "email"; }
       };
     });
 

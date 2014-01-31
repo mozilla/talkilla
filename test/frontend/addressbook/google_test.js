@@ -291,7 +291,7 @@ describe("GoogleContacts", function() {
 
   describe("#loadContacts", function() {
     it("should notify appPort with retrieved list of contacts", function() {
-      var contacts = [{email: "foo"}, {email: "bar"}];
+      var contacts = [{email: "foo@example.com"}, {email: "bar@example.com"}];
       sandbox.stub(GoogleContacts.prototype, "authorize", caller);
       sandbox.stub(GoogleContacts.prototype, "all", function(cb) {
         cb(null, contacts);

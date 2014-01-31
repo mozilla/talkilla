@@ -129,7 +129,7 @@ describe("ContactsDB", function() {
 
   describe("#add", function() {
     it("should add a record to the database", function(done) {
-      var contact = {email: "florian"};
+      var contact = {email: "florian@example.com"};
       contactsDb.add(contact, function(err, email) {
         expect(err).to.be.a("null");
         expect(email).eql(contact);
@@ -142,7 +142,7 @@ describe("ContactsDB", function() {
 
     it("shouldn't raise an error in case of a duplicate contact",
       function(done) {
-        var contact = {email: "niko"};
+        var contact = {email: "niko@example.com"};
         contactsDb.add(contact, function(err) {
           expect(err).to.be.a("null");
           this.add(contact, function(err) {
@@ -156,7 +156,7 @@ describe("ContactsDB", function() {
       sandbox.stub(IDBObjectStore.prototype, "add", function() {
         throw new Error("add error");
       });
-      contactsDb.add({email: "foo"}, function(err) {
+      contactsDb.add({email: "foo@example.com"}, function(err) {
         expect(err).eql("add error");
         done();
       });
@@ -171,7 +171,7 @@ describe("ContactsDB", function() {
         });
         return request;
       });
-      contactsDb.add({email: "foo"}, function(err) {
+      contactsDb.add({email: "foo@example.com"}, function(err) {
         expect(err.message).eql("add error");
         done();
       });
@@ -183,37 +183,38 @@ describe("ContactsDB", function() {
       function(done) {
         // First add a couple of contacts - one with the google source,
         // one without.
-        contactsDb.add({email: "florian"}, function(err) {
+        contactsDb.add({email: "florian@example.com"}, function(err) {
           if (err)
             throw err;
-          contactsDb.add({email: "rt", source: "google"}, function(err) {
-            if (err)
-              throw err;
+          contactsDb.add({email: "rt@example.com", source: "google"},
+            function(err) {
+              if (err)
+                throw err;
 
-            // Now for the real test
-            contactsDb.replaceSourceContacts([], "google",
-              function(err, result) {
-                expect(err).to.be.a("null");
-                expect(result).eql([]);
-
-                contactsDb.all(function(err, result) {
+              // Now for the real test
+              contactsDb.replaceSourceContacts([], "google",
+                function(err, result) {
                   expect(err).to.be.a("null");
-                  expect(result).eql([{email: "florian"}]);
-                  done();
+                  expect(result).eql([]);
+
+                  contactsDb.all(function(err, result) {
+                    expect(err).to.be.a("null");
+                    expect(result).eql([{email: "florian@example.com"}]);
+                    done();
+                  });
                 });
-              });
-          });
+            });
         });
       });
 
     it("should add supplied contacts tagged with their source", function(done) {
       var contacts = [
-        {email: "rt"},
-        {email: "florian"}
+        {email: "rt@example.com"},
+        {email: "florian@example.com"}
       ];
       var expected = [
-        {email: "rt", source: "google"},
-        {email: "florian", source: "google"}
+        {email: "rt@example.com", source: "google"},
+        {email: "florian@example.com", source: "google"}
       ];
       contactsDb.replaceSourceContacts(contacts, "google",
         function(err, result) {
@@ -231,7 +232,7 @@ describe("ContactsDB", function() {
       sandbox.stub(IDBObjectStore.prototype, "add", function() {
         throw new Error("add error");
       });
-      contactsDb.replaceSourceContacts([{email: "foo"}], "google",
+      contactsDb.replaceSourceContacts([{email: "foo@example.com"}], "google",
         function(err) {
           expect(err).eql("add error");
           done();
@@ -248,7 +249,7 @@ describe("ContactsDB", function() {
     });
 
     it("should retrieve all contacts", function(done) {
-      var niko = {email: "niko"}, jb = {email: "jb"};
+      var niko = {email: "niko@example.com"}, jb = {email: "jb@example.com"};
       contactsDb.add(niko, function() {
         this.add(jb, function() {
           this.all(function(err, contacts) {
@@ -264,7 +265,7 @@ describe("ContactsDB", function() {
     });
 
     it("should preserve the order of insertion", function(done) {
-      var niko = {email: "niko"}, jb = {email: "jb"};
+      var niko = {email: "niko@example.com"}, jb = {email: "jb@example.com"};
       contactsDb.add(niko, function() {
         this.add(jb, function() {
           this.all(function(err, contacts) {

@@ -162,7 +162,7 @@ function _setupSPA(spa) {
   spa.on("users", function(data) {
     data.forEach(function(user) {
       tkWorker.users.set(user.nick, {presence: "connected"},
-        tkWorker.spa.usernameFieldType());
+        tkWorker.spa.usernameFieldType);
     });
 
     tkWorker.ports.broadcastEvent("talkilla.users", tkWorker.users.toArray());
@@ -170,7 +170,7 @@ function _setupSPA(spa) {
 
   spa.on("userJoined", function(userId) {
     tkWorker.users.set(userId, {presence: "connected"},
-      tkWorker.spa.usernameFieldType());
+      tkWorker.spa.usernameFieldType);
 
     tkWorker.ports.broadcastEvent("talkilla.users", tkWorker.users.toArray());
     tkWorker.ports.broadcastEvent("talkilla.user-joined", userId);
@@ -181,7 +181,7 @@ function _setupSPA(spa) {
       return;
 
     tkWorker.users.set(userId, {presence: "disconnected"},
-      tkWorker.spa.usernameFieldType());
+      tkWorker.spa.usernameFieldType);
 
     tkWorker.ports.broadcastEvent("talkilla.users", tkWorker.users.toArray());
     tkWorker.ports.broadcastEvent("talkilla.user-left", userId);
@@ -620,7 +620,7 @@ TkWorker.prototype = {
   collectContact: function(id, callback) {
     var contact = {};
 
-    contact[this.spa.usernameFieldType()] = id;
+    contact[this.spa.usernameFieldType] = id;
 
     this.contactsDb.add(contact, function(err) {
       if (err)
@@ -643,7 +643,7 @@ TkWorker.prototype = {
    * @param  {Array} contacts Contacts; format: [{username: "address"}]
    */
   updateContactList: function(contacts) {
-    this.users.updateContacts(contacts, this.spa.usernameFieldType());
+    this.users.updateContacts(contacts, this.spa.usernameFieldType);
     this.ports.broadcastEvent("talkilla.users", this.users.toArray());
   },
 

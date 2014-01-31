@@ -26,7 +26,7 @@ var SPA = (function() {
     // XXX This is a hack whilst we have a username field representing either
     // a phone number or an email address based on SPA. Really, we need to
     // change the CurrentUsers object - see XXX description there.
-    usernameFieldType: function () {
+    get usernameFieldType() {
       return this.capabilities.indexOf("pstn-call") !== -1 ?
         "phoneNumber" : "email";
     },
