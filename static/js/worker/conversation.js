@@ -3,13 +3,11 @@
  * Conversation data storage.
  *
  * This is designed to contain information about open conversation
- * windows, and to route appropraite information to those windows,
+ * windows, and to route appropraite information to those windows.
  *
- * Some aspects of the design are more relevant to only allowing
- * a single conversation window, and these will need to be changed
- * at the appropriate time.
+ * Conversation will also queue messages until it is notified that
+ * a window has been opened.
  */
-
 var Conversation = (function() {
   "use strict";
 
@@ -60,32 +58,6 @@ var Conversation = (function() {
     },
 
     /**
-    * Returns true if this conversation window is for the specified
-    * peer and the incoming call data is passed to that window.
-    *
-    * @param {payloads.offer} offer: the offer message for an
-    *                                incoming conversation
-    */
-    handleIncomingCall: function(offer) {
-      if (this.peer.username !== offer.peer)
-        return false;
-
-      this._sendMessage("talkilla.conversation-incoming", offer);
-      return true;
-    },
-
-    handleIncomingText: function(textMsg) {
-      if (this.peer.username !== textMsg.peer)
-        return false;
-
-      this._sendMessage("talkilla.spa-channel-message", {
-        message: textMsg.message
-      });
-
-      return true;
-    },
-
-    /**
     * Attempts to send a message to the port, if the port is not known
     * it will queue the message for delivery on window opened.
     */
@@ -94,6 +66,21 @@ var Conversation = (function() {
         this.port.postEvent(topic, data);
       else
         this.messageQueue.push({topic: topic, data: data});
+    },
+
+    /**
+    * Passes incoming call offers to the window.
+    * @param {payloads.offer} offer: the offer message for an
+    *                                incoming conversation
+    */
+    handleIncomingCall: function(offer) {
+      this._sendMessage("talkilla.conversation-incoming", offer);
+    },
+
+    handleIncomingText: function(textMsg) {
+      this._sendMessage("talkilla.spa-channel-message", {
+        message: textMsg.message
+      });
     },
 
     /**
@@ -106,7 +93,7 @@ var Conversation = (function() {
     * - offer  the sdp offer for the connection
     */
     callAccepted: function(data) {
-      this.port.postEvent('talkilla.call-establishment', data);
+      this._sendMessage('talkilla.call-establishment', data);
     },
 
     /**
@@ -116,7 +103,7 @@ var Conversation = (function() {
     * @param {payloads.Hold} The hold message for the conversation
     */
     hold: function(data) {
-      this.port.postEvent('talkilla.hold', data);
+      this._sendMessage('talkilla.hold', data);
     },
 
 
@@ -127,7 +114,7 @@ var Conversation = (function() {
     * @param {payloads.Resume} The resume message for the conversation
     */
     resume: function(data) {
-      this.port.postEvent('talkilla.resume', data);
+      this._sendMessage('talkilla.resume', data);
     },
 
 
@@ -140,7 +127,7 @@ var Conversation = (function() {
     * - peer   the id of the other user
     */
     callHangup: function(data) {
-      this.port.postEvent('talkilla.call-hangup', data);
+      this._sendMessage('talkilla.call-hangup', data);
     },
 
     iceCandidate: function(data) {
