@@ -53,35 +53,24 @@ var GoogleContacts = (function() {
      * Extracts contact information (email addresses, phone numbers) from
      * current data feed.
      *
-     * @param {String} id What should be considered the unique identifier
-                          (Should be "phoneNumber" or "email").
      * @return {Array}
      */
-    normalize: function(id) {
-      var keyField, getUsername;
-
-      if (id === "email") {
-        keyField = "gd$email";
-        getUsername = function(email) {
-          return email.address;
-        };
-      } else if (id === "phoneNumber") {
-        keyField = "gd$phoneNumber";
-        getUsername = function(item) {
-          return item.$t;
-        };
-      }
-
+    normalize: function() {
       return this.dataFeed.feed.entry.reduce(function(contacts, entry) {
-        if (!entry[keyField])
+        if (!entry.gd$email)
           return contacts;
-        return contacts.concat(entry[keyField].map(function(key) {
+        // This is to handle multiple email addresses on contacts
+        // XXX Really we should handle multiple emails per contact.
+        return contacts.concat(entry.gd$email.map(function(key) {
           var contact = {
-            username: getUsername(key)
+            email: key.address
           };
           if (entry.gd$name && entry.gd$name.gd$fullName &&
               entry.gd$name.gd$fullName.$t)
             contact.fullName = entry.gd$name.gd$fullName.$t;
+          if (entry.gd$phoneNumber && entry.gd$phoneNumber.length &&
+              entry.gd$phoneNumber[0].$t)
+            contact.phoneNumber = entry.gd$phoneNumber[0].$t;
 
           return contact;
         }));
@@ -133,12 +122,9 @@ var GoogleContacts = (function() {
     /**
      * Retrieves all Google Contacts from currently authenticated user.
      *
-     * @param  {String} contactIdentifier. Describes what should be used as the
-     *                  contact identifier. Should be either "phoneNumber" or
-     *                  "email".
      * @param  {Function} cb Callback
      */
-    all: function(contactIdentifier, cb) {
+    all: function(cb) {
       if (!this.token)
         return cb.call(this, new Error("Missing token, please authorize."));
       // XXX: we should reuse worker http.js here - need to adapt it though
@@ -153,7 +139,7 @@ var GoogleContacts = (function() {
         try {
           var feed = JSON.parse(request.responseText);
           cb.call(this, null,
-            new GoogleContacts.Importer(feed).normalize(contactIdentifier));
+            new GoogleContacts.Importer(feed).normalize());
         } catch (err) {
           cb.call(this, err);
         }
@@ -173,16 +159,12 @@ var GoogleContacts = (function() {
      * AppPort through the `talkilla.contacts` event.
      *
      * Emits `talkilla.contacts-error` on any encountered error.
-     *
-     * @param  {String} contactIdentifier. Describes what should be used as the
-     *                  contact identifier. Should be either "phoneNumber" or
-     *                  "email".
      */
-    loadContacts: function(contactIdentifier) {
+    loadContacts: function() {
       this.authorize(function(err) {
         if (err)
           return this.appPort.post("talkilla.contacts-error", err);
-        this.all(contactIdentifier, function(err, contacts) {
+        this.all(function(err, contacts) {
           if (err)
             return this.appPort.post("talkilla.contacts-error", err);
           this.appPort.post("talkilla.contacts", {

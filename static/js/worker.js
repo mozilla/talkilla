@@ -1,5 +1,5 @@
 /* global indexedDB, importScripts, SPA, HTTP, ContactsDB, SPADB,
-   CurrentUsers, loadConfig, payloads, Conversation, dump */
+   CurrentUsers, loadConfig, payloads, Conversation, dump, ConversationList */
 /* jshint unused:false */
 "use strict";
 
@@ -14,12 +14,13 @@ importScripts(
   '/js/http.js',
   'worker/users.js',
   'worker/spa.js',
-  'worker/conversation.js'
+  'worker/conversation.js',
+  'worker/conversationList.js'
 );
 
 var gConfig = loadConfig();
 var browserPort;
-var currentConversation;
+
 // XXX Initialised at end of file whilst we move everything
 // into it.
 var tkWorker;
@@ -111,8 +112,6 @@ UserData.prototype = {
 
     var userData = {
       iconURL: iconURL,
-      // XXX for now, we just hard-code the default avatar image.
-      portrait: this._rootURL + "/img/default-avatar.png",
       userName: this._name,
       displayName: this._name,
       profileURL: this._rootURL + "/user.html"
@@ -153,35 +152,23 @@ function _setupSPA(spa) {
   });
 
   spa.on("message", function(textMsg) {
-    // If we're in a conversation, and it is not with the peer,
-    // then ignore it
-    if (!currentConversation) {
-      currentConversation = new Conversation({
-        capabilities: spa.capabilities,
-        peer: tkWorker.users.get(textMsg.peer),
-        browserPort: browserPort,
-        users: tkWorker.users,
-        user: tkWorker.user
-      });
-      tkWorker.contactsDb.add({username: textMsg.peer}, function(err) {
-        if (err)
-          tkWorker.ports.broadcastError(err);
-      });
-    }
-    currentConversation.handleIncomingText(textMsg);
+    tkWorker.conversationList.message(textMsg, tkWorker.spa.capabilities,
+      browserPort);
+    tkWorker.collectContact(textMsg.peer, function() {});
   });
 
   spa.on("users", function(data) {
     data.forEach(function(user) {
-      tkWorker.users.set(user.nick,
-                         {username: user.nick, presence: "connected"});
+      tkWorker.users.set(user.nick, {presence: "connected"},
+        tkWorker.spa.usernameFieldType);
     });
 
     tkWorker.ports.broadcastEvent("talkilla.users", tkWorker.users.toArray());
   });
 
   spa.on("userJoined", function(userId) {
-    tkWorker.users.set(userId, {username:userId, presence: "connected"});
+    tkWorker.users.set(userId, {presence: "connected"},
+      tkWorker.spa.usernameFieldType);
 
     tkWorker.ports.broadcastEvent("talkilla.users", tkWorker.users.toArray());
     tkWorker.ports.broadcastEvent("talkilla.user-joined", userId);
@@ -191,55 +178,37 @@ function _setupSPA(spa) {
     if (!tkWorker.users.has(userId))
       return;
 
-    tkWorker.users.set(userId, {presence: "disconnected"});
+    tkWorker.users.set(userId, {presence: "disconnected"},
+      tkWorker.spa.usernameFieldType);
 
     tkWorker.ports.broadcastEvent("talkilla.users", tkWorker.users.toArray());
     tkWorker.ports.broadcastEvent("talkilla.user-left", userId);
   });
 
   spa.on("offer", function(offerMsg) {
-    // If we're in a conversation, and it is not with the peer,
-    // then ignore it
-    if (!currentConversation) {
-      currentConversation = new Conversation({
-        capabilities: tkWorker.spa.capabilities,
-        peer: tkWorker.users.get(offerMsg.peer),
-        browserPort: browserPort,
-        users: tkWorker.users,
-        user: tkWorker.user
-      });
-      tkWorker.contactsDb.add({username: offerMsg.peer}, function(err) {
-        if (err)
-          tkWorker.ports.broadcastError(err);
-      });
-    }
-
-    currentConversation.handleIncomingCall(offerMsg);
+    tkWorker.conversationList.offer(offerMsg, tkWorker.spa.capabilities,
+      browserPort);
+    tkWorker.collectContact(offerMsg.peer, function() {});
   });
 
   spa.on("answer", function(answerMsg) {
-    if (currentConversation)
-      currentConversation.callAccepted(answerMsg);
+    tkWorker.conversationList.answer(answerMsg);
   });
 
   spa.on("hangup", function(hangupMsg) {
-    if (currentConversation)
-      currentConversation.callHangup(hangupMsg);
+    tkWorker.conversationList.hangup(hangupMsg);
   });
 
   spa.on("ice:candidate", function(iceCandidateMsg) {
-    if (currentConversation)
-      currentConversation.iceCandidate(iceCandidateMsg);
+    tkWorker.conversationList.iceCandidate(iceCandidateMsg);
   });
 
   spa.on("hold", function(holdMsg) {
-    if (currentConversation)
-      currentConversation.hold(holdMsg);
+    tkWorker.conversationList.hold(holdMsg);
   });
 
   spa.on("resume", function(resumeMsg) {
-    if (currentConversation)
-      currentConversation.resume(resumeMsg);
+    tkWorker.conversationList.resume(resumeMsg);
   });
 
   spa.on("move-accept", function(moveAcceptMsg) {
@@ -262,25 +231,8 @@ function _setupSPA(spa) {
   });
 
   spa.on("instantshare", function(instantShareMsg) {
-    // If we're in a conversation, and it is not with the peer,
-    // then ignore it
-    if (!currentConversation) {
-      currentConversation = new Conversation({
-        capabilities: spa.capabilities,
-        // XXX: for now we assume instantShareMsg.peer is always part
-        // of tkWorker.users. I may not be the case.
-        peer: tkWorker.users.get(instantShareMsg.peer),
-        browserPort: browserPort,
-        users: tkWorker.users,
-        user: tkWorker.user
-      });
-      tkWorker.contactsDb.add({username: instantShareMsg.peer}, function(err) {
-        if (err)
-          tkWorker.ports.broadcastError(err);
-      });
-    }
-
-    currentConversation.startCall();
+    tkWorker.conversationList.instantshare(instantShareMsg,
+      tkWorker.spa.capabilities, browserPort);
   });
 }
 
@@ -293,8 +245,7 @@ var handlers = {
     tkWorker.ports.remove(this);
     if (browserPort === this)
       browserPort = undefined;
-    if (currentConversation && currentConversation.port === this)
-      currentConversation = undefined;
+    tkWorker.conversationList.unset(this.id);
   },
 
   'social.initialize': function() {
@@ -315,26 +266,12 @@ var handlers = {
   },
 
   'talkilla.conversation-open': function(event) {
-    // XXX Temporarily work around to only allow one call at a time.
-    if (!currentConversation){
-      currentConversation = new Conversation({
-        capabilities: tkWorker.spa.capabilities,
-        peer: tkWorker.users.get(event.data.peer),
-        browserPort: browserPort,
-        users: tkWorker.users,
-        user: tkWorker.user
-      });
-
-      // For collected contacts
-      tkWorker.contactsDb.add({username: event.data.peer}, function(err) {
-          if (err)
-            tkWorker.ports.broadcastError(err);
-        });
-    }
+    tkWorker.conversationList.conversationOpen(event,
+      tkWorker.spa.capabilities, browserPort);
   },
 
-  'talkilla.chat-window-ready': function() {
-    currentConversation.windowOpened(this);
+  'talkilla.chat-window-ready': function(event) {
+    tkWorker.conversationList.windowReady(this);
   },
 
   /**
@@ -573,12 +510,16 @@ function TkWorker(options) {
   options = options || {};
   this.contactsDb = options.contactsDb;
   this.spaDb = options.spaDb;
-  this.user = options.user;
+  this.user = options.user || new UserData({}, gConfig);
   this.users = options.users || new CurrentUsers();
   this.ports = options.ports;
   this.initialized = false;
   // XXX In future, this may switch to supporting multiple SPAs
   this.spa = undefined;
+  this.conversationList = options.conversationList || new ConversationList({
+    user: this.user,
+    users: this.users
+  });
 }
 
 TkWorker.prototype = {
@@ -665,6 +606,28 @@ TkWorker.prototype = {
     }.bind(this));
   },
 
+  /**
+   * Collects a contact into the contact database.
+   *
+   * @param {String} id The username of the user to add
+   * @param {function} callback
+   *
+   * Callback Parameters:
+   *   err: defined if there is an error.
+   */
+  collectContact: function(id, callback) {
+    var contact = {};
+
+    contact[this.spa.usernameFieldType] = id;
+
+    this.contactsDb.add(contact, function(err) {
+      if (err)
+        tkWorker.ports.broadcastError(err);
+
+      callback(err);
+    });
+  },
+
   updateContactsFromSource: function(contacts, source) {
     this.contactsDb.replaceSourceContacts(contacts, source);
     // XXX We should potentially source this from contactsDb, but it
@@ -678,7 +641,7 @@ TkWorker.prototype = {
    * @param  {Array} contacts Contacts; format: [{username: "address"}]
    */
   updateContactList: function(contacts) {
-    this.users.updateContacts(contacts);
+    this.users.updateContacts(contacts, this.spa.usernameFieldType);
     this.ports.broadcastEvent("talkilla.users", this.users.toArray());
   },
 
@@ -731,19 +694,29 @@ TkWorker.prototype = {
 
 // Main Initialisations
 
-tkWorker = new TkWorker({
-  ports: new PortCollection(),
-  user: new UserData({}, gConfig),
-  users: new CurrentUsers(),
-  contactsDb: new ContactsDB({
-    dbname: "TalkillaContacts",
-    storename: "contacts"
-  }),
-  spaDb: new SPADB({
-    dbname: "EnabledSPA",
-    storename: "enabled-spa"
-  })
-});
+function createWorker() {
+  var user = new UserData({}, gConfig);
+  var users = new CurrentUsers();
+
+  tkWorker = new TkWorker({
+    ports: new PortCollection(),
+    user: user,
+    users: users,
+    contactsDb: new ContactsDB({
+      dbname: "TalkillaContacts",
+      storename: "contacts"
+    }),
+    spaDb: new SPADB({
+      dbname: "EnabledSPA",
+      storename: "enabled-spa"
+    }),
+    // XXX This is a bit nasty having these extra dependencies that both
+    // TkWorker and ConversationList
+    conversationList: new ConversationList({users: users, user: user})
+  });
+}
+
+createWorker();
 
 function onconnect(event) {
   tkWorker.ports.add(new Port(event.ports[0]));

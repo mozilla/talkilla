@@ -8,3 +8,4 @@ user_pref("social.provider.current", "http://localhost:3000");
 user_pref("devtools.chrome.enabled", true);
 user_pref("devtools.debugger.prompt-connection", false);
 user_pref("devtools.debugger.remote-enabled", true);
+user_pref("media.volume_scale", "0");

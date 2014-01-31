@@ -71,24 +71,6 @@ describe("ImportContactsView", function() {
       importView.loadGoogleContacts();
       sinon.assert.calledOnce(googleService.loadContacts);
     });
-
-    it("should call googleService.loadContacts with id='phoneNumber' if the " +
-       "spa supports it", function() {
-      spa.set("capabilities", ["pstn-call"]);
-
-      importView.loadGoogleContacts();
-      sinon.assert.calledOnce(googleService.loadContacts);
-      sinon.assert.calledWithExactly(googleService.loadContacts, "phoneNumber");
-    });
-
-    it("should call googleService.loadContacts with id='email' if the spa" +
-       "doesn't support pstn-call", function() {
-      spa.set("capabilities", []);
-
-      importView.loadGoogleContacts();
-      sinon.assert.calledOnce(googleService.loadContacts);
-      sinon.assert.calledWithExactly(googleService.loadContacts, "email");
-    });
   });
 
   describe("#render", function() {
@@ -103,11 +85,7 @@ describe("ImportContactsView", function() {
       });
     });
 
-    it("should be hidden by default", function() {
-      expect(importView.render().$el.is(':visible')).to.equal(false);
-    });
-
-    it("should be displayed when user signs out", function() {
+    it("should not be displayed when user signs out", function() {
       user.set({username: undefined, presence: "disconnected"})
           .trigger("signout");
       expect(importView.render().$el.is(':visible')).to.equal(false);

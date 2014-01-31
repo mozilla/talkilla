@@ -16,7 +16,7 @@ describe("CurrentUsers", function() {
 
     beforeEach(function() {
       users = new CurrentUsers();
-      users.set("jb", {username: "jb", presence: "disconnected"});
+      users.set("jb", {username: "jb", presence: "disconnected"}, "email");
     });
 
     afterEach(function() {
@@ -42,7 +42,11 @@ describe("CurrentUsers", function() {
 
     describe("#get", function() {
       it("should retrieve an existing user", function() {
-        expect(users.get("jb")).eql({username:"jb", presence: "disconnected"});
+        expect(users.get("jb")).eql({
+          username: "jb",
+          email: "jb",
+          presence: "disconnected"
+        });
       });
 
       it("shouldn't retrieve a nonexistent user", function() {
@@ -63,25 +67,25 @@ describe("CurrentUsers", function() {
     });
 
     describe("#updateContacts", function() {
-      var contacts = [{username: "foo"}];
+      var contacts = [{email: "foo"}];
 
       it("should add contacts to the users list", function() {
-        users.updateContacts(contacts);
+        users.updateContacts(contacts, "email");
 
         expect(users.all()).eql({
-          jb: {username:"jb", presence: "disconnected"},
-          foo: {username:"foo", presence: "disconnected"}
+          jb: {email: "jb", username: "jb", presence: "disconnected"},
+          foo: {email: "foo", username: "foo", presence: "disconnected"}
         });
       });
 
       it("shouldn't duplicate contacts", function() {
-        users.set('foo', {username: "foo", presence: "connected"});
+        users.set('foo', {presence: "connected"}, "email");
 
-        users.updateContacts(contacts);
+        users.updateContacts(contacts, "email");
 
         expect(users.all()).eql({
-          jb: {username: "jb", presence: "disconnected"},
-          foo: {username: "foo", presence: "connected"}
+          jb: {email: "jb", username: "jb", presence: "disconnected"},
+          foo: {email: "foo", username: "foo", presence: "connected"}
         });
       });
     });

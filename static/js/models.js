@@ -1,4 +1,4 @@
-/*global app, validate */
+/*global app, validate, md5 */
 /**
  * Talkilla models and collections.
  */
@@ -78,7 +78,8 @@
   app.models.User = Backbone.Model.extend({
     defaults: {username: undefined,
                fullName: undefined,
-               avatar: "img/default-avatar.png",
+               email: undefined,
+               phoneNumber: undefined,
                presence: "disconnected"},
 
     initialize: function() {
@@ -100,8 +101,19 @@
      */
     toJSON: function() {
       return _.extend(Backbone.Model.prototype.toJSON.call(this), {
-        fullName: this.get("fullName")
+        fullName: this.get("fullName"),
+        avatar: this.avatar()
       });
+    },
+
+    /**
+     * Returns a gravatar url with the md5 encoded email address for display.
+     * The link has a default gravatar image set to mystery man via query uri.
+     * @return {String}
+     */
+    avatar: function() {
+      return "http://www.gravatar.com/avatar/" + md5(this.get("email")) +
+        "/?d=mm";
     },
 
     /**

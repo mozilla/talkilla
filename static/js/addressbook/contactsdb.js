@@ -24,7 +24,7 @@ var ContactsDB = (function() {
     this.options = {
       dbname: options.dbname || "TalkillaContacts",
       storename: options.storename || "contacts",
-      version: options.version || 2
+      version: options.version || 3
     };
     this.db = undefined;
   }
@@ -274,9 +274,10 @@ var ContactsDB = (function() {
       db.deleteObjectStore(this.options.storename);
 
     var store = db.createObjectStore(this.options.storename, {
-      keyPath: "username"
+      keyPath: "email"
     });
-    store.createIndex("username", "username", {unique: true});
+    store.createIndex("email", "email", {unique: true});
+    store.createIndex("phoneNumber", "phoneNumber", {unique: true});
     store.createIndex("source", "source", {unique: false});
     return store;
   };

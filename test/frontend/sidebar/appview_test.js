@@ -11,9 +11,7 @@ describe("AppView", function() {
 
     sandbox.stub(app.views, "NotificationsView");
     sandbox.stub(app.views, "LoginView");
-    sandbox.stub(app.views, "UsersView");
-    sandbox.stub(app.views, "ImportContactsView");
-    sandbox.stub(app.views, "SPAView");
+    sandbox.stub(app.views, "SubPanelsView");
   });
 
   afterEach(function() {
@@ -54,18 +52,6 @@ describe("AppView", function() {
         appView = new app.views.AppView(appViewOptions);
 
         expect(appView.loginView).to.be.an.instanceOf(app.views.LoginView);
-      });
-
-      it("should set a users property", function() {
-        appView = new app.views.AppView(appViewOptions);
-
-        expect(appView.usersView).to.be.an.instanceOf(app.views.UsersView);
-      });
-
-      it("should set an spa property", function() {
-        appView = new app.views.AppView(appViewOptions);
-
-        expect(appView.spaView).to.be.an.instanceOf(app.views.SPAView);
       });
 
       it("should set isInSidebar to false if no isInSidebar option is given",

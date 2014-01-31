@@ -135,6 +135,7 @@ api = {
       logger.info({type: "reconnection"});
     } else {
       user.touch().waitForEvents(function(events) {
+        logger.trace({to: nick, events: events}, "long polling send");
         res.send(200, JSON.stringify(events));
       });
     }

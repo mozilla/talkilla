@@ -10,7 +10,7 @@ describe('Call Establish View', function() {
   beforeEach(function() {
     $('body').append([
       '<div id="establish">',
-      '  <p class="avatar"><img src="" id="avatar"></p>',
+      '  <p class="avatar"><img src="" id="establishAvatar"></p>',
       '  <p class="outgoing-info"><img src="/img/video-icon.png">',
       '    <span class="text"></span></p>',
       '  <p class="actions"><a class="btn btn-abort">End Call</a></p>',
@@ -217,7 +217,14 @@ describe('Call Establish View', function() {
 
     // XXX: needs to have the Call model having its peer set as a User
     // model instance so we can actually get the avatar
-    it("should render with the callee's avatar");
+    it("should render with the caller's avatar", function() {
+      sandbox.stub(peer, "avatar").returns("http://example.com?e=t");
+
+      establishView.render();
+
+      expect($("#establishAvatar").attr("src")).to.be
+        .equal("http://example.com?e=t&s=64");
+    });
 
     describe("on state set to pending", function() {
       it("should show 'Calling Mark…'", function() {

@@ -125,8 +125,6 @@ describe('UserData', function() {
       var data = browserPort.postEvent.args[0][1];
       expect(data.userName).to.be.equal('jb');
       expect(data.displayName).to.be.equal('jb');
-      expect(data.portrait).to.be
-        .equal('http://fake/img/default-avatar.png');
       expect(data.iconURL).to.be.equal('http://fake/img/talkilla16.png');
       expect(data.profileURL).to.be.equal('http://fake/user.html');
     });

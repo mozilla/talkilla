@@ -4,6 +4,13 @@ var CurrentUsers = (function() {
 
   /**
    * Represents current users list.
+   *
+   * XXX Really we should refactor this into an array of users. The Users
+   * would have a contact property, storing the contact information from the
+   * contactsDb, and a presence property. Access to specific users is by
+   * filtering within the contact information.
+   * When this is done, we can remove the field arguments from updateContacts
+   * and set, and this will remove dependencies on information from the spa.
    */
   function CurrentUsers() {
     this.users = {};
@@ -32,13 +39,19 @@ var CurrentUsers = (function() {
      * Sets user information and adds it to the current list.
      * @param {String}           userId     User unique identifier
      * @param {Object|undefined} attributes User attributes
+     * @param {Array} field The field that is currently used as the username
+     *                      for the spa. e.g. "phoneNumber" or "email"
      */
-    set: function(userId, attributes) {
+    set: function(userId, attributes, field) {
       attributes = attributes || {};
       if (!this.has(userId)) {
         // XXX: we should have a proper user object in the future
         if (!attributes.username)
           attributes.username = userId;
+        // XXX: We currently need to ensure we have the field set, as
+        // well as the username. See the XXX comment at the start of
+        // this file.
+        attributes[field] = userId;
         this.users[userId] = attributes;
         return;
       }
@@ -62,12 +75,18 @@ var CurrentUsers = (function() {
      * Update current users list with provided contacts list, preserving the
      * presence property.
      * @param  {Array} contacts Contacts list
+     * @param  {Array} field The field that is currently used as the username
+     *                       for the spa. e.g. "phoneNumber" or "email"
      */
-    updateContacts: function(contacts) {
+    updateContacts: function(contacts, field) {
       (contacts || [])
         .forEach(function(contact) {
-          contact.presence = this.getPresence(contact.username);
-          this.set(contact.username, contact);
+          if (contact[field]) {
+            var username = contact[field];
+            contact.username = username;
+            contact.presence = this.getPresence(username);
+            this.set(username, contact, field);
+          }
         }, this);
     },
 

@@ -1,7 +1,7 @@
 /*global app, sinon */
 "use strict";
 
-describe("SPAView", function() {
+describe("DialInView", function() {
   var sandbox, view, user, spa;
 
   beforeEach(function() {
@@ -11,7 +11,7 @@ describe("SPAView", function() {
       username: "boriss",
       presence: "connected"
     });
-    view = new app.views.SPAView({user: user, spa: spa});
+    view = new app.views.DialInView({user: user, spa: spa});
   });
 
   afterEach(function() {
@@ -60,15 +60,9 @@ describe("SPAView", function() {
       sandbox.stub(view, "display");
     });
 
-    it("should hide the dialer when the user is not signed in", function() {
-      user.set("presence", "disconnected");
-
-      sinon.assert.calledOnce(view.display);
-      sinon.assert.calledWithExactly(view.display, false);
-    });
-
     it("should hide the dialer when the SPA doesn't support it", function() {
       spa.set("capabilities", ["move"]);
+      view.render();
 
       sinon.assert.calledOnce(view.display);
       sinon.assert.calledWithExactly(view.display, false);
@@ -76,6 +70,7 @@ describe("SPAView", function() {
 
     it("should show the dialer when the SPA support it", function() {
       spa.set("capabilities", ["move", "pstn-call"]);
+      view.render();
 
       sinon.assert.calledOnce(view.display);
       sinon.assert.calledWithExactly(view.display, true);

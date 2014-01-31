@@ -30,7 +30,7 @@ describe("ContactsDB", function() {
       expect(contactsDb.options).to.include.keys(
         "dbname", "storename", "version");
       expect(contactsDb.options.storename).eql("contacts");
-      expect(contactsDb.options.version).eql(2);
+      expect(contactsDb.options.version).eql(3);
     });
   });
 
@@ -112,7 +112,7 @@ describe("ContactsDB", function() {
           dbname: "UpdateContactsV1"
         });
         dbV1.load(function(err, db) {
-          expect(db.version).to.equal(2);
+          expect(db.version).to.equal(3);
 
           // Check the new index is available
           var store = this.db.transaction(this.options.storename, "readonly")
@@ -129,10 +129,10 @@ describe("ContactsDB", function() {
 
   describe("#add", function() {
     it("should add a record to the database", function(done) {
-      var contact = {username: "florian"};
-      contactsDb.add(contact, function(err, username) {
+      var contact = {email: "florian@example.com"};
+      contactsDb.add(contact, function(err, email) {
         expect(err).to.be.a("null");
-        expect(username).eql(contact);
+        expect(email).eql(contact);
         this.all(function(err, contacts) {
           expect(contacts).eql([contact]);
           done();
@@ -142,7 +142,7 @@ describe("ContactsDB", function() {
 
     it("shouldn't raise an error in case of a duplicate contact",
       function(done) {
-        var contact = {username: "niko"};
+        var contact = {email: "niko@example.com"};
         contactsDb.add(contact, function(err) {
           expect(err).to.be.a("null");
           this.add(contact, function(err) {
@@ -156,7 +156,7 @@ describe("ContactsDB", function() {
       sandbox.stub(IDBObjectStore.prototype, "add", function() {
         throw new Error("add error");
       });
-      contactsDb.add({username: "foo"}, function(err) {
+      contactsDb.add({email: "foo@example.com"}, function(err) {
         expect(err).eql("add error");
         done();
       });
@@ -171,7 +171,7 @@ describe("ContactsDB", function() {
         });
         return request;
       });
-      contactsDb.add({username: "foo"}, function(err) {
+      contactsDb.add({email: "foo@example.com"}, function(err) {
         expect(err.message).eql("add error");
         done();
       });
@@ -183,37 +183,38 @@ describe("ContactsDB", function() {
       function(done) {
         // First add a couple of contacts - one with the google source,
         // one without.
-        contactsDb.add({username: "florian"}, function(err) {
+        contactsDb.add({email: "florian@example.com"}, function(err) {
           if (err)
             throw err;
-          contactsDb.add({username: "rt", source: "google"}, function(err) {
-            if (err)
-              throw err;
+          contactsDb.add({email: "rt@example.com", source: "google"},
+            function(err) {
+              if (err)
+                throw err;
 
-            // Now for the real test
-            contactsDb.replaceSourceContacts([], "google",
-              function(err, result) {
-                expect(err).to.be.a("null");
-                expect(result).eql([]);
-
-                contactsDb.all(function(err, result) {
+              // Now for the real test
+              contactsDb.replaceSourceContacts([], "google",
+                function(err, result) {
                   expect(err).to.be.a("null");
-                  expect(result).eql([{username: "florian"}]);
-                  done();
+                  expect(result).eql([]);
+
+                  contactsDb.all(function(err, result) {
+                    expect(err).to.be.a("null");
+                    expect(result).eql([{email: "florian@example.com"}]);
+                    done();
+                  });
                 });
-              });
-          });
+            });
         });
       });
 
     it("should add supplied contacts tagged with their source", function(done) {
       var contacts = [
-        {username: "rt"},
-        {username: "florian"}
+        {email: "rt@example.com"},
+        {email: "florian@example.com"}
       ];
       var expected = [
-        {username: "rt", source: "google"},
-        {username: "florian", source: "google"}
+        {email: "rt@example.com", source: "google"},
+        {email: "florian@example.com", source: "google"}
       ];
       contactsDb.replaceSourceContacts(contacts, "google",
         function(err, result) {
@@ -231,7 +232,7 @@ describe("ContactsDB", function() {
       sandbox.stub(IDBObjectStore.prototype, "add", function() {
         throw new Error("add error");
       });
-      contactsDb.replaceSourceContacts([{username: "foo"}], "google",
+      contactsDb.replaceSourceContacts([{email: "foo@example.com"}], "google",
         function(err) {
           expect(err).eql("add error");
           done();
@@ -248,15 +249,15 @@ describe("ContactsDB", function() {
     });
 
     it("should retrieve all contacts", function(done) {
-      var niko = {username: "niko"}, jb = {username: "jb"};
+      var niko = {email: "niko@example.com"}, jb = {email: "jb@example.com"};
       contactsDb.add(niko, function() {
         this.add(jb, function() {
           this.all(function(err, contacts) {
             expect(err).to.be.a("null");
             expect(contacts).to.have.length.of(2);
             expect(contacts.map(function(record) {
-              return record.username;
-            })).eql([niko.username, jb.username]);
+              return record.email;
+            })).eql([niko.email, jb.email]);
             done();
           });
         });
@@ -264,7 +265,7 @@ describe("ContactsDB", function() {
     });
 
     it("should preserve the order of insertion", function(done) {
-      var niko = {username: "niko"}, jb = {username: "jb"};
+      var niko = {email: "niko@example.com"}, jb = {email: "jb@example.com"};
       contactsDb.add(niko, function() {
         this.add(jb, function() {
           this.all(function(err, contacts) {
@@ -299,7 +300,7 @@ describe("ContactsDB", function() {
 
   describe("#drop", function() {
     it("should drop the database", function(done) {
-      contactsDb.add({username: "niko"}, function() {
+      contactsDb.add({email: "niko"}, function() {
         this.drop(function(err) {
           expect(err).to.be.a("null");
           this.all(function(err, contacts) {

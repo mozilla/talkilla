@@ -46,6 +46,7 @@ var ChatApp = (function(app, $, Backbone, _) {
 
     this.callOfferView = new app.views.CallOfferView({
       call: this.call,
+      peer: this.peer,
       el: $("#offer")
     });
 
@@ -133,9 +134,7 @@ var ChatApp = (function(app, $, Backbone, _) {
     this.webrtc.options.enableDataChannel = !this.spa.supports("spachannel");
     this.user.set({username: msg.user});
 
-    this.peer.set({username: msg.peer.username, presence: msg.peerPresence,
-                   fullName: msg.peer.fullName},
-                  {silent: true})
+    this.peer.set(msg.peer, {silent: true})
               // force triggering change event
              .trigger('change:username', this.peer)
              .trigger('change:presence', this.peer);
