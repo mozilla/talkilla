@@ -109,7 +109,7 @@ var ConversationList = (function() {
 
     /**
      * Handle SPA offer
-     * @param {String} peer Peer unique identifier
+     * @param {payloads.Offer} offerMsg Details of the call offer
      * @param {Array} capabilities Capabilities of the SPA
      * @param {Port} browserPort The port on which the worker talks to the
      *                            social api
@@ -117,12 +117,13 @@ var ConversationList = (function() {
     offer: function(offerMsg, capabilities, browserPort) {
       if (!this.has(offerMsg.peer))
         this._startConversation(offerMsg.peer, capabilities, browserPort);
-      this.get(offerMsg.peer).handleIncomingCall(offerMsg);
+      this.get(offerMsg.peer).send("talkilla.conversation-incoming", offerMsg);
     },
 
     /**
      * Handle SPA message
-     * @param {String} peer Peer unique identifier
+     * @param {payloads.SPAChannelMessage} spaMsg Details of the message from
+     *                                            the SPA
      * @param {Array} capabilities Capabilities of the SPA
      * @param {Port} browserPort The port on which the worker talks to the
      *                           social api
@@ -130,52 +131,53 @@ var ConversationList = (function() {
     message: function(textMsg, capabilities, browserPort) {
       if (!this.has(textMsg.peer))
         this._startConversation(textMsg.peer, capabilities, browserPort);
-      this.get(textMsg.peer).handleIncomingText(textMsg);
+      this.get(textMsg.peer).send("talkilla.spa-channel-message", textMsg);
     },
 
     /**
      * Handle answer event
-     * @param {Object} Message from answer event
+     * @param {payloads.Answer} answerMsg The call answer details
      */
     answer: function(answerMsg) {
       if (this.has(answerMsg.peer))
-        this.get(answerMsg.peer).callAccepted(answerMsg);
+        this.get(answerMsg.peer).send('talkilla.call-establishment', answerMsg);
     },
 
     /**
      * handle hangup event
-     * @param {Object} Message from hangup event
+     * @param {payloads.Hangup} hangupMsg Call hangup details
      */
     hangup: function(hangupMsg) {
       if (this.has(hangupMsg.peer))
-        this.get(hangupMsg.peer).callHangup(hangupMsg);
+        this.get(hangupMsg.peer).send('talkilla.call-hangup', hangupMsg);
     },
 
     /**
      * handle iceCandidate event
-     * @param {Object} Message from iceCandidate event
+     * @param {payloads.IceCandidate} iceCandidateMsg Ice candidate details
      */
     iceCandidate: function(iceCandidateMsg) {
       if (this.has(iceCandidateMsg.peer))
-        this.get(iceCandidateMsg.peer).iceCandidate(iceCandidateMsg);
+        this.get(iceCandidateMsg.peer).send('talkilla.ice-candidate',
+          iceCandidateMsg);
     },
 
     /**
      * handle hold event
-     * @param {Object} Message from hold event
+     * @param {payloads.Hold} holdMsg Hold Message details
      */
     hold: function(holdMsg) {
       if (this.has(holdMsg.peer))
-        this.get(holdMsg.peer).hold(holdMsg);
+        this.get(holdMsg.peer).send('talkilla.hold', holdMsg);
     },
 
     /**
      * handle resume event
-     * @param {Object} Message from resume event
+     * @param {payloads.Resume} resumeMsg Resume Message details
      */
     resume: function(resumeMsg) {
       if (this.has(resumeMsg.peer))
-        this.get(resumeMsg.peer).resume(resumeMsg);
+        this.get(resumeMsg.peer).send('talkilla.resume', resumeMsg);
     },
 
     /**
@@ -203,7 +205,7 @@ var ConversationList = (function() {
         this._startConversation(instantShareMsg.peer, capabilities,
           browserPort);
       }
-      this.get(instantShareMsg.peer).startCall();
+      this.get(instantShareMsg.peer).send('talkilla.start-call');
     }
 
   };

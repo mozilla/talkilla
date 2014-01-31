@@ -60,82 +60,15 @@ var Conversation = (function() {
     /**
     * Attempts to send a message to the port, if the port is not known
     * it will queue the message for delivery on window opened.
+    *
+    * @param {String} topic Topic of the message to send
+    * @param {Object} data  The data to send with the message
     */
-    _sendMessage: function(topic, data) {
+    send: function(topic, data) {
       if (this.port)
         this.port.postEvent(topic, data);
       else
         this.messageQueue.push({topic: topic, data: data});
-    },
-
-    /**
-    * Passes incoming call offers to the window.
-    * @param {payloads.offer} offer: the offer message for an
-    *                                incoming conversation
-    */
-    handleIncomingCall: function(offer) {
-      this._sendMessage("talkilla.conversation-incoming", offer);
-    },
-
-    handleIncomingText: function(textMsg) {
-      this._sendMessage("talkilla.spa-channel-message", {
-        message: textMsg.message
-      });
-    },
-
-    /**
-    * Call to tell the conversation that the call has been accepted
-    * by the peer.
-    *
-    * @param data The data associated with the call. Consisting of:
-    *
-    * - peer   the id of the other user
-    * - offer  the sdp offer for the connection
-    */
-    callAccepted: function(data) {
-      this._sendMessage('talkilla.call-establishment', data);
-    },
-
-    /**
-    * Call to tell the conversation window that the call has been
-    * put on hold by the peer
-    *
-    * @param {payloads.Hold} The hold message for the conversation
-    */
-    hold: function(data) {
-      this._sendMessage('talkilla.hold', data);
-    },
-
-
-    /**
-    * Call to tell the conversation window that the call has been
-    * resumed by the peer.
-    *
-    * @param {payloads.Resume} The resume message for the conversation
-    */
-    resume: function(data) {
-      this._sendMessage('talkilla.resume', data);
-    },
-
-
-    /**
-    * Call to tell the conversation window that the call has been
-    * hungup by the peer.
-    *
-    * @param data The data associated with the call. Consisting of:
-    *
-    * - peer   the id of the other user
-    */
-    callHangup: function(data) {
-      this._sendMessage('talkilla.call-hangup', data);
-    },
-
-    iceCandidate: function(data) {
-      this._sendMessage('talkilla.ice-candidate', data);
-    },
-
-    startCall: function() {
-      this._sendMessage('talkilla.start-call');
     }
   };
 
