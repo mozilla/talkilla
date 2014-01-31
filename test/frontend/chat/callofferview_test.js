@@ -10,7 +10,8 @@ describe('Call Offer View', function() {
   beforeEach(function() {
     $('body').append([
       '<div id="offer">',
-      '  <p class="avatar"><img src="" id="avatar"></p>',
+      '  <p class="avatar"><img src="" id="offerAvatar"></p>',
+      '  <p class="incoming-info"><span class="media-icon"></span></p>',
       '  <p class="actions"><a class="btn btn-accept">Accept</a></p>',
       '</div>'
     ].join(''));
@@ -76,9 +77,38 @@ describe('Call Offer View', function() {
   });
 
   describe("#render", function() {
-    it("should render with the caller's avatar");
-    // XXX: needs to have the Call model having its peer set as a User
-    // model instance so we can actually get the avatar
+    var offerView;
+
+    beforeEach(function() {
+      offerView = new app.views.CallOfferView({call: call});
+    });
+
+    it("should render the video icon for video calls", function() {
+      sandbox.stub(call, "requiresVideo").returns(true);
+
+      offerView.render();
+
+      expect($(".media-icon").hasClass('video-icon')).to.equal(true);
+      expect($(".media-icon").hasClass('audio-icon')).to.equal(false);
+    });
+
+    it("should render the audio icon for video calls", function() {
+      sandbox.stub(call, "requiresVideo").returns(false);
+
+      offerView.render();
+
+      expect($(".media-icon").hasClass('video-icon')).to.equal(false);
+      expect($(".media-icon").hasClass('audio-icon')).to.equal(true);
+    });
+
+    it("should render with the caller's avatar", function() {
+      sandbox.stub(call.peer, "avatar").returns("http://example.com?e=t");
+
+      offerView.render();
+
+      expect($("#offerAvatar").attr("src")).to.be
+        .equal("http://example.com?e=t&s=64");
+    });
   });
 
 });

@@ -263,8 +263,7 @@
    */
   app.views.CallOfferView = app.views.BaseView.extend({
     dependencies: {
-      call: app.models.Call,
-      peer: app.models.User
+      call: app.models.Call
     },
 
     el: "#offer",
@@ -321,8 +320,7 @@
       var type = this.call.requiresVideo() ? 'video-icon' : 'audio-icon';
       this.$('.media-icon').addClass(type);
 
-      this.$("#offerAvatar").attr("src", this.peer.avatar() + "&s=64");
-
+      this.$("#offerAvatar").attr("src", this.call.peer.avatar() + "&s=64");
       return this;
     }
   });

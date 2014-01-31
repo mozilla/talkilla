@@ -108,7 +108,7 @@
 
     /**
      * Returns a gravatar url with the md5 encoded email address for display.
-     * The link has a default gravatar image set to 'mm' via query uri.
+     * The link has a default gravatar image set to mystery man via query uri.
      * @return {String}
      */
     avatar: function() {
