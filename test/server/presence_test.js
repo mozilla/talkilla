@@ -58,17 +58,11 @@ describe("presence", function() {
       });
 
       it("should not send the notification to the user herself", function() {
-        var foo;
-        var originalOnAddUser = users.onadduser;
-        sandbox.stub(users, "onadduser", function(user) {
-          foo = user;
-          sandbox.spy(user, "send");
-          originalOnAddUser(user);
-        });
+        sandbox.stub(User.prototype, "send");
 
         users.add("foo");
 
-        sinon.assert.notCalled(foo.send);
+        sinon.assert.notCalled(users.get("foo").send);
       });
 
     });
@@ -91,13 +85,8 @@ describe("presence", function() {
       });
 
       it("should not send the notification to the user himself", function() {
+        sandbox.stub(User.prototype, "send");
         var foo = users.add("foo").get("foo");
-        var originalOnRemoveUser = users.onremoveuser;
-        sandbox.stub(users, "onremoveuser", function(user) {
-          foo = user;
-          sandbox.spy(user, "send");
-          originalOnRemoveUser(user);
-        });
 
         users.remove("foo");
 
