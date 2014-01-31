@@ -1,5 +1,5 @@
 /* jshint unused:false */
-/* global Conversation,tkWorker*/
+/* global Conversation*/
 
 /**
  * Conversations data storage.
@@ -92,13 +92,6 @@ var ConversationList = (function() {
         users: this.users,
         user: this.user
       }));
-
-      // Register new contact users
-      // XXX move this out of the file later
-      tkWorker.contactsDb.add({username: peer}, function(err) {
-        if (err)
-          tkWorker.ports.broadcastError(err);
-      });
     },
 
     /**

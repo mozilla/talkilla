@@ -58,18 +58,21 @@ describe("SPA events", function() {
   });
 
   describe("`message` event", function() {
+    var textMsg;
+
     beforeEach(function() {
       browserPort = {postEvent: sandbox.spy()};
+      textMsg = new payloads.SPAChannelMessage({
+        type: "message",
+        message: "a message",
+        peer: "alice"
+      });
+      sandbox.stub(tkWorker, "collectContact");
     });
 
     it("should pass the message to conversationList.message",
       function() {
         sandbox.stub(tkWorker.conversationList, "message");
-        var textMsg = new payloads.SPAChannelMessage({
-          type: "message",
-          message: "a message",
-          peer: "alice"
-        });
 
         tkWorker.spa.trigger("message", textMsg);
 
@@ -77,6 +80,15 @@ describe("SPA events", function() {
         sinon.assert.calledWithExactly(tkWorker.conversationList.message,
           textMsg, [], browserPort);
       });
+
+    it("should add the contact to the database", function() {
+      tkWorker.users.set('alice', {});
+
+      tkWorker.spa.trigger("message", textMsg);
+
+      sinon.assert.calledOnce(tkWorker.collectContact);
+      sinon.assert.calledOnce(tkWorker.collectContact, "alice");
+    });
   });
 
   describe("`users` event", function() {
@@ -89,7 +101,7 @@ describe("SPA events", function() {
     });
 
     it("should update the current list of users", function() {
-      tkWorker.users.set("jb", {presence: "disconnected"});
+      tkWorker.users.set("jb", {presence: "disconnected"}, "email");
 
       tkWorker.spa.trigger("users", [
         {nick: "james"},
@@ -97,9 +109,9 @@ describe("SPA events", function() {
       ]);
 
       expect(tkWorker.users.all()).to.deep.equal({
-        jb: {username:"jb", presence: "disconnected"},
-        james: {username:"james", presence: "connected"},
-        harvey: {username:"harvey", presence: "connected"}
+        jb: {email: "jb", username: "jb", presence: "disconnected"},
+        james: {email: "james", username: "james", presence: "connected"},
+        harvey: {email: "harvey", username: "harvey", presence: "connected"}
       });
     });
 
@@ -110,7 +122,7 @@ describe("SPA events", function() {
         sinon.assert.calledOnce(tkWorker.ports.broadcastEvent);
         sinon.assert.calledWith(
           tkWorker.ports.broadcastEvent, "talkilla.users", [
-            { username: "jb", presence: "connected" }
+            { email: "jb", username: "jb", presence: "connected" }
           ]);
       });
 
@@ -126,7 +138,7 @@ describe("SPA events", function() {
 
       sinon.assert.called(tkWorker.ports.broadcastEvent);
       sinon.assert.calledWith(tkWorker.ports.broadcastEvent, "talkilla.users", [
-        {username: "foo", presence: "connected"}
+        {email: "foo", username: "foo", presence: "connected"}
       ]);
     });
 
@@ -157,13 +169,13 @@ describe("SPA events", function() {
     });
 
     it("should broadcast a `talkilla.users` event", function() {
-      tkWorker.users.set("foo", {presence: "connected"});
+      tkWorker.users.set("foo", {presence: "connected"}, "email");
 
       tkWorker.spa.trigger("userLeft", "foo");
 
       sinon.assert.called(tkWorker.ports.broadcastEvent);
       sinon.assert.calledWith(tkWorker.ports.broadcastEvent, "talkilla.users", [
-        {username: "foo", presence: "disconnected"}
+        {email: "foo", username: "foo", presence: "disconnected"}
       ]);
     });
 
@@ -182,6 +194,7 @@ describe("SPA events", function() {
   describe("`offer` event", function() {
     beforeEach(function() {
       browserPort = {postEvent: sandbox.spy()};
+      sandbox.stub(tkWorker, "collectContact");
     });
 
     afterEach(function() {
@@ -204,6 +217,21 @@ describe("SPA events", function() {
       sinon.assert.calledOnce(tkWorker.conversationList.offer);
       sinon.assert.calledWithExactly(tkWorker.conversationList.offer,
         offerMsg, [], browserPort);
+    });
+
+    it("should add the contact to the database", function() {
+      tkWorker.users.set('alice',{});
+      var offerMsg = new payloads.Offer({
+        callid: 42,
+        offer: fakeOffer,
+        peer: "alice",
+        upgrade: false
+      });
+
+      tkWorker.spa.trigger("offer", offerMsg);
+
+      sinon.assert.calledOnce(tkWorker.collectContact);
+      sinon.assert.calledOnce(tkWorker.collectContact, "alice");
     });
   });
 
@@ -352,6 +380,7 @@ describe("SPA events", function() {
 
     beforeEach(function() {
       browserPort = {postEvent: sandbox.spy()};
+      tkWorker.users.set('alice',{});
     });
 
     afterEach(function() {
@@ -367,7 +396,7 @@ describe("SPA events", function() {
       tkWorker.spa.trigger("instantshare", instantShareMsg);
 
       sinon.assert.calledOnce(tkWorker.conversationList.instantshare);
-      sinon.assert.calledWithExactly(tkWorker.conversationList.instantshare, 
+      sinon.assert.calledWithExactly(tkWorker.conversationList.instantshare,
         instantShareMsg, [], browserPort);
     });
   });

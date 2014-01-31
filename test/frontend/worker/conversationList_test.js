@@ -1,5 +1,5 @@
 /*global chai, ConversationList, sinon, Conversation:true*/
-/*global tkWorker, CurrentUsers */
+/*global CurrentUsers */
 
 "use strict";
 
@@ -13,8 +13,6 @@ describe("ConversationList", function() {
     browserPort = {
       postEvent: sandbox.spy()
     };
-    sandbox.stub(window, "Worker").returns({postMessage: sinon.spy()});
-    sandbox.stub(tkWorker.contactsDb, "add");
   });
 
   afterEach(function() {
@@ -109,16 +107,6 @@ describe("ConversationList", function() {
         expect(conversationList.queue).eql(["niko"]);
       });
 
-      it("should add the contact to the database", function() {
-        conversationList.users.set("niko", {presence: "connected"});
-
-        conversationList._startConversation("niko", {}, browserPort);
-
-        sinon.assert.calledOnce(tkWorker.contactsDb.add);
-        sinon.assert.calledWith(tkWorker.contactsDb.add, {
-          username: "niko"
-        });
-      });
     });
 
     describe("#offer", function() {

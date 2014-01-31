@@ -197,11 +197,31 @@ describe("tkWorker", function() {
     });
   });
 
+  describe("#collectContact", function() {
+    it("should add the contact to the contacts database", function(done) {
+      worker.spa = {
+        get usernameFieldType() { return "email"; }
+      };
+
+      sandbox.stub(worker.contactsDb, "add", function(id, cb) {
+        expect(id).to.eql({email: "andreas"});
+        cb();
+      });
+
+      worker.collectContact("andreas", function () {
+        done();
+      });
+    });
+  });
+
   describe("#updateContactsFromSource", function() {
     var contacts;
 
     beforeEach(function() {
       contacts = [{username: "foo"}];
+      worker.spa = {
+        get usernameFieldType() { return "email"; }
+      };
       sandbox.stub(worker.contactsDb, "replaceSourceContacts");
       sandbox.stub(worker.users, "updateContacts");
     });
@@ -217,31 +237,39 @@ describe("tkWorker", function() {
 
       sinon.assert.calledOnce(worker.users.updateContacts);
       sinon.assert.calledWithExactly(worker.users.updateContacts,
-                                     contacts);
+                                     contacts, "email");
     });
   });
 
   describe("#updateContactList", function() {
+    beforeEach(function() {
+      worker.spa = {
+        get usernameFieldType() { return "email"; }
+      };
+    });
+
     it("should update current users list with contacts", function() {
-      var contacts = [{username: "foo"}];
+      var contacts = [{email: "foo"}];
       sandbox.stub(worker.users, "updateContacts");
 
       worker.updateContactList(contacts);
 
       sinon.assert.calledOnce(worker.users.updateContacts);
       sinon.assert.calledWithExactly(worker.users.updateContacts,
-                                     contacts);
+                                     contacts, "email");
     });
 
     it("should broadcast a talkilla.users event", function() {
       sandbox.stub(worker.ports, "broadcastEvent");
 
-      worker.updateContactList([{username: "foo"}, {username: "bar"}]);
+      worker.updateContactList([{email: "foo"}, {email: "bar"}]);
 
       sinon.assert.calledOnce(worker.ports.broadcastEvent);
+      // XXX email and username are effectively duplicates, waiting on
+      // refactoring CurrentUsers.
       sinon.assert.calledWith(worker.ports.broadcastEvent, "talkilla.users", [
-        {username: "foo", presence: "disconnected"},
-        {username: "bar", presence: "disconnected"}
+        {email: "foo", username: "foo", presence: "disconnected"},
+        {email: "bar", username: "bar", presence: "disconnected"}
       ]);
     });
   });
