@@ -246,13 +246,12 @@ describe("UserList", function() {
       expect(users.get("bar").toJSON()).to.deep.equal({nick: "bar"});
     });
 
-    it("should trigger the onadduser callback", function() {
-      users.onadduser = sinon.spy();
+    it("should trigger an `add` event", function() {
+      users.on("add", function(user) {
+        expect(user).to.equal(users.get("bar"));
+      });
 
       users.add("bar");
-
-      sinon.assert.calledOnce(users.onadduser);
-      sinon.assert.calledWithExactly(users.onadduser, users.get("bar"));
     });
 
   });
@@ -296,14 +295,14 @@ describe("UserList", function() {
       expect(users.get("bar")).to.be.equal(undefined);
     });
 
-    it("should trigger the onremoveuser callback", function() {
-      users.onremoveuser = sinon.spy();
+    it("should trigger a `remove` event", function() {
+      var bar = users.add("bar").get("bar");
+      users.on("remove", function(user) {
+        expect(user).to.equal(bar);
+        expect(users.get("bar")).to.equal(undefined);
+      });
 
-      var user = users.add("bar").get("bar");
       users.remove("bar");
-
-      sinon.assert.calledOnce(users.onremoveuser);
-      sinon.assert.calledWithExactly(users.onremoveuser, user);
     });
 
   });

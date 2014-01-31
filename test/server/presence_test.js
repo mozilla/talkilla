@@ -40,8 +40,8 @@ describe("presence", function() {
     sandbox.restore();
   });
 
-  describe("authenticated users hooks", function() {
-    describe("#onadduser", function() {
+  describe("authenticated users events", function() {
+    describe("`add` event", function() {
 
       it("should send to all users that a new user connected", function() {
         var bar = users.add("bar").get("bar");
@@ -67,7 +67,7 @@ describe("presence", function() {
 
     });
 
-    describe("#onremoveuser", function() {
+    describe("`remove` event", function() {
 
       it("should send to all users that a user disconnected", function() {
         var bar = users.add("bar").get("bar");

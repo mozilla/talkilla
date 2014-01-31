@@ -16,19 +16,19 @@ var users = new UserList();
 var anons = new UserList();
 var api;
 
-users.onadduser = function(user) {
+users.on("add", function(user) {
   users.forEach(function(peer) {
     if (peer !== user)
       peer.send("userJoined", user.nick);
   });
-};
+});
 
-users.onremoveuser = function(user) {
+users.on("remove", function(user) {
   users.forEach(function(peer) {
     if (peer !== user)
       peer.send("userLeft", user.nick);
   });
-};
+});
 
 api = {
   _verifyAssertion: function(assertion, callback) {

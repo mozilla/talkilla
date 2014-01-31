@@ -159,9 +159,9 @@ User.prototype.waitForEvents = function(callback) {
  */
 function UserList() {
   this.users = {};
-  this.onadduser = undefined;
-  this.onremoveuser = undefined;
 }
+
+util.inherits(UserList, EventEmitter);
 
 /**
  * Check if the nick is already in the user list
@@ -183,8 +183,7 @@ UserList.prototype.hasNick = function(nick) {
  */
 UserList.prototype.add = function(nick) {
   this.users[nick] = new User(nick);
-  if (this.onadduser)
-    this.onadduser(this.users[nick]);
+  this.emit("add", this.users[nick]);
   return this;
 };
 
@@ -216,8 +215,7 @@ UserList.prototype.all = function() {
 UserList.prototype.remove = function(nick) {
   var user = this.users[nick];
   delete this.users[nick];
-  if (this.onremoveuser)
-    this.onremoveuser(user);
+  this.emit("remove", user);
   return this;
 };
 
