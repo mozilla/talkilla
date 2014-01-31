@@ -95,5 +95,14 @@ describe("UserEntryView", function() {
       expect(view.$("a").attr("title")).eql("chuck");
       expect(view.$(".username").text()).eql("Chuck Norris");
     });
+
+    it("should populate template with the avatar", function() {
+      user.set({username: "chuck", fullName: "Chuck Norris"});
+      sandbox.stub(user, "avatar").returns("http://example.com?d=1");
+
+      view.render();
+
+      expect(view.$("img").attr("src")).eql("http://example.com?d=1&s=64");
+    });
   });
 });

@@ -13,7 +13,6 @@ describe("app.models", function() {
         fullName: undefined,
         phoneNumber: undefined,
         email: undefined,
-        avatar: "img/default-avatar.png",
         presence: "disconnected"
       });
     });
@@ -23,6 +22,16 @@ describe("app.models", function() {
         var json = new app.models.User({username: "mark"}).toJSON();
         expect(json).to.have.property("fullName");
         expect(json.fullName).eql("mark");
+      });
+    });
+
+    describe("#avatar", function() {
+      it("should return a calculated url based on the email", function() {
+        var avatar = new app.models.User({username: "mark@example.com"})
+          .avatar();
+        /*jshint maxlen:83*/
+        expect(avatar).to.be.equal(
+          "http://www.gravatar.com/avatar/5e543256c480ac577d30f76f9120eb74/?d=mm");
       });
     });
 

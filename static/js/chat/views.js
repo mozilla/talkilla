@@ -263,7 +263,7 @@
    */
   app.views.CallOfferView = app.views.BaseView.extend({
     dependencies: {
-      call:  app.models.Call,
+      call: app.models.Call
     },
 
     el: "#offer",
@@ -320,8 +320,7 @@
       var type = this.call.requiresVideo() ? 'video-icon' : 'audio-icon';
       this.$('.media-icon').addClass(type);
 
-      // XXX: update caller's avatar, though we'd need to access peer
-      //      as a User model instance
+      this.$("#offerAvatar").attr("src", this.call.peer.avatar() + "&s=64");
       return this;
     }
   });
@@ -405,9 +404,6 @@
     },
 
     render: function() {
-      // XXX: update caller's avatar, though we'd need to access peer
-      //      as a User model instance
-
       if (this.call.state.current === "pending") {
         var formattedText = this.template(this.peer.toJSON());
         this.$('.text').text(formattedText);
@@ -424,6 +420,8 @@
       // call type icon
       var type = this.call.requiresVideo() ? 'video-icon' : 'audio-icon';
       this.$('.media-icon').addClass(type);
+
+      this.$("#establishAvatar").attr("src", this.peer.avatar() + "&s=64");
 
       return this;
     }
