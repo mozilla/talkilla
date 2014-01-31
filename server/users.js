@@ -1,4 +1,6 @@
 "use strict";
+var util = require("util");
+var EventEmitter = require("events").EventEmitter;
 
 var config = require('./config').config;
 var logger = require('./logger');
@@ -40,13 +42,6 @@ function User(nick) {
   // user is considered as disconnected.
   this.timeout = undefined;
 
-  // XXX: rename it to this.onOffline so it's harder to confuse the
-  // user's connection with the long polling socket connection.
-  //
-  // `this.ondisconnect` is the callback called when the user is
-  // disconnected (i.e. when the timeout is triggered).
-  this.ondisconnect = undefined;
-
   // `this.events` is a Queue of events. It is used in case the user
   // is present (i.e. the timeout was not yet triggered) but he
   // receives events between two long-polling connections.
@@ -58,6 +53,8 @@ function User(nick) {
   // purposes.
   this._pending = undefined;
 }
+
+util.inherits(User, EventEmitter);
 
 /**
  * Send data to the user.
@@ -110,8 +107,7 @@ User.prototype.touch = function() {
 User.prototype.disconnect = function() {
   clearTimeout(this.timeout);
   this.timeout = undefined;
-  if (this.ondisconnect)
-    this.ondisconnect();
+  this.emit("disconnect");
 };
 
 /**

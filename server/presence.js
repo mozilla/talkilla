@@ -148,10 +148,10 @@ api = {
 
     if (!user) {
       user = userList.add(id).get(id);
-      user.ondisconnect = function() {
+      user.on("disconnect", function() {
         userList.remove(id);
         logger.info({type: "disconnection"});
-      };
+      });
 
       logger.info({type: "connection"});
     }

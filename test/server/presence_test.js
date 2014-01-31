@@ -122,12 +122,15 @@ describe("presence", function() {
         });
 
       it("should remove the user from users if it is disconnected",
-        function() {
+        function(done) {
 
           var user = api._setupUser(users, fakeId, firstRequest);
-          user.ondisconnect();
+          user.on("disconnect", function() {
+            expect(users.get(fakeId)).to.equal(undefined);
+            done();
+          });
 
-          expect(users.get(fakeId)).to.equal(undefined);
+          user.emit("disconnect");
         });
 
       it("should clean leftover state if firstRequest is encountered while " +

@@ -20,7 +20,6 @@ describe("User", function() {
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
     user = new User("foo");
-    user.ondisconnect = sinon.spy();
   });
 
   afterEach(function() {
@@ -203,9 +202,11 @@ describe("User", function() {
       user.connect();
     });
 
-    it("should trigger the ondisconnect callback", function() {
+    it("should trigger a disconnect event", function(done) {
+      user.on("disconnect", function() {
+        done();
+      });
       user.disconnect();
-      sinon.assert.calledOnce(user.ondisconnect);
     });
 
     it("should turn the timeout into an undefined object", function() {
