@@ -1,4 +1,4 @@
-/*global expect, sinon, payloads, Conversation, CurrentUsers */
+/*global expect, sinon, payloads, Conversation */
 /* jshint expr:true */
 "use strict";
 
@@ -17,13 +17,10 @@ describe("Conversation", function() {
       browserPort: {
         postEvent: sandbox.spy()
       },
-      users: new CurrentUsers(),
       user: {
         name: "romain"
       }
     });
-
-    conversation.users.set("florian", {presence: "connected"});
 
     port = {
       postEvent: sandbox.spy()
@@ -58,25 +55,9 @@ describe("Conversation", function() {
           "talkilla.conversation-open", {
           capabilities: [],
           peer: conversation.peer,
-          peerPresence: "connected",
           user: conversation.user.name
         });
       });
-
-    it("should send peer presence information", function() {
-      conversation.users.set("florian", { presence: "disconnected" });
-
-      conversation.windowOpened(port);
-
-      sinon.assert.calledOnce(port.postEvent);
-      sinon.assert.calledWithMatch(port.postEvent,
-        "talkilla.conversation-open", {
-        capabilities: [],
-        peer: conversation.peer,
-        peerPresence: "disconnected",
-        user: conversation.user.name
-      });
-    });
 
     it("should send any outstanding messages when the port is opened",
       function() {

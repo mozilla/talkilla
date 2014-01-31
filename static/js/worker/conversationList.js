@@ -88,7 +88,6 @@ var ConversationList = (function() {
       this.set(peer, new Conversation({
         capabilities: capabilities,
         peer: this.users.get(peer),
-        users: this.users,
         user: this.user
       }));
 

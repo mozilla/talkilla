@@ -26,10 +26,6 @@ var Conversation = (function() {
       throw new Error("missing parameter: peer");
     this.peer = options.peer;
 
-    if (!options || !options.users)
-      throw new Error("missing parameter: Users");
-    this.users = options.users;
-
     if (!options || !options.user)
       throw new Error("missing parameter: User");
     this.user = options.user;
@@ -47,11 +43,9 @@ var Conversation = (function() {
     windowOpened: function(port) {
       this.port = port;
 
-      // XXX: remove the need for this.users after we have a user object
       var msg = {
         capabilities: this.capabilities,
         peer: this.peer,
-        peerPresence: this.users.getPresence(this.peer.username),
         user: this.user.name
       };
 
