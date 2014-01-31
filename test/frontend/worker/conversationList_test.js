@@ -48,9 +48,6 @@ describe("ConversationList", function() {
       conversation = new Conversation({
         capabilities: [],
         peer: { username: "dmose" },
-        browserPort: {
-          postEvent: sandbox.spy()
-        },
         users: new CurrentUsers(),
         user: {
           name: "romain"
@@ -91,22 +88,26 @@ describe("ConversationList", function() {
     });
 
     describe("#_startConversation", function() {
-      it("should start a new conversation", function() {
+      beforeEach(function() {
         conversationList.users.set("niko", {presence: "connected"});
 
         conversationList._startConversation("niko", {}, browserPort);
+      });
 
+      it("should start a new conversation", function() {
         expect(conversationList.get('niko')).to.be.an.instanceOf(Conversation);
       });
 
       it("should push the peer name to the queue", function() {
-        conversationList.users.set("niko", {presence: "connected"});
-
-        conversationList._startConversation("niko", {}, browserPort);
-
         expect(conversationList.queue).eql(["niko"]);
       });
 
+      it("should ask the browser to open a chat window", function() {
+        sinon.assert.calledOnce(browserPort.postEvent);
+        sinon.assert.calledWithExactly(browserPort.postEvent,
+                                       "social.request-chat",
+                                       "chat.html#niko");
+      });
     });
 
     describe("#offer", function() {

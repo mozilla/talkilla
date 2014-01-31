@@ -40,12 +40,6 @@ describe("Conversation", function() {
                       to.deep.equal({username: "florian"});
     });
 
-    it("should ask the browser to open a chat window", function() {
-      sinon.assert.calledOnce(conversation.browserPort.postEvent);
-      sinon.assert.calledWithExactly(conversation.browserPort.postEvent,
-                                     "social.request-chat",
-                                     "chat.html#florian");
-    });
   });
 
   describe("#windowOpened", function() {

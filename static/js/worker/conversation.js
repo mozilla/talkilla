@@ -26,10 +26,6 @@ var Conversation = (function() {
       throw new Error("missing parameter: peer");
     this.peer = options.peer;
 
-    if (!options || !options.browserPort)
-      throw new Error("missing parameter: browserPort");
-    this.browserPort = options.browserPort;
-
     if (!options || !options.users)
       throw new Error("missing parameter: Users");
     this.users = options.users;
@@ -39,9 +35,6 @@ var Conversation = (function() {
     this.user = options.user;
 
     this.messageQueue = [];
-
-    this.browserPort.postEvent('social.request-chat',
-                               'chat.html#'+this.peer.username);
   }
 
   Conversation.prototype = {

@@ -88,10 +88,22 @@ var ConversationList = (function() {
       this.set(peer, new Conversation({
         capabilities: capabilities,
         peer: this.users.get(peer),
-        browserPort: browserPort,
         users: this.users,
         user: this.user
       }));
+
+      browserPort.postEvent('social.request-chat',
+                            'chat.html#'+peer);
+    },
+
+    /**
+     * handle event when a new chat window is ready
+     * @param {Object} Message from a new window event
+     */
+    windowReady: function(readyData) {
+      var lastRequested = this.queue.pop();
+      if (lastRequested)
+        this.conversationList[lastRequested].windowOpened(readyData);
     },
 
     /**
@@ -176,16 +188,6 @@ var ConversationList = (function() {
       if (this.has(event.data.peer))
         return;
       this._startConversation(event.data.peer, capabilities, browserPort);
-    },
-
-    /**
-     * handle event when a new chat window is ready
-     * @param {Object} Message from a new window event
-     */
-    windowReady: function(readyData) {
-      var lastRequested = this.queue.pop();
-      if (lastRequested)
-        this.conversationList[lastRequested].windowOpened(readyData);
     },
 
     /**
