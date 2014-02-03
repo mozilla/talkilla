@@ -23,45 +23,57 @@ describe("UsersView", function() {
     sandbox.restore();
   });
 
-  describe("#initialize", function() {
-    it("should render the view when the user signs in and the collection " +
-       "is reset", function() {
-      user.trigger("signin");
-      collection.reset([]);
+  describe("Events", function() {
+    describe("CurrentUser events", function() {
+      describe("signin", function() {
+        it("should render the view when the user signs in and the collection " +
+           "is reset", function() {
+          user.trigger("signin");
+          collection.reset([]);
 
-      sinon.assert.calledOnce(usersView.render);
+          sinon.assert.calledOnce(usersView.render);
+        });
+
+        it("should render a single time once user is signed in", function() {
+          user.trigger("signin");
+          collection.reset([]);
+          collection.reset([]);
+
+          sinon.assert.calledOnce(usersView.render);
+        });
+      });
+
+      describe("signout", function() {
+        it("should render the view", function() {
+          user.trigger("signout");
+
+          sinon.assert.calledOnce(usersView.render);
+        });
+      });
     });
 
-    it("should render a single time once user is signed in", function() {
-      user.trigger("signin");
-      collection.reset([]);
-      collection.reset([]);
+    describe("AppStatus events", function() {
+      beforeEach(function() {
+        usersView.collection.reset([
+          {username: "bob", presence: "connected"},
+          {username: "bill", presence: "disconnected"}
+        ]);
+      });
 
-      sinon.assert.calledOnce(usersView.render);
-    });
-  });
+      it("should change user status if a reconnection is ongoing", function() {
+        usersView.appStatus.set("reconnecting", {timeout: 42, attempt: 2});
+        expect(usersView.collection.every(function(user) {
+          return user.get("presence") === "disconnected";
+        })).to.eql(true);
+      });
 
-  describe("AppStatus 'reconnecting' events", function() {
-    beforeEach(function() {
-      usersView.collection.reset([
-        {username: "bob", presence: "connected"},
-        {username: "bill", presence: "disconnected"}
-      ]);
-    });
-
-    it("should change user status if a reconnection is ongoing", function() {
-      usersView.appStatus.set("reconnecting", {timeout: 42, attempt: 2});
-      expect(usersView.collection.every(function(user) {
-        return user.get("presence") === "disconnected";
-      })).to.eql(true);
-    });
-
-    it("should not change the users' status if no reconnection is ongoing",
-      function(){
-      usersView.appStatus.set("reconnecting", false);
-      expect(usersView.collection.every(function(user) {
-        return user.get("presence") === "disconnected";
-      })).to.eql(false);
+      it("should not change the users' status if no reconnection is ongoing",
+        function(){
+        usersView.appStatus.set("reconnecting", false);
+        expect(usersView.collection.every(function(user) {
+          return user.get("presence") === "disconnected";
+        })).to.eql(false);
+      });
     });
   });
 });

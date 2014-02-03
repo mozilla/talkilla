@@ -340,10 +340,13 @@
 
     initialize: function() {
       // Initial rendering is performed a single time everytime the current user
-      // signs
+      // signs in
       this.user.on("signin", function() {
         this.listenToOnce(this.collection, "reset", this.render);
       }, this);
+
+      // Note that at this point the users collection is already empty
+      this.listenTo(this.user, "signout", this.render);
 
       this.appStatus.on("change:reconnecting", function(appStatus) {
         if (appStatus.get("reconnecting") !== false)
