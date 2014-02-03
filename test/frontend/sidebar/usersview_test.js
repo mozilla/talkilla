@@ -12,8 +12,8 @@ describe("UsersView", function() {
     user = new app.models.CurrentUser();
 
     collection = new app.models.UserSet([
-      {email: "a@a.com"},
-      {email: "b@b.com"}
+      {email: "a@a.com", presence: "disconnected"},
+      {email: "b@b.com", presence: "disconnected"}
     ]);
   });
 
@@ -118,6 +118,14 @@ describe("UsersView", function() {
         usersView.render();
 
         expect(usersView.$("li")).to.have.length.of(2);
+      });
+
+      it("should update a user entry when presence changes", function() {
+        usersView.render();
+
+        collection.setUserPresence("a@a.com", "connected");
+
+        expect(usersView.$(".status-connected")).to.have.length.of(1);
       });
     });
   });
