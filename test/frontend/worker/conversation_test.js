@@ -1,4 +1,4 @@
-/*global expect, sinon, payloads, Conversation */
+/*global expect, sinon, Conversation */
 /* jshint expr:true */
 "use strict";
 
@@ -14,12 +14,7 @@ describe("Conversation", function() {
     conversation = new Conversation({
       capabilities: [],
       peer: { username: "florian" },
-      browserPort: {
-        postEvent: sandbox.spy()
-      },
-      user: {
-        name: "romain"
-      }
+      user: { name: "romain" }
     });
 
     port = {
@@ -86,158 +81,22 @@ describe("Conversation", function() {
       });
   });
 
-  describe("#handleIncomingCall", function() {
-    var offer;
-
-    beforeEach(function() {
+  describe("#postMessage", function() {
+    it("should post the event if the port is known", function() {
       conversation.port = port;
-      offer = {
-        peer: "florian",
-        offer: {sdp: "fake"}
-      };
-    });
 
-    afterEach(function() {
-      offer = undefined;
-    });
+      conversation.postMessage("test event", {data: "fake"});
 
-    it("should post a talkilla.conversation-incoming event for an " +
-       "incoming call", function() {
-        conversation.handleIncomingCall(offer);
-
-        sinon.assert.called(port.postEvent);
-        sinon.assert.calledWith(port.postEvent,
-          "talkilla.conversation-incoming", offer);
-      });
-
-  });
-
-  describe("#handleIncomingText", function() {
-
-    beforeEach(function() {
-      conversation.port = port;
-      conversation.peer.username = "lola";
-    });
-
-    it("should foward a message to the conversation", function() {
-      var textMsg = new payloads.SPAChannelMessage({
-        message: "yamessage",
-        type: "",
-        peer: "lola"
-      });
-      conversation.handleIncomingText(textMsg);
-
-      sinon.assert.calledOnce(port.postEvent);
+      sinon.assert.called(port.postEvent);
       sinon.assert.calledWithExactly(port.postEvent,
-        "talkilla.spa-channel-message", {
-          message: "yamessage"
-        });
+        "test event", {data: "fake"});
     });
 
-  });
+    it("should queue the event if the port is not known", function() {
+      conversation.postMessage("test event", {data: "fake"});
 
-  describe("#callAccepted", function() {
-    beforeEach(function() {
-      conversation.port = port;
+      expect(conversation.messageQueue)
+        .to.eql([{topic: "test event", data: {data: "fake"}}]);
     });
-
-    it("should post a talkilla.call-establishment message to the " +
-       "conversation window", function() {
-      var context = {
-        peer: "nicolas",
-        offer: { sdp: "fake" }
-      };
-      conversation.callAccepted(context);
-
-      sinon.assert.calledOnce(port.postEvent);
-      sinon.assert.calledWith(port.postEvent,
-        "talkilla.call-establishment", context);
-    });
-  });
-
-  describe("#hold" , function() {
-    beforeEach(function() {
-      conversation.port = port;
-    });
-
-    it("should post a talkilla.hold to the conversation window",
-       function() {
-      var holdMsg = {
-        peer: "nicolas"
-      };
-      conversation.hold(holdMsg);
-
-      sinon.assert.calledOnce(port.postEvent);
-      sinon.assert.calledWith(port.postEvent,
-        "talkilla.hold", holdMsg);
-    });
-  });
-
-  describe("#resume" , function() {
-    beforeEach(function() {
-      conversation.port = port;
-    });
-
-    it("should post a talkilla.resume to the conversation window",
-       function() {
-      var resumeMsg = {
-        peer: "nicolas"
-      };
-      conversation.resume(resumeMsg);
-
-      sinon.assert.calledOnce(port.postEvent);
-      sinon.assert.calledWith(port.postEvent,
-        "talkilla.resume", resumeMsg);
-    });
-  });
-
-  describe("#callHangup" , function() {
-    beforeEach(function() {
-      conversation.port = port;
-    });
-
-    it("should post a talkilla.call-hangup to the conversation window",
-       function() {
-      var context = {
-        peer: "nicolas"
-      };
-      conversation.callHangup(context);
-
-      sinon.assert.calledOnce(port.postEvent);
-      sinon.assert.calledWith(port.postEvent,
-        "talkilla.call-hangup", context);
-    });
-  });
-
-  describe("#iceCandidate", function() {
-    var context;
-
-    beforeEach(function() {
-      context = {
-        candidate: "dummy"
-      };
-      conversation.port = port;
-    });
-
-    it("should post talkilla.ice-candidate to the conversation window",
-      function() {
-        conversation.iceCandidate(context);
-
-        sinon.assert.calledOnce(port.postEvent);
-        sinon.assert.calledWithExactly(port.postEvent,
-          "talkilla.ice-candidate", context);
-      });
-
-    it("should store the ice candidate message if the port is not open",
-      function() {
-        conversation.port = undefined;
-
-        conversation.iceCandidate(context);
-
-        expect(conversation.messageQueue[0].topic)
-          .to.equal("talkilla.ice-candidate");
-        expect(conversation.messageQueue[0].data)
-          .to.deep.equal(context);
-      });
   });
 });
