@@ -105,4 +105,23 @@ describe("UserEntryView", function() {
       expect(view.$("img").attr("src")).eql("http://example.com?d=1&s=64");
     });
   });
+
+  describe("Events", function() {
+    describe("User model", function() {
+      var user, view;
+
+      beforeEach(function() {
+        sandbox.stub(app.views.UserEntryView.prototype, "render");
+        user = new app.models.User({email: "a@a.com",
+                                    presence: "disconnected"});
+        view = new app.views.UserEntryView({model: user});
+      });
+
+      it("should render when the presence is changed", function() {
+        user.set("presence", "connected");
+
+        sinon.assert.calledOnce(view.render);
+      });
+    });
+  });
 });

@@ -285,7 +285,7 @@
    */
   app.views.UserEntryView = app.views.BaseView.extend({
     dependencies: {
-      model:  app.models.user
+      model:  app.models.User
     },
 
     tagName: 'li',
@@ -306,6 +306,10 @@
 
     events: {
       'click a': 'openConversation'
+    },
+
+    initialize: function() {
+      this.listenTo(this.model, "change:presence", this.render);
     },
 
     openConversation: function(event) {
