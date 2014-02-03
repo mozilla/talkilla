@@ -24,7 +24,7 @@ describe("UsersView", function() {
   });
 
   describe("Events", function() {
-    describe("CurrentUser events", function() {
+    describe("CurrentUser", function() {
       describe("signin", function() {
         it("should render the view when the user signs in and the collection " +
            "is reset", function() {

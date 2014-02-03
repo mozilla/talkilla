@@ -44,6 +44,8 @@ var SidebarApp = (function(app, $) {
 
     // port events
     this.appPort.on("talkilla.users", this._onUserListReceived, this);
+    this.appPort.on("talkilla.user-joined", this._onUserJoined, this);
+    this.appPort.on("talkilla.user-left", this._onUserLeft, this);
     this.appPort.on("talkilla.spa-connected", this._onSPAConnected, this);
     this.appPort.on("talkilla.error", this._onError, this);
 
@@ -160,6 +162,14 @@ var SidebarApp = (function(app, $) {
 
   SidebarApp.prototype._onUserListReceived = function(users) {
     this.users.reset(users);
+  };
+
+  SidebarApp.prototype._onUserJoined = function(userId) {
+    this.users.setUserPresence(userId, "connected");
+  };
+
+  SidebarApp.prototype._onUserLeft = function(userId) {
+    this.users.setUserPresence(userId, "disconnected");
   };
 
   SidebarApp.prototype._setupDebugLogging = function() {

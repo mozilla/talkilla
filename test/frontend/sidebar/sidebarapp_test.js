@@ -127,6 +127,30 @@ describe("SidebarApp", function() {
         expect(sidebarApp.users.at(0).get('username')).to.equal("bill");
         expect(sidebarApp.users.at(1).get('username')).to.equal("bob");
       });
+
+    it("should listen to the `talkilla.user-joined` event and update users " +
+       "list with user presence information", function() {
+        var sidebarApp = new SidebarApp(defaultOptions);
+        var jb = new app.models.User({email: "jb@pirates.org",
+                                      presence: "disconnected"});
+        sidebarApp.users.add(jb);
+
+        sidebarApp.appPort.trigger("talkilla.user-joined", "jb@pirates.org");
+
+        expect(jb.get("presence")).eql("connected");
+      });
+
+    it("should listen to the `talkilla.user-left` event and update users " +
+       "list with user presence information", function() {
+        var sidebarApp = new SidebarApp(defaultOptions);
+        var jb = new app.models.User({email: "jb@pirates.org",
+                                      presence: "connected"});
+        sidebarApp.users.add(jb);
+
+        sidebarApp.appPort.trigger("talkilla.user-left", "jb@pirates.org");
+
+        expect(jb.get("presence")).eql("disconnected");
+      });
   });
 
   describe("#openConversation", function() {

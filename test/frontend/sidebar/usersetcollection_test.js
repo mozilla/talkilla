@@ -4,34 +4,62 @@
 var expect = chai.expect;
 
 describe("UserSet Collection", function() {
+  var jb, chuck, collection;
+
+  beforeEach(function() {
+    jb = new app.models.User({
+      fullName: "JB",
+      email: "jb@pirates.org",
+      phoneNumber: "123",
+      presence: "connected"
+    });
+    chuck = new app.models.User({
+      fullName: "Chuck Norris",
+      email: "chuck@norr.is",
+      phoneNumber: "666",
+      presence: "connected"
+    });
+    collection = new app.models.UserSet([jb, chuck]);
+  });
 
   describe("#comparator", function() {
-    it("should order username by default", function() {
-      var collection = new app.models.UserSet();
-      collection.add([{username:'jill'}, {username:'bill'}, {username:'bob'}]);
-      expect(collection.at(0).get('username')).to.equal('bill');
-      expect(collection.at(1).get('username')).to.equal('bob');
-      expect(collection.at(2).get('username')).to.equal('jill');
+    it("should order by lowercased full name by default", function() {
+      expect(collection.at(0).get('fullName')).to.equal('Chuck Norris');
+      expect(collection.at(1).get('fullName')).to.equal('JB');
     });
   });
 
-  describe("#updatePresence", function() {
+  describe("#findUser", function() {
+    it("should find users from their email", function() {
+      expect(collection.findUser("jb@pirates.org")).eql(jb);
+      expect(collection.findUser("chuck@norr.is")).eql(chuck);
+    });
+
+    it("should find users from their phone number", function() {
+      expect(collection.findUser("123")).eql(jb);
+      expect(collection.findUser("666")).eql(chuck);
+    });
+  });
+
+  describe("#setUserPresence", function() {
+    it("should set the user presence to a given status", function() {
+      collection.setUserPresence("123", "disconnected")
+
+      expect(jb.get("presence")).eql("disconnected");
+      expect(chuck.get("presence")).eql("connected");
+    });
+  });
+
+  describe("#setGlobalPresence", function() {
     it("should update the presence for all users", function() {
-      var collection = new app.models.UserSet([
-        {username: "a", presence: "disconnected"},
-        {username: "b", presence: "disconnected"}
-      ]);
+      collection.setGlobalPresence("disconnected");
 
-      collection.updatePresence("connected");
-
-      expect(collection.at(0).get("presence")).eql("connected");
-      expect(collection.at(1).get("presence")).eql("connected");
+      expect(jb.get("presence")).eql("disconnected");
+      expect(chuck.get("presence")).eql("disconnected");
     });
 
     it("should return current collection", function() {
-      var collection = new app.models.UserSet();
-
-      expect(collection.updatePresence("connected"))
+      expect(collection.setGlobalPresence("connected"))
              .to.be.an.instanceOf(app.models.UserSet);
     });
   });

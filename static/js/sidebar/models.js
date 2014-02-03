@@ -45,7 +45,25 @@
      * @return {String}
      */
     comparator: function(item) {
-      return item.get('username').toLowerCase();
+      return (item.get("fullName") ||
+              item.get("email")    ||
+              item.get("phoneNumber")).toLowerCase();
+    },
+
+    /**
+     * Find a user from its identifier which can be either an email address or
+     * a phone number.
+     *
+     * XXX: we need a real unique id here
+     *
+     * @param  {String} userId Either an email address or phone number
+     * @return {app.models.User|undefined}
+     */
+    findUser: function(userId) {
+      return this.chain().filter(function(user) {
+        return user.get("phoneNumber") === userId ||
+               user.get("email") === userId;
+      }).first().value();
     },
 
     /**
@@ -54,12 +72,27 @@
      * @param  {String} status Either "connected" or "disconnected".
      * @return {UserSet}
      **/
-    updatePresence: function(status) {
+    setGlobalPresence: function(status) {
       this.each(function(user) {
         user.set("presence", status);
       });
       return this;
     },
+
+    /**
+     * Update the presence of the user matching the provided identifier to
+     * the given value.
+     *
+     * XXX: throw on user not found?
+     *
+     * @param {String} userId Either an email address or phone number
+     * @param {String} status Either "connected" or "disconnected"
+     */
+    setUserPresence: function(userId, status) {
+      var user = this.findUser(userId);
+      if (user)
+        user.set("presence", status);
+    }
   });
 
   /**

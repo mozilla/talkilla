@@ -349,8 +349,10 @@
       this.listenTo(this.user, "signout", this.render);
 
       this.appStatus.on("change:reconnecting", function(appStatus) {
+        // XXX: would be more convenient to trigger a dedicated `reconnecting`
+        // event so we know it's currently reconnecting and could skip the test
         if (appStatus.get("reconnecting") !== false)
-          this.collection.updatePresence("disconnected");
+          this.collection.setGlobalPresence("disconnected");
       }, this);
     },
 
