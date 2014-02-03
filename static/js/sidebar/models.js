@@ -47,6 +47,19 @@
     comparator: function(item) {
       return item.get('username').toLowerCase();
     },
+
+    /**
+     * Set the presence attribute of all the users to the given value.
+     *
+     * @param  {String} status Either "connected" or "disconnected".
+     * @return {UserSet}
+     **/
+    updatePresence: function(status) {
+      this.each(function(user) {
+        user.set("presence", status);
+      });
+      return this;
+    },
   });
 
   /**

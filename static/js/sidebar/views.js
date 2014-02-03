@@ -342,7 +342,7 @@
       this.collection.on("reset change", this.render, this);
       this.appStatus.on("change:reconnecting", function(appStatus) {
         if (appStatus.get("reconnecting") !== false)
-          this.updateUsersPresence("disconnected");
+          this.collection.updatePresence("disconnected");
       }, this);
     },
 
@@ -368,18 +368,6 @@
           active: !!(callee && callee.get('username') === user.get('username'))
         }));
       }.bind(this));
-    },
-
-    /**
-     * Set the presence attribute of all the users to the given value.
-     *
-     * @param  {String} the status to set.
-     **/
-    updateUsersPresence: function(status) {
-      // Show all the users as disconnected.
-      this.collection.each(function(user) {
-        user.set("presence", status);
-      });
     },
 
     render: function() {
