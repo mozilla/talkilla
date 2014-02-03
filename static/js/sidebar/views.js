@@ -285,8 +285,7 @@
    */
   app.views.UserEntryView = app.views.BaseView.extend({
     dependencies: {
-      model:  app.models.user,
-      active: Boolean
+      model:  app.models.user
     },
 
     tagName: 'li',
@@ -317,8 +316,6 @@
 
     render: function() {
       this.$el.html(this.template(this.model.toJSON()));
-      if (this.active)
-        this.$('a').addClass('active');
       return this;
     }
   });
@@ -348,52 +345,34 @@
       // Note that at this point the users collection is already empty
       this.listenTo(this.user, "signout", this.render);
 
+      // XXX: on contacts imported, we should render the new list as well
+
       this.appStatus.on("change:reconnecting", function(appStatus) {
         // XXX: would be more convenient to trigger a dedicated `reconnecting`
         // event so we know it's currently reconnecting and could skip the test
         if (appStatus.get("reconnecting") !== false)
           this.collection.setGlobalPresence("disconnected");
       }, this);
-    },
 
-    /**
-     * Initializes all user entry items with every online user records except
-     * the one of currently logged in user, if any.
-     */
-    initViews: function() {
-      if (!this.collection)
-        return;
+      // Exclude current signed in user from the list
+      // XXX: shouldn't this be done in the worker?
       if (this.user.isLoggedIn())
         this.collection.excludeUser(this.user);
-      var callee = this.callee;
-      var session = this.user;
-      this.views = [];
-      this.collection.each(function(user) {
-        // create a dedicated list entry for each user
-        this.views.push(new app.views.UserEntryView({
-          model:  user,
-          active: !!(callee && callee.get('username') === user.get('username'))
-        }));
-      }.bind(this));
+
+      // User entry child views
+      this.views = this.collection.map(function(user) {
+        return new app.views.UserEntryView({model: user});
+      }, this);
     },
 
     render: function() {
-      this.initViews();
-      // remove user entries
-      this.$('li:not(.nav-header)').remove();
-      if (!this.collection)
-        return this;
-      // render all subviews
-      var userList = _.chain(this.views).map(function(view) {
-        return view.render();
-      }).pluck('el').value();
-      this.$('ul').append(userList);
-      // show/hide element regarding auth status
-      if (this.user.isLoggedIn())
-        this.$el.show();
-      else
-        this.$el.hide();
+      // Render all child user entry views
+      this.$el.html(this.views.map(function(view) {
+        return view.render().$el;
+      }));
+
       // show/hide invite if user is alone
+      // XXX: we shouldn't do this here
       if (this.user.isLoggedIn() && this.collection.length === 1) {
         if (!this.activeNotification)
           this.activeNotification =
@@ -406,6 +385,7 @@
           this.activeNotification.clear();
         this.activeNotification = null;
       }
+
       return this;
     }
   });

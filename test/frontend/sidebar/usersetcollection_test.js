@@ -51,7 +51,7 @@ describe("UserSet Collection", function() {
 
   describe("#setUserPresence", function() {
     it("should set the user presence to a given status", function() {
-      collection.setUserPresence("123", "disconnected")
+      collection.setUserPresence("123", "disconnected");
 
       expect(jb.get("presence")).eql("disconnected");
       expect(chuck.get("presence")).eql("connected");
