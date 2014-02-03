@@ -40,13 +40,11 @@ var payloads = (function() {
    * - {Integer} callid, the id of the call being initiated
    * - {String} peer, the username to call
    * - {mozRTCSessionDescription} offer, a sdp offer
-   * - {Boolean} upgrade, is this a call upgrade?
    */
   var Offer = Payload.define({
     callid:  Number,
     peer:    String,
-    offer:   Object,
-    upgrade: Boolean
+    offer:   Object
   });
 
   /**
