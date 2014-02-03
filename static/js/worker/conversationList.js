@@ -21,8 +21,10 @@ var ConversationList = (function() {
       throw new Error("missing parameter: User");
     this.user = options.user;
 
-    // object that holds the conversations
+    // Object that holds the conversations.
     this.conversationList = {};
+    // The queue holds a list of peer ids for whom the conversation window
+    // open has been requested, but hasn't completed yet.
     this.queue = [];
   }
 
@@ -96,13 +98,13 @@ var ConversationList = (function() {
     },
 
     /**
-     * handle event when a new chat window is ready
+     * Handle event when a new chat window is ready.
      * @param {Object} Message from a new window event
      */
     windowReady: function(readyData) {
-      var lastRequested = this.queue.pop();
-      if (lastRequested)
-        this.conversationList[lastRequested].windowOpened(readyData);
+      var pendingPeer = this.queue.pop();
+      if (pendingPeer)
+        this.conversationList[pendingPeer].windowOpened(readyData);
     },
 
     /**
