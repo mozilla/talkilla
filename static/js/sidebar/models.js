@@ -34,9 +34,19 @@
 
   app.models.UserSet = Backbone.Collection.extend({
     model: app.models.User,
+
+    /**
+     * Used to sort users by lowercased username.
+     *
+     * XXX: does it make sense for phone numbers? We should probably target
+     * fullName really.
+     *
+     * @param  {User} item
+     * @return {String}
+     */
     comparator: function(item) {
-        return item.get('username').toLowerCase();
-      }
+      return item.get('username').toLowerCase();
+    },
   });
 
   /**
