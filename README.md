@@ -58,6 +58,12 @@ Contribution
 Look for a file named [CONTRIBUTING.md](CONTRIBUTING.md) in this repository. It
 contains our contributing guidelines.
 
+Frequently Asked Questions
+--------------------------
+
+You can find a list of frequently asked questions in the
+[docs/faq.md](docs/faq.md) file.
+
 License
 -------
 
