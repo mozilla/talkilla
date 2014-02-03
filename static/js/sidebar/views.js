@@ -351,6 +351,7 @@
 
       // XXX: on contacts imported, we should render the new list as well
 
+      // XXX: This should be moved to the app
       this.appStatus.on("change:reconnecting", function(appStatus) {
         // XXX: would be more convenient to trigger a dedicated `reconnecting`
         // event so we know it's currently reconnecting and could skip the test
@@ -359,7 +360,7 @@
       }, this);
 
       // Exclude current signed in user from the list
-      // XXX: shouldn't this be done in the worker?
+      // XXX: shouldn't this be done in the worker directly?
       if (this.user.isLoggedIn())
         this.collection.excludeUser(this.user);
 
