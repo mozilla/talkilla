@@ -339,7 +339,12 @@
     activeNotification: null,
 
     initialize: function() {
-      this.collection.on("reset change", this.render, this);
+      // Initial rendering is performed a single time everytime the current user
+      // signs
+      this.user.on("signin", function() {
+        this.listenToOnce(this.collection, "reset", this.render);
+      }, this);
+
       this.appStatus.on("change:reconnecting", function(appStatus) {
         if (appStatus.get("reconnecting") !== false)
           this.collection.updatePresence("disconnected");
