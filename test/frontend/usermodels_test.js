@@ -29,9 +29,9 @@ describe("app.models", function() {
       it("should return a calculated url based on the email", function() {
         var avatar = new app.models.User({username: "mark@example.com"})
           .avatar();
-        /*jshint maxlen:83*/
+        /*jshint maxlen:84*/
         expect(avatar).to.be.equal(
-          "http://www.gravatar.com/avatar/5e543256c480ac577d30f76f9120eb74/?d=mm");
+          "https://www.gravatar.com/avatar/5e543256c480ac577d30f76f9120eb74/?d=mm");
       });
     });
 
