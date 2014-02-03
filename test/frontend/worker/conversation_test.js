@@ -81,11 +81,11 @@ describe("Conversation", function() {
       });
   });
 
-  describe("#send", function() {
+  describe("#postMessage", function() {
     it("should post the event if the port is known", function() {
       conversation.port = port;
 
-      conversation.send("test event", {data: "fake"});
+      conversation.postMessage("test event", {data: "fake"});
 
       sinon.assert.called(port.postEvent);
       sinon.assert.calledWithExactly(port.postEvent,
@@ -93,7 +93,7 @@ describe("Conversation", function() {
     });
 
     it("should queue the event if the port is not known", function() {
-      conversation.send("test event", {data: "fake"});
+      conversation.postMessage("test event", {data: "fake"});
 
       expect(conversation.messageQueue)
         .to.eql([{topic: "test event", data: {data: "fake"}}]);

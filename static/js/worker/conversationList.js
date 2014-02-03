@@ -77,6 +77,11 @@ var ConversationList = (function() {
       this.conversationList = {};
     },
 
+    _postMessageTo: function(to, topic, data) {
+      if (this.has(to))
+        this.get(to).postMessage(topic, data);
+    },
+
     /**
      * Start conversation with a particular peer
      * @param {String} peer Peer unique identifier
@@ -117,7 +122,8 @@ var ConversationList = (function() {
     offer: function(offerMsg, capabilities, browserPort) {
       if (!this.has(offerMsg.peer))
         this._startConversation(offerMsg.peer, capabilities, browserPort);
-      this.get(offerMsg.peer).send("talkilla.conversation-incoming", offerMsg);
+      this._postMessageTo(offerMsg.peer, "talkilla.conversation-incoming",
+        offerMsg);
     },
 
     /**
@@ -131,7 +137,8 @@ var ConversationList = (function() {
     message: function(textMsg, capabilities, browserPort) {
       if (!this.has(textMsg.peer))
         this._startConversation(textMsg.peer, capabilities, browserPort);
-      this.get(textMsg.peer).send("talkilla.spa-channel-message", textMsg);
+      this._postMessageTo(textMsg.peer, "talkilla.spa-channel-message",
+        textMsg);
     },
 
     /**
@@ -139,8 +146,8 @@ var ConversationList = (function() {
      * @param {payloads.Answer} answerMsg The call answer details
      */
     answer: function(answerMsg) {
-      if (this.has(answerMsg.peer))
-        this.get(answerMsg.peer).send('talkilla.call-establishment', answerMsg);
+      this._postMessageTo(answerMsg.peer, 'talkilla.call-establishment',
+        answerMsg);
     },
 
     /**
@@ -148,8 +155,7 @@ var ConversationList = (function() {
      * @param {payloads.Hangup} hangupMsg Call hangup details
      */
     hangup: function(hangupMsg) {
-      if (this.has(hangupMsg.peer))
-        this.get(hangupMsg.peer).send('talkilla.call-hangup', hangupMsg);
+      this._postMessageTo(hangupMsg.peer, 'talkilla.call-hangup', hangupMsg);
     },
 
     /**
@@ -157,9 +163,8 @@ var ConversationList = (function() {
      * @param {payloads.IceCandidate} iceCandidateMsg Ice candidate details
      */
     iceCandidate: function(iceCandidateMsg) {
-      if (this.has(iceCandidateMsg.peer))
-        this.get(iceCandidateMsg.peer).send('talkilla.ice-candidate',
-          iceCandidateMsg);
+      this._postMessageTo(iceCandidateMsg.peer, 'talkilla.ice-candidate',
+        iceCandidateMsg);
     },
 
     /**
@@ -167,8 +172,7 @@ var ConversationList = (function() {
      * @param {payloads.Hold} holdMsg Hold Message details
      */
     hold: function(holdMsg) {
-      if (this.has(holdMsg.peer))
-        this.get(holdMsg.peer).send('talkilla.hold', holdMsg);
+      this._postMessageTo(holdMsg.peer, 'talkilla.hold', holdMsg);
     },
 
     /**
@@ -176,8 +180,7 @@ var ConversationList = (function() {
      * @param {payloads.Resume} resumeMsg Resume Message details
      */
     resume: function(resumeMsg) {
-      if (this.has(resumeMsg.peer))
-        this.get(resumeMsg.peer).send('talkilla.resume', resumeMsg);
+      this._postMessageTo(resumeMsg.peer, 'talkilla.resume', resumeMsg);
     },
 
     /**
@@ -205,7 +208,7 @@ var ConversationList = (function() {
         this._startConversation(instantShareMsg.peer, capabilities,
           browserPort);
       }
-      this.get(instantShareMsg.peer).send('talkilla.start-call');
+      this._postMessageTo(instantShareMsg.peer, 'talkilla.start-call');
     }
 
   };

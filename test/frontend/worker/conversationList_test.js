@@ -111,13 +111,13 @@ describe("ConversationList", function() {
     });
 
     describe("#offer", function() {
-      it("should send an event on the conversation", function() {
-        sandbox.stub(conversation, "send");
+      it("should post a message to the conversation", function() {
+        sandbox.stub(conversation, "postMessage");
 
         conversationList.offer({peer:"dmose"});
 
-        sinon.assert.calledOnce(conversation.send);
-        sinon.assert.calledWithExactly(conversation.send,
+        sinon.assert.calledOnce(conversation.postMessage);
+        sinon.assert.calledWithExactly(conversation.postMessage,
           "talkilla.conversation-incoming", {peer: "dmose"}
         );
       });
@@ -132,13 +132,13 @@ describe("ConversationList", function() {
     });
 
     describe("#message", function() {
-      it("should send an event on the conversation", function() {
-        sandbox.stub(conversation, "send");
+      it("should post a message to the conversation", function() {
+        sandbox.stub(conversation, "postMessage");
 
         conversationList.message({peer:"dmose"});
 
-        sinon.assert.calledOnce(conversation.send);
-        sinon.assert.calledWithExactly(conversation.send,
+        sinon.assert.calledOnce(conversation.postMessage);
+        sinon.assert.calledWithExactly(conversation.postMessage,
           "talkilla.spa-channel-message", {peer: "dmose"}
         );
       });
@@ -154,14 +154,14 @@ describe("ConversationList", function() {
 
     describe("#answer", function() {
       beforeEach(function() {
-        sandbox.stub(conversation, "send");
+        sandbox.stub(conversation, "postMessage");
       });
 
-      it("should send an event on the conversation", function() {
+      it("should post a message to the conversation", function() {
         conversationList.answer({peer:"dmose"});
 
-        sinon.assert.calledOnce(conversation.send);
-        sinon.assert.calledWithExactly(conversation.send,
+        sinon.assert.calledOnce(conversation.postMessage);
+        sinon.assert.calledWithExactly(conversation.postMessage,
           "talkilla.call-establishment", {peer: "dmose"}
         );
       });
@@ -170,20 +170,20 @@ describe("ConversationList", function() {
         function() {
           conversationList.answer({peer:"niko"});
 
-          sinon.assert.notCalled(conversation.send);
+          sinon.assert.notCalled(conversation.postMessage);
         });
     });
 
     describe("#hangup", function() {
       beforeEach(function() {
-        sandbox.stub(conversation, "send");
+        sandbox.stub(conversation, "postMessage");
       });
 
-      it("should send an event on the conversation", function() {
+      it("should post a message to the conversation", function() {
         conversationList.hangup({peer:"dmose"});
 
-        sinon.assert.calledOnce(conversation.send);
-        sinon.assert.calledWithExactly(conversation.send,
+        sinon.assert.calledOnce(conversation.postMessage);
+        sinon.assert.calledWithExactly(conversation.postMessage,
           "talkilla.call-hangup", {peer: "dmose"}
         );
       });
@@ -192,20 +192,20 @@ describe("ConversationList", function() {
         function() {
           conversationList.hangup({peer:"niko"});
 
-          sinon.assert.notCalled(conversation.send);
+          sinon.assert.notCalled(conversation.postMessage);
         });
     });
 
     describe("#iceCandidate", function() {
       beforeEach(function() {
-        sandbox.stub(conversation, "send");
+        sandbox.stub(conversation, "postMessage");
       });
 
-      it("should send an event on the conversation", function() {
+      it("should post a message to the conversation", function() {
         conversationList.iceCandidate({peer:"dmose"});
 
-        sinon.assert.calledOnce(conversation.send);
-        sinon.assert.calledWithExactly(conversation.send,
+        sinon.assert.calledOnce(conversation.postMessage);
+        sinon.assert.calledWithExactly(conversation.postMessage,
           "talkilla.ice-candidate", {peer: "dmose"}
         );
       });
@@ -214,20 +214,20 @@ describe("ConversationList", function() {
         function() {
           conversationList.iceCandidate({peer:"niko"});
 
-          sinon.assert.notCalled(conversation.send);
+          sinon.assert.notCalled(conversation.postMessage);
         });
     });
 
     describe("#hold", function() {
       beforeEach(function() {
-        sandbox.stub(conversation, "send");
+        sandbox.stub(conversation, "postMessage");
       });
 
-      it("should send an event on the conversation", function() {
+      it("should post a message to the conversation", function() {
         conversationList.hold({peer:"dmose"});
 
-        sinon.assert.calledOnce(conversation.send);
-        sinon.assert.calledWithExactly(conversation.send,
+        sinon.assert.calledOnce(conversation.postMessage);
+        sinon.assert.calledWithExactly(conversation.postMessage,
           "talkilla.hold", {peer: "dmose"}
         );
       });
@@ -236,20 +236,20 @@ describe("ConversationList", function() {
         function() {
           conversationList.hold({peer:"niko"});
 
-          sinon.assert.notCalled(conversation.send);
+          sinon.assert.notCalled(conversation.postMessage);
         });
     });
 
     describe("#resume", function() {
       beforeEach(function() {
-        sandbox.stub(conversation, "send");
+        sandbox.stub(conversation, "postMessage");
       });
 
-      it("should send an event on the conversation", function() {
+      it("should post a message to the conversation", function() {
         conversationList.resume({peer:"dmose"});
 
-        sinon.assert.calledOnce(conversation.send);
-        sinon.assert.calledWithExactly(conversation.send,
+        sinon.assert.calledOnce(conversation.postMessage);
+        sinon.assert.calledWithExactly(conversation.postMessage,
           "talkilla.resume", {peer: "dmose"}
         );
       });
@@ -258,7 +258,7 @@ describe("ConversationList", function() {
         function() {
           conversationList.resume({peer:"niko"});
 
-          sinon.assert.notCalled(conversation.send);
+          sinon.assert.notCalled(conversation.postMessage);
         });
     });
 
@@ -305,14 +305,14 @@ describe("ConversationList", function() {
 
     describe("#instantShare", function() {
       beforeEach(function() {
-        sandbox.stub(conversation, "send");
+        sandbox.stub(conversation, "postMessage");
       });
 
-      it("should send an event on the conversation", function() {
+      it("should post a message to the conversation", function() {
         conversationList.instantshare({peer:"dmose"});
 
-        sinon.assert.calledOnce(conversation.send);
-        sinon.assert.calledWithExactly(conversation.send,
+        sinon.assert.calledOnce(conversation.postMessage);
+        sinon.assert.calledWith(conversation.postMessage,
           "talkilla.start-call");
       });
 

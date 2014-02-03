@@ -58,13 +58,13 @@ var Conversation = (function() {
     },
 
     /**
-    * Attempts to send a message to the port, if the port is not known
+    * Attempts to post a message to the port, if the port is not known
     * it will queue the message for delivery on window opened.
     *
     * @param {String} topic Topic of the message to send
     * @param {Object} data  The data to send with the message
     */
-    send: function(topic, data) {
+    postMessage: function(topic, data) {
       if (this.port)
         this.port.postEvent(topic, data);
       else
