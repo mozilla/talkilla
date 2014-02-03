@@ -170,7 +170,6 @@ function _setupSPA(spa) {
     tkWorker.users.set(userId, {presence: "connected"},
       tkWorker.spa.usernameFieldType);
 
-    tkWorker.ports.broadcastEvent("talkilla.users", tkWorker.users.toArray());
     tkWorker.ports.broadcastEvent("talkilla.user-joined", userId);
   });
 
@@ -181,7 +180,6 @@ function _setupSPA(spa) {
     tkWorker.users.set(userId, {presence: "disconnected"},
       tkWorker.spa.usernameFieldType);
 
-    tkWorker.ports.broadcastEvent("talkilla.users", tkWorker.users.toArray());
     tkWorker.ports.broadcastEvent("talkilla.user-left", userId);
   });
 
