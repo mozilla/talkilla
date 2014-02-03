@@ -363,15 +363,12 @@
     initViews: function() {
       if (!this.collection)
         return;
+      if (this.user.isLoggedIn())
+        this.collection.excludeUser(this.user);
       var callee = this.callee;
       var session = this.user;
       this.views = [];
-      this.collection.chain().reject(function(user) {
-        // filter out current signed in user, if any
-        if (!session.isLoggedIn())
-          return false;
-        return user.get('username') === session.get('username');
-      }).each(function(user) {
+      this.collection.each(function(user) {
         // create a dedicated list entry for each user
         this.views.push(new app.views.UserEntryView({
           model:  user,

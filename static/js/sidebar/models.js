@@ -36,6 +36,21 @@
     model: app.models.User,
 
     /**
+     * Internal higher order function for comparing a user model to a user
+     * identifier.
+     *
+     * @private
+     * @param  {String} userId Either an email address or a phone number
+     * @return {Function}
+     */
+    _userIs: function(userId) {
+      return function(user) {
+        return user.get("phoneNumber") === userId ||
+               user.get("email") === userId;
+      };
+    },
+
+    /**
      * Used to sort users by lowercased username.
      *
      * XXX: does it make sense for phone numbers? We should probably target
@@ -51,6 +66,17 @@
     },
 
     /**
+     * Exclude a user from the collection. Persistent operation.
+     *
+     * @param  {String} userId Either an email address or a phone number
+     * @return {UserSet}
+     */
+    excludeUser: function(userId) {
+      this.reset(this.reject(this._userIs(userId)));
+      return this;
+    },
+
+    /**
      * Find a user from its identifier which can be either an email address or
      * a phone number.
      *
@@ -60,10 +86,7 @@
      * @return {app.models.User|undefined}
      */
     findUser: function(userId) {
-      return this.chain().filter(function(user) {
-        return user.get("phoneNumber") === userId ||
-               user.get("email") === userId;
-      }).first().value();
+      return this.chain().filter(this._userIs(userId)).first().value();
     },
 
     /**

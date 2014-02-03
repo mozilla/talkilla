@@ -29,6 +29,14 @@ describe("UserSet Collection", function() {
     });
   });
 
+  describe("#excludeUser", function() {
+    it("should exclude a given user from the list", function() {
+      collection.excludeUser("chuck@norr.is");
+
+      expect(collection.length).eql(1);
+    });
+  });
+
   describe("#findUser", function() {
     it("should find users from their email", function() {
       expect(collection.findUser("jb@pirates.org")).eql(jb);
