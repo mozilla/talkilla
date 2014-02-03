@@ -1,4 +1,4 @@
-/*global expect, sinon, payloads, Conversation, CurrentUsers */
+/*global expect, sinon, payloads, Conversation */
 /* jshint expr:true */
 "use strict";
 
@@ -17,13 +17,10 @@ describe("Conversation", function() {
       browserPort: {
         postEvent: sandbox.spy()
       },
-      users: new CurrentUsers(),
       user: {
         name: "romain"
       }
     });
-
-    conversation.users.set("florian", {presence: "connected"});
 
     port = {
       postEvent: sandbox.spy()
@@ -40,12 +37,6 @@ describe("Conversation", function() {
                       to.deep.equal({username: "florian"});
     });
 
-    it("should ask the browser to open a chat window", function() {
-      sinon.assert.calledOnce(conversation.browserPort.postEvent);
-      sinon.assert.calledWithExactly(conversation.browserPort.postEvent,
-                                     "social.request-chat",
-                                     "chat.html#florian");
-    });
   });
 
   describe("#windowOpened", function() {
@@ -64,25 +55,9 @@ describe("Conversation", function() {
           "talkilla.conversation-open", {
           capabilities: [],
           peer: conversation.peer,
-          peerPresence: "connected",
           user: conversation.user.name
         });
       });
-
-    it("should send peer presence information", function() {
-      conversation.users.set("florian", { presence: "disconnected" });
-
-      conversation.windowOpened(port);
-
-      sinon.assert.calledOnce(port.postEvent);
-      sinon.assert.calledWithMatch(port.postEvent,
-        "talkilla.conversation-open", {
-        capabilities: [],
-        peer: conversation.peer,
-        peerPresence: "disconnected",
-        user: conversation.user.name
-      });
-    });
 
     it("should send any outstanding messages when the port is opened",
       function() {
@@ -125,21 +100,6 @@ describe("Conversation", function() {
     afterEach(function() {
       offer = undefined;
     });
-
-    it("should return false if the conversation is not for the peer",
-      function() {
-        offer.peer = "alexis";
-        var result = conversation.handleIncomingCall(offer);
-
-        expect(result).to.be.equal(false);
-      });
-
-    it("should return true if the conversation is for the peer",
-      function() {
-        var result = conversation.handleIncomingCall(offer);
-
-        expect(result).to.be.equal(true);
-      });
 
     it("should post a talkilla.conversation-incoming event for an " +
        "incoming call", function() {
