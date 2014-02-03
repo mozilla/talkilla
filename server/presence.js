@@ -9,11 +9,26 @@ var app = require("./server").app;
 var httpServer = require("./server").server;
 var config = require('./config').config;
 var logger = require('./logger');
-var Users = require('./users').Users;
+var UserList = require('./users').UserList;
 var User = require('./users').User;
 
-var users = new Users();
+var users = new UserList();
+var anons = new UserList();
 var api;
+
+users.on("add", function(user) {
+  users.forEach(function(peer) {
+    if (peer !== user)
+      peer.send("userJoined", user.nick);
+  });
+});
+
+users.on("remove", function(user) {
+  users.forEach(function(peer) {
+    if (peer !== user)
+      peer.send("userLeft", user.nick);
+  });
+});
 
 api = {
   _verifyAssertion: function(assertion, callback) {
@@ -87,6 +102,8 @@ api = {
     }
 
     logger.info({type: "signout"});
+
+    // XXX why do we return true?  this may want to be removed
     res.send(200, JSON.stringify(true));
   },
 
@@ -101,44 +118,50 @@ api = {
    * Events received between reconnections are not lost.
    */
   stream: function(req, res) {
-    if (!req.session.email)
-      return res.send(400);
+    var firstRequest = req.body && req.body.firstRequest;
+    var isAnon = !req.session.email;
+    var user;
 
-    var nick = req.session.email;
-    var user = users.get(nick);
+    if (isAnon)
+      user = api._setupUser(anons, api._genId());
+    else
+      user = api._setupUser(users, req.session.email);
 
-    if (!user) {
-      // Send the userJoined notification before adding the user as present to
-      // prevent the user receiving it's own notification.
-      users.forEach(function(peer) {
-        peer.send("userJoined", nick);
-      });
+    user.touch();
 
-      user = users.add(nick).get(nick);
-      users.get(nick).ondisconnect = function() {
-        users.remove(nick);
-        users.forEach(function(peer) {
-          peer.send("userLeft", nick);
-        });
-        logger.info({type: "disconnection"});
-      };
-      user.touch();
-
-      // XXX: Here we force the first long-polling request to return
-      // without a timeout. It's because we need to be connected to
-      // request the presence. We should fix that on the frontend.
+    if (firstRequest)
       res.send(200, JSON.stringify([]));
-      logger.info({type: "connection"});
-    } else if (req.body && req.body.firstRequest) {
-      user.clearPending().touch();
-      res.send(200, JSON.stringify([]));
-      logger.info({type: "reconnection"});
-    } else {
-      user.touch().waitForEvents(function(events) {
-        logger.trace({to: nick, events: events}, "long polling send");
+    else
+      user.waitForEvents(function(events) {
+        logger.trace({to: user.nick, events: events}, "long polling send");
         res.send(200, JSON.stringify(events));
       });
+  },
+
+  _setupUser: function(userList, id, firstRequest) {
+    var user = userList.get(id);
+
+    if (user && firstRequest) {
+      user.clearPending();
+      logger.info({type: "reconnection"});
     }
+
+    if (!user) {
+      user = userList.add(id).get(id);
+      user.on("disconnect", function() {
+        userList.remove(id);
+        logger.info({type: "disconnection"});
+      });
+
+      logger.info({type: "connection"});
+    }
+
+    return user;
+  },
+
+  _genId: function() {
+    // XXX needs to be implemented
+    return 4;
   },
 
   callOffer: function(req, res) {
@@ -273,3 +296,4 @@ app.post('/instant-share/:email', api.instantSharePingBack);
 
 module.exports.api = api;
 module.exports._users = users;
+module.exports._anons = anons;
