@@ -64,7 +64,7 @@ describe("UserEntryView", function() {
     var user, view;
 
     beforeEach(function() {
-      user = new app.models.User();
+      user = new app.models.User({username: "chuck", presence: "connected"});
       view = new app.views.UserEntryView({
         model: user,
         active: false,
@@ -103,6 +103,18 @@ describe("UserEntryView", function() {
       view.render();
 
       expect(view.$("img").attr("src")).eql("http://example.com?d=1&s=64");
+    });
+
+    it("should reflect the user is disconnected", function() {
+      user.set("presence", "disconnected");
+
+      expect(view.$(".status-disconnected")).to.have.length.of(1);
+    });
+
+    it("should reflect the user is connected", function() {
+      user.set("presence", "disconnected").set("presence", "connected");
+
+      expect(view.$(".status-connected")).to.have.length.of(1);
     });
   });
 

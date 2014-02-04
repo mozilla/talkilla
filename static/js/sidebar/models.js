@@ -66,17 +66,6 @@
     },
 
     /**
-     * Exclude a user from the collection. Persistent operation.
-     *
-     * @param  {String} userId Either an email address or a phone number
-     * @return {UserSet}
-     */
-    excludeUser: function(userId) {
-      this.reset(this.reject(this._userIs(userId)));
-      return this;
-    },
-
-    /**
      * Find a user from its identifier which can be either an email address or
      * a phone number.
      *

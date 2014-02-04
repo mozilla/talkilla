@@ -128,7 +128,6 @@
         } else {
           this.$('#dialin-tab').hide();
         }
-        this.usersView.render();
         this.dialInView.render();
         this.gearMenuView.render();
         this.importContactsView.render();
@@ -342,8 +341,9 @@
     initialize: function() {
       // Initial rendering is performed a single time everytime the current user
       // signs in
-      this.user.on("signin", function() {
-        this.listenToOnce(this.collection, "reset", this.render);
+      this.listenTo(this.user, "signin", function() {
+        this.listenToOnce(this.collection, "reset", this._onUserListReceived);
+        // XXX listen to contacts import done
       }, this);
 
       // Note that at this point the users collection is already empty
@@ -359,20 +359,26 @@
           this.collection.setGlobalPresence("disconnected");
       }, this);
 
-      // Exclude current signed in user from the list
-      // XXX: shouldn't this be done in the worker directly?
-      if (this.user.isLoggedIn())
-        this.collection.excludeUser(this.user);
+      this._createViews();
+    },
 
-      // User entry child views
-      this.views = this.collection.map(function(user) {
+    /**
+     * Creates and attaches all user entry child views.
+     */
+    _createViews: function() {
+      this.views = this.collection.remove(this.user).map(function(user) {
         return new app.views.UserEntryView({model: user});
       }, this);
     },
 
+    _onUserListReceived: function() {
+      this._createViews();
+      this.render();
+    },
+
     render: function() {
       // Render all child user entry views
-      this.$el.html(this.views.map(function(view) {
+      this.$("ul").html(this.views.map(function(view) {
         return view.render().$el;
       }));
 

@@ -100,7 +100,7 @@ describe("UsersView", function() {
     var usersView;
 
     beforeEach(function() {
-      $("#fixtures").append('<ul id="users"></ul>');
+      $("#fixtures").append('<nav id="users"><ul></ul></nav>');
 
       usersView = new app.views.UsersView({
         user: user,
