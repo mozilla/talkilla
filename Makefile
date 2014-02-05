@@ -1,5 +1,12 @@
+FRONTEND_CMD = "python -m unittest discover -v test/frontend"
+FUNCTIONAL_CMD = "python -m unittest discover -v test/functional"
+
 NODE_LOCAL_BIN=./node_modules/.bin
 NODE_ENV?=development # by default we are in development mode
+
+REPEAT_TIMES ?= 10
+REPEAT_TEST ?= $(FUNCTIONAL_CMD)
+
 ifeq ($(shell echo ${NODE_ENV}), development)
 SESSION_SECRET?=unguessable # default secret for development and test mode
 endif
@@ -60,27 +67,23 @@ cover_server:
 		$(NODE_LOCAL_BIN)/_mocha -- test/server
 	@echo aim your browser at coverage/lcov-report/index.html for details
 
-# XXX refactor this file to not invoke run_selenium_test.sh twice, and call
-# other targets
-
 .PHONY: selenium_all
 selenium_all:
-	bin/run_selenium_test.sh "python -m unittest discover -v test/frontend" \
-		"python -m unittest discover -v test/functional"
+	bin/run_selenium_test.sh $(FRONTEND_CMD) \
+		$(FUNCTIONAL_CMD)
 
-.PHONY: selenium
+.PHONY: selenium functional
 selenium:
-	bin/run_selenium_test.sh "python -m unittest discover -v test/functional"
+functional:
+	bin/run_selenium_test.sh $(FUNCTIONAL_CMD)
 
 .PHONY: selenium-repeat
-REPEAT_TIMES ?= 10
-REPEAT_TEST ?= -m unittest discover -v test/functional
 selenium-repeat:
-	bin/run_selenium_test.sh "bin/repeat_loop.sh $(REPEAT_TIMES) python $(REPEAT_TEST)"
+	bin/run_selenium_test.sh "bin/repeat_loop.sh $(REPEAT_TIMES) $(REPEAT_TEST)"
 
 .PHONY: frontend
 frontend:
-	bin/run_selenium_test.sh "python -m unittest discover -v test/frontend"
+	bin/run_selenium_test.sh $(FRONTEND_CMD)
 
 PINPANEL_DIR ?= bin/PinPanel
 PINPANEL_SRCS ?= $(PINPANEL_DIR)/install.rdf $(PINPANEL_DIR)/bootstrap.js
