@@ -148,6 +148,12 @@ var payloads = (function() {
   /**
    * SPAChannelMessage payload. Arbitrary message sent through the SPA.
    *
+   * XXX Really, message is an attribute that should be defined further, however
+   * doing so would need it as an optional parameter (for type = chat:typing).
+   * We should probably split SPAChannelMessage and associated events throughout
+   * the system into mutliple rather than one - but we need to reassess this
+   * after the event system refactoring.
+   *
    * - {String} peer, the user to call
    * - {String} type, the type of the message
    * - {Object|String} message, a message or an opaque data structure carrying
