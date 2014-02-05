@@ -61,10 +61,10 @@
 }
 
 .sidebar #contact-tab > a {
-  background-image: url('/img/clock_default.png');
+  background-image: url('/img/contacts_default.png');
 }
 .sidebar #contact-tab.active > a {
-  background-image: url('/img/clock_clicked.png');
+  background-image: url('/img/contacts_clicked.png');
 }
 .sidebar #dialin-tab > a {
   background-image: url('/img/phone_default.png');
