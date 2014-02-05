@@ -62,6 +62,14 @@ var SidebarApp = (function(app, $) {
       this.appStatus.ongoingReconnection(new app.payloads.Reconnection(event));
     }, this);
 
+    // Update user presence statuses on reconnection
+    this.appStatus.on("change:reconnecting", function(appStatus) {
+      // XXX: would be more convenient to trigger a dedicated `reconnecting`
+      // event so we know it's currently reconnecting and could skip the test
+      if (appStatus.get("reconnecting") !== false)
+        this.users.setGlobalPresence("disconnected");
+    }, this);
+
     // SPA model events
     this.spa.on("dial", this.openConversation, this);
 

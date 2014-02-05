@@ -29,8 +29,7 @@ describe("UsersView", function() {
 
       usersView = new app.views.UsersView({
         user: user,
-        collection: collection,
-        appStatus: new app.models.AppStatus()
+        collection: collection
       });
     });
 
@@ -66,31 +65,6 @@ describe("UsersView", function() {
 
             sinon.assert.calledOnce(usersView.render);
           });
-        });
-      });
-
-      describe("AppStatus events", function() {
-        beforeEach(function() {
-          usersView.collection.reset([
-            {username: "bob", presence: "connected"},
-            {username: "bill", presence: "disconnected"}
-          ]);
-        });
-
-        it("should change user status if a reconnection is ongoing",
-          function() {
-            usersView.appStatus.set("reconnecting", {timeout: 42, attempt: 2});
-            expect(usersView.collection.every(function(user) {
-              return user.get("presence") === "disconnected";
-            })).to.eql(true);
-          });
-
-        it("should not change the users' status if no reconnection is ongoing",
-          function(){
-          usersView.appStatus.set("reconnecting", false);
-          expect(usersView.collection.every(function(user) {
-            return user.get("presence") === "disconnected";
-          })).to.eql(false);
         });
       });
     });

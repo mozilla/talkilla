@@ -335,5 +335,30 @@ describe("SidebarApp", function() {
       });
     });
 
+    describe("AppStatus reconnection event", function() {
+      beforeEach(function() {
+        sidebarApp.users.reset([
+          {username: "bob", presence: "connected"},
+          {username: "bill", presence: "disconnected"}
+        ]);
+      });
+
+      it("should change user status if a reconnection is ongoing",
+        function() {
+          sidebarApp.appStatus.set("reconnecting", {timeout: 42, attempt: 2});
+          expect(sidebarApp.users.every(function(user) {
+            return user.get("presence") === "disconnected";
+          })).to.eql(true);
+        });
+
+      it("should not change the users' status if no reconnection is ongoing",
+        function(){
+        sidebarApp.appStatus.set("reconnecting", false);
+        expect(sidebarApp.users.every(function(user) {
+          return user.get("presence") === "disconnected";
+        })).to.eql(false);
+      });
+    });
+
   });
 });

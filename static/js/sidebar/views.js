@@ -93,8 +93,7 @@
     initialize: function() {
       this.usersView = new app.views.UsersView({
         user: this.user,
-        collection: this.users,
-        appStatus: this.appStatus
+        collection: this.users
       });
 
       this.dialInView = new app.views.DialInView({
@@ -329,8 +328,7 @@
   app.views.UsersView = app.views.BaseView.extend({
     dependencies: {
       user: app.models.CurrentUser,
-      collection: app.models.UserSet,
-      appStatus: app.models.AppStatus
+      collection: app.models.UserSet
     },
 
     el: '#users',
@@ -350,14 +348,6 @@
       this.listenTo(this.user, "signout", this.render);
 
       // XXX: on contacts imported, we should render the new list as well
-
-      // XXX: This should be moved to the app
-      this.appStatus.on("change:reconnecting", function(appStatus) {
-        // XXX: would be more convenient to trigger a dedicated `reconnecting`
-        // event so we know it's currently reconnecting and could skip the test
-        if (appStatus.get("reconnecting") !== false)
-          this.collection.setGlobalPresence("disconnected");
-      }, this);
 
       this._createViews();
     },
