@@ -317,7 +317,6 @@
     },
 
     render: function() {
-      console.log("rendering entry", this.model.get("email"));
       this.$el.html(this.template(this.model.toJSON()));
       return this;
     }
@@ -334,51 +333,34 @@
 
     el: '#users',
 
-    views: [],
     activeNotification: null,
 
     initialize: function() {
-      // Initial rendering is performed a single time everytime the current user
-      // signs in
-      this.listenTo(this.user, "signin", function() {
-        this.listenToOnce(this.collection, "reset", this._onUserListReceived);
-        // XXX listen to contacts import done
-      }, this);
-
-      // Note that at this point the users collection is already empty
-      this.listenTo(this.user, "signout", this.render);
-
-      // XXX: on contacts imported, we should render the new list as well
-
-      this._createViews();
+      this.listenTo(this.collection, "reset", this.render);
+      this.listenTo(this.collection, "add", this._onUserJoined);
+      this.listenTo(this.collection, "remove", this._onUserLeft);
     },
 
-    /**
-     * Excludes current signed in user from the list, creates and attaches all
-     * user entry child views out of it.
-     */
-    _createViews: function() {
-      this.views = this.collection.reject(function(user) {
-        if (!this.user.isLoggedIn())
-          return false;
-        // XXX: filter on fullName when available? sounds risky.
-        return user.get("email") === this.user.get("email") ||
-               user.get("phoneNumber") === this.user.get("phoneNumber");
-      }, this).map(function(user) {
-        return new app.views.UserEntryView({model: user});
-      }, this);
-      console.log("views created", this.views);
+    _createUserEntryView: function(user) {
+      return new app.views.UserEntryView({model: user});
     },
 
-    _onUserListReceived: function() {
-      console.log("view._onUserListReceived", this.collection.toJSON());
-      this._createViews();
-      this.render();
+    _onUserJoined: function(user) {
+      // XXX: reordering? should we do this at the DOM level?
+      this.$("ul").append(this._createUserEntryView(user).render().$el);
+    },
+
+    _onUserLeft: function(user) {
+      // XXX: this should be done at the model view level really
+      //      check for model.on("remove") if it works
+      this.$("ul").find("a[rel='" + user.get("username") + "']").remove();
     },
 
     render: function() {
-      // Render all child user entry views
-      this.$("ul").html(this.views.map(function(view) {
+      var views = this.collection
+                      .excludeUser(this.user.get("username"))
+                      .map(this._createUserEntryView);
+      this.$("ul").html(views.map(function(view) {
         return view.render().$el;
       }));
 

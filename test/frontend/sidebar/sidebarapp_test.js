@@ -128,28 +128,26 @@ describe("SidebarApp", function() {
         expect(sidebarApp.users.at(1).get('username')).to.equal("bob");
       });
 
-    it("should listen to the `talkilla.user-joined` event and update users " +
-       "list with user presence information", function() {
+    it("should listen to the `talkilla.user-joined` event and update users",
+      function() {
+        sandbox.stub(app.models.UserSet.prototype, "userJoined");
         var sidebarApp = new SidebarApp(defaultOptions);
-        var jb = new app.models.User({email: "jb@pirates.org",
-                                      presence: "disconnected"});
-        sidebarApp.users.add(jb);
 
-        sidebarApp.appPort.trigger("talkilla.user-joined", "jb@pirates.org");
+        sidebarApp.appPort.trigger("talkilla.user-joined", "a@a.com");
 
-        expect(jb.get("presence")).eql("connected");
+        sinon.assert.calledOnce(sidebarApp.users.userJoined);
+        sinon.assert.calledWithExactly(sidebarApp.users.userJoined, "a@a.com");
       });
 
-    it("should listen to the `talkilla.user-left` event and update users " +
-       "list with user presence information", function() {
+    it("should listen to the `talkilla.user-left` event and update users",
+      function() {
+        sandbox.stub(app.models.UserSet.prototype, "userLeft");
         var sidebarApp = new SidebarApp(defaultOptions);
-        var jb = new app.models.User({email: "jb@pirates.org",
-                                      presence: "connected"});
-        sidebarApp.users.add(jb);
 
-        sidebarApp.appPort.trigger("talkilla.user-left", "jb@pirates.org");
+        sidebarApp.appPort.trigger("talkilla.user-left", "a@a.com");
 
-        expect(jb.get("presence")).eql("disconnected");
+        sinon.assert.calledOnce(sidebarApp.users.userLeft);
+        sinon.assert.calledWithExactly(sidebarApp.users.userLeft, "a@a.com");
       });
   });
 

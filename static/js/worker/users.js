@@ -57,7 +57,6 @@ var CurrentUsers = (function() {
       }
       for (var attr in attributes)
         this.users[userId][attr] = attributes[attr];
-
     },
 
     /**
@@ -83,9 +82,11 @@ var CurrentUsers = (function() {
         .forEach(function(contact) {
           if (contact[field]) {
             var username = contact[field];
-            contact.username = username;
-            contact.presence = this.getPresence(username);
-            this.set(username, contact, field);
+            this.set(username, {
+              username: username,
+              presence: this.getPresence(username),
+              isContact: true
+            }, field);
           }
         }, this);
     },

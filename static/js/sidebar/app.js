@@ -169,16 +169,15 @@ var SidebarApp = (function(app, $) {
   };
 
   SidebarApp.prototype._onUserListReceived = function(users) {
-    console.log("_onUserListReceived", users);
     this.users.reset(users);
   };
 
   SidebarApp.prototype._onUserJoined = function(userId) {
-    this.users.setUserPresence(userId, "connected");
+    this.users.userJoined(userId);
   };
 
   SidebarApp.prototype._onUserLeft = function(userId) {
-    this.users.setUserPresence(userId, "disconnected");
+    this.users.userLeft(userId);
   };
 
   SidebarApp.prototype._setupDebugLogging = function() {

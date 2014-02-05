@@ -67,14 +67,27 @@ describe("CurrentUsers", function() {
     });
 
     describe("#updateContacts", function() {
-      var contacts = [{email: "foo"}];
+      var contacts;
+
+      beforeEach(function() {
+        contacts = [{email: "foo"}];
+      });
 
       it("should add contacts to the users list", function() {
         users.updateContacts(contacts, "email");
 
         expect(users.all()).eql({
-          jb: {email: "jb", username: "jb", presence: "disconnected"},
-          foo: {email: "foo", username: "foo", presence: "disconnected"}
+          jb: {
+            email: "jb",
+            username: "jb",
+            presence: "disconnected"
+          },
+          foo: {
+            email: "foo",
+            username: "foo",
+            presence: "disconnected",
+            isContact: true
+          }
         });
       });
 
@@ -83,10 +96,43 @@ describe("CurrentUsers", function() {
 
         users.updateContacts(contacts, "email");
 
-        expect(users.all()).eql({
-          jb: {email: "jb", username: "jb", presence: "disconnected"},
-          foo: {email: "foo", username: "foo", presence: "connected"}
-        });
+        expect(users.toArray()).to.have.length.of(2);
+      });
+
+      it("should add an isContact flag to each contact entry", function() {
+        contacts.push({email: "bar"});
+
+        users.updateContacts(contacts, "email");
+
+        expect(contacts.every(function(contact) {
+          return users.get(contact.email).isContact === true;
+        })).eql(true);
+      });
+    });
+
+    describe("#toArray", function() {
+      it("should map current users dict as a list", function() {
+        expect(users.toArray()).eql([{
+          username: "jb",
+          email: "jb",
+          presence: "disconnected"
+        }]);
+      });
+
+      it("should list users as contacts when user is a contact", function() {
+        users = new CurrentUsers();
+        users.set("foo", {
+          email: "foo",
+          presence: "connected",
+          isContact: true
+        }, "email");
+
+        expect(users.toArray()).eql([{
+          username: "foo",
+          email: "foo",
+          presence: "connected",
+          isContact: true
+        }]);
       });
     });
   });

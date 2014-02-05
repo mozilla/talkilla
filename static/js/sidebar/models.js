@@ -45,8 +45,9 @@
      */
     _userIs: function(userId) {
       return function(user) {
-        return user.get("phoneNumber") === userId ||
-               user.get("email") === userId;
+        return user.get("username")    === userId ||
+               user.get("email")       === userId ||
+               user.get("phoneNumber") === userId;
       };
     },
 
@@ -66,15 +67,28 @@
     },
 
     /**
+     * Excludes a user from the list.
+     *
+     * @param  {app.models.User} user
+     * @return {Array}
+     */
+    excludeUser: function(userId) {
+      if (!userId)
+        return this;
+      return this.chain().reject(this._userIs(userId));
+    },
+
+    /**
      * Find a user from its identifier which can be either an email address or
      * a phone number.
      *
      * XXX: we need a real unique id here
      *
-     * @param  {String} userId Either an email address or phone number
+     * @param  {String} userId Either username, email address or phone number
      * @return {app.models.User|undefined}
      */
     findUser: function(userId) {
+      // XXX possible micro-optimization: use some() instead of filter()
       return this.chain().filter(this._userIs(userId)).first().value();
     },
 
@@ -85,10 +99,9 @@
      * @return {UserSet}
      **/
     setGlobalPresence: function(status) {
-      this.each(function(user) {
+      return this.chain().each(function(user) {
         user.set("presence", status);
       });
-      return this;
     },
 
     /**
@@ -97,13 +110,52 @@
      *
      * XXX: throw on user not found?
      *
-     * @param {String} userId Either an email address or phone number
+     * @param {String} userId Either username, email address or phone number
      * @param {String} status Either "connected" or "disconnected"
      */
     setUserPresence: function(userId, status) {
       var user = this.findUser(userId);
       if (user)
         user.set("presence", status);
+    },
+
+    /**
+     * Updates user presence status to connected when found, adds a new entry
+     * when not.
+     *
+     * @param  {String} userId Either username, email address or phone number
+     * @return {app.models.User} user User entry
+     */
+    userJoined: function(userId) {
+      var user = this.findUser(userId);
+      if (!user) {
+        user = new app.models.User({
+          username: userId, // XXX what about email/phonenumber?
+          presence: "connected"
+        });
+        this.add(user);
+      } else {
+        user.set("presence", "connected");
+      }
+      return user;
+    },
+
+    /**
+     * Updates user presence status to disconnected if a contact, removes the
+     * entry if not.
+     *
+     * @param {String} userId Either username, email address or phone number
+     */
+    userLeft: function(userId) {
+      // XXX: if a user's contact, update the presence information; if not, drop
+      //      it from the collection
+      var user = this.findUser(userId);
+      if (!user)
+        return;
+      if (user.get("isContact"))
+        this.setUserPresence(userId, "disconnected");
+      else
+        this.remove(user);
     }
   });
 

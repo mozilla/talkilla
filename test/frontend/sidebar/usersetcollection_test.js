@@ -8,12 +8,15 @@ describe("UserSet Collection", function() {
 
   beforeEach(function() {
     jb = new app.models.User({
+      username: "jb",
       fullName: "JB",
       email: "jb@pirates.org",
       phoneNumber: "123",
-      presence: "connected"
+      presence: "connected",
+      isContact: true
     });
     chuck = new app.models.User({
+      username: "chuck",
       fullName: "Chuck Norris",
       email: "chuck@norr.is",
       phoneNumber: "666",
@@ -30,6 +33,11 @@ describe("UserSet Collection", function() {
   });
 
   describe("#findUser", function() {
+    it("should find users from their username", function() {
+      expect(collection.findUser("jb")).eql(jb);
+      expect(collection.findUser("chuck")).eql(chuck);
+    });
+
     it("should find users from their email", function() {
       expect(collection.findUser("jb@pirates.org")).eql(jb);
       expect(collection.findUser("chuck@norr.is")).eql(chuck);
@@ -57,11 +65,41 @@ describe("UserSet Collection", function() {
       expect(jb.get("presence")).eql("disconnected");
       expect(chuck.get("presence")).eql("disconnected");
     });
+  });
 
-    it("should return current collection", function() {
-      expect(collection.setGlobalPresence("connected"))
-             .to.be.an.instanceOf(app.models.UserSet);
+  describe("#userJoined", function() {
+    it("should add a user if not present in the list yet", function() {
+      collection.userJoined("dan");
+
+      expect(collection).to.have.length.of(3);
+    });
+
+    it("should set added user's presence status to connected", function() {
+      collection.userJoined("boriss");
+
+      expect(collection.findUser("boriss").get("presence")).eql("connected");
+    });
+
+    it("shouldn't add a user if present in the list already", function() {
+      collection.userJoined("jb");
+
+      expect(collection).to.have.length.of(2);
+    });
+
+    it("should update existing user presence status to connected", function() {
+      jb.set("presence", "disconnected")
+
+      collection.userJoined("jb");
+
+      expect(collection.findUser("jb").get("presence")).eql("connected");
     });
   });
 
+  describe("#userLeft", function() {
+    it("should update a contact presence status to disconnected", function() {
+      collection.userLeft("jb");
+
+      expect(jb.get("presence")).eql("disconnected");
+    });
+  });
 });
