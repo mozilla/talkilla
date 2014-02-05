@@ -169,6 +169,7 @@ var SidebarApp = (function(app, $) {
   };
 
   SidebarApp.prototype._onUserListReceived = function(users) {
+    console.log("_onUserListReceived", users);
     this.users.reset(users);
   };
 

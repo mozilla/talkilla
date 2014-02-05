@@ -317,6 +317,7 @@
     },
 
     render: function() {
+      console.log("rendering entry", this.model.get("email"));
       this.$el.html(this.template(this.model.toJSON()));
       return this;
     }
@@ -353,15 +354,24 @@
     },
 
     /**
-     * Creates and attaches all user entry child views.
+     * Excludes current signed in user from the list, creates and attaches all
+     * user entry child views out of it.
      */
     _createViews: function() {
-      this.views = this.collection.remove(this.user).map(function(user) {
+      this.views = this.collection.reject(function(user) {
+        if (!this.user.isLoggedIn())
+          return false;
+        // XXX: filter on fullName when available? sounds risky.
+        return user.get("email") === this.user.get("email") ||
+               user.get("phoneNumber") === this.user.get("phoneNumber");
+      }, this).map(function(user) {
         return new app.views.UserEntryView({model: user});
       }, this);
+      console.log("views created", this.views);
     },
 
     _onUserListReceived: function() {
+      console.log("view._onUserListReceived", this.collection.toJSON());
       this._createViews();
       this.render();
     },
