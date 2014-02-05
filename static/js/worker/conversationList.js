@@ -94,7 +94,8 @@ var ConversationList = (function() {
       this.queue.push(peer);
       this.set(peer, new Conversation({
         capabilities: capabilities,
-        peer: this.users.get(peer),
+        // XXX This should be a new user object when we get one.
+        peer: this.users.get(peer) || {username: peer, presence: "unknown"},
         user: this.user
       }));
 

@@ -90,24 +90,33 @@ describe("ConversationList", function() {
     describe("#_startConversation", function() {
       beforeEach(function() {
         conversationList.users.set("niko", {presence: "connected"});
-
-        conversationList._startConversation("niko", {}, browserPort);
       });
 
       it("should start a new conversation", function() {
+        conversationList._startConversation("niko", {}, browserPort);
+
         expect(conversationList.get('niko')).to.be.an.instanceOf(Conversation);
       });
 
       it("should push the peer name to the queue", function() {
+        conversationList._startConversation("niko", {}, browserPort);
+
         expect(conversationList.queue).eql(["niko"]);
       });
 
       it("should ask the browser to open a chat window", function() {
+        conversationList._startConversation("niko", {}, browserPort);
+
         sinon.assert.calledOnce(browserPort.postEvent);
         sinon.assert.calledWithExactly(browserPort.postEvent,
                                        "social.request-chat",
                                        "chat.html#niko");
       });
+
+      it("should start a new conversation for peers that are not in the " +
+        "users list", function() {
+          conversationList._startConversation("andreas", {}, browserPort);
+        });
     });
 
     describe("#offer", function() {

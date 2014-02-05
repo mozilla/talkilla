@@ -121,6 +121,22 @@ describe("ConversationView", function() {
         'img/presence/disconnected.png');
     });
 
+    it("should remove presence icon when peer's is unknown", function() {
+      peer.set('presence', 'connected');
+      sandbox.restore(peer.on);
+      var view = new app.views.ConversationView({
+        call: call,
+        peer: peer,
+        user: user,
+        textChat: textChat,
+        el: '#fixtures'
+      });
+
+      peer.set({presence: "unknown"});
+
+      expect(view.$('link[rel="icon"]').length).to.equal(0);
+    });
+
     describe("drag and drop events", function() {
       function fakeDropEvent(data) {
         return {
