@@ -22,6 +22,10 @@ before_install:
   - export PATH=$PATH:$HOME/.local/bin
   - pip install --install-option="--prefix=$HOME/.local" -r require.pip --use-mirrors
 
+script:
+  - make test
+  - make release_all
+
 # The /check url below will check to see if the repository is updated and deploy
 # if necessary.
 after_success:

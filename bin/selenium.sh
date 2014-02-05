@@ -1,7 +1,19 @@
 #!/bin/bash
 
-FIREFOX_BZIP2_FILENAME="firefox-30.0a1.en-US.linux-x86_64.tar.bz2"
-FIREFOX_BZIP2_URL="http://ftp.mozilla.org/pub/mozilla.org/firefox/nightly/latest-mozilla-central/$FIREFOX_BZIP2_FILENAME"
+FIREFOX_NIGHTLY_BZIP2_FILENAME="firefox-30.0a1.en-US.linux-x86_64.tar.bz2"
+FIREFOX_NIGHTLY_BZIP2_URL="http://ftp.mozilla.org/pub/mozilla.org/firefox/nightly/latest-mozilla-central/$FIREFOX_NIGHTLY_BZIP2_FILENAME"
+
+FIREFOX_RELEASE_BZIP2_FILENAME="firefox-27.0.tar.bz2"
+FIREFOX_RELEASE_BZIP2_URL="http://ftp.mozilla.org/pub/mozilla.org/firefox/releases/latest/linux-x86_64/en-US/$FIREFOX_RELEASE_BZIP2_FILENAME"
+
+if [ "$RELEASE_FIREFOX" == "1" ]; then
+    FIREFOX_BZIP2_FILENAME=$FIREFOX_RELEASE_BZIP2_FILENAME
+    FIREFOX_BZIP2_URL=$FIREFOX_RELEASE_BZIP2_URL
+else
+    FIREFOX_BZIP2_FILENAME=$FIREFOX_NIGHTLY_BZIP2_FILENAME
+    FIREFOX_BZIP2_URL=$FIREFOX_NIGHTLY_BZIP2_URL
+fi
+
 SELENIUM_JAR_FILENAME="selenium-server-standalone-2.35.0d.jar"
 SELENIUM_JAR_URL="http://ftp.mozilla.org/pub/mozilla.org/webtools/selenium/socialapi/$SELENIUM_JAR_FILENAME"
 SELENIUM_PID_FILE="/tmp/selenium-server-pid"
@@ -13,9 +25,15 @@ install() {
         curl $SELENIUM_JAR_URL > $SELENIUM_JAR_FILENAME
         echo "Selenium server install in $SELENIUM_JAR_FILENAME"
     fi
-    if [[ (`uname` != "Darwin") && (!(-e /usr/bin/firefox-nightly)) && (! -f $FIREFOX_BZIP2_FILENAME) ]]; then
-        echo "Downloading $FIREFOX_BZIP2_URL"
-        curl $FIREFOX_BZIP2_URL > $FIREFOX_BZIP2_FILENAME
+
+    if [[ (`uname` != "Darwin") && (!(-e /usr/bin/firefox-nightly))]]; then
+        if [ ! -f $FIREFOX_BZIP2_FILENAME ]; then
+            echo "Downloading $FIREFOX_BZIP2_URL"
+            curl $FIREFOX_BZIP2_URL > $FIREFOX_BZIP2_FILENAME
+        fi
+        if [ -e firefox ]; then
+          rm -rf firefox
+        fi
         echo "Unpacking $FIREFOX_BZIP2_FILENAME"
         tar -xjf $FIREFOX_BZIP2_FILENAME
         echo "Done."

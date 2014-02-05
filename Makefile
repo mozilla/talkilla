@@ -72,6 +72,11 @@ selenium_all:
 	bin/run_selenium_test.sh $(FRONTEND_CMD) \
 		$(FUNCTIONAL_CMD)
 
+.PHONY: release_all
+release_all:
+	RELEASE_FIREFOX=1 bin/run_selenium_test.sh $(FRONTEND_CMD) \
+		$(FUNCTIONAL_CMD)
+
 .PHONY: selenium functional
 selenium:
 functional:
