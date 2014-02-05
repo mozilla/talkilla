@@ -1,4 +1,6 @@
 "use strict";
+var util = require("util");
+var EventEmitter = require("events").EventEmitter;
 
 var config = require('./config').config;
 var logger = require('./logger');
@@ -40,10 +42,6 @@ function User(nick) {
   // user is considered as disconnected.
   this.timeout = undefined;
 
-  // `this.ondisconnect` is the callback called when the user is
-  // disconnected (i.e. when the timeout is triggered).
-  this.ondisconnect = undefined;
-
   // `this.events` is a Queue of events. It is used in case the user
   // is present (i.e. the timeout was not yet triggered) but he
   // receives events between two long-polling connections.
@@ -55,6 +53,8 @@ function User(nick) {
   // purposes.
   this._pending = undefined;
 }
+
+util.inherits(User, EventEmitter);
 
 /**
  * Send data to the user.
@@ -94,6 +94,7 @@ User.prototype.connect = function() {
 
 /**
  * Extend the timeout until the user is considered as disconnected.
+ * XXX: rename this method with a more explicit name.
  *
  * @return {User} chainable
  */
@@ -106,8 +107,7 @@ User.prototype.touch = function() {
 User.prototype.disconnect = function() {
   clearTimeout(this.timeout);
   this.timeout = undefined;
-  if (this.ondisconnect)
-    this.ondisconnect();
+  this.emit("disconnect");
 };
 
 /**
@@ -155,11 +155,13 @@ User.prototype.waitForEvents = function(callback) {
 };
 
 /**
- * Users class constructor
+ * UserList class constructor
  */
-function Users() {
+function UserList() {
   this.users = {};
 }
+
+util.inherits(UserList, EventEmitter);
 
 /**
  * Check if the nick is already in the user list
@@ -167,7 +169,7 @@ function Users() {
  * @param {String} nick the nick to check
  * @return {Boolean}
  */
-Users.prototype.hasNick = function(nick) {
+UserList.prototype.hasNick = function(nick) {
   return Object.keys(this.users).some(function(username) {
     return username === nick;
   });
@@ -177,10 +179,11 @@ Users.prototype.hasNick = function(nick) {
  * Add a new user to the collection with the given nick
  *
  * @param {String} nick the nick of the new user
- * @return {Users} chainable
+ * @return {UserList} chainable
  */
-Users.prototype.add = function(nick) {
+UserList.prototype.add = function(nick) {
   this.users[nick] = new User(nick);
+  this.emit("add", this.users[nick]);
   return this;
 };
 
@@ -190,14 +193,14 @@ Users.prototype.add = function(nick) {
  * @param {String} nick the nick of the user to find
  * @return {User}
  */
-Users.prototype.get = function(nick) {
+UserList.prototype.get = function(nick) {
   return this.users[nick];
 };
 
 /**
  * Retrieve all the users as an array
  */
-Users.prototype.all = function() {
+UserList.prototype.all = function() {
   return Object.keys(this.users).map(function(nick) {
     return this.users[nick];
   }, this);
@@ -207,10 +210,12 @@ Users.prototype.all = function() {
  * Remove a user from the collection
  *
  * @param {String} nick the nick of the user to remove
- * @return {Users} chainable
+ * @return {UserList} chainable
  */
-Users.prototype.remove = function(nick) {
+UserList.prototype.remove = function(nick) {
+  var user = this.users[nick];
   delete this.users[nick];
+  this.emit("remove", user);
   return this;
 };
 
@@ -219,7 +224,7 @@ Users.prototype.remove = function(nick) {
  *
  * @param {Function} callback the callback to execute for each user
  */
-Users.prototype.forEach = function(callback) {
+UserList.prototype.forEach = function(callback) {
   Object.keys(this.users).forEach(function(nick) {
     callback(this.users[nick]);
   }, this);
@@ -231,7 +236,7 @@ Users.prototype.forEach = function(callback) {
  * @param {Array} users an optional list of users to process
  * @return {Object}
  */
-Users.prototype.toJSON = function(users) {
+UserList.prototype.toJSON = function(users) {
   users = users || this.all();
 
   return Object.keys(users).map(function(nick) {
@@ -242,5 +247,5 @@ Users.prototype.toJSON = function(users) {
 };
 
 module.exports.Waiter = Waiter;
-module.exports.Users = Users;
+module.exports.UserList = UserList;
 module.exports.User = User;

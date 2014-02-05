@@ -9,7 +9,7 @@ chai.Assertion.includeStack = true;
 
 var config = require('../../server/config').config;
 var logger = require('../../server/logger');
-var Users = require("../../server/users").Users;
+var Users = require("../../server/users").UserList;
 var User = require("../../server/users").User;
 var Waiter = require("../../server/users").Waiter;
 
@@ -20,7 +20,6 @@ describe("User", function() {
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
     user = new User("foo");
-    user.ondisconnect = sinon.spy();
   });
 
   afterEach(function() {
@@ -203,9 +202,11 @@ describe("User", function() {
       user.connect();
     });
 
-    it("should trigger the ondisconnect callback", function() {
+    it("should trigger a disconnect event", function(done) {
+      user.on("disconnect", function() {
+        done();
+      });
       user.disconnect();
-      sinon.assert.calledOnce(user.ondisconnect);
     });
 
     it("should turn the timeout into an undefined object", function() {
@@ -217,7 +218,7 @@ describe("User", function() {
 
 });
 
-describe("Users", function() {
+describe("UserList", function() {
 
   var users;
 
@@ -245,6 +246,14 @@ describe("Users", function() {
       expect(users.get("bar").toJSON()).to.deep.equal({nick: "bar"});
     });
 
+    it("should trigger an `add` event", function() {
+      users.on("add", function(user) {
+        expect(user).to.equal(users.get("bar"));
+      });
+
+      users.add("bar");
+    });
+
   });
 
   describe("#all", function() {
@@ -265,7 +274,9 @@ describe("Users", function() {
   describe("#get", function() {
 
     it("should return the user having the given nick", function() {
+
       users.add("bar");
+
       expect(users.get("bar").toJSON()).to.deep.equal({nick: "bar"});
     });
 
@@ -278,15 +289,29 @@ describe("Users", function() {
   describe("#remove", function() {
 
     it("should remove the user having the given nick", function() {
+
       users.add("bar").remove("bar");
+
       expect(users.get("bar")).to.be.equal(undefined);
     });
+
+    it("should trigger a `remove` event", function() {
+      var bar = users.add("bar").get("bar");
+      users.on("remove", function(user) {
+        expect(user).to.equal(bar);
+        expect(users.get("bar")).to.equal(undefined);
+      });
+
+      users.remove("bar");
+    });
+
   });
 
   describe("#forEach", function() {
 
     it("should iterate on users", function() {
       var expected = [];
+
       users.add("foo").add("bar").add("goo");
       users.forEach(function(user) {
         expected.push(user);
@@ -301,6 +326,7 @@ describe("Users", function() {
 
     it("should return a JSON serialisable structure", function() {
       users.add("foo").add("bar").add("goo");
+
       expect(users.toJSON()).to.deep.equal([
         {nick: "foo"},
         {nick: "bar"},
@@ -320,7 +346,9 @@ describe("Users", function() {
     });
 
     it("should take the given users as reference", function() {
+
       users.add("foo").add("bar").add("goo");
+
       expect(users.toJSON([users.get("foo")])).to.deep.equal([{nick: "foo"}]);
     });
 
