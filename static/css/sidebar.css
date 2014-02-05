@@ -67,10 +67,10 @@
   background-image: url('/img/contacts_clicked.png');
 }
 .sidebar #dialin-tab > a {
-  background-image: url('/img/phone_default.png');
+  background-image: url('/img/dialer_default.png');
 }
 .sidebar #dialin-tab.active > a {
-  background-image: url('/img/phone_clicked.png');
+  background-image: url('/img/dialer_clicked.png');
 }
 .sidebar #gear-menu-tab > a {
   background-image: url('/img/gear_default.png');
