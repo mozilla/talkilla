@@ -30,7 +30,7 @@ describe("ContactsDB", function() {
       expect(contactsDb.options).to.include.keys(
         "dbname", "storename", "version");
       expect(contactsDb.options.storename).eql("contacts");
-      expect(contactsDb.options.version).eql(3);
+      expect(contactsDb.options.version).eql(4);
     });
   });
 
@@ -112,7 +112,7 @@ describe("ContactsDB", function() {
           dbname: "UpdateContactsV1"
         });
         dbV1.load(function(err, db) {
-          expect(db.version).to.equal(3);
+          expect(db.version).to.equal(4);
 
           // Check the new index is available
           var store = this.db.transaction(this.options.storename, "readonly")
