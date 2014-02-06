@@ -88,54 +88,57 @@ describe("ConversationView", function() {
         expect(document.title).to.be.equal("username");
       });
 
-    it("should update presence icon when peer's is connected", function() {
-      sandbox.restore(peer.on);
-      var view = new app.views.ConversationView({
-        call: call,
-        peer: peer,
-        user: user,
-        textChat: textChat,
-        el: '#fixtures'
+    it("should update presence icon when peer's presence is connected",
+      function() {
+        sandbox.restore(peer.on);
+        var view = new app.views.ConversationView({
+          call: call,
+          peer: peer,
+          user: user,
+          textChat: textChat,
+          el: '#fixtures'
+        });
+
+        peer.set({presence: "connected"});
+
+        expect(view.$('link[rel="icon"]').attr('href')).to.equal(
+          'img/presence/connected.png');
       });
 
-      peer.set({presence: "connected"});
+    it("should update presence icon when peer's presence is disconnected",
+      function() {
+        peer.set('presence', 'connected');
+        sandbox.restore(peer.on);
+        var view = new app.views.ConversationView({
+          call: call,
+          peer: peer,
+          user: user,
+          textChat: textChat,
+          el: '#fixtures'
+        });
 
-      expect(view.$('link[rel="icon"]').attr('href')).to.equal(
-        'img/presence/connected.png');
-    });
+        peer.set({presence: "disconnected"});
 
-    it("should update presence icon when peer's is disconnected", function() {
-      peer.set('presence', 'connected');
-      sandbox.restore(peer.on);
-      var view = new app.views.ConversationView({
-        call: call,
-        peer: peer,
-        user: user,
-        textChat: textChat,
-        el: '#fixtures'
+        expect(view.$('link[rel="icon"]').attr('href')).to.equal(
+          'img/presence/disconnected.png');
       });
 
-      peer.set({presence: "disconnected"});
+    it("should remove presence icon when peer's presence is unknown",
+      function() {
+        peer.set('presence', 'connected');
+        sandbox.restore(peer.on);
+        var view = new app.views.ConversationView({
+          call: call,
+          peer: peer,
+          user: user,
+          textChat: textChat,
+          el: '#fixtures'
+        });
 
-      expect(view.$('link[rel="icon"]').attr('href')).to.equal(
-        'img/presence/disconnected.png');
-    });
+        peer.set({presence: "unknown"});
 
-    it("should remove presence icon when peer's is unknown", function() {
-      peer.set('presence', 'connected');
-      sandbox.restore(peer.on);
-      var view = new app.views.ConversationView({
-        call: call,
-        peer: peer,
-        user: user,
-        textChat: textChat,
-        el: '#fixtures'
+        expect(view.$('link[rel="icon"]').length).to.equal(0);
       });
-
-      peer.set({presence: "unknown"});
-
-      expect(view.$('link[rel="icon"]').length).to.equal(0);
-    });
 
     describe("drag and drop events", function() {
       function fakeDropEvent(data) {

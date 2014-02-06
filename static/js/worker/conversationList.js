@@ -84,23 +84,24 @@ var ConversationList = (function() {
 
     /**
      * Start conversation with a particular peer
-     * @param {String} peer Peer unique identifier
+     * @param {String} peerId Peer unique identifier
      * @param {Array} capabilities Capabilities of the SPA
      * @param {Port} browserPort The port on which the worker talks to the
      *                           social api
      * @return {Object}
      */
-    _startConversation: function(peer, capabilities, browserPort) {
-      this.queue.push(peer);
-      this.set(peer, new Conversation({
+    _startConversation: function(peerId, capabilities, browserPort) {
+      this.queue.push(peerId);
+      this.set(peerId, new Conversation({
         capabilities: capabilities,
-        // XXX This should be a new user object when we get one.
-        peer: this.users.get(peer) || {username: peer, presence: "unknown"},
+        // XXX The second half of this returns the equivalent of a user object
+        // but we don't have one yet. So we should change this once we get one.
+        peer: this.users.get(peerId) || {username: peerId, presence: "unknown"},
         user: this.user
       }));
 
       browserPort.postEvent('social.request-chat',
-                            'chat.html#'+peer);
+                            'chat.html#'+peerId);
     },
 
     /**
