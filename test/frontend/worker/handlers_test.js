@@ -95,6 +95,10 @@ describe('handlers', function() {
   });
 
   describe("talkilla.conversation-open", function() {
+    beforeEach(function() {
+      sandbox.stub(tkWorker, "collectContact");
+    });
+
     afterEach(function() {
       tkWorker.conversationList.reset();
     });
@@ -114,6 +118,16 @@ describe('handlers', function() {
           topic: "talkilla.conversation-open",
           data: {}
         }, [], browserPort);
+    });
+
+    it("should add the contact to the database", function() {
+      handlers['talkilla.conversation-open']({
+        topic: "talkilla.conversation-open",
+        data: {peer: "alice"}
+      });
+
+      sinon.assert.calledOnce(tkWorker.collectContact);
+      sinon.assert.calledWith(tkWorker.collectContact, "alice");
     });
   });
 
