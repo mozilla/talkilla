@@ -16,8 +16,24 @@ fi
 
 SELENIUM_JAR_FILENAME="selenium-server-standalone-2.35.0d.jar"
 SELENIUM_JAR_URL="http://ftp.mozilla.org/pub/mozilla.org/webtools/selenium/socialapi/$SELENIUM_JAR_FILENAME"
-SELENIUM_PID_FILE="/tmp/selenium-server-pid"
 PWD=`pwd`
+
+function getSeleniumPid() {
+  SELENIUM_PID=`ps -eo pid,args | grep $SELENIUM_JAR_FILENAME | grep -v grep | awk '{print $1}'`
+}
+# Initialise for first time around.
+getSeleniumPid
+
+if [[ "$(uname)" == "Linux" && -z "$DISABLE_XVFB" ]]; then
+    echo "Running the tests in a virtual frame buffer."
+    XVFB="xvfb-run"
+fi
+
+function getXVFBPid() {
+  XVFB_PID=`ps -eo pid,args | grep $XVFB | grep -v grep | awk '{print $1}'`
+}
+# Initialise for first time around.
+getXVFBPid
 
 install() {
     if [ ! -f $SELENIUM_JAR_FILENAME ]; then
@@ -51,14 +67,9 @@ bootstrap_python() {
 }
 
 start() {
-    if [ -f $SELENIUM_PID_FILE ]; then
-        echo "Selenium server is already running ($SELENIUM_PID_FILE)"
+    if [ "$SELENIUM_PID" != "" ]; then
+        echo "Selenium server is already running (pid=$SELENIUM_PID)"
         exit 1
-    fi
-
-    if [[ "$(uname)" == "Linux" && -z "$DISABLE_XVFB" ]]; then
-        echo "Running the tests in a virtual frame buffer."
-        XVFB="xvfb-run"
     fi
 
     # options are listed at http://code.google.com/p/selenium/wiki/FirefoxDriver
@@ -67,24 +78,46 @@ start() {
     else
       $XVFB java -jar $SELENIUM_JAR_FILENAME -Dwebdriver.firefox.bin=$PWD/bin/firefox -Dwebdriver.log.file=$PWD/console.log -Dwebdriver.firefox.logfile=$PWD/firefox.log &>/dev/null &
     fi
-    PID=$!
-    echo $PID > $SELENIUM_PID_FILE
     CODE="000"
     while [ $CODE != "200" ]; do
         CODE=$(curl -sL -w "%{http_code}" http://localhost:4444/wd/hub -o /dev/null)
         sleep 0.1
     done
-    echo "Selenium server started ($SELENIUM_JAR_FILENAME, pid=$PID)"
+    echo "Selenium server started ($SELENIUM_JAR_FILENAME)"
 }
 
 stop() {
-    if [ ! -f $SELENIUM_PID_FILE ]; then
+    if [ "$SELENIUM_PID" = "" ]; then
         echo "Selenium server not running"
         exit 1
     fi
-    cat $SELENIUM_PID_FILE | xargs kill -15
-    rm -f $SELENIUM_PID_FILE
+
+    echo "Stopping Selenium server..."
+    kill -15 $SELENIUM_PID
+
+    # Ensure the server has fully stopped, for cases where we run two commands together,
+    # e.g. travis.
+    getSeleniumPid
+
+    while [ "$SELENIUM_PID" != "" ]; do
+      sleep 0.5
+      getSeleniumPid
+    done
     echo "Selenium server stopped"
+
+    if [ "$XVFB_PID" != "" ]; then
+        echo "Stopping XVFB"
+        kill -15 $XVFB_PID
+
+        getXVFBPid
+
+        while [ "$XVFB_PID" != "" ]; do
+          sleep 0.5
+          getXVFBPid
+        done
+
+        echo "XVFB stopped"
+    fi
 }
 
 case "$1" in

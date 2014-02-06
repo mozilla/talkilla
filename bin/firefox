@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
 cat `pwd`/test/functional/user.js >> $XRE_PROFILE_PATH/user.js
 if [ `uname` == "Darwin" ]; then
-  /Applications/FirefoxNightly.app/Contents/MacOS/firefox $@
+  if [ "$RELEASE_FIREFOX" = "1" ]; then
+    /Applications/Firefox.app/Contents/MacOS/firefox $@
+  else
+    /Applications/FirefoxNightly.app/Contents/MacOS/firefox $@
+  fi
 elif [ -e /usr/bin/firefox-nightly ]; then
   /usr/bin/firefox-nightly $@
 else

@@ -74,13 +74,16 @@ selenium_all:
 
 .PHONY: release_all
 release_all:
-	RELEASE_FIREFOX=1 bin/run_selenium_test.sh $(FRONTEND_CMD) \
-		$(FUNCTIONAL_CMD)
+	FULL_SELENIUM_DEBUG=1 RELEASE_FIREFOX=1 bin/run_selenium_test.sh $(FRONTEND_CMD)
+#		$(FUNCTIONAL_CMD)
 
 .PHONY: selenium functional
-selenium:
-functional:
+selenium functional:
 	bin/run_selenium_test.sh $(FUNCTIONAL_CMD)
+
+.PHONY: release_selenium release_functional
+release_selenium release_functional:
+	RELEASE_FIREFOX=1 bin/run_selenium_test.sh $(FUNCTIONAL_CMD)
 
 .PHONY: selenium-repeat
 selenium-repeat:
@@ -89,6 +92,10 @@ selenium-repeat:
 .PHONY: frontend
 frontend:
 	bin/run_selenium_test.sh $(FRONTEND_CMD)
+
+.PHONY: release_frontend
+release_frontend:
+	RELEASE_FIREFOX=1 bin/run_selenium_test.sh $(FRONTEND_CMD)
 
 PINPANEL_DIR ?= bin/PinPanel
 PINPANEL_SRCS ?= $(PINPANEL_DIR)/install.rdf $(PINPANEL_DIR)/bootstrap.js
