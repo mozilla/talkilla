@@ -34,7 +34,6 @@ describe("ConversationView", function() {
     user = new app.models.User();
     peer = new app.models.User();
     call = new app.models.Call({}, {media: media, peer: peer});
-    sandbox.stub(peer, "on");
     textChat = new app.models.TextChat(null, {
       media: media,
       user: user,
@@ -49,96 +48,56 @@ describe("ConversationView", function() {
   });
 
   describe("#initialize", function() {
-    it("should listen to peer's username change", function() {
-      new app.views.ConversationView({
+    var view;
+
+    beforeEach(function() {
+      view = new app.views.ConversationView({
         call: call,
         peer: peer,
         user: user,
-        textChat: textChat
+        textChat: textChat,
+        el: '#fixtures'
       });
-
-      sinon.assert.called(peer.on);
-      sinon.assert.calledWith(peer.on, "change:username");
-    });
-
-    it("should listen to peer's presence change", function() {
-      new app.views.ConversationView({
-        call: call,
-        peer: peer,
-        user: user,
-        textChat: textChat
-      });
-
-      sinon.assert.called(peer.on);
-      sinon.assert.calledWith(peer.on, "change:presence");
     });
 
     it("should update the document title on change of the peer's details",
       function() {
         peer.set({username: "username"});
-        new app.views.ConversationView({
-          call: call,
-          peer: peer,
-          user: user,
-          textChat: textChat
-        });
-
-        peer.on.args[0][1](peer);
 
         expect(document.title).to.be.equal("username");
-      });
-
-    it("should update presence icon when peer's presence is connected",
-      function() {
-        sandbox.restore(peer.on);
-        var view = new app.views.ConversationView({
-          call: call,
-          peer: peer,
-          user: user,
-          textChat: textChat,
-          el: '#fixtures'
-        });
-
         peer.set({presence: "connected"});
 
         expect(view.$('link[rel="icon"]').attr('href')).to.equal(
           'img/presence/connected.png');
       });
 
-    it("should update presence icon when peer's presence is disconnected",
-      function() {
-        peer.set('presence', 'connected');
-        sandbox.restore(peer.on);
-        var view = new app.views.ConversationView({
-          call: call,
-          peer: peer,
-          user: user,
-          textChat: textChat,
-          el: '#fixtures'
+    describe("presence events", function() {
+      it("should update presence icon when peer's presence is connected",
+        function() {
+          peer.set({presence: "connected"});
+
+          expect(view.$('link[rel="icon"]').attr('href')).to.equal(
+            'img/presence/connected.png');
         });
 
-        peer.set({presence: "disconnected"});
+      it("should update presence icon when peer's presence is disconnected",
+        function() {
+          // The default is disconnected, so set it to something else first
+          peer.set({presence: "connected"});
 
-        expect(view.$('link[rel="icon"]').attr('href')).to.equal(
-          'img/presence/disconnected.png');
-      });
+          peer.set({presence: "disconnected"});
 
-    it("should remove presence icon when peer's presence is unknown",
-      function() {
-        peer.set('presence', 'connected');
-        sandbox.restore(peer.on);
-        var view = new app.views.ConversationView({
-          call: call,
-          peer: peer,
-          user: user,
-          textChat: textChat,
-          el: '#fixtures'
+          expect(view.$('link[rel="icon"]').attr('href')).to.equal(
+            'img/presence/disconnected.png');
         });
 
-        peer.set({presence: "unknown"});
+      it("should remove presence icon when peer's presence is unknown",
+        function() {
+          peer.set({presence: "unknown"});
 
-        expect(view.$('link[rel="icon"]').length).to.equal(0);
-      });
+          expect(view.$('link[rel="icon"]').length).to.equal(0);
+        });
+    });
 
     describe("drag and drop events", function() {
       function fakeDropEvent(data) {
