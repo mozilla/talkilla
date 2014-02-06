@@ -585,6 +585,9 @@
         if (!transfer.isDone())
           transfer.nextChunk();
         break;
+      default:
+        console.error("Unsupport chat message of type: " + event.type);
+        break;
       }
     },
 
