@@ -175,7 +175,8 @@ describe('Text chat models', function() {
         textChat.media.state.current = "ongoing";
         textChat.add({message: 'test Message'});
         var entry = {
-          type: 'chat:typing'
+          type: 'chat:typing',
+          message: {}
         };
         textChat.transport.send.reset();
 

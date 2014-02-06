@@ -547,7 +547,8 @@
         return;
 
       this.transport.send({
-        type: "chat:typing"
+        type: "chat:typing",
+        message: {}
       });
     },
 
