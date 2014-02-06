@@ -108,6 +108,14 @@ describe("ConversationList", function() {
                                        "social.request-chat",
                                        "chat.html#niko");
       });
+
+      it("should start a new conversation for peers that are not in the " +
+        "users list", function() {
+          conversationList._startConversation("andreas", {}, browserPort);
+
+          expect(conversationList.get('andreas')).to.be.an
+            .instanceOf(Conversation);
+        });
     });
 
     describe("#offer", function() {

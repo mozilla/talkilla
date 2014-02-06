@@ -93,9 +93,12 @@
       var $link = this.$('link[rel="icon"]');
       var $parent = $link.parent();
       $link.remove();
-      $('<link rel="icon">')
-        .attr('href', 'img/presence/' + peer.get('presence') + '.png')
-        .appendTo($parent);
+      // If we have no idea of the presence, don't display the icon.
+      if (peer.get('presence') !== "unknown") {
+        $('<link rel="icon">')
+          .attr('href', 'img/presence/' + peer.get('presence') + '.png')
+          .appendTo($parent);
+      }
     },
 
     _checkDragTypes: function(types) {
