@@ -87,7 +87,7 @@ describe("SPA events", function() {
       tkWorker.spa.trigger("message", textMsg);
 
       sinon.assert.calledOnce(tkWorker.collectContact);
-      sinon.assert.calledOnce(tkWorker.collectContact, "alice");
+      sinon.assert.calledWith(tkWorker.collectContact, "alice");
     });
   });
 
@@ -231,7 +231,7 @@ describe("SPA events", function() {
       tkWorker.spa.trigger("offer", offerMsg);
 
       sinon.assert.calledOnce(tkWorker.collectContact);
-      sinon.assert.calledOnce(tkWorker.collectContact, "alice");
+      sinon.assert.calledWith(tkWorker.collectContact, "alice");
     });
   });
 
