@@ -270,10 +270,6 @@ describe("ContactsDB", function() {
 
     it("should preserve the order of insertion", function(done) {
       var niko = {email: "niko@example.com"}, jb = {email: "jb@example.com"};
-      var expected = [
-        {email: "niko@example.com", id: 1},
-        {email: "jb@example.com", id: 2}
-      ];
       contactsDb.add(niko, function() {
         this.add(jb, function() {
           this.all(function(err, contacts) {
