@@ -415,7 +415,7 @@ describe("presence", function() {
         // away from testing the impl with stubs and instead look at the
         // side effect on anons for this specific test
         sinon.assert.calledOnce(api._setupUser);
-        sinon.assert.calledWithExactly(api._setupUser, anons, fakeId);
+        sinon.assert.calledWithExactly(api._setupUser, anons, fakeId, false);
       });
 
     });
