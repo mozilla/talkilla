@@ -64,13 +64,13 @@
     },
 
     /**
-     * Excludes a user from the list.
+     * Excludes a user having the provided id from the list.
      *
      * @param  {app.models.User} user
      * @return {Array}
      */
     excludeUser: function(userId) {
-      return this.chain().reject(this._userIs(userId)).value();
+      return this.reject(this._userIs(userId));
     },
 
     /**
