@@ -9,7 +9,7 @@ describe("UsersView", function() {
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
 
-    user = new app.models.CurrentUser();
+    user = new app.models.CurrentUser({username: "niko"});
 
     collection = new app.models.UserSet([
       {username: "a@a.com", email: "a@a.com", presence: "disconnected"},

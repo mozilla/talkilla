@@ -307,6 +307,8 @@
     },
 
     initialize: function() {
+      this.listenTo(this.model, "remove", this.remove);
+      // XXX: micro-optimization: changing the presence class would be faster
       this.listenTo(this.model, "change:presence", this.render);
     },
 
@@ -336,9 +338,9 @@
     activeNotification: null,
 
     initialize: function() {
+      console.log("UsersView#initialize");
       this.listenTo(this.collection, "reset", this.render);
       this.listenTo(this.collection, "add", this._onUserJoined);
-      this.listenTo(this.collection, "remove", this._onUserLeft);
     },
 
     _createUserEntryView: function(user) {
@@ -350,16 +352,14 @@
       this.$("ul").append(this._createUserEntryView(user).render().$el);
     },
 
-    _onUserLeft: function(user) {
-      // XXX: this should be done at the model view level really
-      //      check for model.on("remove") if it works
-      this.$("ul").find("a[rel='" + user.get("username") + "']").remove();
-    },
-
     render: function() {
-      var views = this.collection
-                      .excludeUser(this.user.get("username"))
-                      .map(this._createUserEntryView);
+      // exclude current user from the collection
+      var filtered = this.collection.excludeUser(this.user.get("username"));
+
+      // create the list of user entry child views
+      var views = filtered.map(this._createUserEntryView);
+
+      // populate view html with all the child views rendered
       this.$("ul").html(views.map(function(view) {
         return view.render().$el;
       }));

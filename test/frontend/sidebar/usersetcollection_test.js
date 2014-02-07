@@ -32,6 +32,16 @@ describe("UserSet Collection", function() {
     });
   });
 
+  describe("#excludeUser()", function() {
+    it("should exclude a given user by its id from the collection", function() {
+      expect(collection.excludeUser("chuck")).to.have.length.of(1);
+    });
+
+    it("shouldn't exclude when no user id is passed", function() {
+      expect(collection.excludeUser(undefined)).to.have.length.of(2);
+    });
+  });
+
   describe("#findUser", function() {
     it("should find users from their username", function() {
       expect(collection.findUser("jb")).eql(jb);
@@ -87,7 +97,7 @@ describe("UserSet Collection", function() {
     });
 
     it("should update existing user presence status to connected", function() {
-      jb.set("presence", "disconnected")
+      jb.set("presence", "disconnected");
 
       collection.userJoined("jb");
 

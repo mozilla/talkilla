@@ -73,9 +73,7 @@
      * @return {Array}
      */
     excludeUser: function(userId) {
-      if (!userId)
-        return this;
-      return this.chain().reject(this._userIs(userId));
+      return this.chain().reject(this._userIs(userId)).value();
     },
 
     /**
