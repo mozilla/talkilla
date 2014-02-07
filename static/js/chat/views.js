@@ -640,6 +640,9 @@
     _showTypingNotification: function() {
       this.$el.addClass('typing');
       this.$('ul').attr('data-username', this.peer.get("fullName"));
+
+      var ul = this.$('ul').get(0);
+      ul.scrollTop = ul.scrollTopMax;
     },
 
     _clearTypingNotification: function() {
