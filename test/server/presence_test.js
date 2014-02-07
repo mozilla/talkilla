@@ -342,6 +342,18 @@ describe("presence", function() {
           sinon.assert.calledWithExactly(res.send, 200, "[]");
         });
 
+      it("should setup the user", function() {
+        var req = {body: {firstRequest: true}, session: {email: fakeId}};
+        var res = {send: sinon.spy()};
+        sandbox.stub(api, "_setupUser").returns(users.add(fakeId).get(fakeId));
+
+        api.stream(req, res);
+
+        sinon.assert.calledOnce(api._setupUser);
+        sinon.assert.calledWithExactly(api._setupUser,
+          users, fakeId, true);
+      });
+
       it("should extend the long polling timeout", function() {
         var req = {body: {}, session: {email: fakeId}};
         var res = {send: function() {}};
@@ -387,7 +399,6 @@ describe("presence", function() {
         ]));
       });
 
-
       it("should send an empty list of events if the timeout is reached",
         function() {
           var req = {body: {firstRequest: false}, session: {email: fakeId}};
@@ -415,7 +426,8 @@ describe("presence", function() {
         // away from testing the impl with stubs and instead look at the
         // side effect on anons for this specific test
         sinon.assert.calledOnce(api._setupUser);
-        sinon.assert.calledWithExactly(api._setupUser, anons, fakeId);
+        sinon.assert.calledWithExactly(api._setupUser, anons, fakeId,
+          false);
       });
 
     });
