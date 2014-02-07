@@ -26,11 +26,6 @@ var TalkillaSPA = (function() {
                    this._onServerEvent.bind(this,"reconnection"));
     this.server.on("message", this._onServerMessage.bind(this));
 
-    // so we can get instantshare notifications without being logged in
-    // XXX get rid of this in favor of something that doesn't require
-    // an open connection and server round trip
-    // (eg indexedDB or proxied postMessage)
-    this.server.connect();
   }
 
   TalkillaSPA.prototype = {

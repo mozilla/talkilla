@@ -22,11 +22,6 @@ describe("TalkillaSPA", function() {
       expect(spa.capabilities).to.be.a("array");
       expect(spa.capabilities).eql(["call", "move"]);
     });
-
-    it("should call the server's connect method", function () {
-      sinon.assert.calledOnce(server.connect);
-      sinon.assert.calledWithExactly(server.connect);
-    });
   });
 
   describe("#_onServerEvent", function() {
@@ -138,7 +133,6 @@ describe("TalkillaSPA", function() {
   describe("#_onConnect", function() {
 
     it("should connect to the server", function() {
-      spa.server.connect.reset(); // already stubbed, reset the state
 
       // The Talkilla SPA doesn't need any credentials. This is
       // handled via cookies.
