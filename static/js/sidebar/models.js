@@ -54,9 +54,6 @@
     /**
      * Used to sort users by lowercased username.
      *
-     * XXX: does it make sense for phone numbers? We should probably target
-     * fullName really.
-     *
      * @param  {User} item
      * @return {String}
      */
@@ -145,8 +142,6 @@
      * @param {String} userId Either username, email address or phone number
      */
     userLeft: function(userId) {
-      // XXX: if a user's contact, update the presence information; if not, drop
-      //      it from the collection
       var user = this.findUser(userId);
       if (!user)
         return;
