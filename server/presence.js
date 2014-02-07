@@ -122,10 +122,13 @@ api = {
     var isAnon = !req.session.email;
     var user;
 
+    logger.debug({firstRequest: firstRequest, email: !!req.session.email},
+      "/stream connection made");
+
     if (isAnon)
-      user = api._setupUser(anons, api._genId());
+      user = api._setupUser(anons, api._genId(), firstRequest);
     else
-      user = api._setupUser(users, req.session.email);
+      user = api._setupUser(users, req.session.email, firstRequest);
 
     user.touch();
 

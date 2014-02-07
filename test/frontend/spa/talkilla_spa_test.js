@@ -1,5 +1,5 @@
 /* global sinon, SPAPort, Server, TalkillaSPA, expect, payloads */
-/* jshint unused:false */
+
 "use strict";
 
 describe("TalkillaSPA", function() {
@@ -12,6 +12,8 @@ describe("TalkillaSPA", function() {
     sandbox = sinon.sandbox.create();
     port = new SPAPort();
     server = new Server();
+
+    sandbox.stub(server, "connect");
     spa = new TalkillaSPA(port, server, {capabilities: ["call", "move"]});
   });
 
@@ -20,24 +22,75 @@ describe("TalkillaSPA", function() {
       expect(spa.capabilities).to.be.a("array");
       expect(spa.capabilities).eql(["call", "move"]);
     });
-
   });
 
   describe("#_onServerEvent", function() {
 
-    it("should post a connect event to the port", function() {
-      spa.email = "foo";
-      sandbox.stub(spa.port, "post");
+    describe("connected", function () {
 
-      spa.server.trigger("connected");
+      // XXX email shouldn't be a public member of the API, I don't think,
+      // and as a result, and we should be avoiding using it to do the tests
+      // I suspect we really want to be testing the connect and connected
+      // events as a pair.
 
-      sinon.assert.calledOnce(spa.port.post);
-      sinon.assert.calledWithExactly(
-        spa.port.post, "connected", {
-          addresses: [{type: "email", value: "foo"}],
-          capabilities: ["call", "move"]
-        }
-      );
+      it("should post a connected event containing the email address " +
+        "to the worker port if spa.email is set", function() {
+
+          spa.email = "foo";
+          sandbox.stub(spa.port, "post");
+
+          spa.server.trigger("connected");
+
+          sinon.assert.calledOnce(spa.port.post);
+          sinon.assert.calledWithExactly(
+            spa.port.post, "connected", {
+              addresses: [{type: "email", value: "foo"}],
+              capabilities: ["call", "move"]
+            }
+          );
+        });
+
+      it("should post a connected event to the worker port if " +
+        "not containing an email address is spa.email is not set", function() {
+
+          delete spa.email;
+          sandbox.stub(spa.port, "post");
+
+          spa.server.trigger("connected");
+
+          sinon.assert.calledOnce(spa.port.post);
+          sinon.assert.calledWithExactly(
+          spa.port.post, "connected", {
+            capabilities: ["call", "move"]
+          });
+        });
+
+      it("should post a presenceRequest to the server if spa.email is set",
+        function() {
+          spa.email = "foo";
+          sandbox.stub(spa.port, "post");
+          sandbox.stub(spa.server, "presenceRequest");
+
+          spa.server.trigger("connected");
+
+          sinon.assert.calledOnce(spa.server.presenceRequest);
+          sinon.assert.calledWithExactly(spa.server.presenceRequest);
+        });
+
+
+      it("should not post a presenceRequest to the server if spa.email" +
+        " is not set", function() {
+
+          delete spa.email;
+
+          sandbox.stub(spa.port, "post");
+          sandbox.stub(spa.server, "presenceRequest");
+
+          spa.server.trigger("connected");
+
+          sinon.assert.notCalled(spa.server.presenceRequest);
+        });
+
     });
 
     it("should post a reconnection event to the port", function() {
@@ -80,7 +133,6 @@ describe("TalkillaSPA", function() {
   describe("#_onConnect", function() {
 
     it("should connect to the server", function() {
-      sandbox.stub(spa.server, "connect");
 
       // The Talkilla SPA doesn't need any credentials. This is
       // handled via cookies.

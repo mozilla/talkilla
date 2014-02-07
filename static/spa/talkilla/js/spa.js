@@ -25,6 +25,7 @@ var TalkillaSPA = (function() {
     this.server.on("reconnection",
                    this._onServerEvent.bind(this,"reconnection"));
     this.server.on("message", this._onServerMessage.bind(this));
+
   }
 
   TalkillaSPA.prototype = {
@@ -38,11 +39,17 @@ var TalkillaSPA = (function() {
       else if (type === "reconnection")
         this.port.post("reconnection", (new payloads.Reconnection(event)));
       else if (type === "connected") {
-        this.port.post(type, {
-          addresses: [{type: "email", value: this.email}],
-          capabilities: this.capabilities
-        });
-        this.server.presenceRequest();
+        if ("email" in this) {
+          this.port.post(type, {
+            addresses: [{type: "email", value: this.email}],
+            capabilities: this.capabilities
+          });
+          this.server.presenceRequest();
+        } else {
+          this.port.post(type, {
+            capabilities: this.capabilities
+          });
+        }
       }
       else
         this.port.post(type, event);
