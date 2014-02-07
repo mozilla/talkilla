@@ -130,11 +130,12 @@ describe("ContactsDB", function() {
   describe("#add", function() {
     it("should add a record to the database", function(done) {
       var contact = {email: "florian@example.com"};
+      var expected = {email: "florian@example.com", id: 1};
       contactsDb.add(contact, function(err, email) {
         expect(err).to.be.a("null");
-        expect(email).eql(contact);
+        expect(email).eql(expected);
         this.all(function(err, contacts) {
-          expect(contacts).eql([contact]);
+          expect(contacts).eql([expected]);
           done();
         });
       });
@@ -199,7 +200,7 @@ describe("ContactsDB", function() {
 
                   contactsDb.all(function(err, result) {
                     expect(err).to.be.a("null");
-                    expect(result).eql([{email: "florian@example.com"}]);
+                    expect(result).eql([{email: "florian@example.com", id: 1}]);
                     done();
                   });
                 });
@@ -213,8 +214,8 @@ describe("ContactsDB", function() {
         {email: "florian@example.com"}
       ];
       var expected = [
-        {email: "rt@example.com", source: "google"},
-        {email: "florian@example.com", source: "google"}
+        {email: "rt@example.com", source: "google", id: 1},
+        {email: "florian@example.com", source: "google", id: 2}
       ];
       contactsDb.replaceSourceContacts(contacts, "google",
         function(err, result) {
@@ -250,14 +251,17 @@ describe("ContactsDB", function() {
 
     it("should retrieve all contacts", function(done) {
       var niko = {email: "niko@example.com"}, jb = {email: "jb@example.com"};
+      var expectedNiko = {email: "niko@example.com", id: 1};
+      var expectedJb = {email: "jb@example.com", id: 2};
+
       contactsDb.add(niko, function() {
         this.add(jb, function() {
           this.all(function(err, contacts) {
             expect(err).to.be.a("null");
             expect(contacts).to.have.length.of(2);
             expect(contacts.map(function(record) {
-              return record.email;
-            })).eql([niko.email, jb.email]);
+              return record;
+            })).eql([expectedNiko, expectedJb]);
             done();
           });
         });
@@ -266,6 +270,10 @@ describe("ContactsDB", function() {
 
     it("should preserve the order of insertion", function(done) {
       var niko = {email: "niko@example.com"}, jb = {email: "jb@example.com"};
+      var expected = [
+        {email: "niko@example.com", id: 1},
+        {email: "jb@example.com", id: 2}
+      ];
       contactsDb.add(niko, function() {
         this.add(jb, function() {
           this.all(function(err, contacts) {

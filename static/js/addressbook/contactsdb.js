@@ -81,7 +81,9 @@ var ContactsDB = (function() {
       } catch (err) {
         return cb.call(this, err && err.message || "Unable to collect contact");
       }
-      request.onsuccess = function() {
+      request.onsuccess = function(event) {
+        // Request.result is the key for the record, we use this as the id.
+        record.id = request.result;
         cb.call(this, null, record);
       }.bind(this);
       request.onerror = function(event) {
@@ -274,6 +276,7 @@ var ContactsDB = (function() {
       db.deleteObjectStore(this.options.storename);
 
     var store = db.createObjectStore(this.options.storename, {
+      keyPath: "id",
       autoIncrement: true
     });
     store.createIndex("email", "email", {unique: true});
