@@ -32,6 +32,7 @@ describe("UsersView", function() {
         user: user,
         collection: collection
       });
+      usersView.render();
     });
 
     afterEach(function() {
@@ -39,10 +40,6 @@ describe("UsersView", function() {
     });
 
     describe("#render", function() {
-      beforeEach(function() {
-        usersView.render();
-      });
-
       it("should render all child views", function() {
         expect(usersView.$("li")).to.have.length.of(2);
       });
@@ -72,6 +69,31 @@ describe("UsersView", function() {
 
         expect(usersView.$("a[rel='b@b.com'] .status-disconnected"))
           .to.have.length.of(1);
+      });
+    });
+
+    describe("Collection events", function() {
+      describe("add", function() {
+        it("should append a new user entry to an empty list", function() {
+          collection.reset([]);
+
+          collection.userJoined("bob@dylan.com");
+
+          expect(usersView.$("a[rel]").eq(0).attr("rel")).eql("bob@dylan.com");
+        });
+
+        it("should add a new user entry at the beginning of the list",
+          function() {
+            collection.userJoined("0@zero.com");
+
+            expect(usersView.$("a[rel]").eq(0).attr("rel")).eql("0@zero.com");
+          });
+
+        it("should add a new user entry at the end of the list", function() {
+          collection.userJoined("z@zzz.com");
+
+          expect(usersView.$("a[rel]").eq(2).attr("rel")).eql("z@zzz.com");
+        });
       });
     });
   });

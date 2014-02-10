@@ -338,7 +338,7 @@
 
     initialize: function() {
       this.listenTo(this.collection, "reset", this.render);
-      this.listenTo(this.collection, "add", this._onUserJoined);
+      this.listenTo(this.collection, "add", this._addUserEntry);
       // XXX for some reason only listening to "all" triggers the callback when
       //     we need it.
       this.listenTo(this.collection, "all", this._checkCurrentUserAlone);
@@ -356,18 +356,33 @@
 
     /**
      * Adds and renders a new user entry view when a new user is added to the
-     * current collection of users.
+     * current collection of users at the same position as within the
+     * collection, reflecting its ordering.
      *
      * @param  {app.models.User} user
      */
-    _onUserJoined: function(user) {
-      // XXX: reordering? should we do this at the DOM level?
-      this.$("ul").append(this._createUserEntryView(user).render().$el);
+    _addUserEntry: function(user, foo, i, x) {
+      // find the user index in the collection
+      var index       = this.collection.findUserIndex(user.get("username")),
+          listRoot    = this.$("ul"),
+          viewElems   = listRoot.find("li"),
+          newViewEl   = this._createUserEntryView(user).render().$el,
+          nbViewElems = viewElems.length,
+          maxIndex    = nbViewElems - 1;
+
+      if (nbViewElems === 0)
+        listRoot.append(newViewEl);
+      else if (index > maxIndex)
+        viewElems.eq(maxIndex).after(newViewEl);
+      else
+        viewElems.eq(index).before(newViewEl);
     },
 
     /**
      * Displays a notification when the current user is logged and alone in the
      * room.
+     *
+     * XXX: this should be moved elsewhere really.
      */
     _checkCurrentUserAlone: function() {
       if (this.user.isLoggedIn() && this.collection.length === 1) {

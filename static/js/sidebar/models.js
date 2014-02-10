@@ -86,6 +86,26 @@
     },
 
     /**
+     * Retrieves the position of a user out of its identifier.
+     *
+     * @param  {String} userId Either username, email address or phone number.
+     * @return {Number}
+     */
+    findUserIndex: function(userId) {
+      var index;
+      // micro-optimization: using some() instead of filter() so the loop breaks
+      // early.
+      this.some(function(user, i) {
+        if (userId === user.get("username")) {
+          index = i;
+          return true;
+        }
+        return false;
+      }, this);
+      return index;
+    },
+
+    /**
      * Set the presence attribute of all the users to the given value.
      *
      * @param  {String} status Either "connected" or "disconnected".

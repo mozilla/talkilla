@@ -53,6 +53,17 @@ describe("UserSet Collection", function() {
     });
   });
 
+  describe("#findUserIndex", function() {
+    it("should find a user index in the collection", function() {
+      expect(collection.findUserIndex("chuck")).eql(0);
+      expect(collection.findUserIndex("jb")).eql(1);
+    });
+
+    it("should return undefined on user not found", function() {
+      expect(collection.findUserIndex("nyarlathotep")).to.be.a("undefined");
+    });
+  });
+
   describe("#setUserPresence", function() {
     it("should set the user presence to a given status", function() {
       collection.setUserPresence("jb", "disconnected");
