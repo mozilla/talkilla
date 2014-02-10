@@ -49,7 +49,7 @@ describe("UserSet Collection", function() {
     });
 
     it("should return undefined on user not found", function() {
-      expect(collection.findUser("nyarlathotep")).to.be.a("undefined")
+      expect(collection.findUser("nyarlathotep")).to.be.a("undefined");
     });
   });
 
