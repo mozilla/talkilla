@@ -268,6 +268,7 @@ var handlers = {
   'talkilla.conversation-open': function(event) {
     tkWorker.conversationList.conversationOpen(event,
       tkWorker.spa.capabilities, browserPort);
+    tkWorker.collectContact(event.data.peer, function() {});
   },
 
   'talkilla.chat-window-ready': function(event) {

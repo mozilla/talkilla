@@ -98,8 +98,6 @@ var ChatApp = (function(app, $, Backbone, _) {
     this.appPort.on('talkilla.move-accept', this._onMoveAccept, this);
     this.appPort.on('talkilla.hold', this._onHold, this);
     this.appPort.on('talkilla.resume', this._onResume, this);
-    this.appPort.once('talkilla.spa-channel-message',
-                      this._onIncomingTextConversation, this);
     this.appPort.once('talkilla.start-call', this._onCallRequest, this);
 
     // Outgoing events
@@ -174,13 +172,6 @@ var ChatApp = (function(app, $, Backbone, _) {
     // incoming video/audio call
     this.call.incoming(new app.payloads.Offer(offerMsg));
     this.audioLibrary.play('incoming');
-  };
-
-  ChatApp.prototype._onIncomingTextConversation = function(msg) {
-    var peer = this.peer.get("username");
-    this.textChat.setTransport(new SPAChannel(this.appPort, peer));
-    // Forward the message to the newly created transport
-    this.textChat.transport.trigger("message", msg);
   };
 
   ChatApp.prototype._onIceCandidate = function(data) {

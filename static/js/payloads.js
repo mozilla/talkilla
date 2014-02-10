@@ -40,13 +40,11 @@ var payloads = (function() {
    * - {Integer} callid, the id of the call being initiated
    * - {String} peer, the username to call
    * - {mozRTCSessionDescription} offer, a sdp offer
-   * - {Boolean} upgrade, is this a call upgrade?
    */
   var Offer = Payload.define({
     callid:  Number,
     peer:    String,
-    offer:   Object,
-    upgrade: Boolean
+    offer:   Object
   });
 
   /**
@@ -149,6 +147,12 @@ var payloads = (function() {
 
   /**
    * SPAChannelMessage payload. Arbitrary message sent through the SPA.
+   *
+   * XXX Really, message is an attribute that should be defined further, however
+   * doing so would need it as an optional parameter (for type = chat:typing).
+   * We should probably split SPAChannelMessage and associated events throughout
+   * the system into mutliple rather than one - but we need to reassess this
+   * after the event system refactoring.
    *
    * - {String} peer, the user to call
    * - {String} type, the type of the message

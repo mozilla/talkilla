@@ -21,8 +21,10 @@ var ConversationList = (function() {
       throw new Error("missing parameter: User");
     this.user = options.user;
 
-    // object that holds the conversations
+    // Object that holds the conversations.
     this.conversationList = {};
+    // The queue holds a list of peer ids for whom the conversation window
+    // open has been requested, but hasn't completed yet.
     this.queue = [];
   }
 
@@ -75,28 +77,46 @@ var ConversationList = (function() {
       this.conversationList = {};
     },
 
+    _postMessageTo: function(to, topic, data) {
+      if (this.has(to))
+        this.get(to).postMessage(topic, data);
+    },
+
     /**
      * Start conversation with a particular peer
-     * @param {String} peer Peer unique identifier
+     * @param {String} peerId Peer unique identifier
      * @param {Array} capabilities Capabilities of the SPA
      * @param {Port} browserPort The port on which the worker talks to the
      *                           social api
      * @return {Object}
      */
-    _startConversation: function(peer, capabilities, browserPort) {
-      this.queue.push(peer);
-      this.set(peer, new Conversation({
+    _startConversation: function(peerId, capabilities, browserPort) {
+      this.queue.push(peerId);
+      this.set(peerId, new Conversation({
         capabilities: capabilities,
-        peer: this.users.get(peer),
-        browserPort: browserPort,
-        users: this.users,
+        // XXX The second half of this returns the equivalent of a user object
+        // but we don't have one yet. So we should change this once we get one.
+        peer: this.users.get(peerId) || {username: peerId, presence: "unknown"},
         user: this.user
       }));
+
+      browserPort.postEvent('social.request-chat',
+                            'chat.html#'+peerId);
+    },
+
+    /**
+     * Handle event when a new chat window is ready.
+     * @param {Object} Message from a new window event
+     */
+    windowReady: function(readyData) {
+      var pendingPeer = this.queue.pop();
+      if (pendingPeer)
+        this.conversationList[pendingPeer].windowOpened(readyData);
     },
 
     /**
      * Handle SPA offer
-     * @param {String} peer Peer unique identifier
+     * @param {payloads.Offer} offerMsg Details of the call offer
      * @param {Array} capabilities Capabilities of the SPA
      * @param {Port} browserPort The port on which the worker talks to the
      *                            social api
@@ -104,12 +124,14 @@ var ConversationList = (function() {
     offer: function(offerMsg, capabilities, browserPort) {
       if (!this.has(offerMsg.peer))
         this._startConversation(offerMsg.peer, capabilities, browserPort);
-      this.get(offerMsg.peer).handleIncomingCall(offerMsg);
+      this._postMessageTo(offerMsg.peer, "talkilla.conversation-incoming",
+        offerMsg);
     },
 
     /**
      * Handle SPA message
-     * @param {String} peer Peer unique identifier
+     * @param {payloads.SPAChannelMessage} spaMsg Details of the message from
+     *                                            the SPA
      * @param {Array} capabilities Capabilities of the SPA
      * @param {Port} browserPort The port on which the worker talks to the
      *                           social api
@@ -117,52 +139,50 @@ var ConversationList = (function() {
     message: function(textMsg, capabilities, browserPort) {
       if (!this.has(textMsg.peer))
         this._startConversation(textMsg.peer, capabilities, browserPort);
-      this.get(textMsg.peer).handleIncomingText(textMsg);
+      this._postMessageTo(textMsg.peer, "talkilla.spa-channel-message",
+        textMsg);
     },
 
     /**
      * Handle answer event
-     * @param {Object} Message from answer event
+     * @param {payloads.Answer} answerMsg The call answer details
      */
     answer: function(answerMsg) {
-      if (this.has(answerMsg.peer))
-        this.get(answerMsg.peer).callAccepted(answerMsg);
+      this._postMessageTo(answerMsg.peer, 'talkilla.call-establishment',
+        answerMsg);
     },
 
     /**
      * handle hangup event
-     * @param {Object} Message from hangup event
+     * @param {payloads.Hangup} hangupMsg Call hangup details
      */
     hangup: function(hangupMsg) {
-      if (this.has(hangupMsg.peer))
-        this.get(hangupMsg.peer).callHangup(hangupMsg);
+      this._postMessageTo(hangupMsg.peer, 'talkilla.call-hangup', hangupMsg);
     },
 
     /**
      * handle iceCandidate event
-     * @param {Object} Message from iceCandidate event
+     * @param {payloads.IceCandidate} iceCandidateMsg Ice candidate details
      */
     iceCandidate: function(iceCandidateMsg) {
-      if (this.has(iceCandidateMsg.peer))
-        this.get(iceCandidateMsg.peer).iceCandidate(iceCandidateMsg);
+      this._postMessageTo(iceCandidateMsg.peer, 'talkilla.ice-candidate',
+        iceCandidateMsg);
     },
 
     /**
      * handle hold event
-     * @param {Object} Message from hold event
+     * @param {payloads.Hold} holdMsg Hold Message details
      */
     hold: function(holdMsg) {
-      if (this.has(holdMsg.peer))
-        this.get(holdMsg.peer).hold(holdMsg);
+      this._postMessageTo(holdMsg.peer, 'talkilla.hold', holdMsg);
     },
 
     /**
      * handle resume event
-     * @param {Object} Message from resume event
+     * @param {payloads.Resume} resumeMsg Resume Message details
      */
     resume: function(resumeMsg) {
-      if (this.has(resumeMsg.peer))
-        this.get(resumeMsg.peer).resume(resumeMsg);
+      this._postMessageTo(resumeMsg.peer, 'talkilla.resume', resumeMsg);
     },
 
     /**
@@ -179,16 +199,6 @@ var ConversationList = (function() {
     },
 
     /**
-     * handle event when a new chat window is ready
-     * @param {Object} Message from a new window event
-     */
-    windowReady: function(readyData) {
-      var lastRequested = this.queue.pop();
-      if (lastRequested)
-        this.conversationList[lastRequested].windowOpened(readyData);
-    },
-
-    /**
      * handle an instantShare event
      * @param {Object} Message from a instantShare event
      * @param {Array} capabilities Capabilities of the SPA
@@ -200,7 +210,7 @@ var ConversationList = (function() {
         this._startConversation(instantShareMsg.peer, capabilities,
           browserPort);
       }
-      this.get(instantShareMsg.peer).startCall();
+      this._postMessageTo(instantShareMsg.peer, 'talkilla.start-call');
     }
 
   };

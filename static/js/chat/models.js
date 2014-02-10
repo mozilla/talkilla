@@ -105,8 +105,7 @@
         this.trigger("send-offer", new app.payloads.Offer({
           peer: this.peer.get("username"),
           offer: offer,
-          callid: this.callid,
-          upgrade: false
+          callid: this.callid
         }));
       }, this);
 
@@ -124,8 +123,7 @@
       // The order of arguments is important to avoid modifying the
       // offerMsg and upsetting unit tests
       var options = _.extend({
-        offer: offerMsg.offer,
-        upgrade: !!offerMsg.upgrade
+        offer: offerMsg.offer
       }, new WebRTC.SDP(offerMsg.offer.sdp).constraints);
 
       this.set('incomingData', options);
@@ -507,8 +505,7 @@
         this.trigger("send-offer", new app.payloads.Offer({
           callid: this.callid,
           peer: this.peer.get("username"),
-          offer: offer,
-          upgrade: false
+          offer: offer
         }));
       }, this);
 
@@ -550,7 +547,8 @@
         return;
 
       this.transport.send({
-        type: "chat:typing"
+        type: "chat:typing",
+        message: {}
       });
     },
 
@@ -587,6 +585,9 @@
         transfer = this.findWhere({id: event.message.id});
         if (!transfer.isDone())
           transfer.nextChunk();
+        break;
+      default:
+        console.error("Unsupport chat message of type: " + event.type);
         break;
       }
     },

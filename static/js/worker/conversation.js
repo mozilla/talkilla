@@ -3,13 +3,11 @@
  * Conversation data storage.
  *
  * This is designed to contain information about open conversation
- * windows, and to route appropraite information to those windows,
+ * windows, and to route appropraite information to those windows.
  *
- * Some aspects of the design are more relevant to only allowing
- * a single conversation window, and these will need to be changed
- * at the appropriate time.
+ * Conversation will also queue messages until it is notified that
+ * a window has been opened.
  */
-
 var Conversation = (function() {
   "use strict";
 
@@ -26,22 +24,11 @@ var Conversation = (function() {
       throw new Error("missing parameter: peer");
     this.peer = options.peer;
 
-    if (!options || !options.browserPort)
-      throw new Error("missing parameter: browserPort");
-    this.browserPort = options.browserPort;
-
-    if (!options || !options.users)
-      throw new Error("missing parameter: Users");
-    this.users = options.users;
-
     if (!options || !options.user)
       throw new Error("missing parameter: User");
     this.user = options.user;
 
     this.messageQueue = [];
-
-    this.browserPort.postEvent('social.request-chat',
-                               'chat.html#'+this.peer.username);
   }
 
   Conversation.prototype = {
@@ -54,11 +41,9 @@ var Conversation = (function() {
     windowOpened: function(port) {
       this.port = port;
 
-      // XXX: remove the need for this.users after we have a user object
       var msg = {
         capabilities: this.capabilities,
         peer: this.peer,
-        peerPresence: this.users.getPresence(this.peer.username),
         user: this.user.name
       };
 
@@ -73,95 +58,17 @@ var Conversation = (function() {
     },
 
     /**
-    * Returns true if this conversation window is for the specified
-    * peer and the incoming call data is passed to that window.
-    *
-    * @param {payloads.offer} offer: the offer message for an
-    *                                incoming conversation
-    */
-    handleIncomingCall: function(offer) {
-      if (this.peer.username !== offer.peer)
-        return false;
-
-      this._sendMessage("talkilla.conversation-incoming", offer);
-      return true;
-    },
-
-    handleIncomingText: function(textMsg) {
-      if (this.peer.username !== textMsg.peer)
-        return false;
-
-      this._sendMessage("talkilla.spa-channel-message", {
-        message: textMsg.message
-      });
-
-      return true;
-    },
-
-    /**
-    * Attempts to send a message to the port, if the port is not known
+    * Attempts to post a message to the port, if the port is not known
     * it will queue the message for delivery on window opened.
+    *
+    * @param {String} topic Topic of the message to send
+    * @param {Object} data  The data to send with the message
     */
-    _sendMessage: function(topic, data) {
+    postMessage: function(topic, data) {
       if (this.port)
         this.port.postEvent(topic, data);
       else
         this.messageQueue.push({topic: topic, data: data});
-    },
-
-    /**
-    * Call to tell the conversation that the call has been accepted
-    * by the peer.
-    *
-    * @param data The data associated with the call. Consisting of:
-    *
-    * - peer   the id of the other user
-    * - offer  the sdp offer for the connection
-    */
-    callAccepted: function(data) {
-      this.port.postEvent('talkilla.call-establishment', data);
-    },
-
-    /**
-    * Call to tell the conversation window that the call has been
-    * put on hold by the peer
-    *
-    * @param {payloads.Hold} The hold message for the conversation
-    */
-    hold: function(data) {
-      this.port.postEvent('talkilla.hold', data);
-    },
-
-
-    /**
-    * Call to tell the conversation window that the call has been
-    * resumed by the peer.
-    *
-    * @param {payloads.Resume} The resume message for the conversation
-    */
-    resume: function(data) {
-      this.port.postEvent('talkilla.resume', data);
-    },
-
-
-    /**
-    * Call to tell the conversation window that the call has been
-    * hungup by the peer.
-    *
-    * @param data The data associated with the call. Consisting of:
-    *
-    * - peer   the id of the other user
-    */
-    callHangup: function(data) {
-      this.port.postEvent('talkilla.call-hangup', data);
-    },
-
-    iceCandidate: function(data) {
-      this._sendMessage('talkilla.ice-candidate', data);
-    },
-
-    startCall: function() {
-      this._sendMessage('talkilla.start-call');
     }
   };
 

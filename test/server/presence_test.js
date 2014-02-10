@@ -27,6 +27,7 @@ describe("presence", function() {
   var sandbox;
   var api = presence.api;
   var users = presence._users;
+  var anons = presence._anons;
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
@@ -39,7 +40,111 @@ describe("presence", function() {
     sandbox.restore();
   });
 
+  describe("authenticated users events", function() {
+    describe("`add` event", function() {
+
+      it("should send to all users that a new user connected", function() {
+        var bar = users.add("bar").get("bar");
+        var xoo = users.add("xoo").get("xoo");
+        sandbox.stub(bar, "send");
+        sandbox.stub(xoo, "send");
+
+        users.add("foo");
+
+        sinon.assert.calledOnce(bar.send);
+        sinon.assert.calledWithExactly(bar.send, "userJoined", "foo");
+        sinon.assert.calledOnce(xoo.send);
+        sinon.assert.calledWithExactly(xoo.send, "userJoined", "foo");
+      });
+
+      it("should not send the notification to the user herself", function() {
+        sandbox.stub(User.prototype, "send");
+
+        users.add("foo");
+
+        sinon.assert.notCalled(users.get("foo").send);
+      });
+
+    });
+
+    describe("`remove` event", function() {
+
+      it("should send to all users that a user disconnected", function() {
+        var bar = users.add("bar").get("bar");
+        var xoo = users.add("xoo").get("xoo");
+        users.add("foo").get("foo");
+        sandbox.stub(bar, "send");
+        sandbox.stub(xoo, "send");
+
+        users.remove("foo");
+
+        sinon.assert.calledOnce(bar.send);
+        sinon.assert.calledWithExactly(bar.send, "userLeft", "foo");
+        sinon.assert.calledOnce(xoo.send);
+        sinon.assert.calledWithExactly(xoo.send, "userLeft", "foo");
+      });
+
+      it("should not send the notification to the user himself", function() {
+        sandbox.stub(User.prototype, "send");
+        var foo = users.add("foo").get("foo");
+
+        users.remove("foo");
+
+        sinon.assert.notCalled(foo.send);
+      });
+
+    });
+
+  });
+
   describe("api", function() {
+
+    // XXX: this method is private but critical. That's why we have
+    // test coverage for it. In the future we might pull it out into a
+    // separate object as a way to separate concerns.
+    describe("#_setupUser", function() {
+      var fakeId, firstRequest, clock;
+
+      beforeEach(function() {
+        fakeId = '123123';
+        firstRequest = true;
+        // Use fake timers here to keep the tests running fast and
+        // avoid waiting for the second long timeouts to occur.
+        clock = sandbox.useFakeTimers();
+      });
+
+      it("should add the user with the given id if it isn't in users",
+        function() {
+
+          var user = api._setupUser(users, fakeId, firstRequest);
+
+          expect(user).to.be.an.instanceOf(User);
+        });
+
+      it("should remove the user from users if it is disconnected",
+        function(done) {
+
+          var user = api._setupUser(users, fakeId, firstRequest);
+          user.on("disconnect", function() {
+            expect(users.get(fakeId)).to.equal(undefined);
+            done();
+          });
+
+          user.emit("disconnect");
+        });
+
+      it("should clean leftover state if firstRequest is encountered while " +
+        "user is considered online", function() {
+        var user = users.add(fakeId).get(fakeId);
+        sandbox.stub(user, "clearPending");
+
+        api._setupUser(users, fakeId, firstRequest);
+
+        expect(users.get(fakeId)).to.equal(user);
+        sinon.assert.calledOnce(user.clearPending);
+      });
+
+    });
 
     // XXX: this method is private but critical. That's why we have
     // test coverage for it. In the future we might pull it out into a
@@ -186,7 +291,7 @@ describe("presence", function() {
         sinon.assert.calledOnce(User.prototype.disconnect);
 
         sinon.assert.calledOnce(res.send);
-        sinon.assert.calledWith(res.send, 200);
+        sinon.assert.calledWith(res.send, 200, JSON.stringify(true));
       });
 
       it("should reset the user's client session", function() {
@@ -207,133 +312,113 @@ describe("presence", function() {
         api.signout(req, res);
 
         sinon.assert.calledOnce(res.send);
-        sinon.assert.calledWith(res.send, 400);
+        sinon.assert.calledWithExactly(res.send, 400);
       });
 
     });
 
     describe("#stream", function() {
-      var clock;
+      var fakeId, clock, req, res;
 
       beforeEach(function() {
+        fakeId = '123123';
         // Use fake timers here to keep the tests running fast and
         // avoid waiting for the second long timeouts to occur.
         clock = sinon.useFakeTimers();
+
+        req = {body: {firstRequest: false}, session: {email: fakeId}};
+        res = {send: sinon.spy()};
       });
 
       afterEach(function() {
         clock.restore();
       });
 
-      it("should send to all users that a new user connected", function() {
-          var bar = users.add("bar").get("bar");
-          var xoo = users.add("xoo").get("xoo");
-          var req = {session: {email: "foo"}};
-          var res = {send: function() {}};
-          sandbox.stub(bar, "send").returns(true);
-          sandbox.stub(xoo, "send").returns(true);
-
+      it("should return an empty event list if it's user's first request",
+        function() {
+          req.body.firstRequest = true;
           api.stream(req, res);
 
-          sinon.assert.calledOnce(bar.send);
-          sinon.assert.calledWith(bar.send, "userJoined", "foo");
-          sinon.assert.calledOnce(xoo.send);
-          sinon.assert.calledWith(xoo.send, "userJoined", "foo");
+          sinon.assert.calledOnce(res.send);
+          sinon.assert.calledWithExactly(res.send, 200, "[]");
         });
 
-      it("should send an empty list if firstRequest is specified in the body",
-        function(done) {
-          users.add("foo").get("foo");
-          var req = {session: {email: "foo"}, body: {firstRequest: true}};
-          var res = {send: function(code, data) {
-            expect(code).to.equal(200);
-            expect(data).to.equal(JSON.stringify([]));
-            done();
-          }};
-
-          api.stream(req, res);
-        });
-
-      it("should send clear and pending waits on the user if firstRequest is " +
-         "specified in the body", function(done) {
-          var user = users.add("foo").get("foo");
-          sandbox.stub(user, "clearPending").returns(user);
-
-          var req = {session: {email: "foo"}, body: {firstRequest: true}};
-          var res = {send: function() {
-            sinon.assert.calledOnce(user.clearPending);
-            done();
-          }};
-
-          api.stream(req, res);
-        });
-
-      it("should send an empty list of events", function(done) {
-        users.add("foo").get("foo");
-        var req = {session: {email: "foo"}};
-        var res = {send: function(code, data) {
-          expect(code).to.equal(200);
-          expect(data).to.equal(JSON.stringify([]));
-          done();
-        }};
+      it("should setup the user", function() {
+        req.body.firstRequest = true;
+        sandbox.stub(api, "_setupUser").returns(users.add(fakeId).get(fakeId));
 
         api.stream(req, res);
-        clock.tick(config.LONG_POLLING_TIMEOUT * 3);
+
+        sinon.assert.calledOnce(api._setupUser);
+        sinon.assert.calledWithExactly(api._setupUser,
+          users, fakeId, req.body.firstRequest);
       });
 
-      it("should send a list of events", function(done) {
-        var user = users.add("foo").get("foo");
-        var event = {topic: "some", data: "data"};
-        var req = {session: {email: "foo"}};
-        var res = {send: function(code, data) {
-          expect(code).to.equal(200);
-          expect(data).to.equal(JSON.stringify([event]));
-          done();
-        }};
+      it("should extend the long polling timeout", function() {
+        var user = users.add(fakeId).get(fakeId);
+        sandbox.stub(user, "touch");
 
         api.stream(req, res);
+
+        sinon.assert.calledOnce(user.touch);
+      });
+
+      it("should wait for events until user.send is called", function() {
+        var user = users.add(fakeId).get(fakeId);
+
+        api.stream(req, res);
+
+        // ensure 0 < wait time < timeout
+        clock.tick(config.LONG_POLLING_TIMEOUT/2);
+        sinon.assert.notCalled(res.send);
         user.send("some", "data");
+        sinon.assert.calledOnce(res.send);
+        sinon.assert.calledWithExactly(
+          res.send, 200, JSON.stringify([{topic: "some", data: "data"}]));
       });
 
-      it("should fail if no nick is provided", function() {
-        var req = {session: {}};
-        var res = {send: sinon.spy()};
+      it("should return immediately with a list of queued events if " +
+        "the queue is not empty", function() {
+        var user = users.add(fakeId).get(fakeId);
+        user.connect();
+        user.send("foo", "oof");
+        user.send("bar", "rab");
 
         api.stream(req, res);
 
         sinon.assert.calledOnce(res.send);
-        sinon.assert.calledWithExactly(res.send, 400);
+        sinon.assert.calledWithExactly(res.send, 200, JSON.stringify([
+          {topic: "foo", data: "oof"},
+          {topic: "bar", data: "rab"}
+        ]));
       });
 
-      describe("disconnect", function() {
-
-        beforeEach(function() {
-          var req = {session: {email: "foo"}};
-          var res = {send: function() {}};
+      it("should send an empty list of events if the timeout is reached",
+        function() {
+          users.add(fakeId).get(fakeId);
 
           api.stream(req, res);
+
+          clock.tick(config.LONG_POLLING_TIMEOUT);
+          sinon.assert.calledOnce(res.send);
+          sinon.assert.calledWithExactly(res.send, 200, "[]");
         });
 
-        it("should remove the user from the list of users", function() {
-          users.get("foo").disconnect();
+      it("should use the anonymous collection when the user " +
+        "does not have an email", function() {
+        req.session = {};
+        var user = anons.add(fakeId).get(fakeId);
+        sandbox.stub(api, "_genId").returns(fakeId);
+        sandbox.stub(api, "_setupUser").returns(user);
 
-          expect(users.get("foo")).to.be.equal(undefined);
-        });
+        api.stream(req, res);
 
-        it("should notify peers that the user left", function() {
-          var bar = users.add("bar").get("bar");
-          var xoo = users.add("xoo").get("xoo");
-          sandbox.stub(bar, "send").returns(true);
-          sandbox.stub(xoo, "send").returns(true);
-
-          users.get("foo").disconnect();
-
-          sinon.assert.calledOnce(bar.send);
-          sinon.assert.calledWith(bar.send, "userLeft", "foo");
-          sinon.assert.calledOnce(xoo.send);
-          sinon.assert.calledWith(xoo.send, "userLeft", "foo");
-        });
-
+        // XXX when we test the id generator separately, we should move
+        // away from testing the impl with stubs and instead look at the
+        // side effect on anons for this specific test
+        sinon.assert.calledOnce(api._setupUser);
+        sinon.assert.calledWithExactly(api._setupUser, anons, fakeId,
+          req.body.firstRequest);
       });
 
     });
@@ -356,7 +441,7 @@ describe("presence", function() {
           api.callOffer(req, res);
 
           sinon.assert.calledOnce(bar.send);
-          sinon.assert.calledWith(bar.send, "offer", forwardedEvent);
+          sinon.assert.calledWithExactly(bar.send, "offer", forwardedEvent);
         });
 
       it("should warn on handling offers to unknown users", function() {
@@ -395,7 +480,7 @@ describe("presence", function() {
           api.callAccepted(req, res);
 
           sinon.assert.calledOnce(bar.send);
-          sinon.assert.calledWith(bar.send, "answer", forwardedEvent);
+          sinon.assert.calledWithExactly(bar.send, "answer", forwardedEvent);
         });
 
       it("should warn on handling answers to unknown users", function() {
@@ -434,7 +519,7 @@ describe("presence", function() {
           api.callHangup(req, res);
 
           sinon.assert.calledOnce(bar.send);
-          sinon.assert.calledWith(bar.send, "hangup", forwardedEvent);
+          sinon.assert.calledWithExactly(bar.send, "hangup", forwardedEvent);
         });
 
       it("should warn on handling hangups to unknown users", function() {
@@ -475,7 +560,8 @@ describe("presence", function() {
           api.iceCandidate(req, res);
 
           sinon.assert.calledOnce(bar.send);
-          sinon.assert.calledWith(bar.send, "ice:candidate", forwardedEvent);
+          sinon.assert.calledWithExactly(bar.send, "ice:candidate",
+            forwardedEvent);
         });
 
       it("should warn on handling candidates to unknown users", function() {
@@ -556,6 +642,7 @@ describe("presence", function() {
         sinon.assert.calledWithExactly(res.send, 200);
       });
 
+      // XXX will be removed by https://trello.com/c/al5ER6ei
       it("should return a 400 if the user is not logged in", function() {
         req.session.email = undefined;
         api.instantSharePingBack(req, res);

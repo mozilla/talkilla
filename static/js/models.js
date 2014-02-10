@@ -112,7 +112,7 @@
      * @return {String}
      */
     avatar: function() {
-      return "http://www.gravatar.com/avatar/" + md5(this.get("email")) +
+      return "https://www.gravatar.com/avatar/" + md5(this.get("email")) +
         "/?d=mm";
     },
 

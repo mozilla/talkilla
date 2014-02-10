@@ -8,8 +8,7 @@ describe("ChatApp", function() {
   var sandbox, chatApp, AppPortStub, incomingCallData;
   var callData = {
     capabilities: ["call", "move"],
-    peer: {username: "bob", presence: "connected"},
-    peerPresence: "connected"
+    peer: {username: "bob", presence: "connected"}
   };
   var fakeOffer = {type: "offer", sdp: "\nm=video aaa\nm=audio bbb"};
   var fakeAnswer = {type: "answer", sdp: "\nm=video ccc\nm=audio ddd"};
@@ -22,7 +21,6 @@ describe("ChatApp", function() {
     incomingCallData = {
       capabilities: ["call", "move"],
       peer: {username: "alice", presence: "connected"},
-      peerPresence: "connected",
       offer: {
         callid: 2,
         peer: "alice",
@@ -224,12 +222,6 @@ describe("ChatApp", function() {
         expect(chatApp.peer.get("username")).to.equal(callData.peer.username);
       });
 
-      it("should set peer's presence", function() {
-        chatApp._onConversationOpen(callData);
-
-        expect(chatApp.peer.get("presence")).to.equal(callData.peerPresence);
-      });
-
       it("should trigger peer's presence attribute change", function() {
         sandbox.stub(chatApp.peer, 'trigger').returns(chatApp.peer);
 
@@ -272,24 +264,6 @@ describe("ChatApp", function() {
 
         sinon.assert.calledOnce(chatApp.audioLibrary.play);
         sinon.assert.calledWithExactly(chatApp.audioLibrary.play, "incoming");
-      });
-    });
-
-    describe("#_onIncomingTextConversation", function() {
-      var msg = {message: "some message"};
-
-      it("should set transport", function() {
-        chatApp._onIncomingTextConversation(msg);
-
-        expect(chatApp.textChat.transport).to.be.an.instanceOf(SPAChannel);
-      });
-
-      it("should forward the event to the transport", function() {
-        sandbox.stub(SPAChannel.prototype, "trigger");
-        chatApp._onIncomingTextConversation(msg);
-        sinon.assert.calledOnce(chatApp.textChat.transport.trigger);
-        sinon.assert.calledWithExactly(
-          chatApp.textChat.transport.trigger, "message", msg);
       });
     });
 
