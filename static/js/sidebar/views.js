@@ -235,7 +235,6 @@
                 timeout / 1000 + "s...";
 
       app.utils.notifyUI(msg, "error", timeout);
-      console.log(msg);
     },
 
     notifyReconnectionSuccess: function() {
@@ -338,9 +337,11 @@
     activeNotification: null,
 
     initialize: function() {
-      console.log("UsersView#initialize");
       this.listenTo(this.collection, "reset", this.render);
       this.listenTo(this.collection, "add", this._onUserJoined);
+      // XXX for some reason only listening to "all" triggers the callback when
+      //     we need it.
+      this.listenTo(this.collection, "all", this._checkCurrentUserAlone);
     },
 
     _createUserEntryView: function(user) {
@@ -350,6 +351,23 @@
     _onUserJoined: function(user) {
       // XXX: reordering? should we do this at the DOM level?
       this.$("ul").append(this._createUserEntryView(user).render().$el);
+    },
+
+    // XXX: we shouldn't do this here; this should be gone once we refactor the
+    //      whole notification system;
+    _checkCurrentUserAlone: function() {
+      if (this.user.isLoggedIn() && this.collection.length === 1) {
+        if (!this.activeNotification)
+          this.activeNotification =
+            app.utils.notifyUI('You are the only person logged in, ' +
+                                'invite your friends or load your existing ' +
+                                'contacts (see below).', 'info');
+      }
+      else {
+        if (this.activeNotification)
+          this.activeNotification.clear();
+        this.activeNotification = null;
+      }
     },
 
     render: function() {
@@ -363,21 +381,6 @@
       this.$("ul").html(views.map(function(view) {
         return view.render().$el;
       }));
-
-      // show/hide invite if user is alone
-      // XXX: we shouldn't do this here
-      if (this.user.isLoggedIn() && this.collection.length === 1) {
-        if (!this.activeNotification)
-          this.activeNotification =
-            app.utils.notifyUI('You are the only person logged in, ' +
-                                'invite your friends or load your existing ' +
-                                'contacts (see below).', 'info');
-      }
-      else {
-        if (this.activeNotification)
-          this.activeNotification.clear();
-        this.activeNotification = null;
-      }
 
       return this;
     }
