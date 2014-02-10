@@ -98,7 +98,7 @@
      *
      * @param  {String} status Either "connected" or "disconnected".
      * @return {UserSet}
-     **/
+     */
     setGlobalPresence: function(status) {
       return this.chain().each(function(user) {
         user.set("presence", status);
@@ -109,16 +109,17 @@
      * Update the presence of the user matching the provided identifier to
      * the given value.
      *
-     * XXX: - Throw on user not found?
-     *      - We need a real unique id here.
+     * XXX: We need a real unique id here.
      *
-     * @param {String} userId Either username, email address or phone number
-     * @param {String} status Either "connected" or "disconnected"
+     * @param  {String} userId Either username, email address or phone number
+     * @param  {String} status Either "connected" or "disconnected"
+     * @return {app.models.User|undefined}
      */
     setUserPresence: function(userId, status) {
       var user = this.findUser(userId);
       if (user)
-        user.set("presence", status);
+        return user.set("presence", status);
+      console.error("User not found: ", userId);
     },
 
     /**
