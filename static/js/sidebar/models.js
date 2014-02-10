@@ -36,24 +36,6 @@
     model: app.models.User,
 
     /**
-     * Generates a function capable of comparing a user model to a user
-     * identifier.
-     *
-     * XXX: we need a real unique id here
-     *
-     * @private
-     * @param  {String} userId Either an email address or a phone number.
-     * @return {Function}
-     */
-    _userIs: function(userId) {
-      return function(user) {
-        return user.get("username")    === userId ||
-               user.get("email")       === userId ||
-               user.get("phoneNumber") === userId;
-      };
-    },
-
-    /**
      * Used to sort users by lowercased full name, email or phone number when
      * available.
      *
@@ -75,7 +57,9 @@
      * @return {Array}
      */
     excludeUser: function(userId) {
-      return this.reject(this._userIs(userId));
+      return this.reject(function(user) {
+        return userId === user.get("username");
+      });
     },
 
     /**
@@ -88,9 +72,17 @@
      * @return {app.models.User|undefined}
      */
     findUser: function(userId) {
-      // XXX possible micro-optimization: use some() instead of filter() so the
-      //     loop breaks early.
-      return this.chain().filter(this._userIs(userId)).first().value();
+      var found;
+      // micro-optimization: using some() instead of filter() so the loop breaks
+      // early.
+      this.some(function(user) {
+        if (userId === user.get("username")) {
+          found = user;
+          return true;
+        }
+        return false;
+      });
+      return found;
     },
 
     /**

@@ -48,20 +48,14 @@ describe("UserSet Collection", function() {
       expect(collection.findUser("chuck")).eql(chuck);
     });
 
-    it("should find users from their email", function() {
-      expect(collection.findUser("jb@pirates.org")).eql(jb);
-      expect(collection.findUser("chuck@norr.is")).eql(chuck);
-    });
-
-    it("should find users from their phone number", function() {
-      expect(collection.findUser("123")).eql(jb);
-      expect(collection.findUser("666")).eql(chuck);
+    it("should return undefined on user not found", function() {
+      expect(collection.findUser("nyarlathotep")).to.be.a("undefined")
     });
   });
 
   describe("#setUserPresence", function() {
     it("should set the user presence to a given status", function() {
-      collection.setUserPresence("123", "disconnected");
+      collection.setUserPresence("jb", "disconnected");
 
       expect(jb.get("presence")).eql("disconnected");
       expect(chuck.get("presence")).eql("connected");
