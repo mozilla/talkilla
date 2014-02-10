@@ -157,11 +157,6 @@
   overflow: auto;
 }
 
-.sidebar .users li .active,
-.sidebar .users li .active:hover {
-  background: #E5E5E5;
-}
-
 .sidebar .users li a {
   clear: left;
   padding: 10px;

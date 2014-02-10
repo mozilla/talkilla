@@ -4,58 +4,97 @@
 var expect = chai.expect;
 
 describe("UsersView", function() {
-  var sandbox, usersView;
+  var sandbox, user, collection;
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
-    sandbox.stub(app.views.UsersView.prototype, "render");
 
-    usersView = new app.views.UsersView({
-      user: new app.models.CurrentUser(),
-      collection: new app.models.UserSet(),
-      appStatus: new app.models.AppStatus()
-    });
+    user = new app.models.CurrentUser({username: "niko"});
+
+    collection = new app.models.UserSet([
+      {username: "a@a.com", email: "a@a.com", presence: "disconnected"},
+      {username: "b@b.com", email: "b@b.com", presence: "disconnected",
+       isContact: true}
+    ]);
   });
 
   afterEach(function() {
     sandbox.restore();
   });
 
-  describe("#initialize", function() {
-    it("should render the view when the collection is reset", function() {
-      usersView.collection.trigger("change");
+  describe("DOM tests", function() {
+    var usersView;
 
-      sinon.assert.calledOnce(usersView.render);
-    });
-
-    it("should render the view when the collection is changed", function() {
-      usersView.collection.reset();
-
-      sinon.assert.calledOnce(usersView.render);
-    });
-  });
-
-  describe("AppStatus 'reconnecting' events", function() {
     beforeEach(function() {
-      usersView.collection.reset([
-          {username: "bob", presence: "connected"},
-          {username: "bill", presence: "disconnected"}
-        ]);
+      $("#fixtures").append('<nav id="users"><ul></ul></nav>');
+
+      usersView = new app.views.UsersView({
+        user: user,
+        collection: collection
+      });
+      usersView.render();
     });
 
-    it("should change user status if a reconnection is ongoing", function() {
-      usersView.appStatus.set("reconnecting", {timeout: 42, attempt: 2});
-      expect(usersView.collection.every(function(user) {
-        return user.get("presence") === "disconnected";
-      })).to.eql(true);
+    afterEach(function() {
+      $("#fixtures").empty();
     });
 
-    it("should not change the users' status if no reconnection is ongoing",
-      function(){
-      usersView.appStatus.set("reconnecting", false);
-      expect(usersView.collection.every(function(user) {
-        return user.get("presence") === "disconnected";
-      })).to.eql(false);
+    describe("#render", function() {
+      it("should render all child views", function() {
+        expect(usersView.$("li")).to.have.length.of(2);
+      });
+
+      it("should add a user entry on new user joined", function() {
+        collection.userJoined("a@a.com");
+
+        expect(usersView.$("a[rel='a@a.com'] .status-connected"))
+          .to.have.length.of(1);
+      });
+
+      it("should remove a user entry on user left", function() {
+        collection.userLeft("a@a.com");
+
+        expect(usersView.$("a[rel='a@a.com']")).to.have.length.of(0);
+      });
+
+      it("should update contact presence on contact joined", function() {
+        collection.userJoined("b@b.com");
+
+        expect(usersView.$("a[rel='b@b.com'] .status-connected"))
+          .to.have.length.of(1);
+      });
+
+      it("should keep and updates contact presence when left", function() {
+        collection.userLeft("b@b.com");
+
+        expect(usersView.$("a[rel='b@b.com'] .status-disconnected"))
+          .to.have.length.of(1);
+      });
+    });
+
+    describe("Collection events", function() {
+      describe("add", function() {
+        it("should append a new user entry to an empty list", function() {
+          collection.reset([]);
+
+          collection.userJoined("bob@dylan.com");
+
+          expect(usersView.$("a[rel]").eq(0).attr("rel")).eql("bob@dylan.com");
+        });
+
+        it("should add a new user entry at the beginning of the list",
+          function() {
+            collection.userJoined("0@zero.com");
+
+            expect(usersView.$("a[rel]").eq(0).attr("rel")).eql("0@zero.com");
+          });
+
+        it("should add a new user entry at the end of the list", function() {
+          collection.userJoined("z@zzz.com");
+
+          expect(usersView.$("a[rel]").eq(2).attr("rel")).eql("z@zzz.com");
+        });
+      });
     });
   });
 });

@@ -157,11 +157,13 @@ function _setupSPA(spa) {
     tkWorker.collectContact(textMsg.peer, function() {});
   });
 
-  spa.on("users", function(data) {
-    data.forEach(function(user) {
+  spa.on("users", function(users) {
+    users.forEach(function(user) {
       tkWorker.users.set(user.nick, {presence: "connected"},
         tkWorker.spa.usernameFieldType);
     });
+
+    tkWorker.ports.broadcastDebug("worker spa.on(users)", users);
 
     tkWorker.ports.broadcastEvent("talkilla.users", tkWorker.users.toArray());
   });
@@ -170,7 +172,6 @@ function _setupSPA(spa) {
     tkWorker.users.set(userId, {presence: "connected"},
       tkWorker.spa.usernameFieldType);
 
-    tkWorker.ports.broadcastEvent("talkilla.users", tkWorker.users.toArray());
     tkWorker.ports.broadcastEvent("talkilla.user-joined", userId);
   });
 
@@ -181,7 +182,6 @@ function _setupSPA(spa) {
     tkWorker.users.set(userId, {presence: "disconnected"},
       tkWorker.spa.usernameFieldType);
 
-    tkWorker.ports.broadcastEvent("talkilla.users", tkWorker.users.toArray());
     tkWorker.ports.broadcastEvent("talkilla.user-left", userId);
   });
 

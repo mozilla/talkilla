@@ -76,11 +76,14 @@
    * User model.
    */
   app.models.User = Backbone.Model.extend({
-    defaults: {username: undefined,
-               fullName: undefined,
-               email: undefined,
-               phoneNumber: undefined,
-               presence: "disconnected"},
+    defaults: {
+      username:    undefined,
+      fullName:    undefined,
+      email:       undefined,
+      phoneNumber: undefined,
+      presence:    "disconnected",
+      isContact:   false
+    },
 
     initialize: function() {
       // If the user has signed in or out, trigger the appropraite

@@ -127,6 +127,28 @@ describe("SidebarApp", function() {
         expect(sidebarApp.users.at(0).get('username')).to.equal("bill");
         expect(sidebarApp.users.at(1).get('username')).to.equal("bob");
       });
+
+    it("should listen to the `talkilla.user-joined` event and update users",
+      function() {
+        sandbox.stub(app.models.UserSet.prototype, "userJoined");
+        var sidebarApp = new SidebarApp(defaultOptions);
+
+        sidebarApp.appPort.trigger("talkilla.user-joined", "a@a.com");
+
+        sinon.assert.calledOnce(sidebarApp.users.userJoined);
+        sinon.assert.calledWithExactly(sidebarApp.users.userJoined, "a@a.com");
+      });
+
+    it("should listen to the `talkilla.user-left` event and update users",
+      function() {
+        sandbox.stub(app.models.UserSet.prototype, "userLeft");
+        var sidebarApp = new SidebarApp(defaultOptions);
+
+        sidebarApp.appPort.trigger("talkilla.user-left", "a@a.com");
+
+        sinon.assert.calledOnce(sidebarApp.users.userLeft);
+        sinon.assert.calledWithExactly(sidebarApp.users.userLeft, "a@a.com");
+      });
   });
 
   describe("#openConversation", function() {
@@ -308,6 +330,31 @@ describe("SidebarApp", function() {
         sinon.assert.calledWithExactly(sidebarApp.appPort.post,
                                        "talkilla.conversation-open",
                                        {peer: "123"});
+      });
+    });
+
+    describe("AppStatus reconnection event", function() {
+      beforeEach(function() {
+        sidebarApp.users.reset([
+          {username: "bob", presence: "connected"},
+          {username: "bill", presence: "disconnected"}
+        ]);
+      });
+
+      it("should change user status if a reconnection is ongoing",
+        function() {
+          sidebarApp.appStatus.set("reconnecting", {timeout: 42, attempt: 2});
+          expect(sidebarApp.users.every(function(user) {
+            return user.get("presence") === "disconnected";
+          })).to.eql(true);
+        });
+
+      it("should not change the users' status if no reconnection is ongoing",
+        function(){
+        sidebarApp.appStatus.set("reconnecting", false);
+        expect(sidebarApp.users.every(function(user) {
+          return user.get("presence") === "disconnected";
+        })).to.eql(false);
       });
     });
 

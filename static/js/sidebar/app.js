@@ -44,6 +44,8 @@ var SidebarApp = (function(app, $) {
 
     // port events
     this.appPort.on("talkilla.users", this._onUserListReceived, this);
+    this.appPort.on("talkilla.user-joined", this._onUserJoined, this);
+    this.appPort.on("talkilla.user-left", this._onUserLeft, this);
     this.appPort.on("talkilla.spa-connected", this._onSPAConnected, this);
     this.appPort.on("talkilla.error", this._onError, this);
 
@@ -58,6 +60,12 @@ var SidebarApp = (function(app, $) {
     // Forward events to the model.
     this.appPort.on("talkilla.server-reconnection", function(event) {
       this.appStatus.ongoingReconnection(new app.payloads.Reconnection(event));
+    }, this);
+
+    // Update user presence statuses on reconnection
+    this.appStatus.on("change:reconnecting", function(appStatus) {
+      if (appStatus.get("reconnecting") !== false)
+        this.users.setGlobalPresence("disconnected");
     }, this);
 
     // SPA model events
@@ -160,6 +168,14 @@ var SidebarApp = (function(app, $) {
 
   SidebarApp.prototype._onUserListReceived = function(users) {
     this.users.reset(users);
+  };
+
+  SidebarApp.prototype._onUserJoined = function(userId) {
+    this.users.userJoined(userId);
+  };
+
+  SidebarApp.prototype._onUserLeft = function(userId) {
+    this.users.userLeft(userId);
   };
 
   SidebarApp.prototype._setupDebugLogging = function() {
