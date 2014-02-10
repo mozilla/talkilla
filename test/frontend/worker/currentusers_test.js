@@ -70,7 +70,7 @@ describe("CurrentUsers", function() {
       var contacts;
 
       beforeEach(function() {
-        contacts = [{email: "foo"}];
+        contacts = [{email: "foo", phoneNumber: "123", fullName: "Mr Foo"}];
       });
 
       it("should add contacts to the users list", function() {
@@ -85,6 +85,8 @@ describe("CurrentUsers", function() {
           foo: {
             email: "foo",
             username: "foo",
+            fullName: "Mr Foo",
+            phoneNumber: "123",
             presence: "disconnected",
             isContact: true
           }
