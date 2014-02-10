@@ -19,16 +19,23 @@ describe("DialInView", function() {
   });
 
   describe("#dial", function() {
-    it("should dial a number", function() {
+    beforeEach(function() {
       sandbox.stub(spa, "dial");
+      sandbox.stub(window, "close");
 
       view.dial({
         preventDefault: sinon.spy(),
         currentTarget: {number: {value: "123"}}
       });
+    });
 
+    it("should dial a number", function() {
       sinon.assert.calledOnce(spa.dial);
       sinon.assert.calledWithExactly(spa.dial, "123");
+    });
+
+    it("should close the panel", function() {
+      sinon.assert.calledOnce(window.close);
     });
   });
 
