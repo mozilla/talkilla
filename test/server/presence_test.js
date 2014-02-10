@@ -318,13 +318,16 @@ describe("presence", function() {
     });
 
     describe("#stream", function() {
-      var fakeId, clock;
+      var fakeId, clock, req, res;
 
       beforeEach(function() {
         fakeId = '123123';
         // Use fake timers here to keep the tests running fast and
         // avoid waiting for the second long timeouts to occur.
         clock = sinon.useFakeTimers();
+
+        req = {body: {firstRequest: false}, session: {email: fakeId}};
+        res = {send: sinon.spy()};
       });
 
       afterEach(function() {
@@ -333,18 +336,25 @@ describe("presence", function() {
 
       it("should return an empty event list if it's user's first request",
         function() {
-          var req = {body: {firstRequest: true}, session: {email: fakeId}};
-          var res = {send: sinon.spy()};
-
+          req.body.firstRequest = true;
           api.stream(req, res);
 
           sinon.assert.calledOnce(res.send);
           sinon.assert.calledWithExactly(res.send, 200, "[]");
         });
 
+      it("should setup the user", function() {
+        req.body.firstRequest = true;
+        sandbox.stub(api, "_setupUser").returns(users.add(fakeId).get(fakeId));
+
+        api.stream(req, res);
+
+        sinon.assert.calledOnce(api._setupUser);
+        sinon.assert.calledWithExactly(api._setupUser,
+          users, fakeId, req.body.firstRequest);
+      });
+
       it("should extend the long polling timeout", function() {
-        var req = {body: {}, session: {email: fakeId}};
-        var res = {send: function() {}};
         var user = users.add(fakeId).get(fakeId);
         sandbox.stub(user, "touch");
 
@@ -354,8 +364,6 @@ describe("presence", function() {
       });
 
       it("should wait for events until user.send is called", function() {
-        var req = {body: {firstRequest: false}, session: {email: fakeId}};
-        var res = {send: sinon.spy()};
         var user = users.add(fakeId).get(fakeId);
 
         api.stream(req, res);
@@ -371,8 +379,6 @@ describe("presence", function() {
 
       it("should return immediately with a list of queued events if " +
         "the queue is not empty", function() {
-        var req = {body: {firstRequest: false}, session: {email: fakeId}};
-        var res = {send: sinon.spy()};
         var user = users.add(fakeId).get(fakeId);
         user.connect();
         user.send("foo", "oof");
@@ -387,11 +393,8 @@ describe("presence", function() {
         ]));
       });
 
-
       it("should send an empty list of events if the timeout is reached",
         function() {
-          var req = {body: {firstRequest: false}, session: {email: fakeId}};
-          var res = {send: sinon.spy()};
           users.add(fakeId).get(fakeId);
 
           api.stream(req, res);
@@ -403,8 +406,7 @@ describe("presence", function() {
 
       it("should use the anonymous collection when the user " +
         "does not have an email", function() {
-        var req = {body: {firstRequest: false}, session: {}};
-        var res = {send: sinon.spy()};
+        req.session = {};
         var user = anons.add(fakeId).get(fakeId);
         sandbox.stub(api, "_genId").returns(fakeId);
         sandbox.stub(api, "_setupUser").returns(user);
@@ -415,7 +417,8 @@ describe("presence", function() {
         // away from testing the impl with stubs and instead look at the
         // side effect on anons for this specific test
         sinon.assert.calledOnce(api._setupUser);
-        sinon.assert.calledWithExactly(api._setupUser, anons, fakeId);
+        sinon.assert.calledWithExactly(api._setupUser, anons, fakeId,
+          req.body.firstRequest);
       });
 
     });
