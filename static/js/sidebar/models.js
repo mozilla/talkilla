@@ -36,11 +36,13 @@
     model: app.models.User,
 
     /**
-     * Internal higher order function for comparing a user model to a user
+     * Generates a function capable of comparing a user model to a user
      * identifier.
      *
+     * XXX: we need a real unique id here
+     *
      * @private
-     * @param  {String} userId Either an email address or a phone number
+     * @param  {String} userId Either an email address or a phone number.
      * @return {Function}
      */
     _userIs: function(userId) {
@@ -52,21 +54,24 @@
     },
 
     /**
-     * Used to sort users by lowercased username.
+     * Used to sort users by lowercased full name, email or phone number when
+     * available.
      *
-     * @param  {User} item
+     * @param  {User} user
      * @return {String}
      */
-    comparator: function(item) {
-      return (item.get("fullName") ||
-              item.get("email")    ||
-              item.get("phoneNumber")).toLowerCase();
+    comparator: function(user) {
+      return (user.get("fullName") ||
+              user.get("email")    ||
+              user.get("phoneNumber")).toLowerCase();
     },
 
     /**
      * Excludes a user having the provided id from the list.
      *
-     * @param  {app.models.User} user
+     * XXX: we need a real unique id here
+     *
+     * @param  {String} userId Either username, email address or phone number.
      * @return {Array}
      */
     excludeUser: function(userId) {
@@ -79,11 +84,12 @@
      *
      * XXX: we need a real unique id here
      *
-     * @param  {String} userId Either username, email address or phone number
+     * @param  {String} userId Either username, email address or phone number.
      * @return {app.models.User|undefined}
      */
     findUser: function(userId) {
-      // XXX possible micro-optimization: use some() instead of filter()
+      // XXX possible micro-optimization: use some() instead of filter() so the
+      //     loop breaks early.
       return this.chain().filter(this._userIs(userId)).first().value();
     },
 
@@ -103,7 +109,8 @@
      * Update the presence of the user matching the provided identifier to
      * the given value.
      *
-     * XXX: throw on user not found?
+     * XXX: - Throw on user not found?
+     *      - We need a real unique id here.
      *
      * @param {String} userId Either username, email address or phone number
      * @param {String} status Either "connected" or "disconnected"
@@ -118,7 +125,9 @@
      * Updates user presence status to connected when found, adds a new entry
      * when not.
      *
-     * @param  {String} userId Either username, email address or phone number
+     * XXX: we need a real unique id here
+     *
+     * @param  {String} userId Either username, email address or phone number.
      * @return {app.models.User} user User entry
      */
     userJoined: function(userId) {
@@ -136,8 +145,10 @@
     },
 
     /**
-     * Updates user presence status to disconnected if a contact, removes the
-     * entry if not.
+     * Updates user presence status to disconnected when it's a contact, removes
+     * the entry from the list when not.
+     *
+     * XXX: we need a real unique id here
      *
      * @param {String} userId Either username, email address or phone number
      */

@@ -344,17 +344,31 @@
       this.listenTo(this.collection, "all", this._checkCurrentUserAlone);
     },
 
+    /**
+     * Creates a new user entry view out of a given user model instance.
+     *
+     * @param  {app.models.User} user
+     * @return {app.views.UserEntryView}
+     */
     _createUserEntryView: function(user) {
       return new app.views.UserEntryView({model: user});
     },
 
+    /**
+     * Adds and renders a new user entry view when a new user is added to the
+     * current collection of users.
+     *
+     * @param  {app.models.User} user
+     */
     _onUserJoined: function(user) {
       // XXX: reordering? should we do this at the DOM level?
       this.$("ul").append(this._createUserEntryView(user).render().$el);
     },
 
-    // XXX: we shouldn't do this here; this should be gone once we refactor the
-    //      whole notification system;
+    /**
+     * Displays a notification when the current user is logged and alone in the
+     * room.
+     */
     _checkCurrentUserAlone: function() {
       if (this.user.isLoggedIn() && this.collection.length === 1) {
         if (!this.activeNotification)
