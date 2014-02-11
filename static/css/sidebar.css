@@ -247,3 +247,16 @@
   background-color: #FFFFFF;
 }
 
+.sidebar #users form {
+  margin: 5px 0 10px 0;
+  padding: 0 10px;
+}
+
+.sidebar #users form .search-query {
+  width: 260px;
+}
+
+.sidebar #users form button {
+  padding-left: 8px;
+  padding-right: 10px;
+}
