@@ -23,6 +23,20 @@
       _.extend(this, validator.validate(options || {}));
 
       Backbone.View.apply(this, arguments);
+    },
+
+    /**
+     * Shows this view.
+     */
+    show: function() {
+      this.$el.show();
+    },
+
+    /**
+     * Hides this view.
+     */
+    hide: function() {
+      this.$el.hide();
     }
   });
 

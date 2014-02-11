@@ -305,14 +305,6 @@
       'click a': 'openConversation'
     },
 
-    show: function() {
-      this.$el.show();
-    },
-
-    hide: function() {
-      this.$el.hide();
-    },
-
     initialize: function() {
       this.listenTo(this.model, "remove", this.remove);
       this.listenTo(this.model, "match", this.show);

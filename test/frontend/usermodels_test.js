@@ -1,6 +1,4 @@
 /*global chai, app, sinon */
-"use strict";
-
 var expect = chai.expect;
 
 describe("app.models.User", function() {
