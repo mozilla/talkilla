@@ -154,7 +154,19 @@
         this.get('username') !== undefined;
     },
 
+    /**
+     * Search for a given term against all current user string fields.
+     *
+     * Concurrently triggers a `match` event on match, `unmatch` on unmatch.
+     *
+     * @param  {String} term
+     * @return {Boolean}
+     */
     search: function(term) {
+      if (!term) {
+        this.trigger("match");
+        return true;
+      }
       var match = this.values().filter(function(value) {
         return typeof value === "string";
       }).some(function(value) {
