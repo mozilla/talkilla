@@ -155,6 +155,8 @@
       event.preventDefault();
 
       this.spa.dial(event.currentTarget.number.value);
+      // Close the panel now we're opening the chat window.
+      window.close();
     },
 
     display: function(show) {
