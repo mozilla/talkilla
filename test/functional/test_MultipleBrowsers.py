@@ -286,5 +286,24 @@ class MultipleBrowsersTest(mixins.WithBob, mixins.WithLarry, mixins.WithAlice,
         self.bob.hangupCall()
         self.assertChatWindowClosed(self.larry, "bob")
 
+    def test_userlist_livesearch(self):
+        self.larry.signin()
+        self.bob.signin()
+        self.alice.signin()
+
+        self.assertUsersListed(self.alice, ["larry", "bob"])
+
+        self.alice.filterUsers("bob")
+
+        self.assertUsersListed(self.alice, ["bob"])
+        self.assertUsersNotListed(self.alice, ["larry"])
+
+        self.alice.clearFilter()
+        self.alice.filterUsers("larr")
+
+        self.assertUsersListed(self.alice, ["larry"])
+        self.assertUsersNotListed(self.alice, ["bob"])
+
+
 if __name__ == "__main__":
     unittest.main(catchbreak=True)
