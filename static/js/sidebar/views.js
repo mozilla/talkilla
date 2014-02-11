@@ -361,8 +361,7 @@
      *
      * @param  {app.models.User} user
      */
-    _addUserEntry: function(user, foo, i, x) {
-      // find the user index in the collection
+    _addUserEntry: function(user) {
       var index       = this.collection.findUserIndex(user.get("username")),
           listRoot    = this.$("ul"),
           viewElems   = listRoot.find("li"),
