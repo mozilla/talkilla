@@ -407,7 +407,7 @@
     _onSearchEntered: function(event) {
       var search = $(event.currentTarget).val();
       this.collection.each(function(user) {
-        user.trigger(user.search(search));
+        user.search(search);
       }, this);
     },
 
