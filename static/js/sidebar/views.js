@@ -305,8 +305,18 @@
       'click a': 'openConversation'
     },
 
+    show: function() {
+      this.$el.show();
+    },
+
+    hide: function() {
+      this.$el.hide();
+    },
+
     initialize: function() {
       this.listenTo(this.model, "remove", this.remove);
+      this.listenTo(this.model, "match", this.show);
+      this.listenTo(this.model, "unmatch", this.hide);
       // XXX: micro-optimization: changing the presence class would be faster
       this.listenTo(this.model, "change:presence", this.render);
     },
@@ -333,6 +343,10 @@
     },
 
     el: '#users',
+
+    events: {
+      "keyup input[type=text]": "_onSearchEntered"
+    },
 
     activeNotification: null,
 
@@ -396,6 +410,13 @@
           this.activeNotification.clear();
         this.activeNotification = null;
       }
+    },
+
+    _onSearchEntered: function(event) {
+      var search = $(event.currentTarget).val();
+      this.collection.each(function(user) {
+        user.trigger(user.search(search));
+      }, this);
     },
 
     render: function() {
