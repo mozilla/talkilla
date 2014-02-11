@@ -8,7 +8,7 @@ describe('UserData', function() {
 
   beforeEach(function () {
     sandbox = sinon.sandbox.create();
-    browserPort = {postEvent: sandbox.spy()};
+    browserPort = {postMessage: sandbox.spy()};
   });
 
   afterEach(function () {
@@ -111,7 +111,7 @@ describe('UserData', function() {
     var userData;
     beforeEach(function() {
       userData = new UserData({name: 'jb'}, {ROOTURL: "http://fake"});
-      browserPort.postEvent.reset();
+      browserPort.postMessage.reset();
     });
 
     afterEach(function() {
@@ -120,9 +120,9 @@ describe('UserData', function() {
 
     it("should send a social.user-profile event to the browser", function () {
       userData.send();
-      sinon.assert.called(browserPort.postEvent);
+      sinon.assert.called(browserPort.postMessage);
 
-      var data = browserPort.postEvent.args[0][1];
+      var data = browserPort.postMessage.args[0][1];
       expect(data.userName).to.be.equal('jb');
       expect(data.displayName).to.be.equal('jb');
       expect(data.portrait).to.be
@@ -134,23 +134,20 @@ describe('UserData', function() {
     it("should broadcast social.user-profile event to the port collection",
       function () {
         var userNameMatcher = sinon.match({userName: "jb"});
-        sandbox.stub(tkWorker.ports, "broadcastEvent");
+        sandbox.stub(tkWorker.router, "send");
         userData.send();
 
-        sinon.assert.called(tkWorker.ports.broadcastEvent);
-        sinon.assert.calledWithExactly(
-          tkWorker.ports.broadcastEvent,
-          "social.user-profile",
-          userNameMatcher
-        );
+        sinon.assert.called(tkWorker.router.send);
+        sinon.assert.calledWithExactly(tkWorker.router.send,
+          "social.user-profile", userNameMatcher);
       });
 
     it("should send an online image url if connected", function() {
       // Connected automatically calls send()
       userData.connected = true;
-      sinon.assert.called(browserPort.postEvent);
+      sinon.assert.called(browserPort.postMessage);
 
-      var data = browserPort.postEvent.args[0][1];
+      var data = browserPort.postMessage.args[0][1];
       expect(data.iconURL).to.contain('online');
     });
 
@@ -158,8 +155,8 @@ describe('UserData', function() {
        "url to the browser when disconnected", function() {
         userData.send();
 
-        sinon.assert.called(browserPort.postEvent);
-        sinon.assert.calledWithExactly(browserPort.postEvent,
+        sinon.assert.called(browserPort.postMessage);
+        sinon.assert.calledWithExactly(browserPort.postMessage,
           "social.ambient-notification", {
             iconURL: "http://fake/img/talkilla16.png"
           }
@@ -171,8 +168,8 @@ describe('UserData', function() {
         // Connected automatically calls send()
         userData.connected = true;
 
-        sinon.assert.called(browserPort.postEvent);
-        sinon.assert.calledWithExactly(browserPort.postEvent,
+        sinon.assert.called(browserPort.postMessage);
+        sinon.assert.calledWithExactly(browserPort.postMessage,
           "social.ambient-notification", {
             iconURL: "http://fake/img/talkilla16-online.png"
           }

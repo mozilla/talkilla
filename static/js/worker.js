@@ -1,5 +1,6 @@
 /* global indexedDB, importScripts, SPA, HTTP, ContactsDB, SPADB,
-   CurrentUsers, loadConfig, payloads, Conversation, dump, ConversationList */
+   CurrentUsers, loadConfig, payloads, Conversation, dump, ConversationList,
+   EventRouter */
 /* jshint unused:false */
 "use strict";
 
@@ -15,7 +16,8 @@ importScripts(
   'worker/users.js',
   'worker/spa.js',
   'worker/conversation.js',
-  'worker/conversationList.js'
+  'worker/conversationList.js',
+  'eventrouter.js'
 );
 
 var gConfig = loadConfig();
@@ -121,13 +123,13 @@ UserData.prototype = {
 
     // This needs to be sent to the browser for Firefox 28 and earlier
     // (pre bug 935640).
-    browserPort.postEvent('social.user-profile', userData);
+    browserPort.postMessage('social.user-profile', userData);
 
     // XXX This could be simplified to just send the userName (and renamed).
-    tkWorker.ports.broadcastEvent('social.user-profile', userData);
+    tkWorker.router.send('social.user-profile', userData);
 
     // This is needed for Firefox 29 onwards (post bug 935640).
-    browserPort.postEvent('social.ambient-notification', {
+    browserPort.postMessage('social.ambient-notification', {
       iconURL: iconURL
     });
   }
@@ -149,7 +151,7 @@ function _setupSPA(spa) {
     // but we don't have enough info for the worker for that yet
     tkWorker.loadContacts();
 
-    tkWorker.ports.broadcastEvent("talkilla.spa-connected",
+    tkWorker.router.send("talkilla.spa-connected",
       {"capabilities": data.capabilities});
   });
 
@@ -165,15 +167,15 @@ function _setupSPA(spa) {
         tkWorker.spa.usernameFieldType);
     });
 
-    tkWorker.ports.broadcastEvent("talkilla.users", tkWorker.users.toArray());
+    tkWorker.router.send("talkilla.users", tkWorker.users.toArray());
   });
 
   spa.on("userJoined", function(userId) {
     tkWorker.users.set(userId, {presence: "connected"},
       tkWorker.spa.usernameFieldType);
 
-    tkWorker.ports.broadcastEvent("talkilla.users", tkWorker.users.toArray());
-    tkWorker.ports.broadcastEvent("talkilla.user-joined", userId);
+    tkWorker.router.send("talkilla.users", tkWorker.users.toArray());
+    tkWorker.router.send("talkilla.user-joined", userId);
   });
 
   spa.on("userLeft", function(userId) {
@@ -183,8 +185,8 @@ function _setupSPA(spa) {
     tkWorker.users.set(userId, {presence: "disconnected"},
       tkWorker.spa.usernameFieldType);
 
-    tkWorker.ports.broadcastEvent("talkilla.users", tkWorker.users.toArray());
-    tkWorker.ports.broadcastEvent("talkilla.user-left", userId);
+    tkWorker.router.send("talkilla.users", tkWorker.users.toArray());
+    tkWorker.router.send("talkilla.user-left", userId);
   });
 
   spa.on("offer", function(offerMsg) {
@@ -214,21 +216,21 @@ function _setupSPA(spa) {
   });
 
   spa.on("move-accept", function(moveAcceptMsg) {
-    tkWorker.ports.broadcastEvent("talkilla.move-accept",
+    tkWorker.router.send("talkilla.move-accept",
                                   moveAcceptMsg);
   });
 
   spa.on("error", function(event) {
-    tkWorker.ports.broadcastEvent("talkilla.error", event);
+    tkWorker.router.send("talkilla.error", event);
   });
 
   spa.on("reconnection", function(reconnectionMsg) {
-    tkWorker.ports.broadcastEvent('talkilla.server-reconnection',
+    tkWorker.router.send('talkilla.server-reconnection',
                                   reconnectionMsg);
   });
 
   spa.on("reauth-needed", function(event) {
-    tkWorker.ports.broadcastEvent('talkilla.reauth-needed');
+    tkWorker.router.send('talkilla.reauth-needed');
     tkWorker.closeSession();
   });
 
@@ -241,7 +243,7 @@ function _setupSPA(spa) {
 var handlers = {
   // SocialAPI events
   'social.port-closing': function() {
-    // broadcastDebug won't work here, because the port is dead, so we
+    // debug won't work here, because the port is dead, so we
     // use dump
     dump("social.port-closing called; about to remove port. this = " + this);
     tkWorker.ports.remove(this);
@@ -263,7 +265,7 @@ var handlers = {
 
   // Talkilla events
   'talkilla.contacts': function(event) {
-    tkWorker.ports.broadcastDebug('talkilla.contacts', event.data.contacts);
+    // XXX REFACTOR tkWorker.router.debug('talkilla.contacts', event.data.contacts);
     tkWorker.updateContactsFromSource(event.data.contacts, event.data.source);
   },
 
@@ -348,7 +350,8 @@ var handlers = {
 
     tkWorker.spaDb.store(spec, function(err) {
       if (err)
-        return tkWorker.ports.broadcastError("Error adding SPA", err);
+        dump("error adding spa" + err);
+      // XXX Refactor   return tkWorker.router.broadcastError("Error adding SPA", err);
 
       // Try starting the SPA even if there's an error adding it - at least
       // the user can possibly get into it.
@@ -395,7 +398,7 @@ Port.prototype = {
    * @param  {String} error
    */
   error: function(error) {
-    this.postEvent("talkilla.error", error);
+    this.postMessage("talkilla.error", error);
   },
 
   /**
@@ -415,13 +418,16 @@ Port.prototype = {
    * @param  {String} topic
    * @param  {Mixed}  data
    */
-  postEvent: function(topic, data) {
+  postMessage: function(topic, data) {
     // FIXME: for no obvious reason, this may eventually fail if the port is
     //        closed, while it should never be the case
     this.port.postMessage({topic: topic, data: data});
   }
 };
 
+/**
+ * Mimics the ports API but broadcast messages to a collection of ports.
+ **/
 function PortCollection() {
   this.ports = {};
 }
@@ -467,28 +473,27 @@ PortCollection.prototype = {
    * @param  {String} topic
    * @param  {Mixed}  data
    */
-  broadcastEvent: function(topic, data) {
+  postMessage: function(topic, data) {
     for (var id in this.ports)
-      this.ports[id].postEvent(topic, data);
+      this.ports[id].postMessage(topic, data);
   },
 
   /**
    * Broadcast debug informations to all ports.
    */
-  broadcastDebug: function(label, data) {
+  debug: function(label, data) {
     if (!gConfig.DEBUG)
       return;
-    for (var id in this.ports)
-      this.ports[id].postEvent("talkilla.debug", {label: label, data: data});
+    this.postMessage("talkilla.debug", {label: label, data: data});
   },
 
-  /**
-   * Broadcasts an error message to all ports.
-   * @param  {String} message
-   */
-  broadcastError: function(message) {
+  error: function(message) {
+    this.postMessage("talkilla.error", message);
+  },
+
+  onmessage: function(cb) {
     for (var id in this.ports)
-      this.ports[id].error(message);
+      this.ports[id].onmessage(cb);
   }
 };
 
@@ -515,6 +520,7 @@ function TkWorker(options) {
   this.user = options.user || new UserData({}, gConfig);
   this.users = options.users || new CurrentUsers();
   this.ports = options.ports;
+  this.router = new EventRouter("Worker", this, this.ports);
   this.initialized = false;
   // XXX In future, this may switch to supporting multiple SPAs
   this.spa = undefined;
@@ -537,7 +543,9 @@ TkWorker.prototype = {
     // Now we're set up load the spa info
     this.loadSPAs(function(err) {
       if (err)
-        tkWorker.ports.broadcastError("Error loading spa specs");
+        dump("Error loading spa specs");
+        // XXX Refactor tkWorker.router.broadcastError("Error loading spa specs");
+
 
       // Even if there were errors, assume initialization is complete
       // so that we can continue to function.
@@ -557,21 +565,21 @@ TkWorker.prototype = {
   onInitializationComplete: function(port) {
     // Post to the port if specified, else to all ports.
     if (port)
-      port.postEvent('talkilla.worker-ready');
+      port.postMessage('talkilla.worker-ready');
     else
-      this.ports.broadcastEvent('talkilla.worker-ready');
+      this.router.send('talkilla.worker-ready');
 
     if (this.spa && this.spa.connected) {
       this.user.send();
       if (port) {
-        port.postEvent("talkilla.spa-connected",
+        port.postMessage("talkilla.spa-connected",
                        {capabilities: this.spa.capabilities});
-        port.postEvent('talkilla.users', this.users.toArray());
+        port.postMessage('talkilla.users', this.users.toArray());
       }
       else {
-        this.ports.broadcastEvent("talkilla.spa-connected",
+        this.router.send("talkilla.spa-connected",
                                   {capabilities: this.spa.capabilities});
-        this.ports.broadcastEvent('talkilla.users', this.users.toArray());
+        this.router.send('talkilla.users', this.users.toArray());
       }
     }
   },
@@ -596,7 +604,8 @@ TkWorker.prototype = {
   loadContacts: function(cb) {
     this.contactsDb.all(function(err, contacts) {
       if (err) {
-        this.ports.broadcastError(err);
+        // XXX Refactor this.router.broadcastError(err);
+        dump(err);
         if (typeof cb === "function")
           return cb.call(this, err);
         return;
@@ -624,7 +633,7 @@ TkWorker.prototype = {
 
     this.contactsDb.add(contact, function(err) {
       if (err)
-        tkWorker.ports.broadcastError(err);
+        tkWorker.router.broadcastError(err);
 
       callback(err);
     });
@@ -644,7 +653,7 @@ TkWorker.prototype = {
    */
   updateContactList: function(contacts) {
     this.users.updateContacts(contacts, this.spa.usernameFieldType);
-    this.ports.broadcastEvent("talkilla.users", this.users.toArray());
+    this.router.send("talkilla.users", this.users.toArray());
   },
 
   /**
@@ -673,8 +682,8 @@ TkWorker.prototype = {
    */
   loadSPAs: function(callback) {
     this.spaDb.all(function(err, specs) {
-      tkWorker.ports.broadcastDebug("loaded specs", specs);
-
+      // XXX Refactor tkWorker.router.broadcastDebug("loaded specs", specs);
+      dump("loaded specs" + specs);
       if (err) {
         if (callback)
           callback(err);

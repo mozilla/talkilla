@@ -14,7 +14,7 @@ describe('Port', function() {
   it("should post a message", function() {
     var spy = sinon.spy();
     var port = new Port({_portid: 1, postMessage: spy});
-    port.postEvent('foo', 'bar');
+    port.postMessage('foo', 'bar');
     expect(spy.calledWith({topic: 'foo', data: 'bar'})).to.be.ok;
   });
 
@@ -74,7 +74,7 @@ describe('PortCollection', function() {
     var spy2 = sinon.spy();
     coll.add(new Port({_portid: 1, postMessage: spy1}));
     coll.add(new Port({_portid: 2, postMessage: spy2}));
-    coll.find(2).postEvent('foo', 'bar');
+    coll.find(2).postMessage('foo', 'bar');
     expect(spy1.called).to.equal(false);
     expect(spy2.calledWith({topic: 'foo', data: 'bar'})).to.be.ok;
   });
@@ -85,7 +85,7 @@ describe('PortCollection', function() {
     var spy2 = sinon.spy();
     coll.add(new Port({_portid: 1, postMessage: spy1}));
     coll.add(new Port({_portid: 2, postMessage: spy2}));
-    coll.broadcastEvent('foo', 'bar');
+    coll.postMessage('foo', 'bar');
     expect(spy1.calledWith({topic: 'foo', data: 'bar'})).to.be.ok;
     expect(spy2.calledWith({topic: 'foo', data: 'bar'})).to.be.ok;
   });
@@ -96,7 +96,7 @@ describe('PortCollection', function() {
     var spy2 = sinon.spy();
     coll.add(new Port({_portid: 1, postMessage: spy1}));
     coll.add(new Port({_portid: 2, postMessage: spy2}));
-    coll.broadcastError('error');
+    coll.error('error');
     expect(spy1.calledWith({topic: 'talkilla.error',
                             data: 'error'})).to.be.ok;
     expect(spy2.calledWith({topic: 'talkilla.error',

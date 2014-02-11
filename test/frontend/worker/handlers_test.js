@@ -17,7 +17,7 @@ describe('handlers', function() {
     sandbox.stub(window, "Server");
     sandbox.stub(window, "Worker").returns({postMessage: sinon.spy()});
     tkWorker.spa = new SPA({src: "example.com"});
-    browserPort = {postEvent: sandbox.spy()};
+    browserPort = {postMessage: sandbox.spy()};
   });
 
   afterEach(function() {
@@ -119,7 +119,7 @@ describe('handlers', function() {
 
   describe("talkilla.chat-window-ready", function() {
     it("should pass the event to the conversationList", function () {
-      var chatAppPort = {postEvent: sinon.spy()};
+      var chatAppPort = {postMessage: sinon.spy()};
       sandbox.stub(tkWorker.conversationList, "windowReady");
 
       handlers['talkilla.chat-window-ready'].bind(chatAppPort)();

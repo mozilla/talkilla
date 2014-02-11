@@ -9,7 +9,7 @@ describe("tkWorker", function() {
 
   beforeEach(function () {
     sandbox = sinon.sandbox.create();
-    browserPort = {postEvent: sandbox.spy()};
+    browserPort = {postMessage: sandbox.spy()};
     worker = new TkWorker({
       ports: new PortCollection(),
       user: new UserData({}, {}),
@@ -61,7 +61,7 @@ describe("tkWorker", function() {
 
   describe("#onInitializationComplete", function() {
     beforeEach(function() {
-      sandbox.stub(worker.ports, "broadcastEvent");
+      sandbox.stub(worker.router, "send");
       sandbox.stub(worker, "loadSPAs", function(callback) {
         callback();
       });
@@ -71,8 +71,8 @@ describe("tkWorker", function() {
     it("should send talkilla.worker-ready", function() {
       worker.initialize();
 
-      sinon.assert.calledOnce(worker.ports.broadcastEvent);
-      sinon.assert.calledWithExactly(worker.ports.broadcastEvent,
+      sinon.assert.calledOnce(worker.router.send);
+      sinon.assert.calledWithExactly(worker.router.send,
         "talkilla.worker-ready"
       );
     });
@@ -96,8 +96,8 @@ describe("tkWorker", function() {
 
         worker.initialize();
 
-        sinon.assert.called(worker.ports.broadcastEvent);
-        sinon.assert.calledWithExactly(worker.ports.broadcastEvent,
+        sinon.assert.called(worker.router.send);
+        sinon.assert.calledWithExactly(worker.router.send,
           "talkilla.spa-connected",
           {capabilities: worker.spa.capabilities}
         );
@@ -110,8 +110,8 @@ describe("tkWorker", function() {
 
           worker.initialize();
 
-          sinon.assert.called(worker.ports.broadcastEvent);
-          sinon.assert.calledWithExactly(worker.ports.broadcastEvent,
+          sinon.assert.called(worker.router.send);
+          sinon.assert.calledWithExactly(worker.router.send,
             "talkilla.users", fakeUsersList
           );
         });
@@ -185,15 +185,15 @@ describe("tkWorker", function() {
 
     it("should broadcast an error message on failure", function() {
       var err = new Error("ko");
-      sandbox.stub(worker.ports, "broadcastError");
+      sandbox.stub(worker.router, "error");
       sandbox.stub(worker.contactsDb, "all", function(cb) {
         cb(err);
       });
 
       worker.loadContacts();
 
-      sinon.assert.calledOnce(worker.ports.broadcastError);
-      sinon.assert.calledWithExactly(worker.ports.broadcastError, err);
+      sinon.assert.calledOnce(worker.router.error);
+      sinon.assert.calledWithExactly(worker.router.error, err);
     });
   });
 
@@ -260,14 +260,14 @@ describe("tkWorker", function() {
     });
 
     it("should broadcast a talkilla.users event", function() {
-      sandbox.stub(worker.ports, "broadcastEvent");
+      sandbox.stub(worker.router, "send");
 
       worker.updateContactList([{email: "foo"}, {email: "bar"}]);
 
-      sinon.assert.calledOnce(worker.ports.broadcastEvent);
+      sinon.assert.calledOnce(worker.router.send);
       // XXX email and username are effectively duplicates, waiting on
       // refactoring CurrentUsers.
-      sinon.assert.calledWith(worker.ports.broadcastEvent, "talkilla.users", [
+      sinon.assert.calledWith(worker.router.send, "talkilla.users", [
         {email: "foo", username: "foo", presence: "disconnected"},
         {email: "bar", username: "bar", presence: "disconnected"}
       ]);
