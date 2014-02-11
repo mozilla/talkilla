@@ -204,6 +204,10 @@ describe("app.models", function() {
         });
       });
 
+      it("should match on empty term string", function() {
+        expect(user.search("")).eql(true);
+      });
+
       it("should search term against user's username", function() {
         expect(user.search("foo")).eql(true);
       });
@@ -220,8 +224,14 @@ describe("app.models", function() {
         expect(user.search("123")).eql(true);
       });
 
-      it("shouldn't return true on match not found", function() {
+      it("shouldn't return true on term not found", function() {
         expect(user.search("zorglub")).eql(false);
+      });
+
+      it("should trigger a `match` event on empty term string", function(done) {
+        user.on("match", function() {
+          done();
+        }).search("");
       });
 
       it("should trigger a `match` event on match", function(done) {
