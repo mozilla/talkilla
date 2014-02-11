@@ -8,18 +8,16 @@
   },
   "dependencies": {
     "express": "3.x",
-    "ws": "0.4.x",
     "bunyan": "0.21.x",
     "client-sessions": "0.3.x"
   },
   "devDependencies": {
-    "awsbox": "0.6.x",
-    "mocha": "1.8.x",
-    "chai": "1.5.x",
-    "request": "2.16.x",
+    "awsbox": "0.7.x",
+    "mocha": "1.17.x",
+    "chai": "1.9.x",
     "istanbul": "*",
     "jshint": "2.x",
-    "sinon": "1.6.x"
+    "sinon": "1.8.x"
   },
   "scripts": {
     "test": "make test",
