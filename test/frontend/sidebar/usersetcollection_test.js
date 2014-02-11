@@ -1,12 +1,14 @@
-/*global app, chai */
-"use strict";
-
+/*global app, chai, sinon */
 var expect = chai.expect;
 
 describe("UserSet Collection", function() {
-  var jb, chuck, collection;
+  "use strict";
+
+  var sandbox, jb, chuck, collection;
 
   beforeEach(function() {
+    sandbox = sinon.sandbox.create();
+
     jb = new app.models.User({
       username: "jb",
       fullName: "JB",
@@ -15,6 +17,7 @@ describe("UserSet Collection", function() {
       presence: "connected",
       isContact: true
     });
+
     chuck = new app.models.User({
       username: "chuck",
       fullName: "Chuck Norris",
@@ -22,7 +25,12 @@ describe("UserSet Collection", function() {
       phoneNumber: "666",
       presence: "connected"
     });
+
     collection = new app.models.UserSet([jb, chuck]);
+  });
+
+  afterEach(function() {
+    sandbox.restore();
   });
 
   describe("#comparator", function() {
@@ -79,6 +87,23 @@ describe("UserSet Collection", function() {
 
       expect(jb.get("presence")).eql("disconnected");
       expect(chuck.get("presence")).eql("disconnected");
+    });
+  });
+
+  describe("#triggerSearch", function() {
+    beforeEach(function() {
+      sandbox.stub(chuck, "match");
+      sandbox.stub(jb, "match");
+    });
+
+    it("should trigger a search op on users", function() {
+      collection.triggerSearch("foo");
+
+      sinon.assert.calledOnce(chuck.match);
+      sinon.assert.calledWithExactly(chuck.match, "foo");
+
+      sinon.assert.calledOnce(jb.match);
+      sinon.assert.calledWithExactly(jb.match, "foo");
     });
   });
 

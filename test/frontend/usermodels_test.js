@@ -205,45 +205,48 @@ describe("app.models", function() {
       });
 
       it("should match on empty term string", function() {
-        expect(user.search("")).eql(true);
+        expect(user.match("")).eql(true);
       });
 
       it("should search term against user's username", function() {
-        expect(user.search("foo")).eql(true);
+        expect(user.match("foo")).eql(true);
       });
 
       it("should search term against user's full name", function() {
-        expect(user.search("Vian")).eql(true);
+        expect(user.match("Vian")).eql(true);
       });
 
       it("should search term against user's email address", function() {
-        expect(user.search("baz")).eql(true);
+        expect(user.match("baz")).eql(true);
       });
 
       it("should search term against user's phone number", function() {
-        expect(user.search("123")).eql(true);
+        expect(user.match("123")).eql(true);
       });
 
       it("shouldn't return true on term not found", function() {
-        expect(user.search("zorglub")).eql(false);
+        expect(user.match("zorglub")).eql(false);
       });
 
       it("should trigger a `match` event on empty term string", function(done) {
-        user.on("match", function() {
+        user.on("match", function(term) {
+          expect(term).eql("");
           done();
-        }).search("");
+        }).match("");
       });
 
       it("should trigger a `match` event on match", function(done) {
-        user.on("match", function() {
+        user.on("match", function(term) {
+          expect(term).eql("foo");
           done();
-        }).search("foo");
+        }).match("foo");
       });
 
       it("should trigger an `unmatch` event on unmatch", function(done) {
-        user.on("unmatch", function() {
+        user.on("unmatch", function(term) {
+          expect(term).eql("zorglub");
           done();
-        }).search("zorglub");
+        }).match("zorglub");
       });
     });
   });

@@ -155,16 +155,15 @@
     },
 
     /**
-     * Search for a given term against all current user string fields.
-     *
-     * Concurrently triggers a `match` event on match, `unmatch` on unmatch.
+     * Checks if any of current user string fields matches against a given term.
+     * Also triggers a `match` event on match, `unmatch` on unmatch.
      *
      * @param  {String} term
      * @return {Boolean}
      */
-    search: function(term) {
+    match: function(term) {
       if (!term) {
-        this.trigger("match");
+        this.trigger("match", term);
         return true;
       }
       var match = this.values().filter(function(value) {
@@ -172,7 +171,7 @@
       }).some(function(value) {
         return value.toString().toLowerCase().contains(term.toLowerCase());
       });
-      this.trigger(match ? "match" : "unmatch");
+      this.trigger(match ? "match" : "unmatch", term);
       return match;
     },
 
