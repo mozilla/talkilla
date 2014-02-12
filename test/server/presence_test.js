@@ -404,7 +404,7 @@ describe("presence", function() {
           sinon.assert.calledWithExactly(res.send, 200, "[]");
         });
 
-      it("should use the anonymous collection when the user " +
+      it.skip("should use the anonymous collection when the user " +
         "does not have an email", function() {
         req.session = {};
         var user = anons.add(fakeId).get(fakeId);

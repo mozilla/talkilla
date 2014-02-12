@@ -119,14 +119,10 @@ api = {
    */
   stream: function(req, res) {
     var firstRequest = req.body && req.body.firstRequest;
-    var isAnon = !req.session.email;
-    var user;
+    if (!req.session.email)
+      return res.send(400);
 
-    if (isAnon)
-      user = api._setupUser(anons, api._genId(), firstRequest);
-    else
-      user = api._setupUser(users, req.session.email, firstRequest);
-
+    var user = api._setupUser(users, req.session.email, firstRequest);
     user.touch();
 
     if (firstRequest)
