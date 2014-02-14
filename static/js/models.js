@@ -155,6 +155,27 @@
     },
 
     /**
+     * Checks if any of current user string fields matches against a given term.
+     * Also triggers a `match` event on match, `unmatch` on unmatch.
+     *
+     * @param  {String} term
+     * @return {Boolean}
+     */
+    match: function(term) {
+      if (!term) {
+        this.trigger("match", term);
+        return true;
+      }
+      var match = this.values().filter(function(value) {
+        return typeof value === "string";
+      }).some(function(value) {
+        return value.toString().toLowerCase().contains(term.toLowerCase());
+      });
+      this.trigger(match ? "match" : "unmatch", term);
+      return match;
+    },
+
+    /**
      * Returns true if the user was logged in prior to the last change
      * on the model. Returns false if there have been no changes.
      */

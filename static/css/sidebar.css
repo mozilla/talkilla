@@ -247,3 +247,19 @@
   background-color: #FFFFFF;
 }
 
+.sidebar #users form {
+  margin: 5px 0 10px 0;
+  padding: 0 10px;
+}
+
+.sidebar #users form .search-query {
+  /* XXX Really this should be the width of the sidebar, but there's
+   * another element that needs tweaking somewhere.
+   */
+  width: 100%;
+}
+
+.sidebar #users form button {
+  padding-left: 8px;
+  padding-right: 10px;
+}

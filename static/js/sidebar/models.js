@@ -135,6 +135,17 @@
     },
 
     /**
+     * Triggers a search operation on current users for a given term.
+     *
+     * @param  {String} term
+     */
+    triggerSearch: function(term) {
+      this.each(function(user) {
+        user.match(term);
+      });
+    },
+
+    /**
      * Updates user presence status to connected when found, adds a new entry
      * when not.
      *

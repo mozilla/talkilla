@@ -1,11 +1,10 @@
 /*global chai, app, sinon */
-"use strict";
-
 var expect = chai.expect;
 
 describe("app.models", function() {
-  describe("app.models.User", function() {
+  "use strict";
 
+  describe("app.models.User", function() {
     it("should be initialized with a sensible defaults object", function() {
       var user = new app.models.User();
       expect(user.defaults).to.deep.equal({
@@ -192,6 +191,63 @@ describe("app.models", function() {
         sinon.assert.calledWithExactly(user.trigger, "signout");
       });
     });
-  });
 
+    describe("#search", function() {
+      var user;
+
+      beforeEach(function() {
+        user = new app.models.User({
+          username: "foo",
+          fullName: "Boris Vian",
+          email: "bar@baz.com",
+          phoneNumber: "123"
+        });
+      });
+
+      it("should match on empty term string", function() {
+        expect(user.match("")).eql(true);
+      });
+
+      it("should search term against user's username", function() {
+        expect(user.match("foo")).eql(true);
+      });
+
+      it("should search term against user's full name", function() {
+        expect(user.match("Vian")).eql(true);
+      });
+
+      it("should search term against user's email address", function() {
+        expect(user.match("baz")).eql(true);
+      });
+
+      it("should search term against user's phone number", function() {
+        expect(user.match("123")).eql(true);
+      });
+
+      it("shouldn't return true on term not found", function() {
+        expect(user.match("zorglub")).eql(false);
+      });
+
+      it("should trigger a `match` event on empty term string", function(done) {
+        user.on("match", function(term) {
+          expect(term).eql("");
+          done();
+        }).match("");
+      });
+
+      it("should trigger a `match` event on match", function(done) {
+        user.on("match", function(term) {
+          expect(term).eql("foo");
+          done();
+        }).match("foo");
+      });
+
+      it("should trigger an `unmatch` event on unmatch", function(done) {
+        user.on("unmatch", function(term) {
+          expect(term).eql("zorglub");
+          done();
+        }).match("zorglub");
+      });
+    });
+  });
 });

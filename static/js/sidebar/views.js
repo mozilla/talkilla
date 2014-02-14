@@ -309,6 +309,8 @@
 
     initialize: function() {
       this.listenTo(this.model, "remove", this.remove);
+      this.listenTo(this.model, "match", this.show);
+      this.listenTo(this.model, "unmatch", this.hide);
       // XXX: micro-optimization: changing the presence class would be faster
       this.listenTo(this.model, "change:presence", this.render);
     },
@@ -335,6 +337,12 @@
     },
 
     el: '#users',
+
+    events: {
+      "submit form":              "_onFormSubmit",
+      "click .reset":             "_onResetSearch",
+      "keyup input[type=search]": "_onSearchEntered"
+    },
 
     activeNotification: null,
 
@@ -363,8 +371,7 @@
      *
      * @param  {app.models.User} user
      */
-    _addUserEntry: function(user, foo, i, x) {
-      // find the user index in the collection
+    _addUserEntry: function(user) {
       var index       = this.collection.findUserIndex(user.get("username")),
           listRoot    = this.$("ul"),
           viewElems   = listRoot.find("li"),
@@ -401,6 +408,53 @@
       }
     },
 
+    /**
+     * Prevents the search form submit event to be actualy dispatched, so we
+     * don't navigate.
+     *
+     * @param  {Event} event
+     */
+    _onFormSubmit: function(event) {
+      // XXX: to be removed if btn click event is default prevented
+      event.preventDefault();
+    },
+
+    /**
+     * Triggered when a new character has been entered or suppressed from the
+     * search input box.
+     *
+     * @param  {Event} event
+     */
+    _onSearchEntered: function(event) {
+      this.collection.triggerSearch($(event.currentTarget).val());
+    },
+
+    /**
+     * Triggered when the user clicks the search reset button; resets search
+     * input value and triggers `unmatch` event for all user models so their
+     * related view are shown again.
+     *
+     * @param  {Event} event
+     */
+    _onResetSearch: function(event) {
+      event.preventDefault();
+
+      // resets search field value
+      this.$("input[type=search]").val("");
+
+      // trigger a `match` event for each user model so all the entry views show
+      this.collection.each(function(user) {
+        user.trigger("match");
+      });
+    },
+
+    /**
+     * Renders this view. Should build the user list once upon creation, user
+     * entries updates will be directly handled by its child UserEntryView
+     * instances.
+     *
+     * @return {app.views.UsersView}
+     */
     render: function() {
       // exclude current user from the collection
       var filtered = this.collection.excludeUser(this.user.get("username"));

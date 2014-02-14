@@ -1,16 +1,21 @@
-/*global chai, app*/
+/*global chai, app, sinon*/
 "use strict";
 
 var expect = chai.expect;
 
 describe("app.views.BaseView", function() {
+  var sandbox, TestView;
+
+  beforeEach(function() {
+    sandbox = sinon.sandbox.create();
+    TestView = app.views.BaseView.extend({});
+  });
+
+  afterEach(function() {
+    sandbox.restore();
+  });
+
   describe("#constructor", function() {
-    var TestView;
-
-    beforeEach(function() {
-      TestView = app.views.BaseView.extend({});
-    });
-
     it("should set required dependencies as view properties", function() {
       TestView.prototype.dependencies = {user: app.models.User,
                                          spa:  app.models.SPA};
@@ -39,4 +44,32 @@ describe("app.views.BaseView", function() {
         new TestView({user: user, spa: spa});
       });
   });
+
+  describe("visibility", function() {
+    var view;
+
+    beforeEach(function() {
+      view = new TestView();
+
+      sandbox.stub(view.$el, "hide");
+      sandbox.stub(view.$el, "show");
+    });
+
+    describe("#hide", function() {
+      it("should hide the view", function() {
+        view.hide();
+
+        sinon.assert.calledOnce(view.$el.hide);
+      });
+    });
+
+    describe("#show", function() {
+      it("should show the view", function() {
+        view.show();
+
+        sinon.assert.calledOnce(view.$el.show);
+      });
+    });
+  });
+
 });

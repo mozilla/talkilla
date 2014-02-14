@@ -328,6 +328,14 @@ class Driver(WebDriver):
         if not pageUnloadEventFired:
             raise RuntimeError("Did not detect an unload event")
 
+    def clearFilter(self):
+        search_input = self.waitForElement("#users form input", visible=True)
+        search_input.clear()
+
+    def filterUsers(self, term):
+        search_input = self.waitForElement("#users form input", visible=True)
+        search_input.send_keys(term)
+
 
 def create(nick=None):
     driver = Driver(command_executor=SELENIUM_COMMAND_EXECUTOR,
