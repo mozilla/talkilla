@@ -34,9 +34,146 @@
 
   app.models.UserSet = Backbone.Collection.extend({
     model: app.models.User,
-    comparator: function(item) {
-        return item.get('username').toLowerCase();
+
+    /**
+     * Used to sort users by lowercased full name, email or phone number when
+     * available.
+     *
+     * @param  {User} user
+     * @return {String}
+     */
+    comparator: function(user) {
+      return (user.get("fullName") ||
+              user.get("email")    ||
+              user.get("phoneNumber")).toLowerCase();
+    },
+
+    /**
+     * Excludes a user having the provided id from the list.
+     *
+     * XXX: we need a real unique id here
+     *
+     * @param  {String} userId Either username, email address or phone number.
+     * @return {Array}
+     */
+    excludeUser: function(userId) {
+      return this.reject(function(user) {
+        return userId === user.get("username");
+      });
+    },
+
+    /**
+     * Find a user from its identifier which can be either an email address or
+     * a phone number.
+     *
+     * XXX: we need a real unique id here
+     *
+     * @param  {String} userId Either username, email address or phone number.
+     * @return {app.models.User|undefined}
+     */
+    findUser: function(userId) {
+      var found;
+      // micro-optimization: using some() instead of filter() so the loop breaks
+      // early.
+      this.some(function(user) {
+        if (userId === user.get("username")) {
+          found = user;
+          return true;
+        }
+        return false;
+      });
+      return found;
+    },
+
+    /**
+     * Retrieves the position of a user out of its identifier.
+     *
+     * @param  {String} userId Either username, email address or phone number.
+     * @return {Number}
+     */
+    findUserIndex: function(userId) {
+      var index;
+      // micro-optimization: using some() instead of filter() so the loop breaks
+      // early.
+      this.some(function(user, i) {
+        if (userId === user.get("username")) {
+          index = i;
+          return true;
+        }
+        return false;
+      }, this);
+      return index;
+    },
+
+    /**
+     * Set the presence attribute of all the users to the given value.
+     *
+     * @param  {String} status Either "connected" or "disconnected".
+     * @return {UserSet}
+     */
+    setGlobalPresence: function(status) {
+      return this.chain().each(function(user) {
+        user.set("presence", status);
+      });
+    },
+
+    /**
+     * Update the presence of the user matching the provided identifier to
+     * the given value.
+     *
+     * XXX: We need a real unique id here.
+     *
+     * @param  {String} userId Either username, email address or phone number
+     * @param  {String} status Either "connected" or "disconnected"
+     * @return {app.models.User|undefined}
+     */
+    setUserPresence: function(userId, status) {
+      var user = this.findUser(userId);
+      if (user)
+        return user.set("presence", status);
+      console.error("User not found: ", userId);
+    },
+
+    /**
+     * Updates user presence status to connected when found, adds a new entry
+     * when not.
+     *
+     * XXX: we need a real unique id here
+     *
+     * @param  {String} userId Either username, email address or phone number.
+     * @return {app.models.User} user User entry
+     */
+    userJoined: function(userId) {
+      var user = this.findUser(userId);
+      if (!user) {
+        user = new app.models.User({
+          username: userId, // XXX what about email/phonenumber?
+          presence: "connected"
+        });
+        this.add(user);
+      } else {
+        user.set("presence", "connected");
       }
+      return user;
+    },
+
+    /**
+     * Updates user presence status to disconnected when it's a contact, removes
+     * the entry from the list when not.
+     *
+     * XXX: we need a real unique id here
+     *
+     * @param {String} userId Either username, email address or phone number
+     */
+    userLeft: function(userId) {
+      var user = this.findUser(userId);
+      if (!user)
+        return;
+      if (user.get("isContact"))
+        this.setUserPresence(userId, "disconnected");
+      else
+        this.remove(user);
+    }
   });
 
   /**

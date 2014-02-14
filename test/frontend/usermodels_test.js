@@ -13,7 +13,8 @@ describe("app.models", function() {
         fullName: undefined,
         phoneNumber: undefined,
         email: undefined,
-        presence: "disconnected"
+        presence: "disconnected",
+        isContact: false
       });
     });
 

@@ -268,8 +268,18 @@ describe("tkWorker", function() {
       // XXX email and username are effectively duplicates, waiting on
       // refactoring CurrentUsers.
       sinon.assert.calledWith(worker.ports.broadcastEvent, "talkilla.users", [
-        {email: "foo", username: "foo", presence: "disconnected"},
-        {email: "bar", username: "bar", presence: "disconnected"}
+        {
+          email: "foo",
+          username: "foo",
+          presence: "disconnected",
+          isContact: true
+        },
+        {
+          email: "bar",
+          username: "bar",
+          presence: "disconnected",
+          isContact: true
+        }
       ]);
     });
   });

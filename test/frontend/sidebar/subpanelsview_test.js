@@ -66,7 +66,6 @@ describe("SubPanelsView", function() {
     });
 
     it("should call #render on the subviews", function() {
-      sandbox.stub(app.views.UsersView.prototype, 'render');
       sandbox.stub(app.views.DialInView.prototype, 'render');
       sandbox.stub(app.views.GearMenuView.prototype, 'render');
       sandbox.stub(app.views.ImportContactsView.prototype, 'render');
@@ -74,7 +73,6 @@ describe("SubPanelsView", function() {
       subPanelsView = new app.views.SubPanelsView(subPanelsViewOptions);
       subPanelsView.render();
 
-      sinon.assert.calledOnce(subPanelsView.usersView.render);
       sinon.assert.calledOnce(subPanelsView.dialInView.render);
       sinon.assert.calledOnce(subPanelsView.gearMenuView.render);
       sinon.assert.calledOnce(subPanelsView.importContactsView.render);

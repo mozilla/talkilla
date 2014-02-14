@@ -93,8 +93,7 @@
     initialize: function() {
       this.usersView = new app.views.UsersView({
         user: this.user,
-        collection: this.users,
-        appStatus: this.appStatus
+        collection: this.users
       });
 
       this.dialInView = new app.views.DialInView({
@@ -128,7 +127,6 @@
         } else {
           this.$('#dialin-tab').hide();
         }
-        this.usersView.render();
         this.dialInView.render();
         this.gearMenuView.render();
         this.importContactsView.render();
@@ -237,7 +235,6 @@
                 timeout / 1000 + "s...";
 
       app.utils.notifyUI(msg, "error", timeout);
-      console.log(msg);
     },
 
     notifyReconnectionSuccess: function() {
@@ -285,8 +282,7 @@
    */
   app.views.UserEntryView = app.views.BaseView.extend({
     dependencies: {
-      model:  app.models.user,
-      active: Boolean
+      model:  app.models.User
     },
 
     tagName: 'li',
@@ -309,6 +305,12 @@
       'click a': 'openConversation'
     },
 
+    initialize: function() {
+      this.listenTo(this.model, "remove", this.remove);
+      // XXX: micro-optimization: changing the presence class would be faster
+      this.listenTo(this.model, "change:presence", this.render);
+    },
+
     openConversation: function(event) {
       event.preventDefault();
       // XXX: we shouldn't be calling the app directly here
@@ -317,8 +319,6 @@
 
     render: function() {
       this.$el.html(this.template(this.model.toJSON()));
-      if (this.active)
-        this.$('a').addClass('active');
       return this;
     }
   });
@@ -329,76 +329,62 @@
   app.views.UsersView = app.views.BaseView.extend({
     dependencies: {
       user: app.models.CurrentUser,
-      collection: app.models.UserSet,
-      appStatus: app.models.AppStatus
+      collection: app.models.UserSet
     },
 
     el: '#users',
 
-    views: [],
     activeNotification: null,
 
     initialize: function() {
-      this.collection.on("reset change", this.render, this);
-      this.appStatus.on("change:reconnecting", function(appStatus) {
-        if (appStatus.get("reconnecting") !== false)
-          this.updateUsersPresence("disconnected");
-      }, this);
+      this.listenTo(this.collection, "reset", this.render);
+      this.listenTo(this.collection, "add", this._addUserEntry);
+      // XXX for some reason only listening to "all" triggers the callback when
+      //     we need it.
+      this.listenTo(this.collection, "all", this._checkCurrentUserAlone);
     },
 
     /**
-     * Initializes all user entry items with every online user records except
-     * the one of currently logged in user, if any.
-     */
-    initViews: function() {
-      if (!this.collection)
-        return;
-      var callee = this.callee;
-      var session = this.user;
-      this.views = [];
-      this.collection.chain().reject(function(user) {
-        // filter out current signed in user, if any
-        if (!session.isLoggedIn())
-          return false;
-        return user.get('username') === session.get('username');
-      }).each(function(user) {
-        // create a dedicated list entry for each user
-        this.views.push(new app.views.UserEntryView({
-          model:  user,
-          active: !!(callee && callee.get('username') === user.get('username'))
-        }));
-      }.bind(this));
-    },
-
-    /**
-     * Set the presence attribute of all the users to the given value.
+     * Creates a new user entry view out of a given user model instance.
      *
-     * @param  {String} the status to set.
-     **/
-    updateUsersPresence: function(status) {
-      // Show all the users as disconnected.
-      this.collection.each(function(user) {
-        user.set("presence", status);
-      });
+     * @param  {app.models.User} user
+     * @return {app.views.UserEntryView}
+     */
+    _createUserEntryView: function(user) {
+      return new app.views.UserEntryView({model: user});
     },
 
-    render: function() {
-      this.initViews();
-      // remove user entries
-      this.$('li:not(.nav-header)').remove();
-      if (!this.collection)
-        return this;
-      // render all subviews
-      var userList = _.chain(this.views).map(function(view) {
-        return view.render();
-      }).pluck('el').value();
-      this.$('ul').append(userList);
-      // show/hide element regarding auth status
-      if (this.user.isLoggedIn())
-        this.$el.show();
+    /**
+     * Adds and renders a new user entry view when a new user is added to the
+     * current collection of users at the same position as within the
+     * collection, reflecting its ordering.
+     *
+     * @param  {app.models.User} user
+     */
+    _addUserEntry: function(user, foo, i, x) {
+      // find the user index in the collection
+      var index       = this.collection.findUserIndex(user.get("username")),
+          listRoot    = this.$("ul"),
+          viewElems   = listRoot.find("li"),
+          newViewEl   = this._createUserEntryView(user).render().$el,
+          nbViewElems = viewElems.length,
+          maxIndex    = nbViewElems - 1;
+
+      if (nbViewElems === 0)
+        listRoot.append(newViewEl);
+      else if (index > maxIndex)
+        viewElems.eq(maxIndex).after(newViewEl);
       else
-        this.$el.hide();
-      // show/hide invite if user is alone
+        viewElems.eq(index).before(newViewEl);
+    },
+
+    /**
+     * Displays a notification when the current user is logged and alone in the
+     * room.
+     *
+     * XXX: this should be moved elsewhere really.
+     */
+    _checkCurrentUserAlone: function() {
       if (this.user.isLoggedIn() && this.collection.length === 1) {
         if (!this.activeNotification)
           this.activeNotification =
@@ -411,6 +397,20 @@
           this.activeNotification.clear();
         this.activeNotification = null;
       }
+    },
+
+    render: function() {
+      // exclude current user from the collection
+      var filtered = this.collection.excludeUser(this.user.get("username"));
+
+      // create the list of user entry child views
+      var views = filtered.map(this._createUserEntryView);
+
+      // populate view html with all the child views rendered
+      this.$("ul").html(views.map(function(view) {
+        return view.render().$el;
+      }));
+
       return this;
     }
   });

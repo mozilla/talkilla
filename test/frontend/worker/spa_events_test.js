@@ -129,19 +129,6 @@ describe("SPA events", function() {
   });
 
   describe("`userJoined` event", function() {
-
-    it("should broadcast a `talkilla.users` event", function() {
-      tkWorker.users.reset();
-      sandbox.stub(tkWorker.ports, "broadcastEvent");
-
-      tkWorker.spa.trigger("userJoined", "foo");
-
-      sinon.assert.called(tkWorker.ports.broadcastEvent);
-      sinon.assert.calledWith(tkWorker.ports.broadcastEvent, "talkilla.users", [
-        {email: "foo", username: "foo", presence: "connected"}
-      ]);
-    });
-
     it("should broadcast a `talkilla.user-joined` event", function() {
       tkWorker.users.reset();
       sandbox.stub(tkWorker.ports, "broadcastEvent");
@@ -152,7 +139,6 @@ describe("SPA events", function() {
       sinon.assert.calledWith(tkWorker.ports.broadcastEvent,
                               "talkilla.user-joined", "foo");
     });
-
   });
 
   describe("`userLeft` event", function() {
@@ -166,17 +152,6 @@ describe("SPA events", function() {
       tkWorker.spa.trigger("userLeft", "foo");
 
       sinon.assert.notCalled(tkWorker.ports.broadcastEvent);
-    });
-
-    it("should broadcast a `talkilla.users` event", function() {
-      tkWorker.users.set("foo", {presence: "connected"}, "email");
-
-      tkWorker.spa.trigger("userLeft", "foo");
-
-      sinon.assert.called(tkWorker.ports.broadcastEvent);
-      sinon.assert.calledWith(tkWorker.ports.broadcastEvent, "talkilla.users", [
-        {email: "foo", username: "foo", presence: "disconnected"}
-      ]);
     });
 
     it("should broadcast a `talkilla.user-left` event", function() {
