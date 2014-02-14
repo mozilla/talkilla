@@ -610,7 +610,8 @@
       this.send({type: "file:new", message: {
         id: entry.id,
         filename: entry.file.name,
-        size: entry.file.size
+        size: entry.file.size,
+        type: entry.file.type
       }});
 
       entry.on("chunk", onFileChunk);

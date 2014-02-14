@@ -296,6 +296,16 @@ class BrowserTest(unittest.TestCase):
         except TimeoutException:
             pass
 
+    def assertUsersListed(self, driver, users):
+        driver.switchToSidebar()
+        for user in users:
+            self.assertElementVisible(driver, '#users a[rel="%s"]' % user)
+
+    def assertUsersNotListed(self, driver, users):
+        driver.switchToSidebar()
+        for user in users:
+            self.assertElementNotVisible(driver, '#users a[rel="%s"]' % user)
+
     def getInstantShareLink(self, driver):
         element = driver.find_element_by_id("link-share-input")
         link = element.get_attribute("value")
