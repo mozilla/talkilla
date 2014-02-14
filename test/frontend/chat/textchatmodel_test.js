@@ -396,7 +396,7 @@ describe('Text chat models', function() {
     var textChat, blob;
 
     beforeEach(function() {
-      blob = new Blob(["abcdefghij"]);
+      blob = new Blob(["abcdefghij"], {type:"application/test"});
       blob.name = "foo";
       textChat = createTextChat();
       textChat.transport = transport;
@@ -406,7 +406,8 @@ describe('Text chat models', function() {
       var entry = new app.models.FileTransfer({file: blob}, {chunkSize: 1});
       var message = {type: "file:new", message: {id: entry.id,
                                                  filename: "foo",
-                                                 size: 10}};
+                                                 size: 10,
+                                                 type: "application/test"}};
       sandbox.stub(textChat, "send");
 
       textChat._onFileTransferCreated(entry);
