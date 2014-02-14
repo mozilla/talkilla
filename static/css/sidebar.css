@@ -253,7 +253,10 @@
 }
 
 .sidebar #users form .search-query {
-  width: 260px;
+  /* XXX Really this should be the width of the sidebar, but there's
+   * another element that needs tweaking somewhere.
+   */
+  width: 100%;
 }
 
 .sidebar #users form button {
