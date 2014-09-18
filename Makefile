@@ -5,7 +5,7 @@ SESSION_SECRET?=unguessable # default secret for development and test mode
 endif
 
 .PHONY: test
-test: lint mocha selenium_all
+test: selenium-repeat
 
 .PHONY: test_server
 test_server: jshint_server mocha
@@ -73,10 +73,10 @@ selenium:
 	bin/run_selenium_test.sh "python -m unittest discover -v test/functional"
 
 .PHONY: selenium-repeat
-REPEAT_TIMES ?= 10
-REPEAT_TEST ?= -m unittest discover -v test/functional
+REPEAT_TIMES ?= 80
+REPEAT_TEST ?= -m unittest discover -v test/frontend
 selenium-repeat:
-	bin/run_selenium_test.sh "bin/repeat_loop.sh $(REPEAT_TIMES) python $(REPEAT_TEST)"
+	FULL_SELENIUM_DEBUG=1 bin/run_selenium_test.sh "bin/repeat_loop.sh $(REPEAT_TIMES) python $(REPEAT_TEST)"
 
 .PHONY: frontend
 frontend:

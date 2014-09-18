@@ -179,12 +179,17 @@ var SidebarApp = (function(app, $) {
   };
 
   SidebarApp.prototype._setupDebugLogging = function() {
-    if (!app.options.DEBUG)
-      return;
+    //if (!app.options.DEBUG)
+    //  return;
 
     // worker port events logging
-    this.appPort.on("talkilla.debug", function(event) {
-      console.log("worker event", event.label, event.data);
+    this.appPort.on('talkilla.debug', function(event) {
+      console.log('worker event', event.label, event.data);
+      dump('worker event "' + event.label + '"\n');
+      try {
+        dump('event.data' + JSON.stringify(event.data) + "\n");
+      } catch (x) {
+      }
     });
   };
 
