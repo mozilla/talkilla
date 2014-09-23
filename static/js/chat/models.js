@@ -415,7 +415,7 @@
      */
     nextChunk: function() {
       var blob = this.file.slice(this.seek, this.seek + this.options.chunkSize);
-      this.reader.readAsArrayBuffer(blob);
+      this.reader.readAsBinaryString(blob);
     },
 
     /**
@@ -449,7 +449,7 @@
     _onChunk: function(event) {
       var data = event.target.result;
 
-      this.seek += data.byteLength;
+      this.seek += data.length;
       this.trigger("chunk", this.id, data);
 
       if (this.isDone())

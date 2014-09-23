@@ -76,18 +76,13 @@ describe("FileTransfer Model", function() {
       function(done) {
         var nbCalls = 1;
         transfer.on("chunk", function(id, chunk) {
-          var view = new Uint8Array(chunk);
-          var c = String.fromCharCode.apply(null, view);
-
-          expect(id).to.not.be.Null;
-
           if (nbCalls === 1) {
-            expect(c).to.equal('c');
+            expect(chunk).to.equal('c');
             transfer.nextChunk();
           }
 
           if (nbCalls === 2) {
-            expect(c).to.equal('o');
+            expect(chunk).to.equal('o');
             done();
           }
 
@@ -100,10 +95,7 @@ describe("FileTransfer Model", function() {
     it("should accepts a custom chunkSize", function(done) {
       var chunks = [];
       transfer.on("chunk", function(id, chunk) {
-        var view = new Uint8Array(chunk);
-        var str = String.fromCharCode.apply(null, view);
-
-        chunks.push(str);
+        chunks.push(chunk);
         if (!transfer.isDone())
           transfer.nextChunk();
       });
@@ -119,10 +111,7 @@ describe("FileTransfer Model", function() {
     it("should call complete when there are no chunks left", function(done) {
       var chunks = [];
       transfer.on("chunk", function(id, chunk) {
-        var view = new Uint8Array(chunk);
-        var str = String.fromCharCode.apply(null, view);
-
-        chunks.push(str);
+        chunks.push(chunk);
         if (!transfer.isDone())
           transfer.nextChunk();
       });
